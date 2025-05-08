@@ -48,73 +48,64 @@ export const SampleProfileSection = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">SHARED INTERESTS</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                      <Coffee className="h-3 w-3 mr-1.5" />
-                      <span>Coffee shops</span>
-                    </div>
-                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                      <Book className="h-3 w-3 mr-1.5" />
-                      <span>Fiction</span>
-                    </div>
-                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                      <Music className="h-3 w-3 mr-1.5" />
-                      <span>Indie music</span>
-                    </div>
-                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                      <Dumbbell className="h-3 w-3 mr-1.5" />
-                      <span>Bouldering</span>
-                    </div>
-                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                      <Globe className="h-3 w-3 mr-1.5" />
-                      <span>Travel</span>
-                    </div>
+            <CardContent className="pt-4 space-y-3">
+              {/* Moved IDEAL HANGS to first position */}
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 rounded-lg p-2 flex items-center">
+                    <span className="text-lg mr-2">🏀</span>
+                    <span className="text-sm">Watching games</span>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 rounded-lg p-2 flex items-center">
+                    <span className="text-lg mr-2">🍺</span>
+                    <span className="text-sm">Local breweries</span>
+                  </div>
+                  <div className="bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200 rounded-lg p-2 flex items-center">
+                    <span className="text-lg mr-2">☀️</span>
+                    <span className="text-sm">Morning walks</span>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-100 to-green-50 border border-green-200 rounded-lg p-2 flex items-center">
+                    <span className="text-lg mr-2">⛳</span>
+                    <span className="text-sm">Golf</span>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">🏀</span>
-                      <span className="text-sm">Watching games at a sports bar</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">🍺</span>
-                      <span className="text-sm">Checking out local breweries</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">☀️</span>
-                      <span className="text-sm">Morning walks with coffee</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-100 to-green-50 border border-green-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">⛳</span>
-                      <span className="text-sm">Golf or driving range</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-red-100 to-red-50 border border-red-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">📚</span>
-                      <span className="text-sm">Reading sessions at library</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 border border-indigo-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">🎧</span>
-                      <span className="text-sm">EDM raves & festivals</span>
-                    </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">SHARED INTERESTS</h4>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                    <Coffee className="h-3 w-3 mr-1.5" />
+                    <span>Coffee shops</span>
+                  </div>
+                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                    <Book className="h-3 w-3 mr-1.5" />
+                    <span>Fiction</span>
+                  </div>
+                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                    <Music className="h-3 w-3 mr-1.5" />
+                    <span>Indie music</span>
+                  </div>
+                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                    <Dumbbell className="h-3 w-3 mr-1.5" />
+                    <span>Bouldering</span>
+                  </div>
+                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                    <Globe className="h-3 w-3 mr-1.5" />
+                    <span>Travel</span>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">COMPATIBILITY HIGHLIGHTS</h4>
-                  <div className="space-y-2">
-                    <div className="bg-primary/5 rounded-lg p-2.5 text-sm">
-                      <span className="font-medium">You both</span> love trying unusual coffee brewing methods
-                    </div>
-                    <div className="bg-secondary/5 rounded-lg p-2.5 text-sm">
-                      <span className="font-medium">You both</span> prefer meaningful 1:1 conversations over group settings
-                    </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">COMPATIBILITY HIGHLIGHTS</h4>
+                <div className="space-y-2">
+                  <div className="bg-primary/5 rounded-lg p-2 text-sm">
+                    <span className="font-medium">You both</span> love trying unusual coffee brewing methods
+                  </div>
+                  <div className="bg-secondary/5 rounded-lg p-2 text-sm">
+                    <span className="font-medium">You both</span> prefer meaningful 1:1 conversations
                   </div>
                 </div>
               </div>
