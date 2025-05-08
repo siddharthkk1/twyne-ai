@@ -6,6 +6,7 @@ import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles } from "lucide-re
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
+import { Logo } from "@/components/Logo";
 
 const Index = () => {
   const { user } = useAuth();
@@ -14,11 +15,11 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
       {/* Hero Section - with reduced padding */}
-      <section className="relative py-12 md:py-14 gradient-bg">
+      <section className="relative py-10 md:py-12 gradient-bg mt-16">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
             <div className="rounded-full bg-primary/20 p-4 inline-flex">
-              <Brain className="h-8 w-8 text-primary" />
+              <Logo size="lg" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight gradient-text">
               Meet people you vibe with in your city
@@ -48,7 +49,7 @@ const Index = () => {
             </div>
             
             {/* Rotating text with minimal spacing */}
-            <div className="mt-4 w-full">
+            <div className="mt-2 w-full mb-0">
               <RotatingUseScenarios />
             </div>
           </div>
