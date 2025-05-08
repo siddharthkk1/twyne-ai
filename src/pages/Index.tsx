@@ -1,9 +1,11 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
+import { UseScenarioCarousel } from "@/components/landing/UseScenarioCarousel";
 
 const Index = () => {
   const { user } = useAuth();
@@ -47,6 +49,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Use Scenario Carousel */}
+      <UseScenarioCarousel />
 
       {/* Example Warm Intros Section */}
       <section className="py-16 bg-background">
