@@ -1,6 +1,7 @@
 
 import React from "react";
 import ConnectionCard from "./ConnectionCard";
+import { Sparkles } from "lucide-react";
 
 interface Connection {
   id: string;
@@ -20,9 +21,15 @@ const NewConnectionsSection = ({ connections }: NewConnectionsSectionProps) => {
   
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-medium text-foreground">This Week's Introductions</h2>
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center">
+          <Sparkles size={14} className="text-secondary" />
+        </div>
+        <h2 className="text-lg font-medium text-foreground">This Week's Introductions</h2>
+      </div>
+      
       <p className="text-sm text-muted-foreground">
-        These are people I think you'll click with. Take your time to say hi.
+        These are people I think you'll click with. Connect to say hi and see your full compatibility profile.
       </p>
 
       {connections.map((connection) => (
