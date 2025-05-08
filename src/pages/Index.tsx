@@ -3,10 +3,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Brain, MessageCircle, Share2, Users } from "lucide-react";
+import { TopNavBar } from "@/components/TopNavBar";
 
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <TopNavBar />
       {/* Hero Section */}
       <section className="relative py-24 md:py-32 flex-1 gradient-bg">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -15,7 +17,7 @@ const Index = () => {
               <Brain className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight gradient-text">
-              Discover your genuine connections
+              Meet people who you vibe with
             </h1>
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
               No more awkward algorithms. Connect with people who actually match your vibe through 
