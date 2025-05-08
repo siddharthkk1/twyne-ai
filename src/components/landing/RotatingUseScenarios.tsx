@@ -9,7 +9,7 @@ interface ScenarioItem {
 export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
   
-  // Define all use scenarios - updated for more variety
+  // Define all use scenarios - updated with more specific scenarios
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -17,7 +17,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 2,
-      title: "I want to expand my friend circle with people who share similar hobbies.",
+      title: "I love climbing and want buddies who'll join me at the gym once a week.",
     },
     {
       id: 3,
@@ -25,11 +25,11 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 4,
-      title: "I'm tired of flaky group chats and surface-level hangs.",
+      title: "I want deep conversations about books and philosophy over coffee.",
     },
     {
       id: 5,
-      title: "I want to meet people from different backgrounds to broaden my perspectives.",
+      title: "I travel a lot for work and need local guides in each city I visit.",
     },
     {
       id: 6,

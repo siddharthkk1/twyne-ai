@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Carousel,
@@ -24,7 +25,7 @@ export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Define all use scenarios - updated for more variety
+  // Define all use scenarios - updated for more specificity in items 2, 4, and 5
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -37,8 +38,8 @@ export const UseScenarioCarousel = () => {
     {
       id: 2,
       icon: Heart,
-      title: "I want to expand my friend circle with people who share similar hobbies.",
-      description: "Find people who enjoy the same activities you do—whether it's hiking, painting, gaming, or cooking.",
+      title: "I love climbing and want buddies who'll join me at the gym once a week.",
+      description: "Find activity partners who match your schedule and skill level for regular adventures.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
     },
@@ -53,16 +54,16 @@ export const UseScenarioCarousel = () => {
     {
       id: 4,
       icon: Users,
-      title: "I'm tired of flaky group chats and surface-level hangs.",
-      description: "Twyne introduces you to people who want real conversation and low-key connection.",
+      title: "I want deep conversations about books and philosophy over coffee.",
+      description: "Meet fellow intellectuals who enjoy discussing ideas, theories, and literature in cozy settings.",
       iconBgColor: "bg-primary/20",
       iconColor: "text-primary",
     },
     {
       id: 5,
       icon: User,
-      title: "I want to meet people from different backgrounds to broaden my perspectives.",
-      description: "Expand your social circle with diverse connections while still finding genuine common ground.",
+      title: "I travel a lot for work and need local guides in each city I visit.",
+      description: "Connect with locals who can show you the hidden gems and authentic experiences wherever you go.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
     },
