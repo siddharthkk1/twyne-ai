@@ -5,33 +5,33 @@
 
 @layer base {
   :root {
-    --background: 40 33% 98%;
-    --foreground: 240 10% 28%;
+    --background: 220 20% 97%;
+    --foreground: 220 10% 28%;
 
-    --card: 40 33% 98%;
-    --card-foreground: 240 10% 28%;
+    --card: 220 20% 97%;
+    --card-foreground: 220 10% 28%;
 
-    --popover: 40 33% 98%;
-    --popover-foreground: 240 10% 28%;
+    --popover: 220 20% 97%;
+    --popover-foreground: 220 10% 28%;
 
-    --primary: 260 20% 62%;
+    --primary: 260 80% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 84 18% 70%;
-    --secondary-foreground: 240 6% 10%;
+    --secondary: 187 75% 64%;
+    --secondary-foreground: 220 6% 10%;
 
-    --muted: 240 5% 94%;
-    --muted-foreground: 240 5% 50%;
+    --muted: 220 10% 94%;
+    --muted-foreground: 220 5% 50%;
 
-    --accent: 210 25% 71%;
-    --accent-foreground: 240 6% 10%;
+    --accent: 320 80% 70%;
+    --accent-foreground: 220 6% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 260 20% 62%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 260 80% 60%;
 
     --radius: 1rem;
   }
@@ -48,7 +48,7 @@
   }
 
   .gradient-bg {
-    background: linear-gradient(135deg, #F5F5F2 0%, #E8E9F5 50%, #EDF2F8 100%);
+    background: linear-gradient(135deg, #f3f4fa 0%, #e8eeff 50%, #efeaff 100%);
     background-size: 200% 200%;
     animation: gradient 15s ease infinite;
   }
@@ -101,4 +101,13 @@
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105;
   }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/20 border border-white/30;
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 15px rgba(var(--primary), 0.7);
+  }
 }
+
