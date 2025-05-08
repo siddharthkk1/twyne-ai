@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Connection {
   id: string;
@@ -13,8 +14,8 @@ interface Connection {
   isNew: boolean;
 }
 
-// Mock data for connections
-const connections: Connection[] = [
+// Mock data for connections - will be populated from backend in production
+const mockConnections: Connection[] = [
   {
     id: "1",
     name: "Nina",
@@ -34,6 +35,14 @@ const connections: Connection[] = [
 ];
 
 const Connections = () => {
+  const { user } = useAuth();
+
+  // Check if the user has just completed onboarding
+  const isNewlyOnboarded = user?.user_metadata?.has_onboarded === true && 
+                          (!user?.user_metadata?.received_first_matches);
+
+  // Only show connections for returning users who have received matches
+  const connections = isNewlyOnboarded ? [] : mockConnections;
   const newConnections = connections.filter((c) => c.isNew);
   const pastConnections = connections.filter((c) => !c.isNew);
 
@@ -41,77 +50,102 @@ const Connections = () => {
     <div className="py-4 space-y-6">
       <h1 className="text-2xl font-semibold">Connections</h1>
 
-      {newConnections.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium text-foreground">This Week's Introductions</h2>
-          <p className="text-sm text-muted-foreground">
-            These are people I think you'll click with. Take your time to say hi.
+      {isNewlyOnboarded ? (
+        // Show welcome message for newly onboarded users
+        <div className="bg-background rounded-2xl p-6 text-center space-y-4 animate-fade-in">
+          <h2 className="font-medium text-lg">Thanks for sharing about yourself!</h2>
+          <p className="text-muted-foreground">
+            We're finding people in your area who match your vibe.
+            Your first introductions will arrive soon.
           </p>
-
-          {newConnections.map((connection) => (
-            <div
-              key={connection.id}
-              className="bg-background rounded-2xl p-4 shadow-sm animate-fade-in"
-            >
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="h-16 w-16 rounded-full overflow-hidden">
-                  <img
-                    src={connection.imageUrl}
-                    alt={connection.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium">{connection.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {connection.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-muted rounded-xl p-3 mb-4">
-                <p className="text-sm">
-                  <span className="font-medium">Why you might click:</span>{" "}
-                  {connection.matchReason}
-                </p>
-              </div>
-
-              <div className="flex space-x-2">
-                <Button 
-                  asChild 
-                  variant="outline"
-                  className="flex-1 rounded-full"
-                >
-                  <Link to={`/chat/${connection.id}`}>
-                    <MessageCircle size={18} className="mr-2" />
-                    Say Hi
-                  </Link>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="flex-1 rounded-full text-muted-foreground"
-                >
-                  Not Now
-                </Button>
-              </div>
+          <div className="py-6">
+            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
             </div>
-          ))}
+          </div>
+          <Button 
+            asChild
+            variant="outline" 
+            className="rounded-full"
+          >
+            <Link to="/chat/twyne">Chat with Twyne</Link>
+          </Button>
         </div>
-      )}
+      ) : (
+        <>
+          {newConnections.length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-medium text-foreground">This Week's Introductions</h2>
+              <p className="text-sm text-muted-foreground">
+                These are people I think you'll click with. Take your time to say hi.
+              </p>
 
-      <div className="bg-secondary/20 rounded-2xl p-6 text-center">
-        <h2 className="font-medium mb-2">Next matches coming soon</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          I'm looking for people who match your vibe. New introductions arrive weekly.
-        </p>
-        <Button 
-          asChild
-          variant="outline" 
-          className="rounded-full"
-        >
-          <Link to="/chat/twyne">Chat with Twyne</Link>
-        </Button>
-      </div>
+              {newConnections.map((connection) => (
+                <div
+                  key={connection.id}
+                  className="bg-background rounded-2xl p-4 shadow-sm animate-fade-in"
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="h-16 w-16 rounded-full overflow-hidden">
+                      <img
+                        src={connection.imageUrl}
+                        alt={connection.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{connection.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {connection.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted rounded-xl p-3 mb-4">
+                    <p className="text-sm">
+                      <span className="font-medium">Why you might click:</span>{" "}
+                      {connection.matchReason}
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button 
+                      asChild 
+                      variant="outline"
+                      className="flex-1 rounded-full"
+                    >
+                      <Link to={`/chat/${connection.id}`}>
+                        <MessageCircle size={18} className="mr-2" />
+                        Say Hi
+                      </Link>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="flex-1 rounded-full text-muted-foreground"
+                    >
+                      Not Now
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="bg-secondary/20 rounded-2xl p-6 text-center">
+            <h2 className="font-medium mb-2">Next matches coming soon</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              I'm looking for people who match your vibe. New introductions arrive weekly.
+            </p>
+            <Button 
+              asChild
+              variant="outline" 
+              className="rounded-full"
+            >
+              <Link to="/chat/twyne">Chat with Twyne</Link>
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
