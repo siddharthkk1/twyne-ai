@@ -10,20 +10,20 @@ export const SampleProfileSection = () => {
     <section className="py-16 bg-background">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold">How Others See You</h2>
+          <h2 className="text-3xl font-bold">Your Connection Profiles</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-            Twyne creates rich profiles that highlight your unique interests and personality
+            Twyne creates personalized connection profiles that highlight what you share with each match
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <h3 className="text-xl md:text-2xl font-bold mb-4">Your Twyne Profile</h3>
+            <h3 className="text-xl md:text-2xl font-bold mb-4">Connection Profile</h3>
             <p className="mb-6">
-              Through natural conversations with our AI, we build a nuanced understanding of who you are—what you love, how you spend your time, and what kind of connections you're looking for.
+              Through conversations with our AI, we identify meaningful connections between you and potential friends—your shared interests, complementary energies, and compatible activities.
             </p>
             <p className="mb-6">
-              <span className="font-medium">This is not public.</span> Your profile is only shown to people we've specifically matched you with based on compatibility—never publicly visible like social media profiles.
+              <span className="font-medium">This is not public.</span> These connection profiles are only visible between matched individuals—never publicly visible like social media profiles.
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10">No endless swiping</Badge>
@@ -39,10 +39,10 @@ export const SampleProfileSection = () => {
                   <AvatarFallback className="bg-secondary/20 text-secondary text-xl">AK</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-xl font-semibold">Alex Kim</h3>
+                  <h3 className="text-xl font-semibold">Your Connection with Alex</h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
-                    <span>San Francisco</span>
+                    <span>San Francisco (15 min from you)</span>
                   </div>
                 </div>
               </div>
@@ -124,4 +124,3 @@ export const SampleProfileSection = () => {
     </section>
   );
 };
-

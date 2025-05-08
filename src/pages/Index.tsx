@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -109,7 +108,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Sample Profile Section */}
+      {/* Sample Profile Section - MOVED HERE before social proof */}
       <SampleProfileSection />
 
       {/* Example Warm Intros Section */}
@@ -140,7 +139,7 @@ const Index = () => {
             
             <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
               <p className="text-lg">
-                <span className="font-semibold">You and Chris</span> are both dog people who prefer long walks over loud parties.
+                <span className="font-semibold">You and Chris</span> are both getting married in a month and looking for new local friends.
               </p>
             </div>
             
