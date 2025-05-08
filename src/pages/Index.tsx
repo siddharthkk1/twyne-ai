@@ -19,7 +19,7 @@ const Index = () => {
               Meet people who you vibe with
             </h1>
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
-              Twyne gets to know your personality, energy, and life context—then introduces you to people nearby who actually click.
+              Twyne gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button asChild size="lg" className="rounded-full px-8 hover-scale">
