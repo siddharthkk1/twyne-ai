@@ -23,7 +23,7 @@ export const SampleProfileSection = () => {
               Through natural conversations with our AI, we build a nuanced understanding of who you are—what you love, how you spend your time, and what kind of connections you're looking for.
             </p>
             <p className="mb-6">
-              We never show your full profile to everyone. Instead, we highlight specific shared interests and compatibility factors that make each introduction feel personal and meaningful.
+              <span className="font-medium">This is not public.</span> Your profile is only shown to people we've specifically matched you with based on compatibility—never publicly visible like social media profiles.
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10">No endless swiping</Badge>
@@ -124,3 +124,4 @@ export const SampleProfileSection = () => {
     </section>
   );
 };
+
