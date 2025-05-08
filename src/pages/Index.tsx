@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -136,7 +137,7 @@ const Index = () => {
             
             <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
               <p className="text-lg">
-                <span className="font-semibold">You and Chris</span> are both getting married in a month and looking for wedding planning ideas.
+                <span className="font-semibold">You and Chris</span> are both getting married in a month and want to trade notes over a drink.
               </p>
             </div>
             

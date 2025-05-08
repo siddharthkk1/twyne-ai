@@ -39,11 +39,11 @@ export const SampleProfileSection = () => {
                   <AvatarFallback className="bg-secondary/20 text-secondary text-xl">AK</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm text-gray-500 mb-0.5">Your connection with</p>
-                  <h3 className="text-xl font-semibold">Alex Kim</h3>
+                  <p className="text-xs text-muted-foreground">Your connection with</p>
+                  <h3 className="text-2xl font-semibold">Alex Kim</h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
-                    <span>San Francisco (15 min from you)</span>
+                    <span>San Francisco</span>
                   </div>
                 </div>
               </div>
