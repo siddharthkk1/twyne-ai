@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -33,14 +32,14 @@ export const SampleProfileSection = () => {
           </div>
 
           <Card className="shadow-md border border-border/50 overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 pb-2">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 py-3">
               <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16 border-2 border-white">
+                <Avatar className="h-14 w-14 border-2 border-white">
                   <AvatarFallback className="bg-secondary/20 text-secondary text-xl">AK</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-xs text-muted-foreground">Your connection with</p>
-                  <h3 className="text-2xl font-semibold">Alex Kim</h3>
+                  <h3 className="text-xl font-semibold">Alex Kim</h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
                     <span>San Francisco</span>
@@ -48,8 +47,8 @@ export const SampleProfileSection = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-              {/* Moved IDEAL HANGS to first position */}
+            <CardContent className="pt-3 space-y-2.5">
+              {/* IDEAL HANGS section moved to first position while keeping original categories */}
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
                 <div className="grid grid-cols-2 gap-2">
@@ -74,37 +73,37 @@ export const SampleProfileSection = () => {
 
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1.5">SHARED INTERESTS</h4>
-                <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                    <Coffee className="h-3 w-3 mr-1.5" />
+                <div className="flex flex-wrap gap-1.5">
+                  <div className="flex items-center bg-muted rounded-full px-2.5 py-0.5 text-xs">
+                    <Coffee className="h-3 w-3 mr-1" />
                     <span>Coffee shops</span>
                   </div>
-                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                    <Book className="h-3 w-3 mr-1.5" />
+                  <div className="flex items-center bg-muted rounded-full px-2.5 py-0.5 text-xs">
+                    <Book className="h-3 w-3 mr-1" />
                     <span>Fiction</span>
                   </div>
-                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                    <Music className="h-3 w-3 mr-1.5" />
+                  <div className="flex items-center bg-muted rounded-full px-2.5 py-0.5 text-xs">
+                    <Music className="h-3 w-3 mr-1" />
                     <span>Indie music</span>
                   </div>
-                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                    <Dumbbell className="h-3 w-3 mr-1.5" />
+                  <div className="flex items-center bg-muted rounded-full px-2.5 py-0.5 text-xs">
+                    <Dumbbell className="h-3 w-3 mr-1" />
                     <span>Bouldering</span>
                   </div>
-                  <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
-                    <Globe className="h-3 w-3 mr-1.5" />
+                  <div className="flex items-center bg-muted rounded-full px-2.5 py-0.5 text-xs">
+                    <Globe className="h-3 w-3 mr-1" />
                     <span>Travel</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">COMPATIBILITY HIGHLIGHTS</h4>
-                <div className="space-y-2">
-                  <div className="bg-primary/5 rounded-lg p-2 text-sm">
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">COMPATIBILITY HIGHLIGHTS</h4>
+                <div className="space-y-1.5">
+                  <div className="bg-primary/5 rounded-lg p-1.5 text-sm">
                     <span className="font-medium">You both</span> love trying unusual coffee brewing methods
                   </div>
-                  <div className="bg-secondary/5 rounded-lg p-2 text-sm">
+                  <div className="bg-secondary/5 rounded-lg p-1.5 text-sm">
                     <span className="font-medium">You both</span> prefer meaningful 1:1 conversations
                   </div>
                 </div>
