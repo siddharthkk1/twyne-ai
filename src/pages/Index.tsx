@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -92,7 +91,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-medium mb-2">Local Connections</h3>
               <p className="text-muted-foreground">
-                Get introduced to 1-2 people in your city who genuinely match your energy and interests.
+                Get introduced to 1-2 people in your city who genuinely share your energy and interests.
               </p>
             </div>
             
@@ -150,7 +149,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Sample Profile Section - MOVED HERE before social proof */}
+      {/* Sample Profile Section */}
       <SampleProfileSection />
 
       {/* Social Proof Section */}

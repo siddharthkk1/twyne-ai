@@ -9,7 +9,7 @@ const OnboardingWelcome = () => {
     <div className="bg-background rounded-2xl p-6 text-center space-y-4 animate-fade-in">
       <h2 className="font-medium text-lg">Thanks for sharing about yourself!</h2>
       <p className="text-muted-foreground">
-        We're finding people in your area who match your vibe.
+        We're finding people in your area who share your vibe.
         Your first introductions will arrive soon.
       </p>
       <div className="py-6">

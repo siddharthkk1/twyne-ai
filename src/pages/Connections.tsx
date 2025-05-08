@@ -12,9 +12,9 @@ const Connections = () => {
 
   // Check if the user has just completed onboarding
   const isNewlyOnboarded = user?.user_metadata?.has_onboarded === true && 
-                          (!user?.user_metadata?.received_first_matches);
+                          (!user?.user_metadata?.received_first_introductions);
 
-  // Only show connections for returning users who have received matches
+  // Only show connections for returning users who have received introductions
   const connections = isNewlyOnboarded ? [] : getMockConnections();
   const newConnections = connections.filter((c) => c.isNew);
   const pastConnections = connections.filter((c) => !c.isNew);

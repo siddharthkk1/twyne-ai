@@ -12,7 +12,7 @@ export const SampleProfileSection = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">Your Connection Profiles</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-            Twyne creates personalized connection profiles that highlight what you share with each match
+            Twyne creates personalized connection profiles that highlight what you share with each new friend
           </p>
         </div>
 
@@ -23,7 +23,7 @@ export const SampleProfileSection = () => {
               Through conversations with our AI, we identify meaningful connections between you and potential friends—your shared interests, complementary energies, and compatible activities.
             </p>
             <p className="mb-6">
-              <span className="font-medium">This is not public.</span> These connection profiles are only visible between matched individuals—never publicly visible like social media profiles.
+              <span className="font-medium">This is not public.</span> These connection profiles are only visible between connected individuals—never publicly visible like social media profiles.
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10">No endless swiping</Badge>
