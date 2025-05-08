@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Brain, MessageCircle, Share2, Users } from "lucide-react";
+import { Brain, MessageCircle, Share2, Users, MapPin } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -20,7 +20,7 @@ const Index = () => {
               <Brain className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight gradient-text">
-              Meet people who you vibe with
+              Meet people you vibe with in your city
             </h1>
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
               Twyne gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
@@ -70,11 +70,11 @@ const Index = () => {
             
             <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
               <div className="mx-auto w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mb-4">
-                <Brain className="h-6 w-6 text-secondary" />
+                <MapPin className="h-6 w-6 text-secondary" />
               </div>
-              <h3 className="text-xl font-medium mb-2">Weekly Introductions</h3>
+              <h3 className="text-xl font-medium mb-2">Local Connections</h3>
               <p className="text-muted-foreground">
-                Get introduced to 1-2 people nearby who genuinely match your energy and interests.
+                Get introduced to 1-2 people in your city who genuinely match your energy and interests.
               </p>
             </div>
             
@@ -99,7 +99,7 @@ const Index = () => {
               <Share2 className="h-12 w-12 text-primary" />
               <h2 className="text-2xl md:text-3xl font-bold">Ready to find your authentic connections?</h2>
               <p className="max-w-[600px] text-muted-foreground">
-                Start chatting with Twyne today and discover people who truly match your vibe.
+                Start chatting with Twyne today and discover people in your city who truly match your vibe.
               </p>
               {user ? (
                 <Button className="mt-4 rounded-full px-8 hover-scale" asChild size="lg">
