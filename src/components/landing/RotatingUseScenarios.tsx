@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Brain, Heart, ArrowRight, Users, Book, Zap, User } from "lucide-react";
+import { Brain } from "lucide-react";
 
 interface ScenarioItem {
   id: number;
@@ -13,6 +13,8 @@ export const RotatingUseScenarios = () => {
   const [isTyping, setIsTyping] = useState(true);
   const [displayedTitle, setDisplayedTitle] = useState('');
   const [displayedDescription, setDisplayedDescription] = useState('');
+  const [charIndex, setCharIndex] = useState(0);
+  const [currentlyTypingTitle, setCurrentlyTypingTitle] = useState(true);
   
   // Define all use scenarios
   const scenarios: ScenarioItem[] = [
@@ -59,67 +61,64 @@ export const RotatingUseScenarios = () => {
   ];
 
   useEffect(() => {
-    let titleTimeout: number | undefined;
-    let descTimeout: number | undefined;
-    
+    // Reset typing state when scenario changes
     setIsTyping(true);
     setDisplayedTitle('');
     setDisplayedDescription('');
-    
-    const currentScenario = scenarios[activeScenario];
-    
-    // Type the title character by character
-    const typeTitle = (index = 0) => {
-      if (index <= currentScenario.title.length) {
-        setDisplayedTitle(currentScenario.title.slice(0, index));
-        titleTimeout = window.setTimeout(() => {
-          typeTitle(index + 1);
-        }, 30); // Speed of typing
-      } else {
-        // Start typing description after title is complete
-        typeDescription();
-      }
-    };
-    
-    // Type the description character by character
-    const typeDescription = (index = 0) => {
-      if (index <= currentScenario.description.length) {
-        setDisplayedDescription(currentScenario.description.slice(0, index));
-        descTimeout = window.setTimeout(() => {
-          typeDescription(index + 1);
-        }, 20); // Speed of typing
-      } else {
-        setIsTyping(false);
-        
-        // Wait before moving to the next scenario
-        window.setTimeout(() => {
-          setActiveScenario((prevIndex) => (prevIndex + 1) % scenarios.length);
-        }, 4000); // Wait 4 seconds before changing to next scenario
-      }
-    };
-    
-    // Start the typing animation
-    typeTitle();
-    
-    // Cleanup timeouts on unmount or when scenario changes
-    return () => {
-      window.clearTimeout(titleTimeout);
-      window.clearTimeout(descTimeout);
-    };
-  }, [activeScenario, scenarios]);
+    setCharIndex(0);
+    setCurrentlyTypingTitle(true);
+  }, [activeScenario]);
+  
+  useEffect(() => {
+    if (isTyping) {
+      const currentScenario = scenarios[activeScenario];
+      const typeSpeed = 30; // milliseconds per character
+      
+      const typeChar = () => {
+        if (currentlyTypingTitle) {
+          // Typing the title
+          if (charIndex < currentScenario.title.length) {
+            setDisplayedTitle(currentScenario.title.substring(0, charIndex + 1));
+            setCharIndex(prev => prev + 1);
+          } else {
+            // Title finished, start description
+            setCurrentlyTypingTitle(false);
+            setCharIndex(0);
+          }
+        } else {
+          // Typing the description
+          if (charIndex < currentScenario.description.length) {
+            setDisplayedDescription(currentScenario.description.substring(0, charIndex + 1));
+            setCharIndex(prev => prev + 1);
+          } else {
+            // Both title and description finished
+            setIsTyping(false);
+            
+            // Wait before moving to next scenario
+            setTimeout(() => {
+              setActiveScenario((prev) => (prev + 1) % scenarios.length);
+            }, 4000);
+          }
+        }
+      };
+      
+      const typingTimeout = setTimeout(typeChar, typeSpeed);
+      return () => clearTimeout(typingTimeout);
+    }
+  }, [isTyping, charIndex, currentlyTypingTitle, activeScenario, scenarios]);
 
   return (
     <div className="min-h-[200px] flex flex-col items-center text-center max-w-[800px] mx-auto">
       <div className="mb-2 min-h-[60px] flex items-center">
         <h3 className="text-xl md:text-2xl font-bold">
           "<span className="text-primary">{displayedTitle}</span>
-          <span className={`${isTyping ? 'inline-block' : 'hidden'} w-1 h-6 ml-0.5 bg-primary animate-pulse`}></span>"
+          <span className={`${isTyping && currentlyTypingTitle ? 'inline-block' : 'hidden'} w-1 h-6 ml-0.5 bg-primary animate-pulse`}></span>"
         </h3>
       </div>
       
       <p className="text-lg text-muted-foreground min-h-[80px]">
         {displayedDescription}
-        <span className={`${isTyping ? 'inline-block' : 'hidden'} w-1 h-5 ml-0.5 bg-muted-foreground animate-pulse`}></span>
+        <span className={`${isTyping && !currentlyTypingTitle ? 'inline-block' : 'hidden'} w-1 h-5 ml-0.5 bg-muted-foreground animate-pulse`}></span>
       </p>
       
       <div className="flex justify-center gap-2 mt-6">
