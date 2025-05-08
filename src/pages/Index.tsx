@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Brain, MessageCircle, Share2, Users, MapPin } from "lucide-react";
+import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -44,6 +43,47 @@ const Index = () => {
               <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect">
                 Learn More
               </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Example Warm Intros Section */}
+      <section className="py-16 bg-background">
+        <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+          <div className="text-center mb-12">
+            <div className="rounded-full bg-secondary/20 p-3 inline-flex mb-4">
+              <Sparkles className="h-6 w-6 text-secondary" />
+            </div>
+            <h2 className="text-3xl font-bold">How We Introduce People</h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              Twyne creates warm, personalized introductions based on genuine commonalities
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
+              <p className="text-lg">
+                <span className="font-semibold">You and Nina</span> both love basketball, burritos, and late-night debates.
+              </p>
+            </div>
+            
+            <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
+              <p className="text-lg">
+                <span className="font-semibold">You and Priya</span> both read too many psychology books and have 300+ tabs open.
+              </p>
+            </div>
+            
+            <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
+              <p className="text-lg">
+                <span className="font-semibold">You and Chris</span> are both dog people who prefer long walks over loud parties.
+              </p>
+            </div>
+            
+            <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
+              <p className="text-lg">
+                <span className="font-semibold">You and Tasha</span> are both craving more real conversations but don't always know how to start them.
+              </p>
             </div>
           </div>
         </div>
