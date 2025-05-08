@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
-import { UseScenarioCarousel } from "@/components/landing/UseScenarioCarousel";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
 
 const Index = () => {
@@ -14,8 +13,8 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
-      {/* Hero Section - reduced padding at bottom */}
-      <section className="relative py-16 md:py-16 flex-1 gradient-bg">
+      {/* Hero Section - with reduced padding */}
+      <section className="relative py-12 md:py-14 gradient-bg">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
             <div className="rounded-full bg-primary/20 p-4 inline-flex">
@@ -27,7 +26,7 @@ const Index = () => {
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
               Twyne gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
               {user ? (
                 <Button asChild size="lg" className="rounded-full px-8 hover-scale">
                   <Link to="/connections" className="flex items-center">
@@ -48,16 +47,55 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Added the rotating text animation component below the buttons */}
-            <div className="mt-6 w-full pb-2">
+            {/* Rotating text with minimal spacing */}
+            <div className="mt-4 w-full">
               <RotatingUseScenarios />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Use Scenario Carousel - still keeping this section for now */}
-      <UseScenarioCarousel />
+      {/* Feature Section - moved up from below */}
+      <section className="py-16 bg-muted/30">
+        <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold">How It Works</h2>
+            <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <MessageCircle className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">Chat with Twyne</h3>
+              <p className="text-muted-foreground">
+                Have natural conversations with our AI that learns your vibe, interests, and values.
+              </p>
+            </div>
+            
+            <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
+              <div className="mx-auto w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mb-4">
+                <MapPin className="h-6 w-6 text-secondary" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">Local Connections</h3>
+              <p className="text-muted-foreground">
+                Get introduced to 1-2 people in your city who genuinely match your energy and interests.
+              </p>
+            </div>
+            
+            <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
+              <div className="mx-auto w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
+                <Users className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">Connect Your Way</h3>
+              <p className="text-muted-foreground">
+                Message first or meet up for coffee. No pressure—you decide what feels right.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Example Warm Intros Section */}
       <section className="py-16 bg-background">
@@ -94,48 +132,6 @@ const Index = () => {
             <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
               <p className="text-lg">
                 <span className="font-semibold">You and Tasha</span> are both craving more real conversations but don't always know how to start them.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="container px-4 md:px-6 mx-auto max-w-5xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">How It Works</h2>
-            <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
-              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <MessageCircle className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-medium mb-2">Chat with Twyne</h3>
-              <p className="text-muted-foreground">
-                Have natural conversations with our AI that learns your vibe, interests, and values.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
-              <div className="mx-auto w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mb-4">
-                <MapPin className="h-6 w-6 text-secondary" />
-              </div>
-              <h3 className="text-xl font-medium mb-2">Local Connections</h3>
-              <p className="text-muted-foreground">
-                Get introduced to 1-2 people in your city who genuinely match your energy and interests.
-              </p>
-            </div>
-            
-            <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
-              <div className="mx-auto w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                <Users className="h-6 w-6 text-accent" />
-              </div>
-              <h3 className="text-xl font-medium mb-2">Connect Your Way</h3>
-              <p className="text-muted-foreground">
-                Message first or meet up for coffee. No pressure—you decide what feels right.
               </p>
             </div>
           </div>
