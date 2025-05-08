@@ -137,13 +137,13 @@ const Index = () => {
             
             <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
               <p className="text-lg">
-                <span className="font-semibold">You and Chris</span> are both getting married in a month and want to trade notes over a drink.
+                <span className="font-semibold">You and Chris</span> are both getting married in a month and feeling all the chaos and excitement.
               </p>
             </div>
             
             <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
               <p className="text-lg">
-                <span className="font-semibold">You and Tasha</span> are both craving more real conversations but don't always know how to start them.
+                <span className="font-semibold">You and Lena</span> both just moved to the city and are figuring out how to feel at home here.
               </p>
             </div>
           </div>
