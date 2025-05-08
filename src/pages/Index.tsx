@@ -108,9 +108,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Sample Profile Section - MOVED HERE before social proof */}
-      <SampleProfileSection />
-
       {/* Example Warm Intros Section */}
       <section className="py-16 bg-muted/10">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -139,7 +136,7 @@ const Index = () => {
             
             <div className="bg-background rounded-xl p-6 shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
               <p className="text-lg">
-                <span className="font-semibold">You and Chris</span> are both getting married in a month and looking for new local friends.
+                <span className="font-semibold">You and Chris</span> are both getting married in a month and looking for wedding planning ideas.
               </p>
             </div>
             
@@ -151,6 +148,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Sample Profile Section - MOVED HERE before social proof */}
+      <SampleProfileSection />
 
       {/* Social Proof Section */}
       <section className="py-16 bg-muted/20">
