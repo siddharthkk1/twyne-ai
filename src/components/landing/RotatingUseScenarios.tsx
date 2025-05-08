@@ -21,7 +21,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 3,
-      title: "I'm looking for workout buddies who can keep me accountable.",
+      title: "My career is niche and I want to meet people who actually get what I do.",
     },
     {
       id: 4,
@@ -29,7 +29,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 5,
-      title: "I travel a lot for work and need local guides in each city I visit.",
+      title: "I'm looking for NBA fans in the city to watch games with.",
     },
     {
       id: 6,

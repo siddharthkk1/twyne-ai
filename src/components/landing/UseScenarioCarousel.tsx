@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Carousel,
@@ -25,7 +24,7 @@ export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Define all use scenarios - updated for more specificity in items 2, 4, and 5
+  // Define all use scenarios - updated for more specificity in items 3 and 5
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -46,8 +45,8 @@ export const UseScenarioCarousel = () => {
     {
       id: 3,
       icon: Coffee,
-      title: "I'm looking for workout buddies who can keep me accountable.",
-      description: "Connect with fitness enthusiasts in your area who match your activity level and schedule.",
+      title: "My career is niche and I want to meet people who actually get what I do.",
+      description: "Connect with professionals in similar fields who understand your unique work challenges.",
       iconBgColor: "bg-accent/20",
       iconColor: "text-accent",
     },
@@ -62,8 +61,8 @@ export const UseScenarioCarousel = () => {
     {
       id: 5,
       icon: User,
-      title: "I travel a lot for work and need local guides in each city I visit.",
-      description: "Connect with locals who can show you the hidden gems and authentic experiences wherever you go.",
+      title: "I'm looking for NBA fans in the city to watch games with.",
+      description: "Find fellow basketball enthusiasts to cheer on your team and debate stats over beers.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
     },
