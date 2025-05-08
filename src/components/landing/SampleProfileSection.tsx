@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -47,26 +48,26 @@ export const SampleProfileSection = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-3 space-y-2.5">
-              {/* IDEAL HANGS section moved to first position while keeping original categories */}
+            <CardContent className="pt-3 space-y-2">
+              {/* IDEAL HANGS section with restored original category names */}
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 rounded-lg p-2 flex items-center">
                     <span className="text-lg mr-2">🏀</span>
-                    <span className="text-sm">Watching games</span>
+                    <span className="text-sm">Watching games at a sports bar</span>
                   </div>
                   <div className="bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 rounded-lg p-2 flex items-center">
-                    <span className="text-lg mr-2">🍺</span>
-                    <span className="text-sm">Local breweries</span>
+                    <span className="text-lg mr-2">☕️</span>
+                    <span className="text-sm">Morning Starbucks runs</span>
                   </div>
                   <div className="bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200 rounded-lg p-2 flex items-center">
-                    <span className="text-lg mr-2">☀️</span>
-                    <span className="text-sm">Morning walks</span>
+                    <span className="text-lg mr-2">⛳</span>
+                    <span className="text-sm">Golf range</span>
                   </div>
                   <div className="bg-gradient-to-br from-green-100 to-green-50 border border-green-200 rounded-lg p-2 flex items-center">
-                    <span className="text-lg mr-2">⛳</span>
-                    <span className="text-sm">Golf</span>
+                    <span className="text-lg mr-2">🍺</span>
+                    <span className="text-sm">Visiting local breweries</span>
                   </div>
                 </div>
               </div>
