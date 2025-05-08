@@ -37,20 +37,6 @@ const mockConnections: Connection[] = [
   },
 ];
 
-// Mock profile data based on what we've learned from the user
-interface ProfileInsight {
-  category: string;
-  value: string;
-}
-
-// This will be populated from the actual onboarding responses in production
-const mockProfileInsights: ProfileInsight[] = [
-  { category: "Location", value: "San Francisco" },
-  { category: "Interests", value: "Hiking, Photography, Music" },
-  { category: "Seeking", value: "One-on-one connections" },
-  { category: "Curious About", value: "Local art scenes and cultural events" },
-];
-
 const Connections = () => {
   const { user } = useAuth();
 
@@ -64,9 +50,47 @@ const Connections = () => {
   const pastConnections = connections.filter((c) => !c.isNew);
 
   // Get first letter of name for avatar placeholder
-  const nameInitial = user?.user_metadata?.full_name 
-    ? user.user_metadata.full_name[0] 
+  const nameInitial = user?.user_metadata?.profile_data?.name 
+    ? user.user_metadata.profile_data.name[0] 
     : user?.email?.[0] || "?";
+    
+  // Get profile data from user metadata
+  const profileData = user?.user_metadata?.profile_data || {};
+
+  // Generate profile insights from user data
+  const generateProfileInsights = () => {
+    const insights = [
+      { 
+        category: "Location", 
+        value: profileData.location || "Not specified" 
+      },
+      { 
+        category: "Interests", 
+        value: profileData.interests?.join(", ") || profileData.talkingPoints?.join(", ") || "Not specified" 
+      },
+      { 
+        category: "Social Style", 
+        value: profileData.socialStyle || "Not specified" 
+      },
+      { 
+        category: "Looking For", 
+        value: profileData.lookingFor || "Not specified" 
+      },
+      { 
+        category: "Weekend Activities", 
+        value: profileData.weekendActivities || "Not specified" 
+      },
+      { 
+        category: "Media Tastes", 
+        value: profileData.mediaTastes || "Not specified" 
+      }
+    ];
+    
+    // Filter out insights with "Not specified" values
+    return insights.filter(insight => insight.value !== "Not specified");
+  };
+
+  const profileInsights = generateProfileInsights();
 
   return (
     <div className="py-4 space-y-6">
@@ -105,14 +129,14 @@ const Connections = () => {
                   <AvatarFallback>{nameInitial}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="font-medium">Your Profile</h2>
+                  <h2 className="font-medium">{profileData.name || "Your"} Profile</h2>
                   <p className="text-sm text-muted-foreground">Here's what we know about you so far</p>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockProfileInsights.map((insight, index) => (
+                {profileInsights.map((insight, index) => (
                   <div key={index} className="grid grid-cols-3 gap-2">
                     <div className="text-sm font-medium text-muted-foreground">{insight.category}</div>
                     <div className="col-span-2 text-sm">{insight.value}</div>
