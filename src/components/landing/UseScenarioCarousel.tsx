@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Carousel,
@@ -7,7 +6,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { MapPin, Heart, ArrowRight, Users, Book, Zap, User } from "lucide-react";
+import { MapPin, Heart, ArrowRight, Users, Book, Zap, User, Coffee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +24,7 @@ export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Define all use scenarios
+  // Define all use scenarios - updated for more variety
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -38,16 +37,16 @@ export const UseScenarioCarousel = () => {
     {
       id: 2,
       icon: Heart,
-      title: "I have friends, but none I feel deeply connected to.",
-      description: "You're not alone. Twyne helps you find people who actually get you—emotionally, socially, energetically.",
+      title: "I want to expand my friend circle with people who share similar hobbies.",
+      description: "Find people who enjoy the same activities you do—whether it's hiking, painting, gaming, or cooking.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
     },
     {
       id: 3,
-      icon: Zap,
-      title: "I'm in a big transition and want new people who match where I'm at now.",
-      description: "You've changed. Your connections should too. Twyne meets you where you are—not who you were.",
+      icon: Coffee,
+      title: "I'm looking for workout buddies who can keep me accountable.",
+      description: "Connect with fitness enthusiasts in your area who match your activity level and schedule.",
       iconBgColor: "bg-accent/20",
       iconColor: "text-accent",
     },
@@ -62,8 +61,8 @@ export const UseScenarioCarousel = () => {
     {
       id: 5,
       icon: User,
-      title: "I'm socially burnt out but still crave meaningful 1:1 interaction.",
-      description: "For people who want intentional connection without the overwhelm.",
+      title: "I want to meet people from different backgrounds to broaden my perspectives.",
+      description: "Expand your social circle with diverse connections while still finding genuine common ground.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
     },
@@ -78,16 +77,16 @@ export const UseScenarioCarousel = () => {
     {
       id: 7,
       icon: User,
-      title: "I'm introverted and hate swiping or forced mingling, but I do want to meet people.",
-      description: "Twyne works quietly in the background, introducing you to people you're likely to vibe with—no profile stalking, no pressure.",
+      title: "I work remotely and miss casual office friendships.",
+      description: "Find nearby remote workers for coworking sessions, coffee breaks, or after-work hangouts.",
       iconBgColor: "bg-primary/20",
       iconColor: "text-primary",
     },
     {
       id: 8,
       icon: Book,
-      title: "I want to meet more people like me—bookworms, creatives, gym rats, third culture kids.",
-      description: "Twyne learns your quirks, passions, and micro-interests so it can connect you beyond generic labels.",
+      title: "I'm a foodie looking for friends to try new restaurants with.",
+      description: "Connect with fellow food enthusiasts who are always up for culinary adventures in your city.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
     },

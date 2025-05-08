@@ -9,7 +9,7 @@ interface ScenarioItem {
 export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
   
-  // Define all use scenarios - removed descriptions
+  // Define all use scenarios - updated for more variety
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -17,11 +17,11 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 2,
-      title: "I have friends, but none I feel deeply connected to.",
+      title: "I want to expand my friend circle with people who share similar hobbies.",
     },
     {
       id: 3,
-      title: "I'm in a big transition and want new people who match where I'm at now.",
+      title: "I'm looking for workout buddies who can keep me accountable.",
     },
     {
       id: 4,
@@ -29,7 +29,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 5,
-      title: "I'm socially burnt out but still crave meaningful 1:1 interaction.",
+      title: "I want to meet people from different backgrounds to broaden my perspectives.",
     },
     {
       id: 6,
@@ -37,11 +37,11 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 7,
-      title: "I'm introverted and hate swiping or forced mingling, but I do want to meet people.",
+      title: "I work remotely and miss casual office friendships.",
     },
     {
       id: 8,
-      title: "I want to meet more people like me—bookworms, creatives, gym rats, third culture kids.",
+      title: "I'm a foodie looking for friends to try new restaurants with.",
     },
   ];
 
@@ -65,7 +65,7 @@ export const RotatingUseScenarios = () => {
         </h3>
       </div>
       
-      <div className="flex justify-center gap-2 mb-2 mt-2">
+      <div className="flex justify-center gap-2 mb-6 mt-4"> {/* Increased vertical spacing */}
         {scenarios.map((_, index) => (
           <button
             key={index}

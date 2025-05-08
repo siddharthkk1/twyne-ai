@@ -6,6 +6,7 @@ import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles, Star, StarHalf, 
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
+import { SampleProfileSection } from "@/components/landing/SampleProfileSection";
 import { Logo } from "@/components/Logo";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -25,10 +26,10 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
       {/* Hero Section - with adjusted padding */}
-      <section className="relative py-14 md:py-16 gradient-bg mt-16">
+      <section className="relative py-20 md:py-24 gradient-bg mt-16"> {/* Increased vertical spacing */}
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
-            <div className="rounded-full bg-primary/20 p-4 inline-flex mb-6">
+            <div className="rounded-full bg-primary/20 p-4 inline-flex mb-8"> {/* Increased space below logo */}
               <Logo size="lg" />
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight gradient-text whitespace-nowrap leading-tight">
@@ -59,7 +60,7 @@ const Index = () => {
             </div>
             
             {/* Rotating text with adjusted spacing */}
-            <div className="mt-6 w-full mb-4">
+            <div className="mt-8 w-full mb-6"> {/* Increased space above and below */}
               <RotatingUseScenarios />
             </div>
           </div>
@@ -108,8 +109,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Sample Profile Section */}
+      <SampleProfileSection />
+
       {/* Example Warm Intros Section */}
-      <section className="py-16 bg-background">
+      <section className="py-16 bg-muted/10">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <div className="rounded-full bg-secondary/20 p-3 inline-flex mb-4">

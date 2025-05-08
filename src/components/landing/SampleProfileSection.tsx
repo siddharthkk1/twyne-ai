@@ -1,0 +1,103 @@
+
+import React from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Coffee, Book, Music, Dumbbell, Globe } from "lucide-react";
+
+export const SampleProfileSection = () => {
+  return (
+    <section className="py-16 bg-background">
+      <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold">How Others See You</h2>
+          <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+            Twyne creates rich profiles that highlight your unique interests and personality
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 className="text-xl md:text-2xl font-bold mb-4">Your Twyne Profile</h3>
+            <p className="mb-6">
+              Through natural conversations with our AI, we build a nuanced understanding of who you are—what you love, how you spend your time, and what kind of connections you're looking for.
+            </p>
+            <p className="mb-6">
+              We never show your full profile to everyone. Instead, we highlight specific shared interests and compatibility factors that make each introduction feel personal and meaningful.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10">No endless swiping</Badge>
+              <Badge variant="outline" className="bg-secondary/5 hover:bg-secondary/10">No public profiles</Badge>
+              <Badge variant="outline" className="bg-accent/5 hover:bg-accent/10">No awkward icebreakers</Badge>
+            </div>
+          </div>
+
+          <Card className="shadow-md border border-border/50 overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 pb-2">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-16 w-16 border-2 border-white">
+                  <AvatarFallback className="bg-secondary/20 text-secondary text-xl">AK</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-xl font-semibold">Alex Kim</h3>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 mr-1" />
+                    <span>San Francisco</span>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">ABOUT</h4>
+                  <p className="text-sm">
+                    Creative type who's equally happy at an art show or hiking trail. Moved from Chicago last year and still exploring the city.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">INTERESTS</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                      <Coffee className="h-3 w-3 mr-1.5" />
+                      <span>Coffee shops</span>
+                    </div>
+                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                      <Book className="h-3 w-3 mr-1.5" />
+                      <span>Fiction</span>
+                    </div>
+                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                      <Music className="h-3 w-3 mr-1.5" />
+                      <span>Indie music</span>
+                    </div>
+                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                      <Dumbbell className="h-3 w-3 mr-1.5" />
+                      <span>Bouldering</span>
+                    </div>
+                    <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
+                      <Globe className="h-3 w-3 mr-1.5" />
+                      <span>Travel</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">COMPATIBILITY HIGHLIGHTS</h4>
+                  <div className="space-y-2">
+                    <div className="bg-primary/5 rounded-lg p-2.5 text-sm">
+                      <span className="font-medium">You both</span> love trying unusual coffee brewing methods
+                    </div>
+                    <div className="bg-secondary/5 rounded-lg p-2.5 text-sm">
+                      <span className="font-medium">You both</span> prefer meaningful 1:1 conversations over group settings
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </section>
+  );
+};
