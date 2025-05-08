@@ -14,11 +14,11 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
-      {/* Hero Section - with reduced padding */}
-      <section className="relative py-10 md:py-12 gradient-bg mt-16">
+      {/* Hero Section - with adjusted padding */}
+      <section className="relative py-14 md:py-16 gradient-bg mt-16">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
-            <div className="rounded-full bg-primary/20 p-4 inline-flex mb-2">
+            <div className="rounded-full bg-primary/20 p-4 inline-flex mb-6">
               <Logo size="lg" />
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight gradient-text whitespace-nowrap leading-tight">
@@ -48,8 +48,8 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Rotating text with minimal spacing */}
-            <div className="mt-2 w-full mb-0">
+            {/* Rotating text with adjusted spacing */}
+            <div className="mt-6 w-full mb-4">
               <RotatingUseScenarios />
             </div>
           </div>
