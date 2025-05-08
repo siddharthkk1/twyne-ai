@@ -46,25 +46,27 @@ const ConnectionCard = ({ id, name, description, matchReason, imageUrl, isNew }:
         </p>
       </div>
       
-      <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
+      <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1">
         <Eye size={14} /> Connect to see full compatibility profile
       </p>
 
-      <div className="flex space-x-2">
+      <div className="flex flex-col gap-3">
         <Button 
           asChild 
-          className="flex-1 rounded-full"
+          className="w-full rounded-full py-6 text-base font-medium shadow-sm hover:shadow-md transition-all"
+          size="lg"
         >
           <Link to={`/chat/${id}`}>
-            <MessageCircle size={18} className="mr-2" />
-            Say Hi
+            <MessageCircle size={20} className="mr-2" />
+            Connect & Say Hi
           </Link>
         </Button>
+        
         <Button 
-          variant="ghost" 
-          className="flex-1 rounded-full text-muted-foreground"
+          variant="outline" 
+          className="w-full rounded-full text-muted-foreground"
         >
-          Not Now
+          Not Interested
         </Button>
       </div>
     </div>
