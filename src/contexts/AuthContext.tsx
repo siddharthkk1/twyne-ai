@@ -8,9 +8,11 @@ type AuthContextType = {
   user: User | null;
   profile: any | null;
   isLoading: boolean;
+  isNewUser: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
+  clearNewUserFlag: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -22,6 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -29,6 +32,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Mark as new user if this is a sign up event
+        if (event === 'SIGNED_IN' && !session?.user.user_metadata?.has_onboarded) {
+          setIsNewUser(true);
+        }
         
         // Fetch profile if user is logged in
         if (session?.user) {
@@ -92,9 +100,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             username: userData.username,
             full_name: userData.fullName,
             avatar_url: userData.avatarUrl,
+            has_onboarded: false,
           },
         },
       });
+
+      if (!error) {
+        setIsNewUser(true);
+      }
+
       return { error };
     } catch (error) {
       return { error };
@@ -105,6 +119,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const clearNewUserFlag = () => {
+    setIsNewUser(false);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -112,9 +130,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         profile,
         isLoading,
+        isNewUser,
         signIn,
         signUp,
         signOut,
+        clearNewUserFlag,
       }}
     >
       {children}

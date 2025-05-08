@@ -3,7 +3,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 interface Message {
   id: number;
@@ -31,6 +34,8 @@ const OnboardingChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const questions = [
     "Great to meet you! What city do you live in?",
@@ -78,10 +83,33 @@ const OnboardingChat = () => {
         if (currentStep === questions.length - 1) {
           setTimeout(() => {
             setIsComplete(true);
+            // Mark user as onboarded in Supabase
+            markUserAsOnboarded();
           }, 1500);
         }
       }
     }, 1500);
+  };
+
+  const markUserAsOnboarded = async () => {
+    if (user) {
+      try {
+        const { error } = await supabase.auth.updateUser({
+          data: { has_onboarded: true }
+        });
+        
+        if (error) {
+          console.error("Error updating user metadata:", error);
+          toast({
+            title: "Error",
+            description: "Failed to update your profile. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error marking user as onboarded:", error);
+      }
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
