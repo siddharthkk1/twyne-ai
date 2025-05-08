@@ -1,10 +1,14 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Brain, MessageCircle, Share2, Users } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
+  
   return (
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
@@ -22,12 +26,21 @@ const Index = () => {
               Twyne gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
-              <Button asChild size="lg" className="rounded-full px-8 hover-scale">
-                <Link to="/onboarding" className="flex items-center">
-                  Get Started
-                  <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
-                </Link>
-              </Button>
+              {user ? (
+                <Button asChild size="lg" className="rounded-full px-8 hover-scale">
+                  <Link to="/connections" className="flex items-center">
+                    View Your Connections
+                    <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild size="lg" className="rounded-full px-8 hover-scale">
+                  <Link to="/auth" className="flex items-center">
+                    Get Started
+                    <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                  </Link>
+                </Button>
+              )}
               <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect">
                 Learn More
               </Button>
@@ -88,9 +101,15 @@ const Index = () => {
               <p className="max-w-[600px] text-muted-foreground">
                 Start chatting with Twyne today and discover people who truly match your vibe.
               </p>
-              <Button className="mt-4 rounded-full px-8 hover-scale" asChild size="lg">
-                <Link to="/onboarding">Get Started</Link>
-              </Button>
+              {user ? (
+                <Button className="mt-4 rounded-full px-8 hover-scale" asChild size="lg">
+                  <Link to="/connections">View Your Connections</Link>
+                </Button>
+              ) : (
+                <Button className="mt-4 rounded-full px-8 hover-scale" asChild size="lg">
+                  <Link to="/auth">Get Started</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
