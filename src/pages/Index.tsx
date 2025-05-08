@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -20,8 +19,7 @@ const Index = () => {
               Meet people who you vibe with
             </h1>
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
-              No more awkward algorithms. Connect with people who actually match your vibe through 
-              real conversations and authentic matching.
+              Twyne gets to know your personality, energy, and life context—then introduces you to people nearby who actually click.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button asChild size="lg" className="rounded-full px-8 hover-scale">
