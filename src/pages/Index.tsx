@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -6,6 +5,7 @@ import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles } from "lucide-re
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { UseScenarioCarousel } from "@/components/landing/UseScenarioCarousel";
+import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
 
 const Index = () => {
   const { user } = useAuth();
@@ -46,11 +46,16 @@ const Index = () => {
                 Learn More
               </Button>
             </div>
+            
+            {/* Added the rotating text animation component below the buttons */}
+            <div className="mt-12 w-full">
+              <RotatingUseScenarios />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Use Scenario Carousel */}
+      {/* Use Scenario Carousel - still keeping this section for now */}
       <UseScenarioCarousel />
 
       {/* Example Warm Intros Section */}
