@@ -57,7 +57,7 @@ const ConnectionCard = ({ id, name, description, matchReason, imageUrl, isNew }:
           size="lg"
         >
           <Link to={`/chat/${id}`}>
-            <MessageCircle size={20} className="mr-2" />
+            <MessageCircle size={20} className="mr-1" />
             Connect & Say Hi
           </Link>
         </Button>

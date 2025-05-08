@@ -28,7 +28,7 @@ const OnboardingWelcome = () => {
         className="rounded-full"
       >
         <Link to="/chat/twyne">
-          <MessageCircle size={18} className="mr-2" />
+          <MessageCircle size={18} className="mr-1" />
           Chat with Twyne
         </Link>
       </Button>

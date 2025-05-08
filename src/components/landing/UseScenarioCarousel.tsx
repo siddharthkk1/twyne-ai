@@ -126,14 +126,14 @@ export const UseScenarioCarousel = () => {
                   {user ? (
                     <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
                       <Link to="/connections" className="flex items-center">
-                        <MessageCircle size={20} className="mr-2" />
+                        <MessageCircle size={20} className="mr-1" />
                         View Your Connections
                       </Link>
                     </Button>
                   ) : (
                     <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
                       <Link to="/auth" className="flex items-center">
-                        <MessageCircle size={20} className="mr-2" />
+                        <MessageCircle size={20} className="mr-1" />
                         Connect & Say Hi
                       </Link>
                     </Button>

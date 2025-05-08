@@ -59,13 +59,13 @@ export const RotatingUseScenarios = () => {
 
   return (
     <div className="min-h-[60px] flex flex-col items-center text-center max-w-[800px] mx-auto">
-      <div className="mb-2 min-h-[40px] flex items-center">
+      <div className="mb-1 min-h-[40px] flex items-center">
         <h3 className="text-xl md:text-2xl font-bold">
           "<span className="text-primary animate-fade-in">{currentScenario.title}</span>"
         </h3>
       </div>
       
-      <div className="flex justify-center gap-2 mt-0"> {/* Further reduced vertical spacing */}
+      <div className="flex justify-center gap-2 mt-0">
         {scenarios.map((_, index) => (
           <button
             key={index}
