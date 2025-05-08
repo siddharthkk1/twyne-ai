@@ -65,7 +65,7 @@ export const RotatingUseScenarios = () => {
         </h3>
       </div>
       
-      <div className="flex justify-center gap-2 mt-0">
+      <div className="flex justify-center gap-2 mt-2 mb-0">
         {scenarios.map((_, index) => (
           <button
             key={index}

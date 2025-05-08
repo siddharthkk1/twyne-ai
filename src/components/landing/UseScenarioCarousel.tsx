@@ -142,7 +142,7 @@ export const UseScenarioCarousel = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center gap-2 mt-4 mb-0">
             {scenarios.map((_, index) => (
               <button
                 key={index}
