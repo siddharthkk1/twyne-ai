@@ -11,16 +11,16 @@ const NextMatchesMessage = () => {
         <Sparkles className="h-5 w-5 text-secondary" />
       </div>
       <h2 className="font-medium mb-2">New friends coming soon</h2>
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm text-muted-foreground mb-3">
         I'm looking for people who share your vibe. New introductions arrive weekly.
       </p>
-      <div className="bg-background/50 rounded-xl p-4 mb-5 text-left italic text-sm">
+      <div className="bg-background/50 rounded-xl p-4 mb-2 text-left italic text-sm">
         "You and Jordan both listen to Dominic Fike, journal inconsistently, and drink matcha like it's water."
       </div>
       <Button 
         asChild
         variant="outline" 
-        className="rounded-full"
+        className="rounded-full mb-3"
       >
         <Link to="/chat/twyne">Chat with Twyne</Link>
       </Button>

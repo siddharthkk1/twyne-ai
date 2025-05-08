@@ -19,13 +19,13 @@ const OnboardingWelcome = () => {
           </div>
         </div>
       </div>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-muted-foreground mb-1">
         When you receive introductions, you'll be able to connect and see your full compatibility profile.
       </p>
       <Button 
         asChild
         variant="outline" 
-        className="rounded-full"
+        className="rounded-full mb-3"
       >
         <Link to="/chat/twyne">
           <MessageCircle size={18} className="mr-1" />
