@@ -112,10 +112,10 @@ export const UseScenarioCarousel = () => {
           </p>
         </div>
         
-        <Carousel className="w-full" setActiveItem={setActiveSlide} activeIndex={activeSlide}>
+        <Carousel className="w-full">
           <CarouselContent>
             {scenarios.map((scenario) => (
-              <CarouselItem key={scenario.id}>
+              <CarouselItem key={scenario.id} className={activeSlide === scenario.id - 1 ? "opacity-100" : "opacity-0"}>
                 <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center">
                   <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
                     <scenario.icon className={`h-8 w-8 ${scenario.iconColor}`} />
