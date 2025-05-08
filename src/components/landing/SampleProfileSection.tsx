@@ -49,7 +49,7 @@ export const SampleProfileSection = () => {
               </div>
             </CardHeader>
             <CardContent className="pt-3 space-y-2">
-              {/* IDEAL HANGS section with restored original category names */}
+              {/* IDEAL HANGS section with all six options */}
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
                 <div className="grid grid-cols-2 gap-2">
@@ -68,6 +68,14 @@ export const SampleProfileSection = () => {
                   <div className="bg-gradient-to-br from-green-100 to-green-50 border border-green-200 rounded-lg p-2 flex items-center">
                     <span className="text-lg mr-2">🍺</span>
                     <span className="text-sm">Visiting local breweries</span>
+                  </div>
+                  <div className="bg-gradient-to-br from-pink-100 to-pink-50 border border-pink-200 rounded-lg p-2 flex items-center">
+                    <span className="text-lg mr-2">🎧</span>
+                    <span className="text-sm">EDM raves</span>
+                  </div>
+                  <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 border border-indigo-200 rounded-lg p-2 flex items-center">
+                    <span className="text-lg mr-2">📺</span>
+                    <span className="text-sm">Anime binge session</span>
                   </div>
                 </div>
               </div>

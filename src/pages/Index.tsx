@@ -123,15 +123,15 @@ const Index = () => {
           </div>
           
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-background rounded-xl p-6 pb-2 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
-              <p className="text-lg mb-2">
+            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
+              <p className="text-lg mb-1">
                 <span className="font-semibold">You and Nina</span> both love basketball, burritos, and late-night debates.
               </p>
               <Button 
                 asChild 
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mt-1 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mt-0.5 hover:shadow-md transition-all"
               >
                 <Link to={user ? "/connections" : "/auth"}>
                   <MessageCircle size={16} className="mr-2" />
@@ -140,15 +140,15 @@ const Index = () => {
               </Button>
             </div>
             
-            <div className="bg-background rounded-xl p-6 pb-2 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
-              <p className="text-lg mb-2">
+            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
+              <p className="text-lg mb-1">
                 <span className="font-semibold">You and Priya</span> both read too many psychology books and have 300+ tabs open.
               </p>
               <Button 
                 asChild 
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mt-1 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mt-0.5 hover:shadow-md transition-all"
               >
                 <Link to={user ? "/connections" : "/auth"}>
                   <MessageCircle size={16} className="mr-2" />
@@ -157,15 +157,15 @@ const Index = () => {
               </Button>
             </div>
             
-            <div className="bg-background rounded-xl p-6 pb-2 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
-              <p className="text-lg mb-2">
+            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
+              <p className="text-lg mb-1">
                 <span className="font-semibold">You and Chris</span> are both getting married in a month and feeling all the chaos and excitement.
               </p>
               <Button 
                 asChild 
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mt-1 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mt-0.5 hover:shadow-md transition-all"
               >
                 <Link to={user ? "/connections" : "/auth"}>
                   <MessageCircle size={16} className="mr-2" />
@@ -174,15 +174,15 @@ const Index = () => {
               </Button>
             </div>
             
-            <div className="bg-background rounded-xl p-6 pb-2 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
-              <p className="text-lg mb-2">
+            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
+              <p className="text-lg mb-1">
                 <span className="font-semibold">You and Lena</span> both just moved to the city and are figuring out how to feel at home here.
               </p>
               <Button 
                 asChild 
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mt-1 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mt-0.5 hover:shadow-md transition-all"
               >
                 <Link to={user ? "/connections" : "/auth"}>
                   <MessageCircle size={16} className="mr-2" />
