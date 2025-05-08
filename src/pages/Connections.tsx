@@ -2,8 +2,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface Connection {
   id: string;
@@ -34,6 +37,20 @@ const mockConnections: Connection[] = [
   },
 ];
 
+// Mock profile data based on what we've learned from the user
+interface ProfileInsight {
+  category: string;
+  value: string;
+}
+
+// This will be populated from the actual onboarding responses in production
+const mockProfileInsights: ProfileInsight[] = [
+  { category: "Location", value: "San Francisco" },
+  { category: "Interests", value: "Hiking, Photography, Music" },
+  { category: "Seeking", value: "One-on-one connections" },
+  { category: "Curious About", value: "Local art scenes and cultural events" },
+];
+
 const Connections = () => {
   const { user } = useAuth();
 
@@ -46,30 +63,64 @@ const Connections = () => {
   const newConnections = connections.filter((c) => c.isNew);
   const pastConnections = connections.filter((c) => !c.isNew);
 
+  // Get first letter of name for avatar placeholder
+  const nameInitial = user?.user_metadata?.full_name 
+    ? user.user_metadata.full_name[0] 
+    : user?.email?.[0] || "?";
+
   return (
     <div className="py-4 space-y-6">
       <h1 className="text-2xl font-semibold">Connections</h1>
 
       {isNewlyOnboarded ? (
         // Show welcome message for newly onboarded users
-        <div className="bg-background rounded-2xl p-6 text-center space-y-4 animate-fade-in">
-          <h2 className="font-medium text-lg">Thanks for sharing about yourself!</h2>
-          <p className="text-muted-foreground">
-            We're finding people in your area who match your vibe.
-            Your first introductions will arrive soon.
-          </p>
-          <div className="py-6">
-            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
+        <div className="space-y-6">
+          <div className="bg-background rounded-2xl p-6 text-center space-y-4 animate-fade-in">
+            <h2 className="font-medium text-lg">Thanks for sharing about yourself!</h2>
+            <p className="text-muted-foreground">
+              We're finding people in your area who match your vibe.
+              Your first introductions will arrive soon.
+            </p>
+            <div className="py-6">
+              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                <div className="h-16 w-16 text-primary flex items-center justify-center">
+                  <User size={36} />
+                </div>
+              </div>
             </div>
+            <Button 
+              asChild
+              variant="outline" 
+              className="rounded-full"
+            >
+              <Link to="/chat/twyne">Chat with Twyne</Link>
+            </Button>
           </div>
-          <Button 
-            asChild
-            variant="outline" 
-            className="rounded-full"
-          >
-            <Link to="/chat/twyne">Chat with Twyne</Link>
-          </Button>
+
+          {/* Profile Dashboard */}
+          <Card className="animate-fade-in">
+            <CardHeader className="pb-3">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback>{nameInitial}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="font-medium">Your Profile</h2>
+                  <p className="text-sm text-muted-foreground">Here's what we know about you so far</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {mockProfileInsights.map((insight, index) => (
+                  <div key={index} className="grid grid-cols-3 gap-2">
+                    <div className="text-sm font-medium text-muted-foreground">{insight.category}</div>
+                    <div className="col-span-2 text-sm">{insight.value}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       ) : (
         <>
