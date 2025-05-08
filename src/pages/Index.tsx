@@ -8,7 +8,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 flex-1 gradient-bg">
+      <section className="relative py-24 md:py-32 flex-1 gradient-bg">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
             <div className="rounded-full bg-primary/20 p-4 inline-flex">
