@@ -10,11 +10,6 @@ interface ScenarioItem {
 
 export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
-  const [isTyping, setIsTyping] = useState(true);
-  const [displayedTitle, setDisplayedTitle] = useState('');
-  const [displayedDescription, setDisplayedDescription] = useState('');
-  const [charIndex, setCharIndex] = useState(0);
-  const [currentlyTypingTitle, setCurrentlyTypingTitle] = useState(true);
   
   // Define all use scenarios
   const scenarios: ScenarioItem[] = [
@@ -61,78 +56,38 @@ export const RotatingUseScenarios = () => {
   ];
 
   useEffect(() => {
-    // Reset typing state when scenario changes
-    setIsTyping(true);
-    setDisplayedTitle('');
-    setDisplayedDescription('');
-    setCharIndex(0);
-    setCurrentlyTypingTitle(true);
-  }, [activeScenario]);
-  
-  useEffect(() => {
-    if (isTyping) {
-      const currentScenario = scenarios[activeScenario];
-      const typeSpeed = 30; // milliseconds per character
-      
-      const typeChar = () => {
-        if (currentlyTypingTitle) {
-          // Typing the title
-          if (charIndex < currentScenario.title.length) {
-            setDisplayedTitle(currentScenario.title.substring(0, charIndex + 1));
-            setCharIndex(prev => prev + 1);
-          } else {
-            // Title finished, start description
-            setCurrentlyTypingTitle(false);
-            setCharIndex(0);
-          }
-        } else {
-          // Typing the description
-          if (charIndex < currentScenario.description.length) {
-            setDisplayedDescription(currentScenario.description.substring(0, charIndex + 1));
-            setCharIndex(prev => prev + 1);
-          } else {
-            // Both title and description finished
-            setIsTyping(false);
-            
-            // Wait before moving to next scenario
-            setTimeout(() => {
-              setActiveScenario((prev) => (prev + 1) % scenarios.length);
-            }, 4000);
-          }
-        }
-      };
-      
-      const typingTimeout = setTimeout(typeChar, typeSpeed);
-      return () => clearTimeout(typingTimeout);
-    }
-  }, [isTyping, charIndex, currentlyTypingTitle, activeScenario, scenarios]);
+    // Set up rotation timer
+    const rotationTimer = setInterval(() => {
+      setActiveScenario((prev) => (prev + 1) % scenarios.length);
+    }, 3000);
+    
+    // Clean up timer on unmount
+    return () => clearInterval(rotationTimer);
+  }, [scenarios.length]);
+
+  const currentScenario = scenarios[activeScenario];
 
   return (
-    <div className="min-h-[200px] flex flex-col items-center text-center max-w-[800px] mx-auto">
-      <div className="mb-2 min-h-[60px] flex items-center">
+    <div className="min-h-[180px] flex flex-col items-center text-center max-w-[800px] mx-auto">
+      <div className="mb-2 min-h-[50px] flex items-center">
         <h3 className="text-xl md:text-2xl font-bold">
-          "<span className="text-primary">{displayedTitle}</span>
-          <span className={`${isTyping && currentlyTypingTitle ? 'inline-block' : 'hidden'} w-1 h-6 ml-0.5 bg-primary animate-pulse`}></span>"
+          "<span className="text-primary animate-fade-in">{currentScenario.title}</span>"
         </h3>
       </div>
       
-      <p className="text-lg text-muted-foreground min-h-[80px]">
-        {displayedDescription}
-        <span className={`${isTyping && !currentlyTypingTitle ? 'inline-block' : 'hidden'} w-1 h-5 ml-0.5 bg-muted-foreground animate-pulse`}></span>
+      <p className="text-lg text-muted-foreground min-h-[60px] animate-fade-in">
+        {currentScenario.description}
       </p>
       
-      <div className="flex justify-center gap-2 mt-6">
+      <div className="flex justify-center gap-2 mt-4">
         {scenarios.map((_, index) => (
           <button
             key={index}
             className={`w-2 h-2 rounded-full transition-all ${
               index === activeScenario ? "bg-primary scale-125" : "bg-muted-foreground/30"
             }`}
-            onClick={() => {
-              if (!isTyping) setActiveScenario(index);
-            }}
+            onClick={() => setActiveScenario(index)}
             aria-label={`Go to scenario ${index + 1}`}
-            disabled={isTyping}
           />
         ))}
       </div>

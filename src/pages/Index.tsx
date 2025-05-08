@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -14,7 +15,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
       {/* Hero Section */}
-      <section className="relative py-24 md:py-32 flex-1 gradient-bg">
+      <section className="relative py-16 md:py-24 flex-1 gradient-bg">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
             <div className="rounded-full bg-primary/20 p-4 inline-flex">
@@ -48,7 +49,7 @@ const Index = () => {
             </div>
             
             {/* Added the rotating text animation component below the buttons */}
-            <div className="mt-12 w-full">
+            <div className="mt-8 w-full">
               <RotatingUseScenarios />
             </div>
           </div>
