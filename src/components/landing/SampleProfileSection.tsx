@@ -91,16 +91,16 @@ export const SampleProfileSection = () => {
                       <span className="text-sm">Morning walks with coffee</span>
                     </div>
                     <div className="bg-gradient-to-br from-green-100 to-green-50 border border-green-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">🎯</span>
-                      <span className="text-sm">Playing pickup sports</span>
+                      <span className="text-lg mr-2">⛳</span>
+                      <span className="text-sm">Golf or driving range</span>
                     </div>
                     <div className="bg-gradient-to-br from-red-100 to-red-50 border border-red-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">🎬</span>
-                      <span className="text-sm">Movie nights at theaters</span>
+                      <span className="text-lg mr-2">📚</span>
+                      <span className="text-sm">Reading sessions at library</span>
                     </div>
                     <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 border border-indigo-200 rounded-lg p-2 flex items-center">
-                      <span className="text-lg mr-2">🧘‍♂️</span>
-                      <span className="text-sm">Chill convos & real talk</span>
+                      <span className="text-lg mr-2">🎧</span>
+                      <span className="text-sm">EDM raves & festivals</span>
                     </div>
                   </div>
                 </div>
