@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Carousel,
@@ -10,6 +11,7 @@ import { MapPin, Heart, ArrowRight, Users, Book, Zap, User, Coffee } from "lucid
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { MessageCircle } from "lucide-react";
 
 interface ScenarioItem {
   id: number;
@@ -122,17 +124,17 @@ export const UseScenarioCarousel = () => {
                   <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
                   <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
                   {user ? (
-                    <Button asChild size="lg" className="rounded-full px-8 hover-scale">
+                    <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
                       <Link to="/connections" className="flex items-center">
+                        <MessageCircle size={20} className="mr-2" />
                         View Your Connections
-                        <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
                       </Link>
                     </Button>
                   ) : (
-                    <Button asChild size="lg" className="rounded-full px-8 hover-scale">
+                    <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
                       <Link to="/auth" className="flex items-center">
-                        Get Started
-                        <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                        <MessageCircle size={20} className="mr-2" />
+                        Connect & Say Hi
                       </Link>
                     </Button>
                   )}
