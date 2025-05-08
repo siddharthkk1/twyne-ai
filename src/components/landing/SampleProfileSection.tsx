@@ -50,14 +50,7 @@ export const SampleProfileSection = () => {
             <CardContent className="pt-4">
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">ABOUT</h4>
-                  <p className="text-sm">
-                    Creative type who's equally happy at an art show or hiking trail. Moved from Chicago last year and still exploring the city.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">INTERESTS</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">SHARED INTERESTS</h4>
                   <div className="flex flex-wrap gap-2">
                     <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
                       <Coffee className="h-3 w-3 mr-1.5" />
@@ -78,6 +71,36 @@ export const SampleProfileSection = () => {
                     <div className="flex items-center bg-muted rounded-full px-3 py-1 text-xs">
                       <Globe className="h-3 w-3 mr-1.5" />
                       <span>Travel</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 rounded-lg p-2 flex items-center">
+                      <span className="text-lg mr-2">🏀</span>
+                      <span className="text-sm">Watching games at a sports bar</span>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 rounded-lg p-2 flex items-center">
+                      <span className="text-lg mr-2">🍺</span>
+                      <span className="text-sm">Checking out local breweries</span>
+                    </div>
+                    <div className="bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200 rounded-lg p-2 flex items-center">
+                      <span className="text-lg mr-2">☀️</span>
+                      <span className="text-sm">Morning walks with coffee</span>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-100 to-green-50 border border-green-200 rounded-lg p-2 flex items-center">
+                      <span className="text-lg mr-2">🎯</span>
+                      <span className="text-sm">Playing pickup sports</span>
+                    </div>
+                    <div className="bg-gradient-to-br from-red-100 to-red-50 border border-red-200 rounded-lg p-2 flex items-center">
+                      <span className="text-lg mr-2">🎬</span>
+                      <span className="text-sm">Movie nights at theaters</span>
+                    </div>
+                    <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 border border-indigo-200 rounded-lg p-2 flex items-center">
+                      <span className="text-lg mr-2">🧘‍♂️</span>
+                      <span className="text-sm">Chill convos & real talk</span>
                     </div>
                   </div>
                 </div>

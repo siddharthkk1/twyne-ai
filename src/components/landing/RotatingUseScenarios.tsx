@@ -37,7 +37,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 7,
-      title: "I work remotely and miss casual office friendships.",
+      title: "I have friends but no one I feel deeply connected with.",
     },
     {
       id: 8,

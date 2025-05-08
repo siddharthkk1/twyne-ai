@@ -78,8 +78,8 @@ export const UseScenarioCarousel = () => {
     {
       id: 7,
       icon: User,
-      title: "I work remotely and miss casual office friendships.",
-      description: "Find nearby remote workers for coworking sessions, coffee breaks, or after-work hangouts.",
+      title: "I have friends but no one I feel deeply connected with.",
+      description: "Find people who truly understand you and create deeper, more meaningful friendships.",
       iconBgColor: "bg-primary/20",
       iconColor: "text-primary",
     },
