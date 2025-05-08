@@ -53,6 +53,14 @@
     animation: gradient 15s ease infinite;
   }
 
+  .gradient-text {
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+  }
+
   @keyframes gradient {
     0% {
       background-position: 0% 50%;
@@ -88,5 +96,9 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
   }
 }
