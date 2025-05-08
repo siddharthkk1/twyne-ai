@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -10,6 +11,15 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const { user } = useAuth();
+  
+  // Function to scroll to How It Works section
+  const scrollToHowItWorks = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const howItWorksSection = document.getElementById("how-it-works");
+    if (howItWorksSection) {
+      howItWorksSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -43,7 +53,7 @@ const Index = () => {
                   </Link>
                 </Button>
               )}
-              <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect">
+              <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect" onClick={scrollToHowItWorks}>
                 Learn More
               </Button>
             </div>
@@ -57,7 +67,7 @@ const Index = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16 bg-muted/30">
+      <section id="how-it-works" className="py-16 bg-muted/30">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold">How It Works</h2>
@@ -91,7 +101,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-medium mb-2">Connect Your Way</h3>
               <p className="text-muted-foreground">
-                Message first or meet up for coffee. No pressure—you decide what feels right.
+                You decide how things unfold—from a chill convo to a real-world hang.
               </p>
             </div>
           </div>
