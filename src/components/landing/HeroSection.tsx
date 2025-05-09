@@ -32,8 +32,16 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-20 md:py-28 gradient-bg mt-14 overflow-hidden">
-      <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+    <section className="relative py-20 md:py-28 mt-14 overflow-hidden">
+      {/* Improved gradient background with more depth and visual interest */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-blue-50/30 to-purple-50/40 -z-10"></div>
+      
+      {/* Enhanced decorative elements */}
+      <div className="absolute top-20 left-[-10%] w-[300px] h-[300px] bg-primary/10 rounded-full blur-3xl -z-5"></div>
+      <div className="absolute bottom-20 right-[-5%] w-[250px] h-[250px] bg-secondary/10 rounded-full blur-3xl -z-5"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl -z-5"></div>
+
+      <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
         <div className="flex flex-col items-center text-center gap-5">
           {/* Logo with bounce animation */}
           <div 
@@ -45,9 +53,9 @@ export const HeroSection = ({
             <Logo size="lg" />
           </div>
           
-          {/* New title with fade-in from left */}
+          {/* New title with fade-in from left and improved contrast */}
           <h2 
-            className={`text-2xl md:text-3xl font-medium tracking-tight text-primary/80 mb-0 pb-0 transition-all duration-700 transform ${
+            className={`text-2xl md:text-3xl font-medium tracking-tight text-primary mb-0 pb-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
             }`}
             style={{ transitionDelay: '300ms' }}
@@ -55,19 +63,21 @@ export const HeroSection = ({
             The AI Social Platform
           </h2>
           
-          {/* Main title with fade-in from right */}
+          {/* Main title with fade-in from right and enhanced gradient */}
           <h1 
-            className={`text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight gradient-text leading-none whitespace-nowrap overflow-hidden max-w-full pb-3 mt-1 transition-all duration-700 transform ${
+            className={`text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-none whitespace-nowrap overflow-hidden max-w-full pb-3 mt-1 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
             }`}
             style={{ transitionDelay: '500ms' }}
           >
-            Meet people you vibe with in your city
+            <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+              Meet people you vibe with in your city
+            </span>
           </h1>
           
-          {/* Description with fade-in from bottom */}
+          {/* Description with fade-in from bottom and improved readability */}
           <p 
-            className={`max-w-[700px] text-lg md:text-xl text-muted-foreground transition-all duration-700 transform ${
+            className={`max-w-[700px] text-lg md:text-xl text-foreground/90 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '700ms' }}
@@ -102,7 +112,7 @@ export const HeroSection = ({
                 
                 {!isLoading && waitlistCount !== null && (
                   <div 
-                    className={`flex items-center justify-center text-sm text-muted-foreground mt-3 bg-muted/40 py-1 px-3 rounded-full transition-all duration-700 ${
+                    className={`flex items-center justify-center text-sm text-muted-foreground mt-3 bg-background/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
                       isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                     }`}
                     style={{ transitionDelay: '1100ms' }}
@@ -116,7 +126,7 @@ export const HeroSection = ({
             <Button 
               variant="outline" 
               size="lg" 
-              className="rounded-full px-8 glass-effect hover-scale"
+              className="rounded-full px-8 bg-white/70 backdrop-blur-sm border-white/30 hover:bg-white/80 hover-scale text-foreground"
               onClick={onScrollToHowItWorks}
             >
               Learn More
@@ -134,10 +144,6 @@ export const HeroSection = ({
           </div>
         </div>
       </div>
-      
-      {/* Background decoration elements */}
-      <div className="absolute top-20 left-[-10%] w-[300px] h-[300px] bg-primary/5 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-20 right-[-5%] w-[250px] h-[250px] bg-secondary/5 rounded-full blur-3xl -z-10"></div>
     </section>
   );
 };
