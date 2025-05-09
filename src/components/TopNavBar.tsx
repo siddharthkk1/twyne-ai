@@ -53,7 +53,7 @@ export const TopNavBar = () => {
   }, []);
   
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
+    <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center h-16">
         <Logo />
         <div className="hidden md:flex items-center space-x-6">

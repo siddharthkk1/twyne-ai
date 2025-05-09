@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,9 +50,9 @@
   }
 
   .bg-light-gradient {
-    background: radial-gradient(ellipse at center, #ffffff 0%, #f8f9fc 100%);
-    animation: subtle-pulse 12s ease-in-out infinite alternate;
-    background-size: 200% 200%;
+    background: linear-gradient(135deg, #ffffff 0%, #f3f4fa 50%, #f8f9fc 100%);
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
   }
 
   @keyframes subtle-pulse {
@@ -103,6 +104,21 @@
     }
     100% {
       background-position: 0% 50%;
+    }
+  }
+  
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 0%;
+    }
+    33% {
+      background-position: 100% 50%;
+    }
+    67% {
+      background-position: 50% 100%;
+    }
+    100% {
+      background-position: 0% 0%;
     }
   }
 

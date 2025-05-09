@@ -29,7 +29,7 @@ export const HeroSection = ({
   
   return (
     <section className="relative py-16 md:py-24 mt-14 overflow-hidden">
-      {/* Enhanced subtle background with more pronounced gradient effect */}
+      {/* Enhanced background with visible moving gradient */}
       <div className="absolute inset-0 -z-10 bg-light-gradient"></div>
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
@@ -93,7 +93,7 @@ export const HeroSection = ({
                 
                 {!isLoading && waitlistCount !== null && (
                   <div 
-                    className={`flex items-center justify-center text-sm text-muted-foreground mt-3 bg-background/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
+                    className={`flex items-center justify-center text-sm text-muted-foreground mt-3 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
                       isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                     }`}
                     style={{ transitionDelay: '1000ms' }}

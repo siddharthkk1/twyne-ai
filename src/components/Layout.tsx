@@ -5,7 +5,7 @@ import { TopNavBar } from "./TopNavBar";
 
 const Layout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#ffffff]">
+    <div className="min-h-screen flex flex-col bg-white">
       <TopNavBar />
       <div className="flex-1 container mx-auto p-6 pb-24 mt-16">
         <Outlet />
