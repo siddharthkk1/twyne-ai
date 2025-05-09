@@ -94,7 +94,8 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       location: "",
       email: "",
       phoneNumber: "",
-      // Fix the type error by explicitly setting age as empty string
+      // Fix: The age should be an optional string in defaultValues to match the schema
+      // before transformation. The transformation happens during validation.
       age: "",
       interests: "",
       motivation: "",
