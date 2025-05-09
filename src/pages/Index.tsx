@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,25 +38,17 @@ const Index = () => {
     const fetchWaitlistCount = async () => {
       try {
         setIsLoading(true);
-        console.log("IndexPage: Fetching waitlist count...");
         
         // Instead of using count: 'exact', fetch all entries and count them
         const { data, error } = await supabase
           .from('waitlist')
           .select('id');
         
-        // Log the full response data for debugging
-        console.log("IndexPage: DETAILED DATA:", data);
-        
         if (error) {
           console.error("IndexPage: Error fetching waitlist count:", error);
         } else {
           // Count the actual entries returned
           const actualCount = data ? data.length : 0;
-          console.log("IndexPage: Actual count from DB:", actualCount);
-          console.log("IndexPage: Data type:", typeof data);
-          console.log("IndexPage: Is data an array?", Array.isArray(data));
-          console.log("IndexPage: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {

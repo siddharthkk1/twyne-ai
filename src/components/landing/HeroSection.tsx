@@ -31,7 +31,7 @@ export const HeroSection = ({
     <section className="relative py-20 md:py-32 mt-14 overflow-hidden bg-white min-h-[85vh] flex items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-full animate-gradient-slow opacity-10">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/30 blur-3xl"></div>
           <div className="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full bg-secondary/30 blur-3xl"></div>
           <div className="absolute top-2/3 left-2/3 w-72 h-72 rounded-full bg-accent/30 blur-3xl"></div>
@@ -72,7 +72,7 @@ export const HeroSection = ({
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>
           
-          {/* Buttons with no gap and updated Learn More button */}
+          {/* Buttons with no gap between them */}
           <div 
             className={`flex flex-col sm:flex-row transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -113,7 +113,7 @@ export const HeroSection = ({
             <Button 
               variant="outline" 
               size="lg" 
-              className="rounded-full px-8 bg-gradient-to-r from-primary to-accent text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0 sm:ml-0"
+              className="rounded-full px-8 bg-gradient-to-r from-primary to-accent text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0 sm:ml-4"
               onClick={onScrollToHowItWorks}
             >
               Learn More
