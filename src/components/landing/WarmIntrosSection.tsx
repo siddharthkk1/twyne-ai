@@ -30,7 +30,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
               onClick={onOpenWaitlist}
               variant="default" 
               size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
+              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
             >
               <MessageCircle size={16} className="mr-1" />
               Connect & Say Hi
@@ -45,7 +45,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
               onClick={onOpenWaitlist}
               variant="default" 
               size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
+              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
             >
               <MessageCircle size={16} className="mr-1" />
               Connect & Say Hi
@@ -60,7 +60,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
               onClick={onOpenWaitlist}
               variant="default" 
               size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
+              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
             >
               <MessageCircle size={16} className="mr-1" />
               Connect & Say Hi
@@ -75,7 +75,37 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
               onClick={onOpenWaitlist}
               variant="default" 
               size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
+              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+            >
+              <MessageCircle size={16} className="mr-1" />
+              Connect & Say Hi
+            </Button>
+          </div>
+
+          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
+            <p className="text-lg mb-2">
+              <span className="font-semibold">You and Ethan</span> are both in healthcare and could use a break from being everyone else's support system. Walk and talk?
+            </p>
+            <Button 
+              onClick={onOpenWaitlist}
+              variant="default" 
+              size="sm"
+              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+            >
+              <MessageCircle size={16} className="mr-1" />
+              Connect & Say Hi
+            </Button>
+          </div>
+          
+          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
+            <p className="text-lg mb-2">
+              <span className="font-semibold">You and Jay</span> are both startup people—figuring out life, product-market fit, and how to have hobbies again. Coffee?
+            </p>
+            <Button 
+              onClick={onOpenWaitlist}
+              variant="default" 
+              size="sm"
+              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
             >
               <MessageCircle size={16} className="mr-1" />
               Connect & Say Hi

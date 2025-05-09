@@ -50,7 +50,7 @@ const ConnectionCard = ({ id, name, description, matchReason, imageUrl, isNew }:
         <Eye size={14} /> Connect to see full compatibility profile
       </p>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 mb-1">
         <Button 
           asChild 
           className="w-full rounded-full py-6 text-base font-medium shadow-sm hover:shadow-md transition-all"
