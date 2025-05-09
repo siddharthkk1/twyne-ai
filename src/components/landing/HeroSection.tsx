@@ -93,7 +93,7 @@ export const HeroSection = ({
               <div className="flex flex-col items-center">
                 <Button 
                   size="lg" 
-                  className="rounded-full px-8 hover-scale animate-pulse"
+                  className="rounded-full px-8 hover-scale shadow-sm hover:shadow-md transition-all"
                   onClick={onOpenWaitlist}
                 >
                   Join Waitlist
