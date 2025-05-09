@@ -28,16 +28,13 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-16 md:py-24 mt-14 overflow-hidden bg-white">
-      {/* Modern imagery */}
+    <section className="relative py-20 md:py-32 mt-14 overflow-hidden bg-white min-h-[85vh] flex items-center">
+      {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Hero image - abstract graphic that suggests connections */}
-        <div className="absolute top-0 right-0 w-full md:w-1/2 h-full opacity-10 md:opacity-20">
-          <img 
-            src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80" 
-            alt="Connection" 
-            className="w-full h-full object-cover object-center"
-          />
+        <div className="absolute top-0 left-0 w-full h-full animate-gradient-slow opacity-10">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/30 blur-3xl"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full bg-secondary/30 blur-3xl"></div>
+          <div className="absolute top-2/3 left-2/3 w-72 h-72 rounded-full bg-accent/30 blur-3xl"></div>
         </div>
       </div>
       
@@ -53,14 +50,14 @@ export const HeroSection = ({
             The AI Social Platform
           </h2>
           
-          {/* Main title with fade-in from right */}
+          {/* Main title with fade-in from right and gradient */}
           <h1 
-            className={`text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-none whitespace-nowrap overflow-hidden max-w-full pb-3 mt-1 transition-all duration-700 transform ${
+            className={`text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight max-w-full pb-3 mt-1 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
             }`}
             style={{ transitionDelay: '400ms' }}
           >
-            <span className="text-primary">
+            <span className="gradient-text">
               Meet people you vibe with in your city
             </span>
           </h1>
@@ -77,7 +74,7 @@ export const HeroSection = ({
           
           {/* Buttons with no gap and updated Learn More button */}
           <div 
-            className={`flex flex-col sm:flex-row sm:gap-0 mt-3 transition-all duration-700 transform ${
+            className={`flex flex-col sm:flex-row transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '800ms' }}
@@ -116,7 +113,7 @@ export const HeroSection = ({
             <Button 
               variant="outline" 
               size="lg" 
-              className="rounded-full px-8 bg-primary/90 hover:bg-primary/100 border-none text-white font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0 sm:ml-2"
+              className="rounded-full px-8 bg-gradient-to-r from-primary to-accent text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0 sm:ml-0"
               onClick={onScrollToHowItWorks}
             >
               Learn More
@@ -125,7 +122,7 @@ export const HeroSection = ({
           
           {/* Rotating text with fade-in */}
           <div 
-            className={`mt-8 w-full overflow-hidden transition-all duration-700 transform ${
+            className={`mt-12 w-full overflow-hidden transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '1200ms' }}
