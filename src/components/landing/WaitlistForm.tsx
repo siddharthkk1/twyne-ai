@@ -24,6 +24,7 @@ const formSchema = z.object({
   location: z.string().min(2, { message: "Please enter your location." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   phoneNumber: z.string().optional(),
+  // Make sure the age field is clearly defined as an optional string
   age: z.string()
     .refine(val => !val || !isNaN(parseInt(val)), { message: "Age must be a number" })
     .transform(val => val ? parseInt(val) : null)
@@ -32,6 +33,18 @@ const formSchema = z.object({
   motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
 });
 
+// This helps TypeScript determine the type BEFORE any transformations occur in the schema
+type FormInputValues = {
+  fullName: string;
+  location: string;
+  email: string;
+  phoneNumber?: string;
+  age?: string; // Age is a string in the form input
+  interests: string;
+  motivation: string;
+};
+
+// This is what comes out after transformation
 type FormValues = z.infer<typeof formSchema>;
 
 interface WaitlistFormProps {
@@ -87,16 +100,15 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
     }
   }, [open]);
 
-  const form = useForm<FormValues>({
+  // Use FormInputValues here instead of FormValues to get the pre-transformation types
+  const form = useForm<FormInputValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
       location: "",
       email: "",
       phoneNumber: "",
-      // Fix: The age should be an optional string in defaultValues to match the schema
-      // before transformation. The transformation happens during validation.
-      age: "",
+      age: "", // This is correct now - string type in inputs
       interests: "",
       motivation: "",
     },
