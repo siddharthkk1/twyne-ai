@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -35,7 +34,7 @@ export const HeroSection = ({
     <section className="relative py-20 md:py-28 mt-14 overflow-hidden">
       {/* Animated fluid gradient background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-blue-50/30 to-purple-50/40 animate-gradient-slow"></div>
+        <div className="absolute inset-0 gradient-bg"></div>
       </div>
       
       {/* Enhanced decorative elements */}
