@@ -37,7 +37,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 7,
-      title: "I've outgrown my old circles and want to consciously rebuild my social life.",
+      title: "I've outgrown my circles and want to rebuild my social life.",
     },
     {
       id: 8,
