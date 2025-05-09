@@ -57,7 +57,7 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '400ms', letterSpacing: '-0.02em' }}
           >
-            <span className="gradient-text font-serif">
+            <span className="gradient-text">
               Meet people you vibe with in your city
             </span>
           </h1>

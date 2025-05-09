@@ -142,9 +142,9 @@ export const RotatingUseScenarios = () => {
                 maxWidth: '350px'
               }}
             >
-              <h3 className="text-lg font-medium tracking-tight leading-relaxed">
+              <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800">
                 <span className="text-primary text-xl">"</span>
-                <span className="text-gray-800">{scenario.title}</span>
+                {scenario.title}
                 <span className="text-primary text-xl">"</span>
               </h3>
             </div>
