@@ -13,11 +13,11 @@ export const RotatingUseScenarios = () => {
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
-      title: "I just moved to a new city and don't know anyone.",
+      title: "I'm a new grad who just moved to a new city and don't know anyone.",
     },
     {
       id: 2,
-      title: "I love climbing and want gym buddies once a week.",
+      title: "I work remotely and barely see people during the week.",
     },
     {
       id: 3,
@@ -25,7 +25,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 4,
-      title: "I want deep conversations about books over coffee.",
+      title: "I want deep conversations about books and philosophy over coffee.",
     },
     {
       id: 5,
@@ -33,7 +33,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 6,
-      title: "I've outgrown my old circles and want to rebuild.",
+      title: "I've outgrown my old circles and want to consciously rebuild my social life.",
     },
     {
       id: 7,
