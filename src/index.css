@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -160,6 +161,26 @@
   .animate-gradient-slow {
     background-size: 400% 400%;
     animation: gradient-shift 20s ease infinite;
+  }
+
+  /* New pulse slow animation */
+  .animate-pulse-slow {
+    animation: pulse-slow 6s ease-in-out infinite;
+  }
+
+  @keyframes pulse-slow {
+    0% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
   }
 
   @keyframes gradient-shift {
