@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Users } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -36,6 +37,33 @@ interface WaitlistFormProps {
 export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWaitlistCount = async () => {
+      try {
+        setIsLoading(true);
+        const { count, error } = await supabase
+          .from('waitlist')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          console.error("Error fetching waitlist count:", error);
+        } else {
+          setWaitlistCount(count || 0);
+        }
+      } catch (error) {
+        console.error("Error in waitlist count fetch:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (open) {
+      fetchWaitlistCount();
+    }
+  }, [open]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -103,6 +131,14 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           <DialogDescription>
             Be the first to know when Twyne launches in your city.
           </DialogDescription>
+          {!isLoading && waitlistCount !== null && waitlistCount > 0 && (
+            <div className="flex items-center justify-center mt-3 py-2 px-4 bg-muted/40 rounded-md">
+              <Users size={18} className="mr-2 text-primary" />
+              <span className="text-sm font-medium">
+                Join {waitlistCount.toLocaleString()}+ people already on the waitlist
+              </span>
+            </div>
+          )}
         </DialogHeader>
         
         <Form {...form}>
