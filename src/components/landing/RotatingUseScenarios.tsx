@@ -21,7 +21,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 3,
-      title: "",
+      title: "I want friendships that aren’t random roommates or coworkers.",
     },
     {
       id: 4,
