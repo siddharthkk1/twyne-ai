@@ -23,47 +23,47 @@ export const RotatingUseScenarios = () => {
     {
       id: 1,
       title: "I'm a new grad who just moved to a new city and don't know anyone.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">🎓</div>
+      icon: <div className="text-3xl">🎓</div>
     },
     {
       id: 2,
       title: "I work remotely and barely see people during the week.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">💻</div>
+      icon: <div className="text-3xl">💻</div>
     },
     {
       id: 3,
       title: "I want friendships that aren't random roommates or coworkers.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">🤝</div>
+      icon: <div className="text-3xl">🤝</div>
     },
     {
       id: 4,
       title: "I'm in college but still feel like I haven't found my people yet.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">📚</div>
+      icon: <div className="text-3xl">📚</div>
     },
     {
       id: 5,
       title: "I want deep conversations about books and philosophy over coffee.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">☕</div>
+      icon: <div className="text-3xl">☕</div>
     },
     {
       id: 6,
       title: "I'm looking for NBA fans to watch games with.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">🏀</div>
+      icon: <div className="text-3xl">🏀</div>
     },
     {
       id: 7,
       title: "I've outgrown my circles and want to consciously rebuild my social life.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">🔄</div>
+      icon: <div className="text-3xl">🔄</div>
     },
     {
       id: 8,
       title: "I have friends but no one I feel deeply connected with.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">💭</div>
+      icon: <div className="text-3xl">💭</div>
     },
     {
       id: 9,
       title: "I'm a foodie looking for friends to try restaurants with.",
-      icon: <div className="flex justify-center items-center h-10 w-10 bg-primary/10 rounded-full text-primary">🍽️</div>
+      icon: <div className="text-3xl">🍽️</div>
     },
   ];
   
@@ -178,7 +178,7 @@ export const RotatingUseScenarios = () => {
   }, [isAutoScrolling, manualScrolling]);
 
   return (
-    <div className="py-12 max-w-[1000px] mx-auto">
+    <div className="py-6 max-w-[1000px] mx-auto">
       {/* Continuously scrolling carousel container with touch support */}
       <div 
         className="relative overflow-hidden mx-4"
@@ -187,7 +187,7 @@ export const RotatingUseScenarios = () => {
       >
         <div 
           ref={scrollContainerRef}
-          className="flex gap-6 pb-8 overflow-x-auto hide-scrollbar" 
+          className="flex gap-6 pb-4 overflow-x-auto hide-scrollbar" 
           style={{ scrollBehavior: 'auto' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -198,8 +198,8 @@ export const RotatingUseScenarios = () => {
               key={`${scenario.id}-${index}`}
               className="flex flex-col items-center"
             >
-              {/* Icon now positioned above the card */}
-              <div className={`mb-3 transform transition-all duration-300 ${
+              {/* Icon now positioned above the card with larger size */}
+              <div className={`mb-2 transform transition-all duration-300 ${
                 activeCardIndex === index ? 'scale-110' : 'scale-100'
               }`}>
                 {scenario.icon}
@@ -229,9 +229,9 @@ export const RotatingUseScenarios = () => {
         <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
       </div>
       
-      {/* Scroll indicator */}
-      <div className="flex justify-center mt-8 animate-bounce">
-        <ArrowDown className="h-6 w-6 text-primary/70" />
+      {/* Scroll indicator - Positioned at the bottom of the page */}
+      <div className="flex justify-center fixed bottom-6 left-0 right-0 animate-bounce">
+        <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>
   );

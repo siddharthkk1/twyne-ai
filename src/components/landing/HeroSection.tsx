@@ -124,9 +124,9 @@ export const HeroSection = ({
             </div>
           )}
           
-          {/* Rotating text with continuous carousel animation */}
+          {/* Rotating text with continuous carousel animation - reduced top margin */}
           <div 
-            className={`mt-12 w-full overflow-hidden transition-all duration-700 transform ${
+            className={`mt-6 w-full overflow-hidden transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '1200ms' }}
