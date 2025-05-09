@@ -124,7 +124,7 @@ export const HeroSection = ({
             </div>
           )}
           
-          {/* Rotating text with enhanced animations */}
+          {/* Rotating text with carousel animation */}
           <div 
             className={`mt-12 w-full overflow-hidden transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'

@@ -10,7 +10,7 @@ export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   
-  // Define all use scenarios - restored to original longer phrases
+  // Define all use scenarios
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -66,7 +66,6 @@ export const RotatingUseScenarios = () => {
       }, 500);
     };
     
-    // Change rotation timer to 5 seconds
     const rotationTimer = setInterval(changeScenario, 5000);
     
     // Clean up timer on unmount
@@ -74,40 +73,45 @@ export const RotatingUseScenarios = () => {
   }, [scenarios.length]);
 
   const currentScenario = scenarios[activeScenario];
+  const nextScenario = scenarios[(activeScenario + 1) % scenarios.length];
 
   return (
-    <div className="min-h-[100px] flex flex-col items-center text-center max-w-[900px] mx-auto py-2">
-      <div className="mb-2 min-h-[60px] flex items-center justify-center w-full overflow-hidden">
+    <div className="min-h-[100px] flex flex-col items-center text-center max-w-[900px] mx-auto py-2 overflow-hidden">
+      <div className="relative w-full min-h-[80px] flex items-center justify-center overflow-hidden">
+        {/* Current quote with slide animation */}
         <h3 
-          className={`text-xl md:text-2xl font-bold w-full whitespace-normal transition-all duration-500 ${
+          className={`text-xl md:text-2xl font-bold w-full absolute transition-all duration-500 ease-in-out ${
             isAnimating 
-              ? 'opacity-0 transform translate-y-8 scale-95' 
-              : 'opacity-100 transform translate-y-0 scale-100'
+              ? 'opacity-0 transform translate-x-[-100%]' 
+              : 'opacity-100 transform translate-x-0'
           }`}
         >
           "<span className="text-primary">{currentScenario.title}</span>"
         </h3>
+        
+        {/* Next quote waiting to slide in */}
+        <h3 
+          className={`text-xl md:text-2xl font-bold w-full absolute transition-all duration-500 ease-in-out ${
+            isAnimating 
+              ? 'opacity-100 transform translate-x-0' 
+              : 'opacity-0 transform translate-x-[100%]'
+          }`}
+        >
+          "<span className="text-primary">{nextScenario.title}</span>"
+        </h3>
       </div>
       
-      <div className="flex justify-center gap-2 mt-2 mb-1 py-1">
-        {scenarios.map((_, index) => (
-          <button
-            key={index}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === activeScenario 
-                ? "bg-primary scale-125 animate-pulse-slow" 
-                : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-            }`}
-            onClick={() => {
-              setIsAnimating(true);
-              setTimeout(() => {
-                setActiveScenario(index);
-                setTimeout(() => setIsAnimating(false), 50);
-              }, 300);
+      {/* Visual indicator that this is a carousel */}
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <div className="h-1 w-16 rounded-full bg-primary/30 overflow-hidden">
+          <div 
+            className="h-full bg-primary animate-[pulse_5s_ease-in-out_infinite]" 
+            style={{
+              width: `${(activeScenario / (scenarios.length - 1)) * 100}%`,
+              transition: 'width 0.5s ease-in-out'
             }}
-            aria-label={`Go to scenario ${index + 1}`}
-          />
-        ))}
+          ></div>
+        </div>
       </div>
     </div>
   );

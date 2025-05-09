@@ -25,13 +25,14 @@ interface ScenarioItem {
 export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
 
   // Define all use scenarios - updated to match with RotatingUseScenarios
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
       icon: MapPin,
-      title: "I just moved to a new city and don't know anyone.",
+      title: "I'm a new grad who just moved to a new city and don't know anyone.",
       description: "Twyne helps you meet people nearby who share your vibe, not just your zip code.",
       iconBgColor: "bg-primary/20",
       iconColor: "text-primary",
@@ -39,7 +40,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 2,
       icon: Heart,
-      title: "I love climbing and want gym buddies once a week.",
+      title: "I work remotely and barely see people during the week.",
       description: "Find activity partners who match your schedule and skill level for regular adventures.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
@@ -47,7 +48,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 3,
       icon: Coffee,
-      title: "My career is niche and I want people who understand it.",
+      title: "I want friendships that aren't random roommates or coworkers.",
       description: "Connect with professionals in similar fields who understand your unique work challenges.",
       iconBgColor: "bg-accent/20",
       iconColor: "text-accent",
@@ -94,14 +95,18 @@ export const UseScenarioCarousel = () => {
     },
   ];
 
-  // Auto-rotate slides every 5 seconds
+  // Auto-rotate slides every 5 seconds, but pause on hover
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveSlide((prevSlide) => (prevSlide + 1) % scenarios.length);
-    }, 5000);
+    let interval: NodeJS.Timeout;
+    
+    if (autoplay) {
+      interval = setInterval(() => {
+        setActiveSlide((prevSlide) => (prevSlide + 1) % scenarios.length);
+      }, 5000);
+    }
 
     return () => clearInterval(interval);
-  }, [scenarios.length]);
+  }, [scenarios.length, autoplay]);
 
   return (
     <section className="py-16 bg-white">
@@ -113,10 +118,20 @@ export const UseScenarioCarousel = () => {
           </p>
         </div>
         
-        <Carousel className="w-full">
+        <Carousel 
+          className="w-full" 
+          onMouseEnter={() => setAutoplay(false)}
+          onMouseLeave={() => setAutoplay(true)}
+        >
           <CarouselContent>
             {scenarios.map((scenario) => (
-              <CarouselItem key={scenario.id} className={activeSlide === scenario.id - 1 ? "opacity-100" : "opacity-0"}>
+              <CarouselItem 
+                key={scenario.id} 
+                className="transition-opacity duration-500"
+                style={{
+                  opacity: activeSlide === scenario.id - 1 ? 1 : 0
+                }}
+              >
                 <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center">
                   <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
                     <scenario.icon className={`h-8 w-8 ${scenario.iconColor}`} />
@@ -142,21 +157,28 @@ export const UseScenarioCarousel = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="flex justify-center gap-2 mt-4 mb-0">
-            {scenarios.map((_, index) => (
-              <button
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === activeSlide ? "bg-primary scale-125" : "bg-muted-foreground/30"
-                }`}
-                onClick={() => setActiveSlide(index)}
-                aria-label={`Go to scenario ${index + 1}`}
-              />
-            ))}
+          
+          {/* Visual progress bar instead of dots */}
+          <div className="flex justify-center mt-6">
+            <div className="h-1 w-32 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-300 ease-in-out"
+                style={{
+                  width: `${((activeSlide + 1) / scenarios.length) * 100}%`
+                }}
+              ></div>
+            </div>
           </div>
+          
           <div className="hidden md:flex">
-            <CarouselPrevious className="absolute -left-12 sm:-left-4" />
-            <CarouselNext className="absolute -right-12 sm:-right-4" />
+            <CarouselPrevious 
+              onClick={() => setActiveSlide(prev => (prev === 0 ? scenarios.length - 1 : prev - 1))}
+              className="absolute -left-12 sm:-left-4" 
+            />
+            <CarouselNext 
+              onClick={() => setActiveSlide(prev => (prev + 1) % scenarios.length)}
+              className="absolute -right-12 sm:-right-4" 
+            />
           </div>
         </Carousel>
       </div>
