@@ -28,7 +28,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-16 md:py-24 mt-8 overflow-hidden bg-white min-h-[85vh] flex items-center">
+    <section className="relative py-8 md:py-12 mt-0 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
@@ -39,7 +39,7 @@ export const HeroSection = ({
       </div>
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
-        <div className="flex flex-col items-center text-center gap-5 pt-4 md:pt-8">
+        <div className="flex flex-col items-center text-center gap-5">
           {/* Title with fade-in from left */}
           <h2 
             className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
@@ -126,9 +126,9 @@ export const HeroSection = ({
         </div>
       </div>
 
-      {/* Rotating text with full-width carousel - moved outside container for full width */}
+      {/* Rotating text with full-width carousel */}
       <div 
-        className={`w-full overflow-hidden transition-all duration-700 transform mt-4 ${
+        className={`w-full transition-all duration-700 transform ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
         style={{ transitionDelay: '1200ms' }}

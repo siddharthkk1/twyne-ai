@@ -23,47 +23,47 @@ export const RotatingUseScenarios = () => {
     {
       id: 1,
       title: "I'm a new grad who just moved to a new city and don't know anyone.",
-      icon: <div className="text-4xl">🎓</div>
+      icon: <div className="text-5xl">🎓</div>
     },
     {
       id: 2,
       title: "I work remotely and barely see people during the week.",
-      icon: <div className="text-4xl">💻</div>
+      icon: <div className="text-5xl">💻</div>
     },
     {
       id: 3,
       title: "I want friendships that aren't random roommates or coworkers.",
-      icon: <div className="text-4xl">🤝</div>
+      icon: <div className="text-5xl">🤝</div>
     },
     {
       id: 4,
       title: "I'm in college but still feel like I haven't found my people yet.",
-      icon: <div className="text-4xl">📚</div>
+      icon: <div className="text-5xl">📚</div>
     },
     {
       id: 5,
       title: "I want deep conversations about books and philosophy over coffee.",
-      icon: <div className="text-4xl">☕</div>
+      icon: <div className="text-5xl">☕</div>
     },
     {
       id: 6,
       title: "I'm looking for NBA fans to watch games with.",
-      icon: <div className="text-4xl">🏀</div>
+      icon: <div className="text-5xl">🏀</div>
     },
     {
       id: 7,
       title: "I've outgrown my circles and want to consciously rebuild my social life.",
-      icon: <div className="text-4xl">🔄</div>
+      icon: <div className="text-5xl">🔄</div>
     },
     {
       id: 8,
       title: "I have friends but no one I feel deeply connected with.",
-      icon: <div className="text-4xl">💭</div>
+      icon: <div className="text-5xl">💭</div>
     },
     {
       id: 9,
       title: "I'm a foodie looking for friends to try restaurants with.",
-      icon: <div className="text-4xl">🍽️</div>
+      icon: <div className="text-5xl">🍽️</div>
     },
   ];
   
@@ -178,7 +178,7 @@ export const RotatingUseScenarios = () => {
   }, [isAutoScrolling, manualScrolling]);
 
   return (
-    <div className="py-4 w-full mx-auto">
+    <div className="w-full mx-auto">
       {/* Continuously scrolling carousel container with touch support */}
       <div 
         className="relative overflow-hidden w-full"
@@ -199,19 +199,20 @@ export const RotatingUseScenarios = () => {
               className="flex flex-col items-center"
             >
               {/* Icon now positioned above the card with larger size */}
-              <div className={`mb-2 transform transition-all duration-300 ${
+              <div className={`transform transition-all duration-300 ${
                 activeCardIndex === index ? 'scale-110' : 'scale-100'
               }`}>
                 {scenario.icon}
               </div>
               
               <div 
-                className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border-gray-200 border transition-all duration-300 ${
+                className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-300 ${
                   activeCardIndex === index ? 'scale-105 shadow-md' : ''
                 }`}
                 style={{
                   minWidth: '300px',
-                  maxWidth: '350px'
+                  maxWidth: '350px',
+                  borderColor: '#e5e7eb' // Consistent gray border color
                 }}
               >
                 <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800">
@@ -229,8 +230,8 @@ export const RotatingUseScenarios = () => {
         <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
       </div>
       
-      {/* Scroll indicator - Positioned at the very bottom of the page */}
-      <div className="flex justify-center fixed bottom-0 left-0 right-0 pb-2 animate-bounce">
+      {/* Scroll indicator - Positioned at the very bottom of the viewport */}
+      <div className="flex justify-center fixed bottom-2 left-0 right-0 animate-bounce z-30">
         <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>
