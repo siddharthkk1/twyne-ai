@@ -34,19 +34,25 @@ const Index = () => {
     const fetchWaitlistCount = async () => {
       try {
         setIsLoading(true);
+        console.log("IndexPage: Fetching waitlist count...");
+        
         const { count, error } = await supabase
           .from('waitlist')
           .select('*', { count: 'exact', head: true });
         
+        console.log("IndexPage: Supabase response:", { count, error });
+        
         if (error) {
-          console.error("Error fetching waitlist count:", error);
+          console.error("IndexPage: Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
-          const actualCount = count;
+          const actualCount = count !== null ? count : 0;
+          console.log("IndexPage: Actual count from DB:", actualCount);
+          console.log("IndexPage: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {
-        console.error("Error in waitlist count fetch:", error);
+        console.error("IndexPage: Error in waitlist count fetch:", error);
       } finally {
         setIsLoading(false);
       }
@@ -80,7 +86,7 @@ const Index = () => {
                   </Link>
                 </Button>
               ) : (
-                <>
+                <div className="flex flex-col items-center">
                   <Button 
                     size="lg" 
                     className="rounded-full px-8 hover-scale"
@@ -96,7 +102,7 @@ const Index = () => {
                       <span>{waitlistCount.toLocaleString()}+ people already on the waitlist</span>
                     </div>
                   )}
-                </>
+                </div>
               )}
               <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect" onClick={scrollToHowItWorks}>
                 Learn More

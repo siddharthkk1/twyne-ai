@@ -45,21 +45,29 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
 
   useEffect(() => {
     const fetchWaitlistCount = async () => {
+      if (!open) return; // Only fetch when the form is open
+      
       try {
         setIsLoading(true);
+        console.log("WaitlistForm: Fetching waitlist count...");
+        
         const { count, error } = await supabase
           .from('waitlist')
           .select('*', { count: 'exact', head: true });
         
+        console.log("WaitlistForm: Supabase response:", { count, error });
+        
         if (error) {
-          console.error("Error fetching waitlist count:", error);
+          console.error("WaitlistForm: Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
           const actualCount = count !== null ? count : 0;
+          console.log("WaitlistForm: Actual count from DB:", actualCount);
+          console.log("WaitlistForm: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {
-        console.error("Error in waitlist count fetch:", error);
+        console.error("WaitlistForm: Error in waitlist count fetch:", error);
       } finally {
         setIsLoading(false);
       }

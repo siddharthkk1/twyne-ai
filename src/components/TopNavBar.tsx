@@ -21,15 +21,21 @@ export const TopNavBar = () => {
     const fetchWaitlistCount = async () => {
       try {
         setIsLoading(true);
+        console.log("Fetching waitlist count...");
+        
         const { count, error } = await supabase
           .from('waitlist')
           .select('*', { count: 'exact', head: true });
+        
+        console.log("Supabase response:", { count, error });
         
         if (error) {
           console.error("Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
           const actualCount = count !== null ? count : 0;
+          console.log("Actual count from DB:", actualCount);
+          console.log("Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {
