@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,11 +23,10 @@ const formSchema = z.object({
   location: z.string().min(2, { message: "Please enter your location." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   phoneNumber: z.string().optional(),
-  // Make sure the age field is clearly defined as an optional string
+  // Make age required now, not optional
   age: z.string()
-    .refine(val => !val || !isNaN(parseInt(val)), { message: "Age must be a number" })
-    .transform(val => val ? parseInt(val) : null)
-    .optional(),
+    .refine(val => !isNaN(parseInt(val)), { message: "Age must be a number" })
+    .transform(val => val ? parseInt(val) : null),
   interests: z.string().min(2, { message: "Please share at least one interest." }),
   motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -39,7 +37,7 @@ type FormInputValues = {
   location: string;
   email: string;
   phoneNumber?: string;
-  age?: string; // Age is a string in the form input
+  age: string; // Age is a string in the form input
   interests: string;
   motivation: string;
 };
@@ -196,22 +194,23 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 py-1">
-            {/* Row 1: Full Name and Location */}
+            {/* Row 1: Full Name (single line) */}
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Row 2: Location and Age (on same line) */}
             <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
               <FormField
                 control={form.control}
                 name="location"
@@ -225,30 +224,13 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   </FormItem>
                 )}
               />
-            </div>
-            
-            {/* Row 2: Email and Age */}
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               
               <FormField
                 control={form.control}
                 name="age"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Age (Optional)</FormLabel>
+                    <FormLabel>Age</FormLabel>
                     <FormControl>
                       <Input placeholder="30" type="number" {...field} />
                     </FormControl>
@@ -258,7 +240,22 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               />
             </div>
             
-            {/* Row 3: Phone Number with description */}
+            {/* Row 3: Email (single line) */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="your.email@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Row 4: Phone Number with description */}
             <FormField
               control={form.control}
               name="phoneNumber"
@@ -276,7 +273,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               )}
             />
             
-            {/* Row 4: Interests */}
+            {/* Row 5: Interests with smaller height */}
             <FormField
               control={form.control}
               name="interests"
@@ -286,7 +283,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   <FormControl>
                     <Textarea 
                       placeholder="Reading, hiking, photography, etc."
-                      className="resize-none h-14"
+                      className="resize-none h-12"
                       {...field}
                     />
                   </FormControl>
@@ -295,7 +292,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               )}
             />
             
-            {/* Row 5: Motivation */}
+            {/* Row 6: Motivation with smaller height */}
             <FormField
               control={form.control}
               name="motivation"
@@ -305,7 +302,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   <FormControl>
                     <Textarea 
                       placeholder="What draws you to join our community?"
-                      className="resize-none h-14"
+                      className="resize-none h-12"
                       {...field}
                     />
                   </FormControl>
