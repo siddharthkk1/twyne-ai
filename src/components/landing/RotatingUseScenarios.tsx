@@ -21,26 +21,30 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 3,
-      title: "My career is niche and I want people who understand it.",
+      title: "I want friendships that aren’t random roommates or coworkers.",
     },
     {
       id: 4,
-      title: "I want deep conversations about books and philosophy over coffee.",
+      title: “I’m in college but still feel like I haven’t found my people yet.”
     },
     {
       id: 5,
-      title: "I'm looking for NBA fans to watch games with.",
+      title: "I want deep conversations about books and philosophy over coffee.",
     },
     {
       id: 6,
-      title: "I've outgrown my old circles and want to consciously rebuild my social life.",
+      title: "I'm looking for NBA fans to watch games with.",
     },
     {
       id: 7,
-      title: "I have friends but no one I feel deeply connected with.",
+      title: "I've outgrown my old circles and want to consciously rebuild my social life.",
     },
     {
       id: 8,
+      title: "I have friends but no one I feel deeply connected with.",
+    },
+    {
+      id: 9,
       title: "I'm a foodie looking for friends to try restaurants with.",
     },
   ];
