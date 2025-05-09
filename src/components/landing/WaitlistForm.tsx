@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           console.error("Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
-          const actualCount = count || 0;
+          const actualCount = count !== null ? count : 0;
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {

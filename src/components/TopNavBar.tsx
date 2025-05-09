@@ -29,7 +29,7 @@ export const TopNavBar = () => {
           console.error("Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
-          const actualCount = count || 0;
+          const actualCount = count !== null ? count : 0;
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {

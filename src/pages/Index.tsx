@@ -42,7 +42,7 @@ const Index = () => {
           console.error("Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
-          const actualCount = count || 1;
+          const actualCount = count !== null ? count : 0;
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {
@@ -71,7 +71,7 @@ const Index = () => {
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
               Twyne gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <div className="flex flex-col items-center gap-4 mt-4">
               {user ? (
                 <Button asChild size="lg" className="rounded-full px-8 hover-scale">
                   <Link to="/connections" className="flex items-center">
@@ -80,7 +80,7 @@ const Index = () => {
                   </Link>
                 </Button>
               ) : (
-                <>
+                <div className="flex flex-col items-center">
                   <Button 
                     size="lg" 
                     className="rounded-full px-8 hover-scale"
@@ -96,7 +96,7 @@ const Index = () => {
                       <span>{waitlistCount.toLocaleString()}+ people already on the waitlist</span>
                     </div>
                   )}
-                </>
+                </div>
               )}
               <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect" onClick={scrollToHowItWorks}>
                 Learn More
