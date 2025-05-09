@@ -21,11 +21,11 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 3,
-      title: "I want friendships that aren’t random roommates or coworkers.",
+      title: "I want friendships that aren't random roommates or coworkers.",
     },
     {
       id: 4,
-      title: "I’m in college but still feel like I haven’t found my people yet.”,
+      title: "I'm in college but still feel like I haven't found my people yet.",
     },
     {
       id: 5,
