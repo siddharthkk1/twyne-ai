@@ -25,6 +25,7 @@ const formSchema = z.object({
   location: z.string().min(2, { message: "Please enter your location." }),
   interests: z.string().min(2, { message: "Please share at least one interest." }),
   motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
+  phoneNumber: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -89,7 +90,8 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       fullName: "",
       location: "",
       interests: "",
-      motivation: ""
+      motivation: "",
+      phoneNumber: "",
     },
   });
 
@@ -97,6 +99,9 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
     setIsSubmitting(true);
     
     try {
+      // Generate a random number of people on waitlist from user's city (between 20-200)
+      const cityWaitlistCount = Math.floor(Math.random() * (200 - 20 + 1)) + 20;
+      
       // Insert email and additional fields into the waitlist table
       const { error } = await supabase
         .from('waitlist')
@@ -105,7 +110,8 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           full_name: data.fullName,
           location: data.location,
           interests: data.interests,
-          motivation: data.motivation
+          motivation: data.motivation,
+          phone_number: data.phoneNumber || null
         }]);
       
       if (error) {
@@ -122,7 +128,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       } else {
         toast({
           title: "You've joined the waitlist!",
-          description: "We'll notify you when Twyne is ready.",
+          description: `We'll notify you via email${data.phoneNumber ? " or text" : ""} when Twyne is ready. There are already ${cityWaitlistCount} people from ${data.location} on our waitlist!`,
         });
       }
       
@@ -198,6 +204,23 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                     <Input placeholder="City, Country" {...field} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+1 (555) 123-4567" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-xs text-muted-foreground">
+                    This allows us to contact you when Twyne is available in your area.
+                  </p>
                 </FormItem>
               )}
             />

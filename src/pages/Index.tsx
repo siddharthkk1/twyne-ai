@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -114,7 +113,7 @@ const Index = () => {
             </div>
             
             {/* Rotating text with reduced spacing */}
-            <div className="mt-6 w-full mb-1"> {/* Further reduced space above and below */}
+            <div className="mt-6 w-full mb-1"> 
               <RotatingUseScenarios />
             </div>
           </div>
