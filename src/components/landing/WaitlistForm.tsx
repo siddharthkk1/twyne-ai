@@ -161,7 +161,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
             <div className="flex items-center justify-center mt-3 py-2 px-4 bg-muted/40 rounded-md">
               <Users size={18} className="mr-2 text-primary" />
               <span className="text-sm font-medium">
-                Join {waitlistCount.toLocaleString()}+ people already on the waitlist
+                Join {waitlistCount.toLocaleString()} people already on the waitlist
               </span>
             </div>
           )}

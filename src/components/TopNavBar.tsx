@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,7 +76,7 @@ export const TopNavBar = () => {
               {!isLoading && waitlistCount !== null && (
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Users size={16} className="mr-1 text-primary" />
-                  <span>{waitlistCount.toLocaleString()}+ members</span>
+                  <span>{waitlistCount.toLocaleString()} members</span>
                 </div>
               )}
               <Button onClick={() => setIsWaitlistOpen(true)}>

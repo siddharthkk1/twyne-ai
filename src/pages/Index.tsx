@@ -102,7 +102,7 @@ const Index = () => {
                   {!isLoading && waitlistCount !== null && (
                     <div className="flex items-center justify-center text-sm text-muted-foreground mt-3 bg-muted/40 py-1 px-3 rounded-full">
                       <Users size={16} className="mr-2 text-primary" />
-                      <span>{waitlistCount.toLocaleString()}+ people already on the waitlist</span>
+                      <span>{waitlistCount.toLocaleString()} people already on the waitlist</span>
                     </div>
                   )}
                 </div>
