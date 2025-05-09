@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -42,16 +43,28 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
     setIsSubmitting(true);
     
     try {
-      // In a real app, this would send the email to your backend
-      console.log("Email submitted to waitlist:", data.email);
+      // Insert email into the waitlist table
+      const { error } = await supabase
+        .from('waitlist')
+        .insert([{ email: data.email }]);
       
-      // Simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      toast({
-        title: "You've joined the waitlist!",
-        description: "We'll notify you when Twyne is ready.",
-      });
+      if (error) {
+        if (error.code === '23505') {
+          // Unique constraint error (email already exists)
+          toast({
+            title: "You're already on the waitlist!",
+            description: "We'll notify you when Twyne is ready.",
+          });
+        } else {
+          console.error("Error submitting to waitlist:", error);
+          throw error;
+        }
+      } else {
+        toast({
+          title: "You've joined the waitlist!",
+          description: "We'll notify you when Twyne is ready.",
+        });
+      }
       
       form.reset();
       onOpenChange(false);
@@ -61,6 +74,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         description: "Please try again later.",
         variant: "destructive",
       });
+      console.error("Waitlist submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
