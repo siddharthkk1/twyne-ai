@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles, Star, StarHalf, MessageSquare } from "lucide-react";
@@ -9,10 +10,16 @@ import { SampleProfileSection } from "@/components/landing/SampleProfileSection"
 import { Logo } from "@/components/Logo";
 import { Card, CardContent } from "@/components/ui/card";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
+import { supabase } from "@/integrations/supabase/client";
+
+// The artificial boost we want to add to the waitlist count
+const WAITLIST_BOOST = 524;
 
 const Index = () => {
   const { user } = useAuth();
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Function to scroll to How It Works section
   const scrollToHowItWorks = (e: React.MouseEvent) => {
@@ -22,6 +29,31 @@ const Index = () => {
       howItWorksSection.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    const fetchWaitlistCount = async () => {
+      try {
+        setIsLoading(true);
+        const { count, error } = await supabase
+          .from('waitlist')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          console.error("Error fetching waitlist count:", error);
+        } else {
+          // Add the artificial boost to the actual count
+          const actualCount = count || 0;
+          setWaitlistCount(actualCount + WAITLIST_BOOST);
+        }
+      } catch (error) {
+        console.error("Error in waitlist count fetch:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWaitlistCount();
+  }, []);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -48,14 +80,23 @@ const Index = () => {
                   </Link>
                 </Button>
               ) : (
-                <Button 
-                  size="lg" 
-                  className="rounded-full px-8 hover-scale"
-                  onClick={() => setIsWaitlistOpen(true)}
-                >
-                  Join Waitlist
-                  <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
-                </Button>
+                <>
+                  <Button 
+                    size="lg" 
+                    className="rounded-full px-8 hover-scale"
+                    onClick={() => setIsWaitlistOpen(true)}
+                  >
+                    Join Waitlist
+                    <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                  </Button>
+                  
+                  {!isLoading && waitlistCount !== null && (
+                    <div className="flex items-center justify-center text-sm text-muted-foreground mt-3">
+                      <Users size={18} className="mr-2 text-primary" />
+                      <span>{waitlistCount.toLocaleString()}+ people already on the waitlist</span>
+                    </div>
+                  )}
+                </>
               )}
               <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect" onClick={scrollToHowItWorks}>
                 Learn More
