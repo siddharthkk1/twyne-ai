@@ -21,8 +21,9 @@ import { supabase } from "@/integrations/supabase/client";
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
-  location: z.string().optional(),
-  interests: z.string().optional(),
+  location: z.string().min(2, { message: "Please enter your location." }),
+  interests: z.string().min(2, { message: "Please share at least one interest." }),
+  motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -43,6 +44,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       fullName: "",
       location: "",
       interests: "",
+      motivation: ""
     },
   });
 
@@ -55,8 +57,10 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         .from('waitlist')
         .insert([{ 
           email: data.email,
-          // We'll need to update our SQL schema in a separate step
-          // to support these fields. This code will error for now.
+          full_name: data.fullName,
+          location: data.location,
+          interests: data.interests,
+          motivation: data.motivation
         }]);
       
       if (error) {
@@ -136,7 +140,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location (Optional)</FormLabel>
+                  <FormLabel>Location</FormLabel>
                   <FormControl>
                     <Input placeholder="City, Country" {...field} />
                   </FormControl>
@@ -150,10 +154,28 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               name="interests"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>What are you interested in? (Optional)</FormLabel>
+                  <FormLabel>List a few of your interests</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Tell us what you're looking for in Twyne..."
+                      placeholder="Reading, hiking, photography, etc."
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="motivation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Why are you interested in Twyne?</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="What draws you to join our community?"
                       className="resize-none"
                       {...field}
                     />
