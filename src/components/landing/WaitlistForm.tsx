@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +33,9 @@ interface WaitlistFormProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// The artificial boost we want to add to the waitlist count
+const WAITLIST_BOOST = 524;
+
 export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,7 +53,9 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         if (error) {
           console.error("Error fetching waitlist count:", error);
         } else {
-          setWaitlistCount(count || 0);
+          // Add the artificial boost to the actual count
+          const actualCount = count || 0;
+          setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {
         console.error("Error in waitlist count fetch:", error);
@@ -131,7 +135,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           <DialogDescription>
             Be the first to know when Twyne launches in your city.
           </DialogDescription>
-          {!isLoading && waitlistCount !== null && waitlistCount > 0 && (
+          {!isLoading && waitlistCount !== null && (
             <div className="flex items-center justify-center mt-3 py-2 px-4 bg-muted/40 rounded-md">
               <Users size={18} className="mr-2 text-primary" />
               <span className="text-sm font-medium">
