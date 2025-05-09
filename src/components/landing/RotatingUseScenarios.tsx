@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, TouchEvent } from "react";
 
 interface ScenarioItem {
   id: number;
@@ -7,11 +7,13 @@ interface ScenarioItem {
 }
 
 export const RotatingUseScenarios = () => {
-  const [activeScenario, setActiveScenario] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const scrollSpeed = 0.5; // Controls the speed of scrolling (pixels per frame)
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchOffset, setTouchOffset] = useState(0);
+  const [manualScrolling, setManualScrolling] = useState(false);
   
   // Define all use scenarios
   const scenarios: ScenarioItem[] = [
@@ -58,7 +60,7 @@ export const RotatingUseScenarios = () => {
 
   // Continuous smooth scrolling animation
   const animate = () => {
-    if (!scrollContainerRef.current || !isAutoScrolling) return;
+    if (!scrollContainerRef.current || !isAutoScrolling || manualScrolling) return;
     
     const container = scrollContainerRef.current;
     
@@ -70,20 +72,35 @@ export const RotatingUseScenarios = () => {
       container.scrollLeft = 1; // Reset to beginning (not 0 to avoid flicker)
     }
     
-    // Find the active scenario based on scroll position
-    const scenarioWidth = container.scrollWidth / allScenarios.length;
-    const newActiveScenario = Math.floor((container.scrollLeft / scenarioWidth) % scenarios.length);
-    
-    if (newActiveScenario !== activeScenario) {
-      setActiveScenario(newActiveScenario);
-    }
-    
     animationRef.current = requestAnimationFrame(animate);
+  };
+
+  // Touch handlers for manual control
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    if (!scrollContainerRef.current) return;
+    setTouchStartX(e.touches[0].clientX);
+    setManualScrolling(true);
+    setIsAutoScrolling(false);
+  };
+
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (touchStartX === null || !scrollContainerRef.current) return;
+    
+    const container = scrollContainerRef.current;
+    const touchDiff = touchStartX - e.touches[0].clientX;
+    container.scrollLeft += touchDiff / 5; // Dampened effect
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStartX(null);
+    setManualScrolling(false);
+    setIsAutoScrolling(true);
   };
 
   // Start animation when component mounts
   useEffect(() => {
-    if (isAutoScrolling) {
+    if (isAutoScrolling && !manualScrolling) {
       animationRef.current = requestAnimationFrame(animate);
     } else if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -94,23 +111,11 @@ export const RotatingUseScenarios = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isAutoScrolling]);
+  }, [isAutoScrolling, manualScrolling]);
 
   return (
     <div className="py-12 max-w-[1000px] mx-auto">
-      {/* Progress indicator */}
-      <div className="flex justify-center mb-8">
-        <div className="h-1 w-40 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary transition-all duration-300 ease-in-out"
-            style={{
-              width: `${((activeScenario + 1) / scenarios.length) * 100}%`
-            }}
-          ></div>
-        </div>
-      </div>
-      
-      {/* Continuously scrolling carousel container */}
+      {/* Continuously scrolling carousel container with touch support */}
       <div 
         className="relative overflow-hidden mx-4"
         onMouseEnter={() => setIsAutoScrolling(false)}
@@ -120,6 +125,9 @@ export const RotatingUseScenarios = () => {
           ref={scrollContainerRef}
           className="flex gap-6 pb-8 overflow-x-auto hide-scrollbar" 
           style={{ scrollBehavior: 'auto' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {allScenarios.map((scenario, index) => (
             <div 
