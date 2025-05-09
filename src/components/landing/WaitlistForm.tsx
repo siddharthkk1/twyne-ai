@@ -152,13 +152,13 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+        <DialogHeader className="space-y-2 pb-1">
           <DialogTitle className="text-2xl">Join the Waitlist</DialogTitle>
           <DialogDescription>
             Be the first to know when Twyne launches in your city.
           </DialogDescription>
           {!isLoading && waitlistCount !== null && (
-            <div className="flex items-center justify-center mt-3 py-2 px-4 bg-muted/40 rounded-md">
+            <div className="flex items-center justify-center py-1 px-4 bg-muted/40 rounded-md">
               <Users size={18} className="mr-2 text-primary" />
               <span className="text-sm font-medium">
                 Join {waitlistCount.toLocaleString()} people already on the waitlist
@@ -168,65 +168,66 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="your.email@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="your.email@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="City, Country" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="phoneNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="+1 (555) 123-4567" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-xs text-muted-foreground">
-                    This allows us to contact you when Twyne is available in your area.
-                  </p>
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="City, Country" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 (555) 123-4567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <FormField
               control={form.control}
@@ -237,7 +238,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   <FormControl>
                     <Textarea 
                       placeholder="Reading, hiking, photography, etc."
-                      className="resize-none"
+                      className="resize-none h-14"
                       {...field}
                     />
                   </FormControl>
@@ -255,7 +256,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   <FormControl>
                     <Textarea 
                       placeholder="What draws you to join our community?"
-                      className="resize-none"
+                      className="resize-none h-14"
                       {...field}
                     />
                   </FormControl>
@@ -264,7 +265,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               )}
             />
             
-            <DialogFooter className="mt-6 pt-2">
+            <DialogFooter className="mt-4 pt-1">
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Join Waitlist"}
               </Button>
