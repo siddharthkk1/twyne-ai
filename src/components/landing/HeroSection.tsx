@@ -72,9 +72,9 @@ export const HeroSection = ({
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>
           
-          {/* Buttons with no space between - swapped styling */}
+          {/* Buttons with horizontal space between them */}
           <div 
-            className={`flex flex-col sm:flex-row sm:space-x-0 transition-all duration-700 transform ${
+            className={`flex flex-col sm:flex-row sm:space-x-4 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '800ms' }}
@@ -87,41 +87,42 @@ export const HeroSection = ({
                 </Link>
               </Button>
             ) : (
-              <div className="flex flex-col sm:flex-row sm:space-x-0 items-center">
-                {/* Join Waitlist button with new styling (solid color) */}
+              <div className="flex flex-col sm:flex-row sm:space-x-4 items-center">
+                {/* Join Waitlist button with purple-to-pink gradient */}
                 <Button 
                   size="lg" 
-                  className="rounded-full px-8 hover-scale shadow-sm hover:shadow-md transition-all"
+                  className="rounded-full px-8 hover-scale shadow-sm hover:shadow-md transition-all bg-gradient-to-r from-primary to-accent text-white border-none font-medium"
                   onClick={onOpenWaitlist}
                 >
                   Join Waitlist
                   <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
                 </Button>
                 
-                {/* Learn More button with gradient styling */}
+                {/* Learn More button with purple gradient */}
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="rounded-full px-8 bg-gradient-to-r from-primary to-accent text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0"
+                  className="rounded-full px-8 bg-gradient-to-r from-primary/90 to-primary/70 text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0"
                   onClick={onScrollToHowItWorks}
                 >
                   Learn More
                 </Button>
-                
-                {!isLoading && waitlistCount !== null && (
-                  <div 
-                    className={`flex items-center justify-center text-sm text-muted-foreground mt-3 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
-                      isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-                    }`}
-                    style={{ transitionDelay: '1000ms' }}
-                  >
-                    <Users size={16} className="mr-2 text-primary" />
-                    <span>{waitlistCount.toLocaleString()} people already on the waitlist</span>
-                  </div>
-                )}
               </div>
             )}
           </div>
+          
+          {/* Waitlist Count - Moved below the buttons */}
+          {!isLoading && waitlistCount !== null && (
+            <div 
+              className={`flex items-center justify-center text-sm text-muted-foreground mt-4 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
+                isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+              }`}
+              style={{ transitionDelay: '1000ms' }}
+            >
+              <Users size={16} className="mr-2 text-primary" />
+              <span>{waitlistCount.toLocaleString()} people already on the waitlist</span>
+            </div>
+          )}
           
           {/* Rotating text with enhanced animations */}
           <div 
