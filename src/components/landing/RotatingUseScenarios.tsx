@@ -21,7 +21,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 3,
-      title: ,
+      title: "",
     },
     {
       id: 4,
