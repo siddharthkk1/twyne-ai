@@ -28,9 +28,8 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-16 md:py-24 mt-14 overflow-hidden">
-      {/* Enhanced background with visible moving gradient */}
-      <div className="absolute inset-0 -z-10 bg-light-gradient"></div>
+    <section className="relative py-16 md:py-24 mt-14 overflow-hidden bg-white">
+      {/* Removed gradient background */}
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
         <div className="flex flex-col items-center text-center gap-5 pt-8 md:pt-12">
