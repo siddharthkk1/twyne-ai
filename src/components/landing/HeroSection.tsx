@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -56,7 +57,7 @@ export const HeroSection = ({
           
           {/* New title with fade-in from left and improved contrast */}
           <h2 
-            className={`text-2xl md:text-3xl font-medium tracking-tight text-primary mb-0 pb-0 transition-all duration-700 transform ${
+            className={`text-2xl md:text-3xl font-medium tracking-tight gradient-text mb-0 pb-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
             }`}
             style={{ transitionDelay: '300ms' }}
@@ -71,7 +72,7 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '500ms' }}
           >
-            <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent animate-gradient-slow bg-[length:200%_auto]">
               Meet people you vibe with in your city
             </span>
           </h1>
