@@ -88,14 +88,18 @@ export const RotatingUseScenarios = () => {
     
     const container = scrollContainerRef.current;
     const touchDiff = touchStartX - e.touches[0].clientX;
-    container.scrollLeft += touchDiff / 5; // Dampened effect
+    
+    // Update scroll position directly based on touch movement
+    container.scrollLeft += touchDiff;
     setTouchStartX(e.touches[0].clientX);
   };
 
   const handleTouchEnd = () => {
     setTouchStartX(null);
-    setManualScrolling(false);
-    setIsAutoScrolling(true);
+    setTimeout(() => {
+      setManualScrolling(false);
+      setIsAutoScrolling(true);
+    }, 300); // Small delay before resuming auto-scrolling
   };
 
   // Start animation when component mounts
