@@ -1,12 +1,14 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { WaitlistForm } from "@/components/landing/WaitlistForm";
 
 export const TopNavBar = () => {
   const { user } = useAuth();
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   
   return (
     <nav className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md z-50 border-b border-border/40">
@@ -33,15 +35,14 @@ export const TopNavBar = () => {
               <Link to="/auth" className="text-foreground/80 hover:text-primary transition-colors">
                 Sign In
               </Link>
-              <Button asChild>
-                <Link to="/auth?tab=register" className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
-                  Get Started
-                </Link>
+              <Button onClick={() => setIsWaitlistOpen(true)}>
+                Join Waitlist
               </Button>
             </>
           )}
         </div>
       </div>
+      <WaitlistForm open={isWaitlistOpen} onOpenChange={setIsWaitlistOpen} />
     </nav>
   );
 };

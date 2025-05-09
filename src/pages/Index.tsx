@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Brain, MessageCircle, Share2, Users, MapPin, Sparkles, Star, StarHalf, MessageSquare } from "lucide-react";
@@ -8,9 +8,11 @@ import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios"
 import { SampleProfileSection } from "@/components/landing/SampleProfileSection";
 import { Logo } from "@/components/Logo";
 import { Card, CardContent } from "@/components/ui/card";
+import { WaitlistForm } from "@/components/landing/WaitlistForm";
 
 const Index = () => {
   const { user } = useAuth();
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   
   // Function to scroll to How It Works section
   const scrollToHowItWorks = (e: React.MouseEvent) => {
@@ -46,11 +48,13 @@ const Index = () => {
                   </Link>
                 </Button>
               ) : (
-                <Button asChild size="lg" className="rounded-full px-8 hover-scale">
-                  <Link to="/auth" className="flex items-center">
-                    Get Started
-                    <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
-                  </Link>
+                <Button 
+                  size="lg" 
+                  className="rounded-full px-8 hover-scale"
+                  onClick={() => setIsWaitlistOpen(true)}
+                >
+                  Join Waitlist
+                  <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
                 </Button>
               )}
               <Button variant="outline" size="lg" className="rounded-full px-8 glass-effect" onClick={scrollToHowItWorks}>
@@ -122,71 +126,63 @@ const Index = () => {
           </div>
           
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
+            <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
               <p className="text-lg mb-2">
                 <span className="font-semibold">You and Nina</span> both love basketball, burritos, and late-night debates.
               </p>
               <Button 
-                asChild 
+                onClick={() => setIsWaitlistOpen(true)}
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mb-4 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
               >
-                <Link to={user ? "/connections" : "/auth"}>
-                  <MessageCircle size={16} className="mr-1" />
-                  Connect & Say Hi
-                </Link>
+                <MessageCircle size={16} className="mr-1" />
+                Connect & Say Hi
               </Button>
             </div>
             
-            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
+            <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
               <p className="text-lg mb-2">
                 <span className="font-semibold">You and Priya</span> both read too many psychology books and have 300+ tabs open.
               </p>
               <Button 
-                asChild 
+                onClick={() => setIsWaitlistOpen(true)}
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mb-4 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
               >
-                <Link to={user ? "/connections" : "/auth"}>
-                  <MessageCircle size={16} className="mr-1" />
-                  Connect & Say Hi
-                </Link>
+                <MessageCircle size={16} className="mr-1" />
+                Connect & Say Hi
               </Button>
             </div>
             
-            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
+            <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
               <p className="text-lg mb-2">
                 <span className="font-semibold">You and Chris</span> are both getting married in a month and feeling all the chaos and excitement.
               </p>
               <Button 
-                asChild 
+                onClick={() => setIsWaitlistOpen(true)}
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mb-4 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
               >
-                <Link to={user ? "/connections" : "/auth"}>
-                  <MessageCircle size={16} className="mr-1" />
-                  Connect & Say Hi
-                </Link>
+                <MessageCircle size={16} className="mr-1" />
+                Connect & Say Hi
               </Button>
             </div>
             
-            <div className="bg-background rounded-xl p-6 pb-1 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
+            <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
               <p className="text-lg mb-2">
                 <span className="font-semibold">You and Lena</span> both just moved to the city and are figuring out how to feel at home here.
               </p>
               <Button 
-                asChild 
+                onClick={() => setIsWaitlistOpen(true)}
                 variant="default" 
                 size="sm"
-                className="rounded-full w-full md:w-auto self-end mb-4 hover:shadow-md transition-all"
+                className="rounded-full w-full md:w-auto self-end mb-6 hover:shadow-md transition-all"
               >
-                <Link to={user ? "/connections" : "/auth"}>
-                  <MessageCircle size={16} className="mr-1" />
-                  Connect & Say Hi
-                </Link>
+                <MessageCircle size={16} className="mr-1" />
+                Connect & Say Hi
               </Button>
             </div>
           </div>
@@ -290,21 +286,22 @@ const Index = () => {
               <Share2 className="h-12 w-12 text-primary" />
               <h2 className="text-2xl md:text-3xl font-bold">Ready to find your authentic connections?</h2>
               <p className="max-w-[600px] text-muted-foreground">
-                Start chatting with Twyne today and discover people in your city who truly match your vibe.
+                Join the waitlist today and be first to discover people in your city who truly match your vibe.
               </p>
-              {user ? (
-                <Button className="mt-4 rounded-full px-8 hover-scale" asChild size="lg">
-                  <Link to="/connections">View Your Connections</Link>
-                </Button>
-              ) : (
-                <Button className="mt-4 rounded-full px-8 hover-scale" asChild size="lg">
-                  <Link to="/auth">Get Started</Link>
-                </Button>
-              )}
+              <Button 
+                onClick={() => setIsWaitlistOpen(true)} 
+                className="mt-4 rounded-full px-8 hover-scale" 
+                size="lg"
+              >
+                Join Waitlist
+              </Button>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Waitlist Form Modal */}
+      <WaitlistForm open={isWaitlistOpen} onOpenChange={setIsWaitlistOpen} />
     </div>
   );
 };
