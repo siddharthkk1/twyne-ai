@@ -26,10 +26,10 @@ export const HeroSection = ({
   const { user } = useAuth();
   
   return (
-    <section className="relative py-24 md:py-32 gradient-bg mt-16">
+    <section className="relative py-16 md:py-24 gradient-bg mt-12">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
-        <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
-          <div className="rounded-full bg-primary/20 p-4 inline-flex mb-8">
+        <div className="flex flex-col items-center text-center gap-4 animate-fade-in">
+          <div className="rounded-full bg-primary/20 p-4 inline-flex mb-6">
             <Logo size="lg" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight gradient-text leading-none whitespace-nowrap overflow-hidden max-w-full pb-3">
@@ -38,7 +38,7 @@ export const HeroSection = ({
           <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-2">
             {user ? (
               <Button asChild size="lg" className="rounded-full px-8 hover-scale">
                 <Link to="/connections" className="flex items-center">
@@ -70,8 +70,8 @@ export const HeroSection = ({
             </Button>
           </div>
           
-          {/* Rotating text with more space for text display */}
-          <div className="mt-8 w-full overflow-hidden"> 
+          {/* Rotating text with reduced vertical spacing */}
+          <div className="mt-6 w-full overflow-hidden"> 
             <RotatingUseScenarios />
           </div>
         </div>
