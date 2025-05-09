@@ -29,10 +29,8 @@ export const HeroSection = ({
   
   return (
     <section className="relative py-16 md:py-24 mt-14 overflow-hidden">
-      {/* Light background with fading edges */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-light-gradient"></div>
-      </div>
+      {/* Subtle background with smooth gradient effect */}
+      <div className="absolute inset-0 -z-10 bg-light-gradient" style={{backgroundSize: "200% 200%"}}></div>
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
         <div className="flex flex-col items-center text-center gap-5 pt-8 md:pt-12">
