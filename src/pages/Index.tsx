@@ -46,7 +46,7 @@ const Index = () => {
           console.error("IndexPage: Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
-          const actualCount = count !== null ? 5 : 1;
+          const actualCount = count == 0 ? 5 : 1;
           console.log("IndexPage: Actual count from DB:", actualCount);
           console.log("IndexPage: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
