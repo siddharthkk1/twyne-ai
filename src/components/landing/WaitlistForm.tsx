@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ const formSchema = z.object({
   // Make age required now, not optional
   age: z.string()
     .refine(val => !isNaN(parseInt(val)), { message: "Age must be a number" })
-    .transform(val => val ? parseInt(val) : null),
+    .transform(val => parseInt(val)), // Transform to number after validation
   interests: z.string().min(2, { message: "Please share at least one interest." }),
   motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -120,18 +121,18 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       // Generate a random number of people on waitlist from user's city (between 20-200)
       const cityWaitlistCount = Math.floor(Math.random() * (200 - 20 + 1)) + 20;
       
-      // Process the form data with the validated/transformed values from Zod
-      const validatedData = formSchema.parse(data);
+      // Convert age to number (fixed the issue)
+      const age = parseInt(data.age);
       
       // Fixed: Type the submission object properly to match the database schema
       const submissionData = {
-        email: validatedData.email,
-        full_name: validatedData.fullName,
-        location: validatedData.location,
-        phone_number: validatedData.phoneNumber || null,
-        age: validatedData.age || null, // Now using the transformed number value
-        interests: validatedData.interests,
-        motivation: validatedData.motivation
+        email: data.email,
+        full_name: data.fullName,
+        location: data.location,
+        phone_number: data.phoneNumber || null,
+        age: age, // Now using the parsed number value
+        interests: data.interests,
+        motivation: data.motivation
       };
 
       // Insert data into the waitlist table
