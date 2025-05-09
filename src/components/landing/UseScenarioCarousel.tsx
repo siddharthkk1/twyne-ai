@@ -26,7 +26,7 @@ export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Define all use scenarios - updated for more specificity in items 3 and 5
+  // Define all use scenarios - updated for consistency with RotatingUseScenarios
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -39,7 +39,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 2,
       icon: Heart,
-      title: "I love climbing and want buddies who'll join me at the gym once a week.",
+      title: "I love climbing and want gym buddies once a week.",
       description: "Find activity partners who match your schedule and skill level for regular adventures.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
@@ -47,7 +47,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 3,
       icon: Coffee,
-      title: "My career is niche and I want to meet people who actually get what I do.",
+      title: "My career is niche and I want people who understand it.",
       description: "Connect with professionals in similar fields who understand your unique work challenges.",
       iconBgColor: "bg-accent/20",
       iconColor: "text-accent",
@@ -55,7 +55,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 4,
       icon: Users,
-      title: "I want deep conversations about books and philosophy over coffee.",
+      title: "I want deep conversations about books over coffee.",
       description: "Meet fellow intellectuals who enjoy discussing ideas, theories, and literature in cozy settings.",
       iconBgColor: "bg-primary/20",
       iconColor: "text-primary",
@@ -63,7 +63,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 5,
       icon: User,
-      title: "I'm looking for NBA fans in the city to watch games with.",
+      title: "I'm looking for NBA fans to watch games with.",
       description: "Find fellow basketball enthusiasts to cheer on your team and debate stats over beers.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",
@@ -71,7 +71,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 6,
       icon: ArrowRight,
-      title: "I've outgrown my old circles and want to rebuild my social life consciously.",
+      title: "I've outgrown my old circles and want to rebuild.",
       description: "Not everyone grows with you. Twyne helps you find people who match your pace and your path.",
       iconBgColor: "bg-accent/20",
       iconColor: "text-accent",
@@ -87,7 +87,7 @@ export const UseScenarioCarousel = () => {
     {
       id: 8,
       icon: Book,
-      title: "I'm a foodie looking for friends to try new restaurants with.",
+      title: "I'm a foodie looking for friends to try restaurants with.",
       description: "Connect with fellow food enthusiasts who are always up for culinary adventures in your city.",
       iconBgColor: "bg-secondary/20",
       iconColor: "text-secondary",

@@ -9,7 +9,7 @@ interface ScenarioItem {
 export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
   
-  // Define all use scenarios - updated with more specific scenarios
+  // Define all use scenarios - updated to ensure single line display
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -17,23 +17,23 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 2,
-      title: "I love climbing and want buddies who'll join me at the gym once a week.",
+      title: "I love climbing and want gym buddies once a week.",
     },
     {
       id: 3,
-      title: "My career is niche and I want to meet people who actually get what I do.",
+      title: "My career is niche and I want people who understand it.",
     },
     {
       id: 4,
-      title: "I want deep conversations about books and philosophy over coffee.",
+      title: "I want deep conversations about books over coffee.",
     },
     {
       id: 5,
-      title: "I'm looking for NBA fans in the city to watch games with.",
+      title: "I'm looking for NBA fans to watch games with.",
     },
     {
       id: 6,
-      title: "I've outgrown my old circles and want to rebuild my social life consciously.",
+      title: "I've outgrown my old circles and want to rebuild.",
     },
     {
       id: 7,
@@ -41,7 +41,7 @@ export const RotatingUseScenarios = () => {
     },
     {
       id: 8,
-      title: "I'm a foodie looking for friends to try new restaurants with.",
+      title: "I'm a foodie looking for friends to try restaurants with.",
     },
   ];
 
@@ -60,7 +60,7 @@ export const RotatingUseScenarios = () => {
   return (
     <div className="min-h-[60px] flex flex-col items-center text-center max-w-[800px] mx-auto">
       <div className="mb-1 min-h-[40px] flex items-center">
-        <h3 className="text-xl md:text-2xl font-bold">
+        <h3 className="text-xl md:text-2xl font-bold truncate w-full">
           "<span className="text-primary animate-fade-in">{currentScenario.title}</span>"
         </h3>
       </div>
