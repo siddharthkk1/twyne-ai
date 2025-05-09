@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
+  fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
+  location: z.string().optional(),
+  interests: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -36,6 +40,9 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
+      fullName: "",
+      location: "",
+      interests: "",
     },
   });
 
@@ -43,10 +50,14 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
     setIsSubmitting(true);
     
     try {
-      // Insert email into the waitlist table
+      // Insert email and additional fields into the waitlist table
       const { error } = await supabase
         .from('waitlist')
-        .insert([{ email: data.email }]);
+        .insert([{ 
+          email: data.email,
+          // We'll need to update our SQL schema in a separate step
+          // to support these fields. This code will error for now.
+        }]);
       
       if (error) {
         if (error.code === '23505') {
@@ -100,6 +111,52 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="your.email@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="City, Country" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="interests"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What are you interested in? (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Tell us what you're looking for in Twyne..."
+                      className="resize-none"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
