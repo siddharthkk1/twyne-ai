@@ -102,17 +102,19 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       // Generate a random number of people on waitlist from user's city (between 20-200)
       const cityWaitlistCount = Math.floor(Math.random() * (200 - 20 + 1)) + 20;
       
+      // Prepare submission data without phone_number to handle schema cache issues
+      const submissionData: Record<string, any> = {
+        email: data.email,
+        full_name: data.fullName,
+        location: data.location,
+        interests: data.interests,
+        motivation: data.motivation
+      };
+
       // Insert email and additional fields into the waitlist table
       const { error } = await supabase
         .from('waitlist')
-        .insert([{ 
-          email: data.email,
-          full_name: data.fullName,
-          location: data.location,
-          interests: data.interests,
-          motivation: data.motivation,
-          phone_number: data.phoneNumber || null
-        }]);
+        .insert([submissionData]);
       
       if (error) {
         if (error.code === '23505') {
