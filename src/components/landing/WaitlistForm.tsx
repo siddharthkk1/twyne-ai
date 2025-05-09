@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,12 +56,17 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           .from('waitlist')
           .select('id');
         
+        // Log the full response data for debugging
+        console.log("WaitlistForm: DETAILED DATA:", data);
+        
         if (error) {
           console.error("WaitlistForm: Error fetching waitlist count:", error);
         } else {
           // Count the actual entries returned
           const actualCount = data ? data.length : 0;
           console.log("WaitlistForm: Actual count from DB:", actualCount);
+          console.log("WaitlistForm: Data type:", typeof data);
+          console.log("WaitlistForm: Is data an array?", Array.isArray(data));
           console.log("WaitlistForm: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }

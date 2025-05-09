@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -40,12 +41,17 @@ const Index = () => {
           .from('waitlist')
           .select('id');
         
+        // Log the full response data for debugging
+        console.log("IndexPage: DETAILED DATA:", data);
+        
         if (error) {
           console.error("IndexPage: Error fetching waitlist count:", error);
         } else {
           // Count the actual entries returned
           const actualCount = data ? data.length : 0;
           console.log("IndexPage: Actual count from DB:", actualCount);
+          console.log("IndexPage: Data type:", typeof data);
+          console.log("IndexPage: Is data an array?", Array.isArray(data));
           console.log("IndexPage: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }

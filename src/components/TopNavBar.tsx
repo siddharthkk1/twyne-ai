@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,12 +28,17 @@ export const TopNavBar = () => {
           .from('waitlist')
           .select('id');
         
+        // Log the full response data for debugging
+        console.log("DETAILED DATA:", data);
+        
         if (error) {
           console.error("Error fetching waitlist count:", error);
         } else {
           // Count the actual entries returned
           const actualCount = data ? data.length : 0;
           console.log("Actual count from DB:", actualCount);
+          console.log("Data type:", typeof data);
+          console.log("Is data an array?", Array.isArray(data));
           console.log("Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
