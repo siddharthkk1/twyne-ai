@@ -123,7 +123,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           toast({
             title: "You're already on the waitlist!",
             description: "We'll notify you when Twyne is ready.",
-            position: "top-center", // Changed position to top-center
+            position: "center",
           });
         } else {
           console.error("Error submitting to waitlist:", error);
@@ -133,7 +133,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         toast({
           title: "You've joined the waitlist!",
           description: `We'll notify you via email${data.phoneNumber ? " or text" : ""} when Twyne is ready. There are already ${cityWaitlistCount} people from ${data.location} on our waitlist!`,
-          position: "top-center", // Changed position to top-center
+          position: "center",
         });
       }
       
@@ -144,7 +144,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         title: "Something went wrong",
         description: "Please try again later.",
         variant: "destructive",
-        position: "top-center", // Changed position to top-center
+        position: "center",
       });
       console.error("Waitlist submission error:", error);
     } finally {
