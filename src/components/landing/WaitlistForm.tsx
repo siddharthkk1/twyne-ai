@@ -123,6 +123,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           toast({
             title: "You're already on the waitlist!",
             description: "We'll notify you when Twyne is ready.",
+            position: "top-center", // Changed position to top-center
           });
         } else {
           console.error("Error submitting to waitlist:", error);
@@ -132,6 +133,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         toast({
           title: "You've joined the waitlist!",
           description: `We'll notify you via email${data.phoneNumber ? " or text" : ""} when Twyne is ready. There are already ${cityWaitlistCount} people from ${data.location} on our waitlist!`,
+          position: "top-center", // Changed position to top-center
         });
       }
       
@@ -142,6 +144,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         title: "Something went wrong",
         description: "Please try again later.",
         variant: "destructive",
+        position: "top-center", // Changed position to top-center
       });
       console.error("Waitlist submission error:", error);
     } finally {
@@ -225,8 +228,8 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   <FormControl>
                     <Input placeholder="+1 (555) 123-4567" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    We'll send you text updates about your waitlist status
+                  <FormDescription className="text-xs">
+                    This allows us to contact you when Twyne is available in your area.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
