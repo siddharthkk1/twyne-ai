@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ScenarioItem {
   id: number;
@@ -12,6 +11,7 @@ export const RotatingUseScenarios = () => {
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
+  const scrollSpeed = 0.5; // Controls the speed of scrolling (pixels per frame)
   
   // Define all use scenarios
   const scenarios: ScenarioItem[] = [
@@ -53,21 +53,21 @@ export const RotatingUseScenarios = () => {
     },
   ];
   
-  // Clone scenarios for infinite scrolling effect
-  const allScenarios = [...scenarios, ...scenarios];
+  // Clone scenarios multiple times for seamless infinite scrolling effect
+  const allScenarios = [...scenarios, ...scenarios, ...scenarios];
 
-  // Smooth continuous scrolling animation
+  // Continuous smooth scrolling animation
   const animate = () => {
     if (!scrollContainerRef.current || !isAutoScrolling) return;
     
     const container = scrollContainerRef.current;
-    const scrollAmount = 1; // Pixels to scroll per frame - adjust for speed
     
-    container.scrollLeft += scrollAmount;
+    // Move by scrollSpeed pixels each frame
+    container.scrollLeft += scrollSpeed;
     
-    // Reset scroll position when reaching the end of the first set
-    if (container.scrollLeft >= container.scrollWidth / 2) {
-      container.scrollLeft = 0;
+    // If we've scrolled past the first set of items, reset to create infinite loop effect
+    if (container.scrollLeft >= (container.scrollWidth / 3)) {
+      container.scrollLeft = 1; // Reset to beginning (not 0 to avoid flicker)
     }
     
     // Find the active scenario based on scroll position
@@ -81,7 +81,7 @@ export const RotatingUseScenarios = () => {
     animationRef.current = requestAnimationFrame(animate);
   };
 
-  // Start and stop animation based on isAutoScrolling
+  // Start animation when component mounts
   useEffect(() => {
     if (isAutoScrolling) {
       animationRef.current = requestAnimationFrame(animate);
@@ -96,24 +96,23 @@ export const RotatingUseScenarios = () => {
     };
   }, [isAutoScrolling]);
 
-  // Get random pastel background color for quote
+  // Get background color for quote cards
   const getBackgroundColor = (id: number) => {
     const colors = [
-      'bg-primary/10',
-      'bg-secondary/10',
-      'bg-accent/10',
+      'bg-white/80',
       'bg-primary/5',
       'bg-secondary/5',
       'bg-accent/5',
+      'bg-white/70',
     ];
     return colors[id % colors.length];
   };
 
   return (
-    <div className="py-8 max-w-[900px] mx-auto">
+    <div className="py-12 max-w-[1000px] mx-auto">
       {/* Progress indicator */}
-      <div className="flex justify-center mb-6">
-        <div className="h-1 w-32 bg-muted rounded-full overflow-hidden">
+      <div className="flex justify-center mb-8">
+        <div className="h-1 w-40 bg-muted rounded-full overflow-hidden">
           <div 
             className="h-full bg-primary transition-all duration-300 ease-in-out"
             style={{
@@ -123,48 +122,38 @@ export const RotatingUseScenarios = () => {
         </div>
       </div>
       
-      {/* Carousel container */}
+      {/* Continuously scrolling carousel container */}
       <div 
-        className="relative overflow-hidden"
+        className="relative overflow-hidden mx-4"
         onMouseEnter={() => setIsAutoScrolling(false)}
         onMouseLeave={() => setIsAutoScrolling(true)}
       >
-        <ScrollArea>
-          <div 
-            ref={scrollContainerRef}
-            className="flex gap-4 pb-6 px-2 overflow-x-auto hide-scrollbar" 
-            style={{ scrollBehavior: 'auto' }}
-          >
-            {allScenarios.map((scenario, index) => (
-              <div 
-                key={`${scenario.id}-${index}`}
-                className={`flex-shrink-0 ${getBackgroundColor(scenario.id)} p-6 rounded-xl shadow-sm border border-primary/10 transition-all duration-300 ${
-                  index % scenarios.length === activeScenario 
-                    ? 'scale-100 opacity-100' 
-                    : 'scale-95 opacity-70'
-                }`}
-                style={{
-                  minWidth: '280px',
-                  maxWidth: '320px'
-                }}
-                onClick={() => {
-                  const newActiveIndex = index % scenarios.length;
-                  setActiveScenario(newActiveIndex);
-                }}
-              >
-                <h3 className="text-lg font-medium tracking-tight leading-snug text-foreground/90">
-                  <span className="text-primary/90 font-serif italic">"</span>
-                  <span className="text-foreground/80">{scenario.title}</span>
-                  <span className="text-primary/90 font-serif italic">"</span>
-                </h3>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+        <div 
+          ref={scrollContainerRef}
+          className="flex gap-6 pb-8 overflow-x-auto hide-scrollbar" 
+          style={{ scrollBehavior: 'auto' }}
+        >
+          {allScenarios.map((scenario, index) => (
+            <div 
+              key={`${scenario.id}-${index}`}
+              className={`flex-shrink-0 ${getBackgroundColor(scenario.id)} p-6 rounded-xl shadow-sm border border-primary/10 transition-all duration-300`}
+              style={{
+                minWidth: '300px',
+                maxWidth: '350px'
+              }}
+            >
+              <h3 className="text-lg font-medium tracking-tight leading-relaxed">
+                <span className="text-primary font-serif italic text-xl">"</span>
+                <span className="text-gray-800 font-serif">{scenario.title}</span>
+                <span className="text-primary font-serif italic text-xl">"</span>
+              </h3>
+            </div>
+          ))}
+        </div>
         
-        {/* Shadow effect for edges */}
-        <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
-        <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
+        {/* Shadow effect for edges to create fading effect */}
+        <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
       </div>
     </div>
   );
