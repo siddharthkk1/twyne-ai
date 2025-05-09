@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Users, Sparkles } from "lucide-react";
+import { Users } from "lucide-react";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,16 +29,16 @@ export const HeroSection = ({
   
   return (
     <section className="relative py-16 md:py-24 mt-14 overflow-hidden bg-white">
-      {/* Abstract shapes for visual interest */}
+      {/* Modern imagery */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Floating circles */}
-        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/5 animate-pulse-slow"></div>
-        <div className="absolute top-40 -left-32 w-96 h-96 rounded-full bg-secondary/5"></div>
-        <div className="absolute bottom-10 right-10 w-40 h-40 rounded-full bg-accent/5 animate-pulse-slow"></div>
-        
-        {/* Abstract lines */}
-        <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
-        <div className="absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-secondary/20 to-transparent"></div>
+        {/* Hero image - abstract graphic that suggests connections */}
+        <div className="absolute top-0 right-0 w-full md:w-1/2 h-full opacity-10 md:opacity-20">
+          <img 
+            src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80" 
+            alt="Connection" 
+            className="w-full h-full object-cover object-center"
+          />
+        </div>
       </div>
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
@@ -53,7 +53,7 @@ export const HeroSection = ({
             The AI Social Platform
           </h2>
           
-          {/* Main title with fade-in from right and enhanced gradient */}
+          {/* Main title with fade-in from right */}
           <h1 
             className={`text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-none whitespace-nowrap overflow-hidden max-w-full pb-3 mt-1 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
@@ -65,7 +65,7 @@ export const HeroSection = ({
             </span>
           </h1>
           
-          {/* Description with fade-in from bottom and improved readability */}
+          {/* Description with fade-in from bottom */}
           <p 
             className={`max-w-[700px] text-lg md:text-xl text-foreground/90 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -75,9 +75,9 @@ export const HeroSection = ({
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>
           
-          {/* Buttons with staggered fade-in */}
+          {/* Buttons with no gap and updated Learn More button */}
           <div 
-            className={`flex flex-col sm:flex-row gap-4 mt-3 transition-all duration-700 transform ${
+            className={`flex flex-col sm:flex-row sm:gap-0 mt-3 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '800ms' }}
@@ -116,36 +116,14 @@ export const HeroSection = ({
             <Button 
               variant="outline" 
               size="lg" 
-              className="rounded-full px-8 bg-primary/10 backdrop-blur-sm border-primary/30 hover:bg-primary/20 hover-scale text-primary font-medium"
+              className="rounded-full px-8 bg-primary/90 hover:bg-primary/100 border-none text-white font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0 sm:ml-2"
               onClick={onScrollToHowItWorks}
             >
               Learn More
             </Button>
           </div>
           
-          {/* Visual decorative element - sparkle icon */}
-          <div 
-            className={`absolute top-20 right-8 md:right-20 transition-all duration-700 transform hidden md:block ${
-              isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
-            }`}
-            style={{ transitionDelay: '1100ms' }}
-          >
-            <Sparkles className="text-primary/70 w-12 h-12 animate-pulse-slow" />
-          </div>
-          
-          {/* Decorative dot pattern */}
-          <div className="absolute left-10 bottom-20 hidden md:flex flex-wrap w-32 gap-2">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <span 
-                key={i} 
-                className={`w-2 h-2 rounded-full transition-all duration-700 delay-[${i * 100}ms] ${
-                  isVisible ? 'bg-primary/40 scale-100' : 'bg-transparent scale-0'
-                }`}
-              ></span>
-            ))}
-          </div>
-          
-          {/* Rotating text with improved vertical spacing and fade-in */}
+          {/* Rotating text with fade-in */}
           <div 
             className={`mt-8 w-full overflow-hidden transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -153,14 +131,6 @@ export const HeroSection = ({
             style={{ transitionDelay: '1200ms' }}
           > 
             <RotatingUseScenarios />
-          </div>
-          
-          {/* Illustrative wave pattern */}
-          <div className="w-full absolute bottom-0 left-0 h-8 opacity-20">
-            <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-full">
-              <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
-                className="fill-primary/10"></path>
-            </svg>
           </div>
         </div>
       </div>
