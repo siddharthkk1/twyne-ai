@@ -78,7 +78,7 @@ const Index = () => {
               Meet people you vibe with in your city
             </h1>
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
-              Twyne gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
+              Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               {user ? (

@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,12 +20,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users } from "lucide-react";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
   location: z.string().min(2, { message: "Please enter your location." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  phoneNumber: z.string().optional(),
   interests: z.string().min(2, { message: "Please share at least one interest." }),
   motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
-  phoneNumber: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -86,12 +86,12 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
       fullName: "",
       location: "",
+      email: "",
+      phoneNumber: "",
       interests: "",
       motivation: "",
-      phoneNumber: "",
     },
   });
 
@@ -158,7 +158,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
             Be the first to know when Twyne launches in your city.
           </DialogDescription>
           {!isLoading && waitlistCount !== null && (
-            <div className="flex items-center justify-center py-1 px-4 bg-muted/40 rounded-md">
+            <div className="flex items-center justify-center py-1 px-4 bg-muted/40 rounded-md mb-1">
               <Users size={18} className="mr-2 text-primary" />
               <span className="text-sm font-medium">
                 Join {waitlistCount.toLocaleString()} people already on the waitlist
@@ -168,22 +168,9 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 py-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 py-1">
+            {/* Row 1: Full Name and Location */}
             <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
               <FormField
                 control={form.control}
                 name="fullName"
@@ -197,9 +184,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   </FormItem>
                 )}
               />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
+              
               <FormField
                 control={form.control}
                 name="location"
@@ -213,22 +198,42 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   </FormItem>
                 )}
               />
-              
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+1 (555) 123-4567" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
             
+            {/* Row 2: Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="your.email@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Row 3: Phone Number with description */}
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+1 (555) 123-4567" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    We'll send you text updates about your waitlist status
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Row 4: Interests */}
             <FormField
               control={form.control}
               name="interests"
@@ -247,6 +252,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               )}
             />
             
+            {/* Row 5: Motivation */}
             <FormField
               control={form.control}
               name="motivation"
