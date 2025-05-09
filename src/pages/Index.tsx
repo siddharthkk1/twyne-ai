@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -36,17 +35,16 @@ const Index = () => {
         setIsLoading(true);
         console.log("IndexPage: Fetching waitlist count...");
         
-        const { count, error } = await supabase
+        // Instead of using count: 'exact', fetch all entries and count them
+        const { data, error } = await supabase
           .from('waitlist')
-          .select('*', { count: 'exact', head: true });
-        
-        console.log("IndexPage: Supabase response:", { count, error });
+          .select('id');
         
         if (error) {
           console.error("IndexPage: Error fetching waitlist count:", error);
         } else {
-          // Add the artificial boost to the actual count
-          const actualCount = count !== 0 ? 5 : 1;
+          // Count the actual entries returned
+          const actualCount = data ? data.length : 0;
           console.log("IndexPage: Actual count from DB:", actualCount);
           console.log("IndexPage: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
@@ -97,8 +95,8 @@ const Index = () => {
                   </Button>
                   
                   {!isLoading && waitlistCount !== null && (
-                    <div className="flex items-center justify-center text-sm text-muted-foreground mt-3">
-                      <Users size={18} className="mr-2 text-primary" />
+                    <div className="flex items-center justify-center text-sm text-muted-foreground mt-3 bg-muted/40 py-1 px-3 rounded-full">
+                      <Users size={16} className="mr-2 text-primary" />
                       <span>{waitlistCount.toLocaleString()}+ people already on the waitlist</span>
                     </div>
                   )}

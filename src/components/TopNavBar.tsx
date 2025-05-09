@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,17 +22,16 @@ export const TopNavBar = () => {
         setIsLoading(true);
         console.log("Fetching waitlist count...");
         
-        const { count, error } = await supabase
+        // Instead of using count: 'exact', fetch all entries and count them
+        const { data, error } = await supabase
           .from('waitlist')
-          .select('*', { count: 'exact', head: true });
-        
-        console.log("Supabase response:", { count, error });
+          .select('id');
         
         if (error) {
           console.error("Error fetching waitlist count:", error);
         } else {
-          // Add the artificial boost to the actual count
-          const actualCount = count !== null ? count : 0;
+          // Count the actual entries returned
+          const actualCount = data ? data.length : 0;
           console.log("Actual count from DB:", actualCount);
           console.log("Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
