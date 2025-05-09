@@ -42,7 +42,7 @@ const Index = () => {
           console.error("Error fetching waitlist count:", error);
         } else {
           // Add the artificial boost to the actual count
-          const actualCount = count || 0;
+          const actualCount = count || 1;
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {
