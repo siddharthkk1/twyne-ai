@@ -196,22 +196,30 @@ export const RotatingUseScenarios = () => {
           {allScenarios.map((scenario, index) => (
             <div 
               key={`${scenario.id}-${index}`}
-              className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border transition-all duration-300 ${
-                activeCardIndex === index ? 'border-primary scale-105 shadow-md' : 'border-primary/10'
-              }`}
-              style={{
-                minWidth: '300px',
-                maxWidth: '350px'
-              }}
+              className="flex flex-col items-center"
             >
-              <div className="mb-3">
+              {/* Icon now positioned above the card */}
+              <div className={`mb-3 transform transition-all duration-300 ${
+                activeCardIndex === index ? 'scale-110' : 'scale-100'
+              }`}>
                 {scenario.icon}
               </div>
-              <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800">
-                <span className="text-primary text-xl">"</span>
-                {scenario.title}
-                <span className="text-primary text-xl">"</span>
-              </h3>
+              
+              <div 
+                className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border transition-all duration-300 ${
+                  activeCardIndex === index ? 'border-primary scale-105 shadow-md' : 'border-primary/10'
+                }`}
+                style={{
+                  minWidth: '300px',
+                  maxWidth: '350px'
+                }}
+              >
+                <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800">
+                  <span className="text-primary text-xl">"</span>
+                  {scenario.title}
+                  <span className="text-primary text-xl">"</span>
+                </h3>
+              </div>
             </div>
           ))}
         </div>
