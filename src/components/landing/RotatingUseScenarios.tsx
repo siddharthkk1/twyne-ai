@@ -62,14 +62,14 @@ export const RotatingUseScenarios = () => {
   const currentScenario = scenarios[activeScenario];
 
   return (
-    <div className="min-h-[70px] flex flex-col items-center text-center max-w-[800px] mx-auto">
-      <div className="mb-1 min-h-[50px] flex items-center w-full">
-        <h3 className="text-xl md:text-2xl font-bold w-full">
+    <div className="min-h-[90px] flex flex-col items-center text-center max-w-[900px] mx-auto">
+      <div className="mb-1 min-h-[60px] flex items-center w-full">
+        <h3 className="text-xl md:text-2xl font-bold w-full whitespace-normal">
           "<span className="text-primary animate-fade-in">{currentScenario.title}</span>"
         </h3>
       </div>
       
-      <div className="flex justify-center gap-2 mt-2 mb-0 py-1">
+      <div className="flex justify-center gap-2 mt-2 mb-0 py-2">
         {scenarios.map((_, index) => (
           <button
             key={index}
