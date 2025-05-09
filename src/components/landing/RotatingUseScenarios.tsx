@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ScenarioItem {
   id: number;
@@ -8,7 +9,8 @@ interface ScenarioItem {
 
 export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Define all use scenarios
   const scenarios: ScenarioItem[] = [
@@ -50,68 +52,98 @@ export const RotatingUseScenarios = () => {
     },
   ];
 
+  // Auto-rotate scenarios
   useEffect(() => {
-    // Set animating state to trigger transition effect
-    const changeScenario = () => {
-      setIsAnimating(true);
-      
-      // After animation out completes, change the scenario
-      setTimeout(() => {
-        setActiveScenario((prev) => (prev + 1) % scenarios.length);
-        
-        // Then animate back in
-        setTimeout(() => {
-          setIsAnimating(false);
-        }, 50);
-      }, 500);
-    };
-    
-    const rotationTimer = setInterval(changeScenario, 5000);
-    
-    // Clean up timer on unmount
-    return () => clearInterval(rotationTimer);
-  }, [scenarios.length]);
+    if (!isAutoScrolling) return;
 
-  const currentScenario = scenarios[activeScenario];
-  const nextScenario = scenarios[(activeScenario + 1) % scenarios.length];
+    const interval = setInterval(() => {
+      setActiveScenario((prev) => (prev + 1) % scenarios.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [scenarios.length, isAutoScrolling]);
+  
+  // Scroll active scenario into view when it changes
+  useEffect(() => {
+    if (containerRef.current) {
+      const scrollContainer = containerRef.current;
+      const activeElement = scrollContainer.querySelector(`[data-scenario="${activeScenario}"]`);
+      
+      if (activeElement) {
+        activeElement.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center"
+        });
+      }
+    }
+  }, [activeScenario]);
+
+  // Get random pastel background color for quote
+  const getBackgroundColor = (id: number) => {
+    const colors = [
+      'bg-primary/10',
+      'bg-secondary/10',
+      'bg-accent/10',
+      'bg-primary/5',
+      'bg-secondary/5',
+      'bg-accent/5',
+    ];
+    return colors[id % colors.length];
+  };
 
   return (
-    <div className="min-h-[100px] flex flex-col items-center text-center max-w-[900px] mx-auto py-2 overflow-hidden">
-      <div className="relative w-full min-h-[80px] flex items-center justify-center overflow-hidden">
-        {/* Current quote with slide animation */}
-        <h3 
-          className={`text-xl md:text-2xl font-bold w-full absolute transition-all duration-500 ease-in-out ${
-            isAnimating 
-              ? 'opacity-0 transform translate-x-[-100%]' 
-              : 'opacity-100 transform translate-x-0'
-          }`}
-        >
-          "<span className="text-primary">{currentScenario.title}</span>"
-        </h3>
-        
-        {/* Next quote waiting to slide in */}
-        <h3 
-          className={`text-xl md:text-2xl font-bold w-full absolute transition-all duration-500 ease-in-out ${
-            isAnimating 
-              ? 'opacity-100 transform translate-x-0' 
-              : 'opacity-0 transform translate-x-[100%]'
-          }`}
-        >
-          "<span className="text-primary">{nextScenario.title}</span>"
-        </h3>
-      </div>
-      
-      {/* Visual indicator that this is a carousel */}
-      <div className="flex items-center justify-center gap-2 mt-4">
-        <div className="h-1 w-16 rounded-full bg-primary/30 overflow-hidden">
+    <div className="py-4 max-w-[900px] mx-auto">
+      {/* Progress indicator */}
+      <div className="flex justify-center mb-4">
+        <div className="h-1 w-32 bg-muted rounded-full overflow-hidden">
           <div 
-            className="h-full bg-primary animate-[pulse_5s_ease-in-out_infinite]" 
+            className="h-full bg-primary transition-all duration-300 ease-in-out"
             style={{
-              width: `${(activeScenario / (scenarios.length - 1)) * 100}%`,
-              transition: 'width 0.5s ease-in-out'
+              width: `${((activeScenario + 1) / scenarios.length) * 100}%`
             }}
           ></div>
         </div>
+      </div>
+      
+      {/* Carousel container */}
+      <div 
+        className="relative overflow-hidden"
+        onMouseEnter={() => setIsAutoScrolling(false)}
+        onMouseLeave={() => setIsAutoScrolling(true)}
+      >
+        <ScrollArea className="w-full">
+          <div 
+            ref={containerRef}
+            className="flex gap-4 pb-4 px-2 snap-x snap-mandatory overflow-x-auto" 
+            style={{scrollBehavior: 'smooth'}}
+          >
+            {scenarios.map((scenario, index) => (
+              <div 
+                key={scenario.id}
+                data-scenario={index}
+                className={`flex-shrink-0 snap-center ${getBackgroundColor(scenario.id)} p-6 rounded-xl shadow-sm border border-primary/10 transition-all duration-500 transform ${
+                  activeScenario === index 
+                    ? 'scale-100 opacity-100' 
+                    : 'scale-95 opacity-70'
+                }`}
+                style={{
+                  minWidth: '280px',
+                  maxWidth: '320px'
+                }}
+                onClick={() => setActiveScenario(index)}
+              >
+                <h3 className="text-xl font-semibold">
+                  "<span className="text-primary">{scenario.title}</span>"
+                </h3>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+        
+        {/* Shadow effect for edges */}
+        <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
       </div>
     </div>
   );
