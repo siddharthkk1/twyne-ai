@@ -32,8 +32,11 @@ export const TopNavBar = () => {
               </Link>
             </>
           ) : (
-            <div className="flex items-center space-x-4">
-              <Button onClick={() => setIsWaitlistOpen(true)}>
+            <div className="flex items-center">
+              <Button 
+                onClick={() => setIsWaitlistOpen(true)}
+                className="bg-gradient-to-r from-primary to-accent text-white border-none rounded-full"
+              >
                 Join Waitlist
               </Button>
             </div>

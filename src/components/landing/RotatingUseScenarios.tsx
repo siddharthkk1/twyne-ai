@@ -8,6 +8,7 @@ interface ScenarioItem {
 
 export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   
   // Define all use scenarios - restored to original longer phrases
   const scenarios: ScenarioItem[] = [
@@ -50,10 +51,23 @@ export const RotatingUseScenarios = () => {
   ];
 
   useEffect(() => {
+    // Set animating state to trigger transition effect
+    const changeScenario = () => {
+      setIsAnimating(true);
+      
+      // After animation out completes, change the scenario
+      setTimeout(() => {
+        setActiveScenario((prev) => (prev + 1) % scenarios.length);
+        
+        // Then animate back in
+        setTimeout(() => {
+          setIsAnimating(false);
+        }, 50);
+      }, 500);
+    };
+    
     // Change rotation timer to 5 seconds
-    const rotationTimer = setInterval(() => {
-      setActiveScenario((prev) => (prev + 1) % scenarios.length);
-    }, 5000);
+    const rotationTimer = setInterval(changeScenario, 5000);
     
     // Clean up timer on unmount
     return () => clearInterval(rotationTimer);
@@ -62,10 +76,16 @@ export const RotatingUseScenarios = () => {
   const currentScenario = scenarios[activeScenario];
 
   return (
-    <div className="min-h-[80px] flex flex-col items-center text-center max-w-[900px] mx-auto py-2">
-      <div className="mb-2 min-h-[55px] flex items-center w-full">
-        <h3 className="text-xl md:text-2xl font-bold w-full whitespace-normal">
-          "<span className="text-primary animate-fade-in">{currentScenario.title}</span>"
+    <div className="min-h-[100px] flex flex-col items-center text-center max-w-[900px] mx-auto py-2">
+      <div className="mb-2 min-h-[60px] flex items-center justify-center w-full overflow-hidden">
+        <h3 
+          className={`text-xl md:text-2xl font-bold w-full whitespace-normal transition-all duration-500 ${
+            isAnimating 
+              ? 'opacity-0 transform translate-y-8 scale-95' 
+              : 'opacity-100 transform translate-y-0 scale-100'
+          }`}
+        >
+          "<span className="text-primary">{currentScenario.title}</span>"
         </h3>
       </div>
       
@@ -73,10 +93,18 @@ export const RotatingUseScenarios = () => {
         {scenarios.map((_, index) => (
           <button
             key={index}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === activeScenario ? "bg-primary scale-125" : "bg-muted-foreground/30"
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === activeScenario 
+                ? "bg-primary scale-125 animate-pulse-slow" 
+                : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
             }`}
-            onClick={() => setActiveScenario(index)}
+            onClick={() => {
+              setIsAnimating(true);
+              setTimeout(() => {
+                setActiveScenario(index);
+                setTimeout(() => setIsAnimating(false), 50);
+              }, 300);
+            }}
             aria-label={`Go to scenario ${index + 1}`}
           />
         ))}

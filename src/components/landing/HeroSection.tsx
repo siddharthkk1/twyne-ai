@@ -72,9 +72,9 @@ export const HeroSection = ({
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>
           
-          {/* Buttons with no gap between them */}
+          {/* Buttons with no space between - swapped styling */}
           <div 
-            className={`flex flex-col sm:flex-row transition-all duration-700 transform ${
+            className={`flex flex-col sm:flex-row sm:space-x-0 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '800ms' }}
@@ -87,7 +87,8 @@ export const HeroSection = ({
                 </Link>
               </Button>
             ) : (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col sm:flex-row sm:space-x-0 items-center">
+                {/* Join Waitlist button with new styling (solid color) */}
                 <Button 
                   size="lg" 
                   className="rounded-full px-8 hover-scale shadow-sm hover:shadow-md transition-all"
@@ -95,6 +96,16 @@ export const HeroSection = ({
                 >
                   Join Waitlist
                   <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                </Button>
+                
+                {/* Learn More button with gradient styling */}
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="rounded-full px-8 bg-gradient-to-r from-primary to-accent text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0"
+                  onClick={onScrollToHowItWorks}
+                >
+                  Learn More
                 </Button>
                 
                 {!isLoading && waitlistCount !== null && (
@@ -110,17 +121,9 @@ export const HeroSection = ({
                 )}
               </div>
             )}
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="rounded-full px-8 bg-gradient-to-r from-primary to-accent text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0 sm:ml-4"
-              onClick={onScrollToHowItWorks}
-            >
-              Learn More
-            </Button>
           </div>
           
-          {/* Rotating text with fade-in */}
+          {/* Rotating text with enhanced animations */}
           <div 
             className={`mt-12 w-full overflow-hidden transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
