@@ -28,7 +28,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-20 md:py-32 mt-14 overflow-hidden bg-white min-h-[85vh] flex items-center">
+    <section className="relative py-16 md:py-24 mt-8 overflow-hidden bg-white min-h-[85vh] flex items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
@@ -39,7 +39,7 @@ export const HeroSection = ({
       </div>
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
-        <div className="flex flex-col items-center text-center gap-5 pt-8 md:pt-12">
+        <div className="flex flex-col items-center text-center gap-5 pt-4 md:pt-8">
           {/* Title with fade-in from left */}
           <h2 
             className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
@@ -114,7 +114,7 @@ export const HeroSection = ({
           {/* Waitlist Count - Moved below the buttons */}
           {!isLoading && waitlistCount !== null && (
             <div 
-              className={`flex items-center justify-center text-sm text-muted-foreground mt-4 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
+              className={`flex items-center justify-center text-sm text-muted-foreground mt-2 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
                 isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
               }`}
               style={{ transitionDelay: '1000ms' }}
@@ -123,17 +123,17 @@ export const HeroSection = ({
               <span>{waitlistCount.toLocaleString()} people already on the waitlist</span>
             </div>
           )}
-          
-          {/* Rotating text with continuous carousel animation - reduced top margin */}
-          <div 
-            className={`mt-6 w-full overflow-hidden transition-all duration-700 transform ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-            }`}
-            style={{ transitionDelay: '1200ms' }}
-          > 
-            <RotatingUseScenarios />
-          </div>
         </div>
+      </div>
+
+      {/* Rotating text with full-width carousel - moved outside container for full width */}
+      <div 
+        className={`w-full overflow-hidden transition-all duration-700 transform mt-4 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        }`}
+        style={{ transitionDelay: '1200ms' }}
+      > 
+        <RotatingUseScenarios />
       </div>
     </section>
   );

@@ -23,47 +23,47 @@ export const RotatingUseScenarios = () => {
     {
       id: 1,
       title: "I'm a new grad who just moved to a new city and don't know anyone.",
-      icon: <div className="text-3xl">🎓</div>
+      icon: <div className="text-4xl">🎓</div>
     },
     {
       id: 2,
       title: "I work remotely and barely see people during the week.",
-      icon: <div className="text-3xl">💻</div>
+      icon: <div className="text-4xl">💻</div>
     },
     {
       id: 3,
       title: "I want friendships that aren't random roommates or coworkers.",
-      icon: <div className="text-3xl">🤝</div>
+      icon: <div className="text-4xl">🤝</div>
     },
     {
       id: 4,
       title: "I'm in college but still feel like I haven't found my people yet.",
-      icon: <div className="text-3xl">📚</div>
+      icon: <div className="text-4xl">📚</div>
     },
     {
       id: 5,
       title: "I want deep conversations about books and philosophy over coffee.",
-      icon: <div className="text-3xl">☕</div>
+      icon: <div className="text-4xl">☕</div>
     },
     {
       id: 6,
       title: "I'm looking for NBA fans to watch games with.",
-      icon: <div className="text-3xl">🏀</div>
+      icon: <div className="text-4xl">🏀</div>
     },
     {
       id: 7,
       title: "I've outgrown my circles and want to consciously rebuild my social life.",
-      icon: <div className="text-3xl">🔄</div>
+      icon: <div className="text-4xl">🔄</div>
     },
     {
       id: 8,
       title: "I have friends but no one I feel deeply connected with.",
-      icon: <div className="text-3xl">💭</div>
+      icon: <div className="text-4xl">💭</div>
     },
     {
       id: 9,
       title: "I'm a foodie looking for friends to try restaurants with.",
-      icon: <div className="text-3xl">🍽️</div>
+      icon: <div className="text-4xl">🍽️</div>
     },
   ];
   
@@ -178,10 +178,10 @@ export const RotatingUseScenarios = () => {
   }, [isAutoScrolling, manualScrolling]);
 
   return (
-    <div className="py-6 max-w-[1000px] mx-auto">
+    <div className="py-4 w-full mx-auto">
       {/* Continuously scrolling carousel container with touch support */}
       <div 
-        className="relative overflow-hidden mx-4"
+        className="relative overflow-hidden w-full"
         onMouseEnter={() => setIsAutoScrolling(false)}
         onMouseLeave={() => setIsAutoScrolling(true)}
       >
@@ -206,8 +206,8 @@ export const RotatingUseScenarios = () => {
               </div>
               
               <div 
-                className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border transition-all duration-300 ${
-                  activeCardIndex === index ? 'border-primary scale-105 shadow-md' : 'border-primary/10'
+                className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border-gray-200 border transition-all duration-300 ${
+                  activeCardIndex === index ? 'scale-105 shadow-md' : ''
                 }`}
                 style={{
                   minWidth: '300px',
@@ -229,8 +229,8 @@ export const RotatingUseScenarios = () => {
         <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
       </div>
       
-      {/* Scroll indicator - Positioned at the bottom of the page */}
-      <div className="flex justify-center fixed bottom-6 left-0 right-0 animate-bounce">
+      {/* Scroll indicator - Positioned at the very bottom of the page */}
+      <div className="flex justify-center fixed bottom-0 left-0 right-0 pb-2 animate-bounce">
         <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>
