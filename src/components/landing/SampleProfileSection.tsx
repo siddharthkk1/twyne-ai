@@ -7,7 +7,7 @@ import { MapPin, Coffee, Book, Music, Dumbbell, Globe } from "lucide-react";
 
 export const SampleProfileSection = () => {
   return (
-    <section className="py-16 bg-background">
+    <section className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">Your Connection Profiles</h2>

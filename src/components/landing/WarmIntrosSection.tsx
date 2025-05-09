@@ -9,7 +9,7 @@ interface WarmIntrosSectionProps {
 
 export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) => {
   return (
-    <section className="py-16 bg-muted/10">
+    <section className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <div className="rounded-full bg-secondary/20 p-3 inline-flex mb-4">

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const SocialProofSection = () => {
   return (
-    <section className="py-16 bg-muted/20">
+    <section className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <div className="rounded-full bg-primary/10 p-3 inline-flex mb-4">

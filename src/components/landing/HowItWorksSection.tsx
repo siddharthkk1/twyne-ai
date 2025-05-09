@@ -4,7 +4,7 @@ import { MessageCircle, MapPin, Users } from "lucide-react";
 
 export const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-16 bg-muted/30">
+    <section id="how-it-works" className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">How It Works</h2>
