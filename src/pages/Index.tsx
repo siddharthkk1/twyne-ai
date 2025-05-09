@@ -74,7 +74,7 @@ const Index = () => {
             <div className="rounded-full bg-primary/20 p-4 inline-flex mb-8">
               <Logo size="lg" />
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight gradient-text leading-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full pb-3">
+            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight gradient-text leading-none whitespace-nowrap overflow-hidden max-w-full pb-3">
               Meet people you vibe with in your city
             </h1>
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">

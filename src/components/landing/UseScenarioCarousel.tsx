@@ -26,7 +26,7 @@ export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Define all use scenarios - updated for consistency with RotatingUseScenarios
+  // Define all use scenarios - updated to match with RotatingUseScenarios
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
