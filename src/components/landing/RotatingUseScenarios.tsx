@@ -96,18 +96,6 @@ export const RotatingUseScenarios = () => {
     };
   }, [isAutoScrolling]);
 
-  // Get background color for quote cards
-  const getBackgroundColor = (id: number) => {
-    const colors = [
-      'bg-white/80',
-      'bg-primary/5',
-      'bg-secondary/5',
-      'bg-accent/5',
-      'bg-white/70',
-    ];
-    return colors[id % colors.length];
-  };
-
   return (
     <div className="py-12 max-w-[1000px] mx-auto">
       {/* Progress indicator */}
@@ -136,16 +124,16 @@ export const RotatingUseScenarios = () => {
           {allScenarios.map((scenario, index) => (
             <div 
               key={`${scenario.id}-${index}`}
-              className={`flex-shrink-0 ${getBackgroundColor(scenario.id)} p-6 rounded-xl shadow-sm border border-primary/10 transition-all duration-300`}
+              className="flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border border-primary/10 transition-all duration-300"
               style={{
                 minWidth: '300px',
                 maxWidth: '350px'
               }}
             >
               <h3 className="text-lg font-medium tracking-tight leading-relaxed">
-                <span className="text-primary font-serif italic text-xl">"</span>
-                <span className="text-gray-800 font-serif">{scenario.title}</span>
-                <span className="text-primary font-serif italic text-xl">"</span>
+                <span className="text-primary text-xl">"</span>
+                <span className="text-gray-800">{scenario.title}</span>
+                <span className="text-primary text-xl">"</span>
               </h3>
             </div>
           ))}
