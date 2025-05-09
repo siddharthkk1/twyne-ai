@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
-import { Logo } from "@/components/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 
 // The artificial boost we want to add to the waitlist count
@@ -32,7 +31,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-20 md:py-28 mt-14 overflow-hidden">
+    <section className="relative py-16 md:py-24 mt-14 overflow-hidden">
       {/* Animated fluid gradient background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 gradient-bg"></div>
@@ -44,23 +43,13 @@ export const HeroSection = ({
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl -z-5"></div>
 
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
-        <div className="flex flex-col items-center text-center gap-5">
-          {/* Logo with bounce animation */}
-          <div 
-            className={`rounded-full bg-primary/20 p-4 inline-flex mb-7 transform transition-all duration-700 ${
-              isVisible ? 'scale-100 opacity-100' : 'scale-90 opacity-0'
-            }`}
-            style={{ transitionDelay: '100ms' }}
-          >
-            <Logo size="lg" />
-          </div>
-          
-          {/* New title with fade-in from left and improved contrast */}
+        <div className="flex flex-col items-center text-center gap-5 pt-8 md:pt-12">
+          {/* New title with fade-in from left */}
           <h2 
-            className={`text-2xl md:text-3xl font-medium tracking-tight gradient-text mb-0 pb-0 transition-all duration-700 transform ${
+            className={`text-2xl md:text-3xl font-medium tracking-tight text-foreground/90 mb-0 pb-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
             }`}
-            style={{ transitionDelay: '300ms' }}
+            style={{ transitionDelay: '200ms' }}
           >
             The AI Social Platform
           </h2>
@@ -70,7 +59,7 @@ export const HeroSection = ({
             className={`text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-none whitespace-nowrap overflow-hidden max-w-full pb-3 mt-1 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
             }`}
-            style={{ transitionDelay: '500ms' }}
+            style={{ transitionDelay: '400ms' }}
           >
             <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent animate-gradient-slow bg-[length:200%_auto]">
               Meet people you vibe with in your city
@@ -82,7 +71,7 @@ export const HeroSection = ({
             className={`max-w-[700px] text-lg md:text-xl text-foreground/90 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
-            style={{ transitionDelay: '700ms' }}
+            style={{ transitionDelay: '600ms' }}
           >
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>
@@ -92,7 +81,7 @@ export const HeroSection = ({
             className={`flex flex-col sm:flex-row gap-4 mt-3 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
-            style={{ transitionDelay: '900ms' }}
+            style={{ transitionDelay: '800ms' }}
           >
             {user ? (
               <Button asChild size="lg" className="rounded-full px-8 hover-scale">
@@ -117,7 +106,7 @@ export const HeroSection = ({
                     className={`flex items-center justify-center text-sm text-muted-foreground mt-3 bg-background/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
                       isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                     }`}
-                    style={{ transitionDelay: '1100ms' }}
+                    style={{ transitionDelay: '1000ms' }}
                   >
                     <Users size={16} className="mr-2 text-primary" />
                     <span>{waitlistCount.toLocaleString()} people already on the waitlist</span>
@@ -140,7 +129,7 @@ export const HeroSection = ({
             className={`mt-8 w-full overflow-hidden transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
-            style={{ transitionDelay: '1300ms' }}
+            style={{ transitionDelay: '1200ms' }}
           > 
             <RotatingUseScenarios />
           </div>
