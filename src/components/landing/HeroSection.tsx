@@ -6,9 +6,6 @@ import { Users } from "lucide-react";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
 import { useAuth } from "@/contexts/AuthContext";
 
-// The artificial boost we want to add to the waitlist count
-const WAITLIST_BOOST = 524;
-
 interface HeroSectionProps {
   waitlistCount: number | null;
   isLoading: boolean;
@@ -32,19 +29,14 @@ export const HeroSection = ({
   
   return (
     <section className="relative py-16 md:py-24 mt-14 overflow-hidden">
-      {/* Animated fluid gradient background */}
+      {/* Light background with fading edges */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 gradient-bg"></div>
+        <div className="absolute inset-0 bg-light-gradient"></div>
       </div>
       
-      {/* Enhanced decorative elements */}
-      <div className="absolute top-20 left-[-10%] w-[300px] h-[300px] bg-primary/10 rounded-full blur-3xl -z-5"></div>
-      <div className="absolute bottom-20 right-[-5%] w-[250px] h-[250px] bg-secondary/10 rounded-full blur-3xl -z-5"></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl -z-5"></div>
-
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
         <div className="flex flex-col items-center text-center gap-5 pt-8 md:pt-12">
-          {/* New title with fade-in from left */}
+          {/* Title with fade-in from left */}
           <h2 
             className={`text-2xl md:text-3xl font-medium tracking-tight text-foreground/90 mb-0 pb-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
@@ -61,7 +53,7 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '400ms' }}
           >
-            <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent animate-gradient-slow bg-[length:200%_auto]">
+            <span className="gradient-text">
               Meet people you vibe with in your city
             </span>
           </h1>
