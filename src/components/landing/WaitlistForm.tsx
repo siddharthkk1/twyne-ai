@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,7 +94,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       location: "",
       email: "",
       phoneNumber: "",
-      // Fixed: Set age as empty string but correctly typed for the schema
+      // Fix the type error by explicitly setting age as empty string
       age: "",
       interests: "",
       motivation: "",
