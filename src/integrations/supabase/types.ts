@@ -50,6 +50,7 @@ export type Database = {
       }
       waitlist: {
         Row: {
+          age: number | null
           created_at: string
           email: string
           full_name: string
@@ -57,8 +58,10 @@ export type Database = {
           interests: string
           location: string
           motivation: string
+          phone_number: string | null
         }
         Insert: {
+          age?: number | null
           created_at?: string
           email: string
           full_name: string
@@ -66,8 +69,10 @@ export type Database = {
           interests: string
           location: string
           motivation: string
+          phone_number?: string | null
         }
         Update: {
+          age?: number | null
           created_at?: string
           email?: string
           full_name?: string
@@ -75,6 +80,7 @@ export type Database = {
           interests?: string
           location?: string
           motivation?: string
+          phone_number?: string | null
         }
         Relationships: []
       }

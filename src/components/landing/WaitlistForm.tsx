@@ -24,6 +24,10 @@ const formSchema = z.object({
   location: z.string().min(2, { message: "Please enter your location." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   phoneNumber: z.string().optional(),
+  age: z.string()
+    .refine(val => !val || !isNaN(parseInt(val)), { message: "Age must be a number" })
+    .transform(val => val ? parseInt(val) : null)
+    .optional(),
   interests: z.string().min(2, { message: "Please share at least one interest." }),
   motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -90,6 +94,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       location: "",
       email: "",
       phoneNumber: "",
+      age: "",
       interests: "",
       motivation: "",
     },
@@ -103,16 +108,18 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       const cityWaitlistCount = Math.floor(Math.random() * (200 - 20 + 1)) + 20;
       
       // Fixed: Type the submission object properly to match the database schema
+      // and include phone_number and age in the submission
       const submissionData = {
         email: data.email,
         full_name: data.fullName,
         location: data.location,
+        phone_number: data.phoneNumber || null,
+        age: data.age || null,
         interests: data.interests,
         motivation: data.motivation
-        // We omit phone_number since it causes schema cache issues
       };
 
-      // Insert email and additional fields into the waitlist table
+      // Insert data into the waitlist table
       const { error } = await supabase
         .from('waitlist')
         .insert(submissionData);
@@ -203,20 +210,36 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               />
             </div>
             
-            {/* Row 2: Email */}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="your.email@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Row 2: Email and Age */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="your.email@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Age (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="30" type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             {/* Row 3: Phone Number with description */}
             <FormField
