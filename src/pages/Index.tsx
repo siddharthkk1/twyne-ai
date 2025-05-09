@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -69,13 +68,13 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 gradient-bg mt-16">
+      <section className="relative py-24 md:py-32 gradient-bg mt-16">
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center gap-6 animate-fade-in">
             <div className="rounded-full bg-primary/20 p-4 inline-flex mb-8">
               <Logo size="lg" />
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight gradient-text leading-tight pb-1">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight gradient-text leading-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full pb-3">
               Meet people you vibe with in your city
             </h1>
             <p className="max-w-[700px] text-lg md:text-xl text-muted-foreground">
@@ -114,7 +113,7 @@ const Index = () => {
             </div>
             
             {/* Rotating text with more space for text display */}
-            <div className="mt-8 w-full"> 
+            <div className="mt-8 w-full overflow-hidden"> 
               <RotatingUseScenarios />
             </div>
           </div>

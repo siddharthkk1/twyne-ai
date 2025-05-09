@@ -59,8 +59,8 @@ export const RotatingUseScenarios = () => {
 
   return (
     <div className="min-h-[60px] flex flex-col items-center text-center max-w-[800px] mx-auto">
-      <div className="mb-1 min-h-[40px] flex items-center">
-        <h3 className="text-xl md:text-2xl font-bold truncate w-full">
+      <div className="mb-1 min-h-[40px] flex items-center w-full">
+        <h3 className="text-xl md:text-2xl font-bold whitespace-nowrap overflow-hidden text-ellipsis w-full">
           "<span className="text-primary animate-fade-in">{currentScenario.title}</span>"
         </h3>
       </div>
