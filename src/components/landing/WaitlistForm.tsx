@@ -114,23 +114,26 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
     },
   });
 
-  const onSubmit = async (data: FormValues) => {
+  // Update the onSubmit function to use FormInputValues instead of FormValues
+  const onSubmit = async (data: FormInputValues) => {
     setIsSubmitting(true);
     
     try {
       // Generate a random number of people on waitlist from user's city (between 20-200)
       const cityWaitlistCount = Math.floor(Math.random() * (200 - 20 + 1)) + 20;
       
+      // Process the form data with the validated/transformed values from Zod
+      const validatedData = formSchema.parse(data);
+      
       // Fixed: Type the submission object properly to match the database schema
-      // and include phone_number and age in the submission
       const submissionData = {
-        email: data.email,
-        full_name: data.fullName,
-        location: data.location,
-        phone_number: data.phoneNumber || null,
-        age: data.age || null,
-        interests: data.interests,
-        motivation: data.motivation
+        email: validatedData.email,
+        full_name: validatedData.fullName,
+        location: validatedData.location,
+        phone_number: validatedData.phoneNumber || null,
+        age: validatedData.age || null, // Now using the transformed number value
+        interests: validatedData.interests,
+        motivation: validatedData.motivation
       };
 
       // Insert data into the waitlist table
