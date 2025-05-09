@@ -33,8 +33,10 @@ export const HeroSection = ({
   
   return (
     <section className="relative py-20 md:py-28 mt-14 overflow-hidden">
-      {/* Improved gradient background with more depth and visual interest */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-blue-50/30 to-purple-50/40 -z-10"></div>
+      {/* Animated fluid gradient background */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-blue-50/30 to-purple-50/40 animate-gradient-slow"></div>
+      </div>
       
       {/* Enhanced decorative elements */}
       <div className="absolute top-20 left-[-10%] w-[300px] h-[300px] bg-primary/10 rounded-full blur-3xl -z-5"></div>

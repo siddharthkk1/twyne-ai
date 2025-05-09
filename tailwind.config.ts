@@ -106,6 +106,10 @@ export default {
 				'pulse-slow': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.7' },
+				},
+				'gradient-shift': {
+					'0%, 100%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
 				}
 			},
 			animation: {
@@ -113,6 +117,7 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out',
 				'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
+				'gradient-slow': 'gradient-shift 15s ease infinite',
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
