@@ -42,20 +42,20 @@ export const HeroSection = ({
         <div className="flex flex-col items-center text-center gap-5 pt-8 md:pt-12">
           {/* Title with fade-in from left */}
           <h2 
-            className={`text-2xl md:text-3xl font-medium tracking-tight text-foreground/90 mb-0 pb-0 transition-all duration-700 transform ${
+            className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
             }`}
-            style={{ transitionDelay: '200ms' }}
+            style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
           >
             The AI Social Platform
           </h2>
           
           {/* Main title with fade-in from right and gradient */}
           <h1 
-            className={`text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight max-w-full pb-3 mt-1 transition-all duration-700 transform ${
+            className={`text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] max-w-full pb-3 mt-1 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
             }`}
-            style={{ transitionDelay: '400ms' }}
+            style={{ transitionDelay: '400ms', letterSpacing: '-0.02em' }}
           >
             <span className="gradient-text">
               Meet people you vibe with in your city
@@ -64,10 +64,10 @@ export const HeroSection = ({
           
           {/* Description with fade-in from bottom */}
           <p 
-            className={`max-w-[700px] text-lg md:text-xl text-foreground/90 transition-all duration-700 transform ${
+            className={`max-w-[700px] text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
-            style={{ transitionDelay: '600ms' }}
+            style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>

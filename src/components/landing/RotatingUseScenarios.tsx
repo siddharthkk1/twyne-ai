@@ -10,7 +10,8 @@ interface ScenarioItem {
 export const RotatingUseScenarios = () => {
   const [activeScenario, setActiveScenario] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
   
   // Define all use scenarios
   const scenarios: ScenarioItem[] = [
@@ -51,33 +52,49 @@ export const RotatingUseScenarios = () => {
       title: "I'm a foodie looking for friends to try restaurants with.",
     },
   ];
-
-  // Auto-rotate scenarios
-  useEffect(() => {
-    if (!isAutoScrolling) return;
-
-    const interval = setInterval(() => {
-      setActiveScenario((prev) => (prev + 1) % scenarios.length);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [scenarios.length, isAutoScrolling]);
   
-  // Scroll active scenario into view when it changes
-  useEffect(() => {
-    if (containerRef.current) {
-      const scrollContainer = containerRef.current;
-      const activeElement = scrollContainer.querySelector(`[data-scenario="${activeScenario}"]`);
-      
-      if (activeElement) {
-        activeElement.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "center"
-        });
-      }
+  // Clone scenarios for infinite scrolling effect
+  const allScenarios = [...scenarios, ...scenarios];
+
+  // Smooth continuous scrolling animation
+  const animate = () => {
+    if (!scrollContainerRef.current || !isAutoScrolling) return;
+    
+    const container = scrollContainerRef.current;
+    const scrollAmount = 1; // Pixels to scroll per frame - adjust for speed
+    
+    container.scrollLeft += scrollAmount;
+    
+    // Reset scroll position when reaching the end of the first set
+    if (container.scrollLeft >= container.scrollWidth / 2) {
+      container.scrollLeft = 0;
     }
-  }, [activeScenario]);
+    
+    // Find the active scenario based on scroll position
+    const scenarioWidth = container.scrollWidth / allScenarios.length;
+    const newActiveScenario = Math.floor((container.scrollLeft / scenarioWidth) % scenarios.length);
+    
+    if (newActiveScenario !== activeScenario) {
+      setActiveScenario(newActiveScenario);
+    }
+    
+    animationRef.current = requestAnimationFrame(animate);
+  };
+
+  // Start and stop animation based on isAutoScrolling
+  useEffect(() => {
+    if (isAutoScrolling) {
+      animationRef.current = requestAnimationFrame(animate);
+    } else if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isAutoScrolling]);
 
   // Get random pastel background color for quote
   const getBackgroundColor = (id: number) => {
@@ -93,9 +110,9 @@ export const RotatingUseScenarios = () => {
   };
 
   return (
-    <div className="py-4 max-w-[900px] mx-auto">
+    <div className="py-8 max-w-[900px] mx-auto">
       {/* Progress indicator */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-6">
         <div className="h-1 w-32 bg-muted rounded-full overflow-hidden">
           <div 
             className="h-full bg-primary transition-all duration-300 ease-in-out"
@@ -112,18 +129,17 @@ export const RotatingUseScenarios = () => {
         onMouseEnter={() => setIsAutoScrolling(false)}
         onMouseLeave={() => setIsAutoScrolling(true)}
       >
-        <ScrollArea className="w-full">
+        <ScrollArea>
           <div 
-            ref={containerRef}
-            className="flex gap-4 pb-4 px-2 snap-x snap-mandatory overflow-x-auto" 
-            style={{scrollBehavior: 'smooth'}}
+            ref={scrollContainerRef}
+            className="flex gap-4 pb-6 px-2 overflow-x-auto hide-scrollbar" 
+            style={{ scrollBehavior: 'auto' }}
           >
-            {scenarios.map((scenario, index) => (
+            {allScenarios.map((scenario, index) => (
               <div 
-                key={scenario.id}
-                data-scenario={index}
-                className={`flex-shrink-0 snap-center ${getBackgroundColor(scenario.id)} p-6 rounded-xl shadow-sm border border-primary/10 transition-all duration-500 transform ${
-                  activeScenario === index 
+                key={`${scenario.id}-${index}`}
+                className={`flex-shrink-0 ${getBackgroundColor(scenario.id)} p-6 rounded-xl shadow-sm border border-primary/10 transition-all duration-300 ${
+                  index % scenarios.length === activeScenario 
                     ? 'scale-100 opacity-100' 
                     : 'scale-95 opacity-70'
                 }`}
@@ -131,10 +147,15 @@ export const RotatingUseScenarios = () => {
                   minWidth: '280px',
                   maxWidth: '320px'
                 }}
-                onClick={() => setActiveScenario(index)}
+                onClick={() => {
+                  const newActiveIndex = index % scenarios.length;
+                  setActiveScenario(newActiveIndex);
+                }}
               >
-                <h3 className="text-xl font-semibold">
-                  "<span className="text-primary">{scenario.title}</span>"
+                <h3 className="text-lg font-medium tracking-tight leading-snug text-foreground/90">
+                  <span className="text-primary/90 font-serif italic">"</span>
+                  <span className="text-foreground/80">{scenario.title}</span>
+                  <span className="text-primary/90 font-serif italic">"</span>
                 </h3>
               </div>
             ))}

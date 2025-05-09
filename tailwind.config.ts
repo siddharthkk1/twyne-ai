@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -19,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				serif: ['Georgia', 'Times New Roman', 'serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -119,9 +122,6 @@ export default {
 				'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
 				'gradient-slow': 'gradient-shift 15s ease infinite',
 			},
-			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-			}
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
