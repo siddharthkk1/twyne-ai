@@ -38,26 +38,72 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Silhouette illustrations */}
+      {/* Human silhouette illustrations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Left silhouette */}
-        <div className="absolute left-0 md:left-12 lg:left-24 bottom-32 w-28 md:w-36 lg:w-48 opacity-70 md:opacity-80">
-          <svg viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M40,200 C30,180 25,150 35,130 C45,110 50,90 45,70 C40,50 30,40 40,20 C50,0 65,10 70,20 C75,30 70,45 75,60 C80,75 85,85 80,100 C75,115 85,130 80,150 C75,170 60,190 40,200 Z" 
+        <div className="absolute left-0 md:left-12 lg:left-24 bottom-0 h-[60vh] md:h-[70vh] w-auto opacity-70 md:opacity-80">
+          <svg viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+            <path d="M60,300 
+                   C55,280 55,270 50,260 
+                   C45,250 40,240 45,230 
+                   C50,220 55,210 50,200 
+                   C45,190 40,180 45,170 
+                   C50,160 55,150 55,140 
+                   C55,130 50,120 55,110 
+                   C60,100 65,90 60,80 
+                   C55,70 50,60 55,50 
+                   C60,40 70,35 70,30
+                   C70,25 65,20 60,15
+                   C55,10 50,5 50,0
+                   
+                   M60,60
+                   C70,60 75,65 80,70
+                   C85,75 90,85 85,90
+                   C80,95 70,90 65,85
+                   C60,80 60,70 60,60
+                   
+                   M60,130
+                   C50,130 45,135 40,140
+                   C35,145 30,155 35,160
+                   C40,165 50,160 55,155
+                   C60,150 60,140 60,130"
                   fill="#9b87f5" opacity="0.7" />
           </svg>
         </div>
         
         {/* Right silhouette */}
-        <div className="absolute right-0 md:right-12 lg:right-24 bottom-32 w-28 md:w-36 lg:w-48 opacity-70 md:opacity-80">
-          <svg viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M60,200 C70,180 75,150 65,130 C55,110 50,90 55,70 C60,50 70,40 60,20 C50,0 35,10 30,20 C25,30 30,45 25,60 C20,75 15,85 20,100 C25,115 15,130 20,150 C25,170 40,190 60,200 Z" 
+        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[60vh] md:h-[70vh] w-auto opacity-70 md:opacity-80">
+          <svg viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+            <path d="M60,300 
+                   C65,280 65,270 70,260 
+                   C75,250 80,240 75,230 
+                   C70,220 65,210 70,200 
+                   C75,190 80,180 75,170 
+                   C70,160 65,150 65,140 
+                   C65,130 70,120 65,110 
+                   C60,100 55,90 60,80 
+                   C65,70 70,60 65,50 
+                   C60,40 50,35 50,30
+                   C50,25 55,20 60,15
+                   C65,10 70,5 70,0
+                   
+                   M60,60
+                   C50,60 45,65 40,70
+                   C35,75 30,85 35,90
+                   C40,95 50,90 55,85
+                   C60,80 60,70 60,60
+                   
+                   M60,130
+                   C70,130 75,135 80,140
+                   C85,145 90,155 85,160
+                   C80,165 70,160 65,155
+                   C60,150 60,140 60,130"
                   fill="#7E69AB" opacity="0.7" />
           </svg>
         </div>
         
         {/* Connecting tether/twyne */}
-        <div className="absolute left-1/2 bottom-40 w-full h-32 -translate-x-1/2">
+        <div className="absolute left-1/2 bottom-[35vh] w-full h-32 -translate-x-1/2">
           <svg width="100%" height="100%" viewBox="0 0 800 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             <path d="M0,80 C200,20 600,120 800,40" 
                   stroke="url(#gradient)" strokeWidth="3" strokeDasharray="5,5" strokeLinecap="round" fill="transparent" />
