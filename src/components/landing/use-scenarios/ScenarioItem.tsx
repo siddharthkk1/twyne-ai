@@ -1,6 +1,22 @@
 
 import React from "react";
-import { MapPin, Coffee, Users, Book, Laptop, MessageCircle, Zap, Heart, Utensils } from "lucide-react";
+import { 
+  MapPin, 
+  Coffee, 
+  Users, 
+  Book, 
+  Laptop, 
+  MessageCircle, 
+  Brain, 
+  Heart, 
+  Utensils,
+  Basketball,
+  Cloud,
+  Palette,
+  Music,
+  Globe,
+  Camera
+} from "lucide-react";
 
 export interface ScenarioItemProps {
   id: number;
@@ -47,12 +63,12 @@ export const scenarios: ScenarioItemProps[] = [
   {
     id: 6,
     title: "I'm looking for NBA fans to watch games with.",
-    icon: <div className="p-2 bg-accent-100 rounded-full"><Users size={32} className="text-accent" /></div>
+    icon: <div className="p-2 bg-accent-100 rounded-full"><Basketball size={32} className="text-accent" /></div>
   },
   {
     id: 7,
     title: "I've outgrown my circles and want to consciously rebuild my social life.",
-    icon: <div className="p-2 bg-primary-100 rounded-full"><Zap size={32} className="text-primary" /></div>
+    icon: <div className="p-2 bg-primary-100 rounded-full"><Globe size={32} className="text-primary" /></div>
   },
   {
     id: 8,
@@ -63,5 +79,20 @@ export const scenarios: ScenarioItemProps[] = [
     id: 9,
     title: "I'm a foodie looking for friends to try restaurants with.",
     icon: <div className="p-2 bg-accent-100 rounded-full"><Utensils size={32} className="text-accent" /></div>
+  },
+  {
+    id: 10,
+    title: "I want to share my thoughts and ideas with like-minded people.",
+    icon: <div className="p-2 bg-primary-100 rounded-full"><Cloud size={32} className="text-primary" /></div>
+  },
+  {
+    id: 11,
+    title: "I'm an artist looking for creative collaborators.",
+    icon: <div className="p-2 bg-secondary-100 rounded-full"><Palette size={32} className="text-secondary" /></div>
+  },
+  {
+    id: 12,
+    title: "I'm looking for people to attend concerts and music festivals with.",
+    icon: <div className="p-2 bg-accent-100 rounded-full"><Music size={32} className="text-accent" /></div>
   },
 ];
