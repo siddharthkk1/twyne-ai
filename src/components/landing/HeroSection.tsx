@@ -72,7 +72,6 @@ export const HeroSection = ({
           >
             The AI platform for making connections and building relationships.
           </h2>
-            <br className="hidden sm:block" />
             <span className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</span>
           </p>
           
