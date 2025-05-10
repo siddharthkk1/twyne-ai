@@ -69,7 +69,7 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
-            The intentional platform for making connections and building relationships. /n
+            The intentional platform for making connections and building relationships.
             Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
           </p>
           
