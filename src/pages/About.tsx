@@ -7,95 +7,73 @@ import { TopNavBar } from "@/components/TopNavBar";
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen flex flex-col">
       <TopNavBar />
-      
-      {/* Back button positioned closer to the TopNavBar */}
-      <div className="container mx-auto px-4 md:px-6 pt-4 mt-16">
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="mb-4 -mt-1 hover:bg-transparent"
-        >
-          <Link to="/" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to Home
-          </Link>
-        </Button>
-      </div>
-
-      <div className="container mx-auto px-4 md:px-6 py-8">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8 text-center">About Twyne</h1>
-          
-          <div className="space-y-8">
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
-              <p className="text-lg">
-                Twyne was created with a simple yet powerful mission: to help people form meaningful connections 
-                based on authentic compatibility. In today's world, where digital relationships often feel shallow 
-                and transactional, we're building a platform that uses advanced AI to facilitate deeper human 
-                connections.
-              </p>
-            </section>
-            
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">The Problem We're Solving</h2>
-              <p className="text-lg mb-4">
-                Despite being more "connected" than ever, many people experience profound loneliness and struggle 
-                to form authentic relationships. The reasons are many:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 text-lg">
-                <li>Moving to new cities where you don't know anyone</li>
-                <li>Working remotely and missing daily social interactions</li>
-                <li>Finding that existing social apps focus on superficial connections</li>
-                <li>Outgrowing old friend circles as your interests and values evolve</li>
-                <li>Lacking the time or opportunities to meet compatible people</li>
-              </ul>
-            </section>
-            
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Our Approach</h2>
-              <p className="text-lg mb-4">
-                Twyne uses a combination of thoughtful human design and sophisticated AI to understand what makes 
-                you unique, and then connect you with people who truly resonate with your personality, values, 
-                and interests.
-              </p>
-              <p className="text-lg">
-                Unlike other platforms that reduce people to static profiles or superficial swipes, we focus on 
-                the nuanced aspects of compatibility and create opportunities for connections to develop naturally.
-              </p>
-            </section>
-            
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Our Values</h2>
-              <ul className="list-disc pl-6 space-y-2 text-lg">
-                <li><strong>Authenticity:</strong> We encourage real self-expression, not curated personas.</li>
-                <li><strong>Depth:</strong> We value meaningful connections over casual networking.</li>
-                <li><strong>Privacy:</strong> Your personal information is always protected and secure.</li>
-                <li><strong>Inclusivity:</strong> We're creating a platform where everyone belongs and can find their community.</li>
-                <li><strong>Growth:</strong> We believe relationships should nurture personal development.</li>
-              </ul>
-            </section>
-            
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">Join Us</h2>
-              <p className="text-lg">
-                We're currently in our early stages and building a community of people who share our vision. 
-                If you're excited about more meaningful connections in your life, join our waitlist to be 
-                among the first to experience Twyne.
-              </p>
-            </section>
+      <section className="py-16 px-4 md:px-6 bg-background text-foreground">
+        <div className="max-w-3xl mx-auto space-y-10">
+          <div className="space-y-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">About Twyne</h1>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Why we started Twyne—and what we’re here to fix.
+            </p>
           </div>
-          
-          <div className="mt-12 text-center">
-            <Button asChild size="lg" className="rounded-full px-8 bg-gradient-to-r from-primary to-accent text-white border-none">
-              <Link to="/">Join the Waitlist</Link>
-            </Button>
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">🌍 The Problem</h2>
+            <p>
+              We’re more connected than ever—and somehow, still lonelier than ever.
+              Social isolation has quietly become one of the biggest public health issues
+              of our time. The U.S. Surgeon General has called loneliness an epidemic.
+              Anxiety, disconnection, and emotional flatness are rising—especially among
+              young adults.
+            </p>
+            <p>
+              We have feeds, group chats, dating apps, and DMs... but for a lot of people,
+              <strong> true friendship still feels out of reach.</strong>
+            </p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>You move to a new city and don’t know where to start</li>
+              <li>You graduate, and suddenly your social circle disappears</li>
+              <li>You work remotely, and your days feel quiet—even with constant notifications</li>
+              <li>You want to connect, but don’t want to swipe through bios or show up to a room full of strangers</li>
+            </ul>
+            <p>This isn’t just about being alone. It’s about <strong>not feeling understood.</strong></p>
+          </div>
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">🤝 What We’re Building</h2>
+            <p>
+              Twyne is a new kind of social app—one that actually helps people meet others
+              who feel like a natural fit.
+            </p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>No swiping. No personal branding. No pressure.</li>
+              <li>You chat with our AI—it gets to know your personality, energy, interests, and life.</li>
+              <li>Once a week, it introduces you to someone nearby you’re likely to vibe with.</li>
+              <li>You can chat, meet up, or just see where it goes. No stress. No script.</li>
+            </ul>
+            <p>
+              We believe in quiet social magic. Not hypergrowth. Not virality. Just people meeting people—
+              naturally, meaningfully, one good intro at a time.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">💡 Why We Exist</h2>
+            <p>
+              Twyne exists because modern life makes real connection hard—and that doesn’t have to be the case.
+            </p>
+            <p>
+              We’re not here to replace human connection with tech. We’re here to use tech to <strong>clear the noise
+              and create space</strong> for real relationships to form.
+            </p>
+            <p>
+              Because everyone deserves to feel seen. Everyone deserves to feel chosen. And everyone deserves to
+              find people they genuinely vibe with.
+            </p>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
