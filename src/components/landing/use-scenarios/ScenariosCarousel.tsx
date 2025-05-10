@@ -68,7 +68,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     animationRef.current = requestAnimationFrame(animate);
   };
 
-  // Touch handlers for manual control
+  // Improved touch handlers for better mobile experience
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     if (!scrollContainerRef.current) return;
     setTouchStartX(e.touches[0].clientX);
@@ -90,7 +90,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const touchDiff = touchStartX - touchCurrentX;
     
     // Update scroll position directly based on touch movement
-    container.scrollLeft += touchDiff;
+    container.scrollLeft += touchDiff * 1.5; // Multiply for more responsive feeling
     setTouchStartX(touchCurrentX);
     
     // Update the active card during manual scrolling
@@ -105,7 +105,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     setTimeout(() => {
       setManualScrolling(false);
       setIsAutoScrolling(true);
-    }, 300); // Small delay before resuming auto-scrolling
+    }, 1000); // Delay before resuming auto-scrolling
   };
 
   // Add scroll event listener to update active card
@@ -116,7 +116,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         updateActiveCard();
       };
       
-      container.addEventListener('scroll', handleScroll);
+      container.addEventListener('scroll', handleScroll, { passive: false });
       return () => {
         container.removeEventListener('scroll', handleScroll);
       };
@@ -146,10 +146,11 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     >
       <div 
         ref={scrollContainerRef}
-        className="flex gap-6 pb-16 overflow-x-auto hide-scrollbar" 
+        className="flex gap-6 pb-16 overflow-x-auto hide-scrollbar touch-pan-x" 
         style={{ 
-          scrollBehavior: isMobile ? 'auto' : 'smooth',
-          WebkitOverflowScrolling: 'touch' // Improved scrolling on iOS
+          scrollBehavior: 'auto', // Changed to auto for better touch responsiveness
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain' // Prevent scroll chaining
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}

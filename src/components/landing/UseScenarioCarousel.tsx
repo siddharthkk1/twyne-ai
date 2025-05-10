@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Carousel,
@@ -117,6 +116,41 @@ export const UseScenarioCarousel = () => {
     return () => clearInterval(interval);
   }, [scenarios.length, autoplay]);
 
+  // Handle manual navigation via touch swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setAutoplay(false); // Pause autoplay on touch
+    const touchStartX = e.touches[0].clientX;
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      const touchCurrentX = e.touches[0].clientX;
+      const diff = touchStartX - touchCurrentX;
+      
+      // If swipe is significant enough (more than 50px), change slide
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          // Swipe left - go to next slide
+          setActiveSlide((prev) => (prev + 1) % scenarios.length);
+        } else {
+          // Swipe right - go to previous slide
+          setActiveSlide((prev) => (prev === 0 ? scenarios.length - 1 : prev - 1));
+        }
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      
+      // Resume autoplay after a delay
+      setTimeout(() => setAutoplay(true), 3000);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
   return (
     <section className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -128,9 +162,10 @@ export const UseScenarioCarousel = () => {
         </div>
         
         <Carousel 
-          className="w-full" 
+          className="w-full touch-pan-y" 
           onMouseEnter={() => setAutoplay(false)}
           onMouseLeave={() => setAutoplay(true)}
+          onTouchStart={handleTouchStart}
         >
           <CarouselContent>
             {scenarios.map((scenario) => (
