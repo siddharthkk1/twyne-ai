@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { ScrollIndicator } from "@/components/landing/use-scenarios/ScrollIndicator";
@@ -17,7 +18,7 @@ const useScenarios = [
   },
 ];
 
-export const RotatingUseScenarios: React.FC = () => {
+export const ScenariosCarousel: React.FC = () => {
   return (
     <div className="relative">
       <Carousel
@@ -37,7 +38,6 @@ export const RotatingUseScenarios: React.FC = () => {
           ))}
         </CarouselContent>
       </Carousel>
-      <ScrollIndicator />
     </div>
   );
 };
