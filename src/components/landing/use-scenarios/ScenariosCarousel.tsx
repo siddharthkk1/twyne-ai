@@ -88,16 +88,19 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   return (
     <div 
-      className="relative overflow-hidden w-full px-4 min-h-[200px]"
+      className="relative overflow-hidden w-full px-4 min-h-[300px]"
       onMouseEnter={() => setIsAutoScrolling(false)}
       onMouseLeave={() => setIsAutoScrolling(true)}
+      style={{border: "1px solid transparent"}} // Add invisible border to ensure the container has dimensions
     >
-      <div className="relative w-full overflow-hidden">
+      <div className="relative w-full overflow-visible">
         <div
           className="flex transition-transform duration-500 ease-in-out will-change-transform"
           style={{
             transform: `translateX(-${activeSlide * 100}%)`,
-            width: `${scenarios.length * 100}%`
+            width: `${scenarios.length * 100}%`,
+            display: "flex",
+            visibility: "visible"
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -106,7 +109,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
           {scenarios.map((scenario, index) => (
             <div
               key={`${scenario.id}-${index}`}
-              className="w-full flex-shrink-0 flex justify-center items-center"
+              className="w-full flex-shrink-0 flex justify-center items-center py-8"
+              style={{display: "flex", visibility: "visible"}}
             >
               <ScenarioCard
                 scenario={scenario}
