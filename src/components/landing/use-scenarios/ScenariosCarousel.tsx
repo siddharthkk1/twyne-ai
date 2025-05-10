@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, TouchEvent } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -11,8 +11,6 @@ interface ScenariosCarouselProps {
 export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios }) => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [manualScrolling, setManualScrolling] = useState(false);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   const isMobile = useIsMobile();
   
@@ -28,7 +26,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   // Set up automatic sliding
   useEffect(() => {
-    if (isAutoScrolling && !manualScrolling) {
+    if (isAutoScrolling) {
       autoScrollRef.current = setInterval(() => {
         goToNextSlide();
       }, 3000); // Change slide every 3 seconds
@@ -39,87 +37,63 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         clearInterval(autoScrollRef.current);
       }
     };
-  }, [isAutoScrolling, manualScrolling, scenarios.length]);
+  }, [isAutoScrolling, scenarios.length]);
 
-  // Handle touch start
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    setTouchStartX(e.touches[0].clientX);
-    setManualScrolling(true);
-    setIsAutoScrolling(false);
-    
-    if (autoScrollRef.current) {
-      clearInterval(autoScrollRef.current);
-    }
-  };
-
-  // Handle touch move
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    if (touchStartX === null) return;
-    
-    const touchCurrentX = e.touches[0].clientX;
-    const diff = touchStartX - touchCurrentX;
-    
-    // Threshold for slide change (20% of screen width)
-    if (Math.abs(diff) > window.innerWidth * 0.2) {
-      if (diff > 0) {
-        goToNextSlide();
-      } else {
-        goToPrevSlide();
-      }
-      setTouchStartX(null);
-    }
-  };
-
-  // Handle touch end
-  const handleTouchEnd = () => {
-    setTouchStartX(null);
-    
-    // Resume auto-scrolling after a delay
-    setTimeout(() => {
-      setManualScrolling(false);
-      setIsAutoScrolling(true);
-    }, 1500);
-  };
-
-  // Debug log to check if component is rendering
+  // Debug log to check if component is rendering with proper data
   useEffect(() => {
-    console.log("ScenariosCarousel rendering with", scenarios.length, "scenarios");
-  }, [scenarios]);
+    console.log("ScenariosCarousel rendering with", scenarios.length, "scenarios", 
+      "Active slide:", activeSlide);
+  }, [scenarios, activeSlide]);
 
   return (
     <div 
-      className="relative overflow-hidden w-full px-4 min-h-[300px]"
+      className="relative w-full px-4 min-h-[400px] flex items-center justify-center"
       onMouseEnter={() => setIsAutoScrolling(false)}
       onMouseLeave={() => setIsAutoScrolling(true)}
-      style={{border: "1px solid transparent"}} // Add invisible border to ensure the container has dimensions
     >
-      <div className="relative w-full overflow-visible">
-        <div
-          className="flex transition-transform duration-500 ease-in-out will-change-transform"
-          style={{
-            transform: `translateX(-${activeSlide * 100}%)`,
-            width: `${scenarios.length * 100}%`,
-            display: "flex",
-            visibility: "visible"
-          }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div 
+          className="w-full overflow-hidden"
+          style={{ maxWidth: '1200px' }}  
         >
-          {scenarios.map((scenario, index) => (
-            <div
-              key={`${scenario.id}-${index}`}
-              className="w-full flex-shrink-0 flex justify-center items-center py-8"
-              style={{display: "flex", visibility: "visible"}}
-            >
-              <ScenarioCard
-                scenario={scenario}
-                isActive={activeSlide === index}
-                index={index}
-              />
-            </div>
-          ))}
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{
+              transform: `translateX(-${activeSlide * 100 / scenarios.length}%)`,
+              width: `${scenarios.length * 100}%`
+            }}
+          >
+            {scenarios.map((scenario, index) => (
+              <div
+                key={`${scenario.id}-${index}`}
+                className="flex-shrink-0"
+                style={{ width: `${100 / scenarios.length}%` }}
+              >
+                <div className="flex justify-center items-center py-8">
+                  <ScenarioCard
+                    scenario={scenario}
+                    isActive={activeSlide === index}
+                    index={index}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
+      
+      {/* Navigation dots */}
+      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 z-10">
+        {scenarios.map((_, index) => (
+          <button
+            key={index}
+            className={`w-2 h-2 rounded-full transition-colors ${
+              activeSlide === index ? 'bg-primary' : 'bg-gray-300'
+            }`}
+            onClick={() => setActiveSlide(index)}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
       </div>
       
       {/* Shadow effect for edges to create fading effect */}

@@ -10,6 +10,12 @@ export const RotatingUseScenarios = () => {
   
   return (
     <div className="w-full mx-auto pt-8">
+      <div className="mb-6 text-center">
+        <h3 className="text-xl md:text-2xl font-medium text-foreground/80">
+          Find your people, whatever your situation
+        </h3>
+      </div>
+      
       {/* Carousel component for rotating scenarios */}
       <ScenariosCarousel scenarios={scenarios} />
       
