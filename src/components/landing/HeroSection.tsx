@@ -38,86 +38,32 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Realistic human silhouette illustrations */}
+      {/* Silhouettes from uploaded image */}
       <div className="absolute inset-0 overflow-visible pointer-events-none z-10">
-        {/* Left silhouette - realistic human figure */}
+        {/* Left silhouette - male figure from the image */}
         <div className="absolute left-0 md:left-12 lg:left-24 bottom-0 h-[75vh] w-auto opacity-80">
-          <svg width="100%" height="100%" viewBox="0 0 300 800" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-            {/* Realistic human silhouette based on reference image */}
-            <path d="M150,800
-                  L150,650
-                  C150,640 149,630 149,620
-                  C149,610 150,600 150,590
-                  C150,580 151,570 152,560
-                  C153,550 154,540 154,530
-                  L155,520
-                  C155,510 155,500 156,490
-                  C157,480 160,470 162,460
-                  C164,450 165,440 167,430
-                  C168,424 170,418 171,412
-                  C173,404 175,396 176,388
-                  C177,380 176,372 175,364
-                  C174,356 172,348 170,340
-                  C168,332 165,324 163,316
-                  C161,308 159,300 158,292
-                  C157,284 157,276 158,268
-                  C159,260 162,252 164,244
-                  C166,236 168,228 169,220
-                  C170,212 170,204 169,196
-                  C168,190 167,184 165,178
-                  C163,172 161,166 160,160
-                  C159,154 159,148 160,142
-                  C161,136 163,130 166,124
-                  C169,118 172,112 174,106
-                  C176,100 177,94 177,88
-                  C177,82 177,76 176,70
-                  C175,64 174,58 173,52
-                  C172,46 170,40 169,34
-                  C168,30 167,26 167,22
-                  C167,18 167,14 168,10
-                  C169,6 171,3 172,0"
-                  fill="#222222" />
-          </svg>
+          <img 
+            src="/lovable-uploads/533e14b3-0387-4f04-a142-8baba3401f5d.png" 
+            alt="Male silhouette" 
+            className="h-full w-auto object-contain object-left-bottom"
+            style={{ 
+              clipPath: 'inset(0 50% 0 0)', 
+              transform: 'scale(0.9)'
+            }} 
+          />
         </div>
         
-        {/* Right silhouette - realistic human figure */}
-        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[75vh] w-auto opacity-80 scale-x-[-1]">
-          <svg width="100%" height="100%" viewBox="0 0 300 800" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-            {/* Realistic human silhouette based on reference image - same as left but flipped with CSS */}
-            <path d="M150,800
-                  L150,650
-                  C150,640 149,630 149,620
-                  C149,610 150,600 150,590
-                  C150,580 151,570 152,560
-                  C153,550 154,540 154,530
-                  L155,520
-                  C155,510 155,500 156,490
-                  C157,480 160,470 162,460
-                  C164,450 165,440 167,430
-                  C168,424 170,418 171,412
-                  C173,404 175,396 176,388
-                  C177,380 176,372 175,364
-                  C174,356 172,348 170,340
-                  C168,332 165,324 163,316
-                  C161,308 159,300 158,292
-                  C157,284 157,276 158,268
-                  C159,260 162,252 164,244
-                  C166,236 168,228 169,220
-                  C170,212 170,204 169,196
-                  C168,190 167,184 165,178
-                  C163,172 161,166 160,160
-                  C159,154 159,148 160,142
-                  C161,136 163,130 166,124
-                  C169,118 172,112 174,106
-                  C176,100 177,94 177,88
-                  C177,82 177,76 176,70
-                  C175,64 174,58 173,52
-                  C172,46 170,40 169,34
-                  C168,30 167,26 167,22
-                  C167,18 167,14 168,10
-                  C169,6 171,3 172,0"
-                  fill="#222222" />
-          </svg>
+        {/* Right silhouette - female figure from the image */}
+        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[75vh] w-auto opacity-80">
+          <img 
+            src="/lovable-uploads/533e14b3-0387-4f04-a142-8baba3401f5d.png" 
+            alt="Female silhouette" 
+            className="h-full w-auto object-contain object-right-bottom"
+            style={{ 
+              clipPath: 'inset(0 0 0 50%)',
+              transform: 'scale(0.9)'
+            }}
+          />
         </div>
         
         {/* Connecting tether/twyne with increased visibility */}
