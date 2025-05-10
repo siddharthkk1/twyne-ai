@@ -189,10 +189,8 @@ export const UseScenarioCarousel = () => {
               {scenarios.map((scenario, index) => (
                 <div 
                   key={scenario.id} 
-                  className={`absolute inset-0 transition-all duration-500 ease-in-out transform ${
-                    activeSlide === index 
-                      ? 'opacity-100 scale-100 z-10 pointer-events-auto' 
-                      : 'opacity-0 scale-95 z-0 pointer-events-none'
+                  className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+                    activeSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                   }`}
                 >
                   <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center h-full">
