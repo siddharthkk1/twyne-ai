@@ -91,7 +91,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   return (
     <div 
-      className="relative w-full overflow-hidden min-h-[220px]"
+      className="relative w-full overflow-hidden py-6"
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -116,11 +116,31 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
             className="flex-shrink-0 px-4"
             style={{ width: '350px' }}
           >
-            <ScenarioCard 
-              scenario={scenario}
-              isActive={true}
-              index={index}
-            />
+            <div className="flex flex-col items-center h-full">
+              {/* Icon above the card */}
+              <div className="mb-5 rounded-full p-3 bg-white/90 shadow-sm">
+                {scenario.icon}
+              </div>
+              
+              {/* Fixed height card */}
+              <div 
+                className="bg-white/90 p-6 rounded-xl shadow-sm transition-all duration-300 border border-gray-100 w-full"
+                style={{
+                  minHeight: '160px',
+                  height: '160px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden'
+                }}
+              >
+                <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800 text-center">
+                  <span className="text-primary text-xl">"</span>
+                  {scenario.title}
+                  <span className="text-primary text-xl">"</span>
+                </h3>
+              </div>
+            </div>
           </div>
         ))}
       </div>
