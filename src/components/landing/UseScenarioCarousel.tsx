@@ -1,12 +1,5 @@
 
-import React, { useState, useEffect } from "react";
-import { 
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +9,6 @@ import {
   IoArrowForward,
   IoPeople,
   IoBookSharp,
-  IoFlashSharp,
   IoPerson,
   IoCafe,
   IoChatbubbleEllipses
@@ -120,19 +112,60 @@ export const UseScenarioCarousel = () => {
   }, [scenarios.length, autoplay]);
 
   // Go to next slide
-  const goToNextSlide = () => {
+  const goToNextSlide = useCallback(() => {
     setActiveSlide((prev) => (prev + 1) % scenarios.length);
-  };
+  }, [scenarios.length]);
 
   // Go to previous slide
-  const goToPreviousSlide = () => {
+  const goToPreviousSlide = useCallback(() => {
     setActiveSlide((prev) => (prev === 0 ? scenarios.length - 1 : prev - 1));
-  };
+  }, [scenarios.length]);
 
   // Go to specific slide
-  const goToSlide = (index: number) => {
+  const goToSlide = useCallback((index: number) => {
     setActiveSlide(index);
-  };
+  }, []);
+
+  // Touch handling for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!e.touches[0]) return;
+      
+      const currentX = e.touches[0].clientX;
+      const diff = startX - currentX;
+      
+      // Determine swipe direction based on threshold
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          goToNextSlide();
+        } else {
+          goToPreviousSlide();
+        }
+        
+        // Clean up event listeners after successful swipe
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    // Temporarily pause autoplay during touch interactions
+    setAutoplay(false);
+    
+    // Add event listeners for touch movement and end
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    // Resume autoplay after touch interaction ends
+    setTimeout(() => setAutoplay(true), 3000);
+  }, [goToNextSlide, goToPreviousSlide]);
 
   return (
     <section className="py-16 bg-white">
@@ -144,7 +177,12 @@ export const UseScenarioCarousel = () => {
           </p>
         </div>
         
-        <div className="relative w-full">
+        <div 
+          className="relative w-full"
+          onMouseEnter={() => setAutoplay(false)}
+          onMouseLeave={() => setAutoplay(true)}
+          onTouchStart={handleTouchStart}
+        >
           {/* Carousel content */}
           <div className="w-full overflow-hidden">
             <div className="relative">
