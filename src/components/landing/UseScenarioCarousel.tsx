@@ -187,10 +187,10 @@ export const UseScenarioCarousel = () => {
           <div className="w-full overflow-hidden">
             <div className="relative h-[350px] overflow-hidden">
               <div
-                className="flex transition-transform duration-500 ease-in-out h-full"
+                className="flex transition-transform duration-500 ease-in-out will-change-transform h-full"
                 style={{
                   width: `${scenarios.length * 100}%`,
-                  transform: `translateX(-${activeSlide * (100 / scenarios.length)}%)`,
+                  transform: `translateX(-${activeSlide * 100}%)`,
                 }}
               >
                 {scenarios.map((scenario) => (
