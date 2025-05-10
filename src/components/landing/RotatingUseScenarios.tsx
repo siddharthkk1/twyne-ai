@@ -12,7 +12,7 @@ export const RotatingUseScenarios = () => {
     <div className="w-full mx-auto pt-6 mb-12">
       {/* Sushi carousel component for horizontally scrolling scenarios */}
       <div className="w-full overflow-hidden">
-        <ScenariosCarousel />
+        <ScenariosCarousel scenarios={scenarios} />
       </div>
       
       {/* Scroll indicator arrow positioned at bottom of hero section */}

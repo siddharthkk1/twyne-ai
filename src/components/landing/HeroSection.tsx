@@ -40,30 +40,6 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Left Silhouette - Using SVG for better visual */}
-      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-full max-h-[500px] hidden md:block pointer-events-none">
-        <svg 
-          className="h-full w-auto opacity-20" 
-          viewBox="0 0 200 500" 
-          fill="currentColor" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M120,50 Q140,30 140,80 L140,200 Q180,220 180,260 L180,320 Q160,380 140,400 L140,450 Q150,460 130,480 L100,500 L70,480 Q50,460 60,450 L60,400 Q40,380 20,320 L20,260 Q20,220 60,200 L60,80 Q60,30 80,50 Q100,70 120,50 Z" />
-        </svg>
-      </div>
-      
-      {/* Right Silhouette - Using SVG for better visual, flipped horizontally */}
-      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-full max-h-[500px] hidden md:block pointer-events-none">
-        <svg 
-          className="h-full w-auto opacity-20 scale-x-[-1]" 
-          viewBox="0 0 200 500" 
-          fill="currentColor" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M120,50 Q140,30 140,80 L140,200 Q180,220 180,260 L180,320 Q160,380 140,400 L140,450 Q150,460 130,480 L100,500 L70,480 Q50,460 60,450 L60,400 Q40,380 20,320 L20,260 Q20,220 60,200 L60,80 Q60,30 80,50 Q100,70 120,50 Z" />
-        </svg>
-      </div>
-      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
         <div className="flex flex-col items-center text-center gap-4 md:gap-5">
           {/* Title with fade-in from left */}
