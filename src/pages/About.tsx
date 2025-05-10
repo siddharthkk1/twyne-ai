@@ -9,6 +9,21 @@ const About = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
+
+      <div className="container mx-auto px-4 md:px-6 pt-4 mt-16">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="mb-4 -mt-1 hover:bg-transparent"
+        >
+          <Link to="/" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back to Home
+          </Link>
+        </Button>
+      </div>
+      
       <section className="py-16 px-4 md:px-6 bg-background text-foreground">
         <div className="max-w-3xl mx-auto space-y-10">
           <div className="space-y-4 text-center">
@@ -79,3 +94,5 @@ const About = () => {
 };
 
 export default About;
+
+
