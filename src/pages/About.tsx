@@ -11,17 +11,19 @@ const About = () => {
       <TopNavBar />
 
       <div className="container mx-auto px-4 md:px-6 pt-8 mt-16">
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="mb-6 -ml-2 hover:bg-transparent"
-        >
-          <Link to="/" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to Home
-          </Link>
-        </Button>
+        <div className="py-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="hover:bg-transparent"
+          >
+            <Link to="/" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
+        </div>
       
         <section className="py-12 bg-background text-foreground">
           <div className="max-w-3xl mx-auto space-y-10">

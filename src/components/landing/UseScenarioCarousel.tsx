@@ -182,46 +182,44 @@ export const UseScenarioCarousel = () => {
           onMouseLeave={() => setAutoplay(true)}
           onTouchStart={handleTouchStart}
         >
-          {/* Carousel content */}
-          <div className="w-full overflow-hidden">
-            <div className="relative w-full h-[350px] overflow-hidden">
-              <div
-                className="flex transition-transform duration-500 ease-in-out will-change-transform h-full"
-                style={{
-                  width: `${scenarios.length * 100}%`,
-                  transform: `translateX(-${activeSlide * 100}%)`,
-                }}
-              >
-                {scenarios.map((scenario) => (
-                  <div
-                    key={scenario.id}
-                    className="min-w-full px-4 flex justify-center items-center"
-                  >
-                    <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center w-full max-w-xl h-full">
-                      <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
-                        <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
-                      </div>
-                      <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
-                      <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
-                      {user ? (
-                        <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
-                          <Link to="/connections" className="flex items-center">
-                            <IoChatbubbleEllipses size={18} className="mr-2" />
-                            View Your Connections
-                          </Link>
-                        </Button>
-                      ) : (
-                        <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
-                          <Link to="/auth" className="flex items-center">
-                            <IoChatbubbleEllipses size={18} className="mr-2" />
-                            Connect & Say Hi
-                          </Link>
-                        </Button>
-                      )}
+          {/* Carousel content - FIX: proper width handling and layout */}
+          <div className="relative w-full h-[350px] overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out will-change-transform h-full"
+              style={{
+                transform: `translateX(-${activeSlide * 100}%)`,
+                width: `${scenarios.length * 100}%`,
+              }}
+            >
+              {scenarios.map((scenario) => (
+                <div
+                  key={scenario.id}
+                  className="w-full flex-shrink-0 flex justify-center items-center"
+                >
+                  <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center w-full max-w-xl h-full">
+                    <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
+                      <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
                     </div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
+                    <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
+                    {user ? (
+                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
+                        <Link to="/connections" className="flex items-center">
+                          <IoChatbubbleEllipses size={18} className="mr-2" />
+                          View Your Connections
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
+                        <Link to="/auth" className="flex items-center">
+                          <IoChatbubbleEllipses size={18} className="mr-2" />
+                          Connect & Say Hi
+                        </Link>
+                      </Button>
+                    )}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
           
