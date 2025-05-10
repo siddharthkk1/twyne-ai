@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, TouchEvent } from "react";
 import { ArrowDown } from "lucide-react";
 
@@ -178,7 +177,7 @@ export const RotatingUseScenarios = () => {
   }, [isAutoScrolling, manualScrolling]);
 
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full mx-auto pt-8"> {/* Added pt-8 for padding-top */}
       {/* Continuously scrolling carousel container with touch support */}
       <div 
         className="relative overflow-hidden w-full px-4"
