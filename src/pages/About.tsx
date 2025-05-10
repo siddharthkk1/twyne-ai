@@ -1,6 +1,7 @@
-
 import React from "react";
 import { TopNavBar } from "@/components/TopNavBar";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const About = () => {
   return (
@@ -8,11 +9,19 @@ const About = () => {
       <TopNavBar />
       <section className="py-16 px-4 md:px-6 bg-background text-foreground mt-16">
         <div className="max-w-3xl mx-auto space-y-10">
-          <div className="space-y-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">About Twyne</h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Why we started Twyne—and what we're here to fix.
-            </p>
+          <div className="flex flex-col items-center space-y-4">
+            {/* Back Button */}
+            <Link to="/" className="self-start flex items-center text-primary hover:text-primary/80 transition-colors mb-2">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              <span>Back to Home</span>
+            </Link>
+            
+            <div className="space-y-4 text-center">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">About Twyne</h1>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Why we started Twyne—and what we're here to fix.
+              </p>
+            </div>
           </div>
 
           <div className="space-y-6">
