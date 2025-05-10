@@ -32,7 +32,10 @@ export const TopNavBar = () => {
               </Link>
             </>
           ) : (
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
+              <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+                About
+              </Link>
               <Button 
                 onClick={() => setIsWaitlistOpen(true)}
                 className="bg-gradient-to-r from-primary to-accent text-white border-none rounded-full"

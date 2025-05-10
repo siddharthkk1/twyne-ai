@@ -20,7 +20,7 @@ const About = () => {
             <p>
               We're more connected than ever—and somehow, still lonelier than ever.
               Social isolation has quietly become one of the biggest public health issues
-              of our time. The U.S. Surgeon General has called loneliness an epidemic.
+              of our time. The <a href="https://www.hhs.gov/sites/default/files/surgeon-general-social-connection-advisory.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">U.S. Surgeon General has called loneliness an epidemic</a>.
               Anxiety, disconnection, and emotional flatness are rising—especially among
               young adults.
             </p>
