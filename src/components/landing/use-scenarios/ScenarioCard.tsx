@@ -19,7 +19,7 @@ export const ScenarioCard: React.FC<ScenarioCardProps> = ({
       key={`${scenario.id}-${index}`}
       className="flex flex-col items-center"
     >
-      {/* Icon above the card with larger size */}
+      {/* Icon above the card with enhanced styling */}
       <div className={cn(
         "transform transition-all duration-300 mb-5",
         isActive ? "scale-110" : "scale-100"
