@@ -7,11 +7,20 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { MapPin, Heart, ArrowRight, Users, Book, Zap, User, Coffee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { MessageCircle } from "lucide-react";
+import { 
+  IoLocationSharp,
+  IoHeartSharp,
+  IoArrowForward,
+  IoPeople,
+  IoBookSharp,
+  IoFlashSharp,
+  IoPerson,
+  IoCafe,
+  IoChatbubbleEllipses
+} from "react-icons/io5";
 
 interface ScenarioItem {
   id: number;
@@ -31,7 +40,7 @@ export const UseScenarioCarousel = () => {
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
-      icon: MapPin,
+      icon: IoLocationSharp,
       title: "I'm a new grad who just moved to a new city and don't know anyone.",
       description: "Twyne helps you meet people nearby who share your vibe, not just your zip code.",
       iconBgColor: "bg-primary/20",
@@ -39,7 +48,7 @@ export const UseScenarioCarousel = () => {
     },
     {
       id: 2,
-      icon: Heart,
+      icon: IoHeartSharp,
       title: "I work remotely and barely see people during the week.",
       description: "Find activity partners who match your schedule and skill level for regular adventures.",
       iconBgColor: "bg-secondary/20",
@@ -47,7 +56,7 @@ export const UseScenarioCarousel = () => {
     },
     {
       id: 3,
-      icon: Coffee,
+      icon: IoCafe,
       title: "I want friendships that aren't random roommates or coworkers.",
       description: "Connect with professionals in similar fields who understand your unique work challenges.",
       iconBgColor: "bg-accent/20",
@@ -55,7 +64,7 @@ export const UseScenarioCarousel = () => {
     },
     {
       id: 4,
-      icon: Users,
+      icon: IoPeople,
       title: "I want deep conversations about books over coffee.",
       description: "Meet fellow intellectuals who enjoy discussing ideas, theories, and literature in cozy settings.",
       iconBgColor: "bg-primary/20",
@@ -63,7 +72,7 @@ export const UseScenarioCarousel = () => {
     },
     {
       id: 5,
-      icon: User,
+      icon: IoPerson,
       title: "I'm looking for NBA fans to watch games with.",
       description: "Find fellow basketball enthusiasts to cheer on your team and debate stats over beers.",
       iconBgColor: "bg-secondary/20",
@@ -71,7 +80,7 @@ export const UseScenarioCarousel = () => {
     },
     {
       id: 6,
-      icon: ArrowRight,
+      icon: IoArrowForward,
       title: "I've outgrown my old circles and want to rebuild.",
       description: "Not everyone grows with you. Twyne helps you find people who match your pace and your path.",
       iconBgColor: "bg-accent/20",
@@ -79,7 +88,7 @@ export const UseScenarioCarousel = () => {
     },
     {
       id: 7,
-      icon: User,
+      icon: IoPerson,
       title: "I have friends but no one I feel deeply connected with.",
       description: "Find people who truly understand you and create deeper, more meaningful friendships.",
       iconBgColor: "bg-primary/20",
@@ -87,7 +96,7 @@ export const UseScenarioCarousel = () => {
     },
     {
       id: 8,
-      icon: Book,
+      icon: IoBookSharp,
       title: "I'm a foodie looking for friends to try restaurants with.",
       description: "Connect with fellow food enthusiasts who are always up for culinary adventures in your city.",
       iconBgColor: "bg-secondary/20",
@@ -134,21 +143,21 @@ export const UseScenarioCarousel = () => {
               >
                 <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center">
                   <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
-                    <scenario.icon className={`h-8 w-8 ${scenario.iconColor}`} />
+                    <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
                   </div>
                   <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
                   <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
                   {user ? (
                     <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
                       <Link to="/connections" className="flex items-center">
-                        <MessageCircle size={20} className="mr-1" />
+                        <IoChatbubbleEllipses size={18} className="mr-2" />
                         View Your Connections
                       </Link>
                     </Button>
                   ) : (
                     <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
                       <Link to="/auth" className="flex items-center">
-                        <MessageCircle size={20} className="mr-1" />
+                        <IoChatbubbleEllipses size={18} className="mr-2" />
                         Connect & Say Hi
                       </Link>
                     </Button>
