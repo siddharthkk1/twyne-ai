@@ -76,6 +76,39 @@ export const HeroSection = ({
             <p className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</p>
           </div>
           
+          {/* Illustration of people connecting */}
+          <div 
+            className={`w-full max-w-md mx-auto mt-6 md:mt-8 transition-all duration-700 transform ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+            }`}
+            style={{ transitionDelay: '700ms' }}
+          >
+            <div className="relative h-64 md:h-80">
+              {/* Location pin */}
+              <div className="absolute left-4 top-0 md:left-8 md:top-2 w-12 h-12 md:w-16 md:h-16">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#b392f0" className="w-full h-full">
+                  <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                </svg>
+              </div>
+              
+              {/* Heart icon */}
+              <div className="absolute right-4 top-0 md:right-8 md:top-2 w-12 h-12 md:w-16 md:h-16">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#b392f0" className="w-full h-full">
+                  <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+                </svg>
+              </div>
+              
+              {/* People illustration */}
+              <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/3">
+                <img 
+                  src="/lovable-uploads/01b56105-88b1-40dc-b8f9-4ab2f5222a85.png" 
+                  alt="People connecting" 
+                  className="w-full max-w-[280px] md:max-w-[320px] h-auto"
+                />
+              </div>
+            </div>
+          </div>
+          
           {/* Buttons with horizontal space between them */}
           <div 
             className={`flex flex-col sm:flex-row sm:space-x-4 w-full sm:w-auto transition-all duration-700 transform ${
