@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -185,7 +184,7 @@ export const UseScenarioCarousel = () => {
         >
           {/* Carousel content */}
           <div className="w-full overflow-hidden">
-            <div className="relative h-[350px] overflow-hidden">
+            <div className="relative w-full h-[350px] overflow-hidden">
               <div
                 className="flex transition-transform duration-500 ease-in-out will-change-transform h-full"
                 style={{
