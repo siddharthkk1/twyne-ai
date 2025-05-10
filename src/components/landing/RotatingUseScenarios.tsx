@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, TouchEvent } from "react";
 import { ArrowDown } from "lucide-react";
 
@@ -177,7 +178,7 @@ export const RotatingUseScenarios = () => {
   }, [isAutoScrolling, manualScrolling]);
 
   return (
-    <div className="w-full mx-auto pt-8"> {/* Added pt-8 for padding-top */}
+    <div className="w-full mx-auto">
       {/* Continuously scrolling carousel container with touch support */}
       <div 
         className="relative overflow-hidden w-full px-4"
@@ -198,7 +199,7 @@ export const RotatingUseScenarios = () => {
               className="flex flex-col items-center"
             >
               {/* Icon now positioned above the card with larger size */}
-              <div className={`transform transition-all duration-300 mb-3 ${
+              <div className={`transform transition-all duration-300 mb-5 ${
                 activeCardIndex === index ? 'scale-110' : 'scale-100'
               }`}>
                 {scenario.icon}
@@ -236,7 +237,7 @@ export const RotatingUseScenarios = () => {
       </div>
       
       {/* Scroll indicator - Positioned at the very bottom of the viewport */}
-      <div className="flex justify-center fixed bottom-12 left-0 right-0 animate-bounce z-30">
+      <div className="flex justify-center fixed bottom-10 left-0 right-0 animate-bounce z-30">
         <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>
