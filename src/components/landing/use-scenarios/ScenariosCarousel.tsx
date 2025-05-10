@@ -91,7 +91,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   return (
     <div 
-      className="relative w-full overflow-hidden min-h-[220px]"
+      className="relative w-full overflow-hidden min-h-[250px]" // Increased min height to prevent cutoff
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -101,6 +101,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         style={{
           transform: `translateX(${translateX}px)`,
           transition: isDragging ? 'none' : 'transform 0.1s linear',
+          paddingBottom: '20px', // Add padding to ensure cards aren't cut off
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}

@@ -43,8 +43,8 @@ export const HeroSection = ({
       {/* Left Silhouette */}
       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-full max-h-[500px] hidden md:block pointer-events-none">
         <img 
-          src="https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=300&q=80" 
-          alt="Silhouette" 
+          src="/lovable-uploads/5a50d241-54ef-42d7-8812-f91cfafe3ac9.png" 
+          alt="Person Silhouette" 
           className="h-full object-contain opacity-20"
           style={{ filter: "brightness(0) invert(0.2)" }}
         />
@@ -53,10 +53,10 @@ export const HeroSection = ({
       {/* Right Silhouette */}
       <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-full max-h-[500px] hidden md:block pointer-events-none">
         <img 
-          src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=300&q=80" 
-          alt="Silhouette" 
+          src="/lovable-uploads/5a50d241-54ef-42d7-8812-f91cfafe3ac9.png" 
+          alt="Person Silhouette" 
           className="h-full object-contain opacity-20"
-          style={{ filter: "brightness(0) invert(0.2)" }}
+          style={{ filter: "brightness(0) invert(0.2)", transform: "scaleX(-1)" }}
         />
       </div>
       
