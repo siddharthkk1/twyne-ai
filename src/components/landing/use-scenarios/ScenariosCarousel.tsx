@@ -91,7 +91,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   return (
     <div 
-      className="relative w-full overflow-hidden py-6"
+      className="relative w-full overflow-hidden py-4"
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -118,16 +118,16 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
           >
             <div className="flex flex-col items-center h-full">
               {/* Icon above the card */}
-              <div className="mb-5 rounded-full p-3 bg-white/90 shadow-sm">
+              <div className="mb-4 rounded-full p-3 bg-white/90 shadow-sm">
                 {scenario.icon}
               </div>
               
               {/* Fixed height card */}
               <div 
-                className="bg-white/90 p-6 rounded-xl shadow-sm transition-all duration-300 border border-gray-100 w-full"
+                className="bg-white/90 p-5 rounded-xl shadow-sm transition-all duration-300 border border-gray-100 w-full"
                 style={{
-                  minHeight: '160px',
-                  height: '160px',
+                  minHeight: '140px',
+                  height: '140px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
