@@ -20,8 +20,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
           {scenarios.map((scenario, index) => (
             <CarouselItem key={index} className="basis-1/1 md:basis-1/3 px-1 md:px-4">
               <div className="p-4 rounded-lg text-center min-h-[250px] flex flex-col justify-center items-center bg-white/5 backdrop-blur-sm border border-white/10 shadow-md">
+                <div className="mb-4">{scenario.icon}</div>
                 <h3 className="text-lg font-semibold mb-2">{scenario.title}</h3>
-                <p className="text-sm text-foreground/80">{scenario.description}</p>
               </div>
             </CarouselItem>
           ))}
