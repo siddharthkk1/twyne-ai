@@ -1,134 +1,43 @@
+import React from "react";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { ScrollIndicator } from "@/components/landing/use-scenarios/ScrollIndicator";
 
-import React, { useState, useEffect, useRef } from "react";
-import { ScenarioCard } from "./ScenarioCard";
-import type { ScenarioItemProps } from "./ScenarioItem";
-import { useIsMobile } from "@/hooks/use-mobile";
+const useScenarios = [
+  {
+    title: "Find Activity Partners",
+    description: "Connect with people who share your hobbies and interests for real-world adventures.",
+  },
+  {
+    title: "Expand Your Social Circle",
+    description: "Meet new friends and build meaningful relationships within your local community.",
+  },
+  {
+    title: "Networking Opportunities",
+    description: "Discover professionals in your field and create valuable connections for career growth.",
+  },
+];
 
-interface ScenariosCarouselProps {
-  scenarios: ScenarioItemProps[];
-}
-
-export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios }) => {
-  const [translateX, setTranslateX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [dragStartTranslate, setDragStartTranslate] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number | null>(null);
-  const isMobile = useIsMobile();
-
-  const scrollSpeed = 0.5; // pixels per frame at 60fps
-  const totalWidth = scenarios.length * 350; // Each card is about 300px + margin
-
-  // Animation function for constant movement
-  const animate = () => {
-    if (isPaused) {
-      animationRef.current = requestAnimationFrame(animate);
-      return;
-    }
-
-    setTranslateX(prev => {
-      // Reset position when all cards have scrolled by
-      if (Math.abs(prev) >= totalWidth / 2) {
-        return 0;
-      }
-      return prev - scrollSpeed;
-    });
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
-
-  // Start animation on mount
-  useEffect(() => {
-    console.log("Starting sushi carousel animation");
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [isPaused]);
-
-  // Handle manual interaction
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsPaused(true);
-    setIsDragging(true);
-    setStartX(e.clientX);
-    setDragStartTranslate(translateX);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsPaused(true);
-    setIsDragging(true);
-    setStartX(e.touches[0].clientX);
-    setDragStartTranslate(translateX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const deltaX = e.clientX - startX;
-    setTranslateX(dragStartTranslate + deltaX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const deltaX = e.touches[0].clientX - startX;
-    setTranslateX(dragStartTranslate + deltaX);
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    // Resume animation after a short pause
-    setTimeout(() => {
-      setIsPaused(false);
-    }, 2000);
-  };
-
-  // Ensure we have enough cards to create an infinite effect
-  const displayItems = [...scenarios, ...scenarios];
-
+export const RotatingUseScenarios: React.FC = () => {
   return (
-    <div 
-      className="relative w-full overflow-hidden min-h-[250px]" // Increased min height to prevent cutoff
-      ref={containerRef}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      <div 
-        className="flex items-center transition-transform cursor-grab"
-        style={{
-          transform: `translateX(${translateX}px)`,
-          transition: isDragging ? 'none' : 'transform 0.1s linear',
-          paddingBottom: '20px', // Add padding to ensure cards aren't cut off
+    <div className="relative">
+      <Carousel
+        className="w-full max-w-4xl mx-auto"
+        opts={{
+          loop: true,
         }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        onMouseMove={handleMouseMove}
-        onTouchMove={handleTouchMove}
-        onMouseUp={handleDragEnd}
-        onTouchEnd={handleDragEnd}
-        onMouseLeave={isDragging ? handleDragEnd : undefined}
       >
-        {displayItems.map((scenario, index) => (
-          <div
-            key={`${scenario.id}-${index}`}
-            className="flex-shrink-0 px-4"
-            style={{ width: '350px' }}
-          >
-            <ScenarioCard 
-              scenario={scenario}
-              isActive={true}
-              index={index}
-            />
-          </div>
-        ))}
-      </div>
-      
-      {/* Shadow effect for edges to create fading effect */}
-      <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
-      <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
+        <CarouselContent className="-ml-1 md:-ml-4">
+          {useScenarios.map((scenario, index) => (
+            <CarouselItem key={index} className="basis-1/1 md:basis-1/3 px-1 md:px-4">
+              <div className="p-4 rounded-lg text-center min-h-[250px] flex flex-col justify-center items-center bg-white/5 backdrop-blur-sm border border-white/10 shadow-md">
+                <h3 className="text-lg font-semibold mb-2">{scenario.title}</h3>
+                <p className="text-sm text-foreground/80">{scenario.description}</p>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+      <ScrollIndicator />
     </div>
   );
 };
