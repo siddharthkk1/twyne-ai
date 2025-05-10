@@ -17,7 +17,10 @@ export const ScenarioCard: React.FC<ScenarioCardProps> = ({
   return (
     <div 
       key={`${scenario.id}-${index}`}
-      className="flex flex-col items-center"
+      className={cn(
+        "flex flex-col items-center transition-all duration-300",
+        isActive ? "opacity-100" : "opacity-70"
+      )}
     >
       {/* Custom icon with enhanced styling */}
       <div className={cn(

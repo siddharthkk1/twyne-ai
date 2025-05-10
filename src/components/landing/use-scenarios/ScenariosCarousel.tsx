@@ -81,9 +81,14 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }, 1500);
   };
 
+  // Debug log to check if component is rendering
+  useEffect(() => {
+    console.log("ScenariosCarousel rendering with", scenarios.length, "scenarios");
+  }, [scenarios]);
+
   return (
     <div 
-      className="relative overflow-hidden w-full px-4"
+      className="relative overflow-hidden w-full px-4 min-h-[200px]"
       onMouseEnter={() => setIsAutoScrolling(false)}
       onMouseLeave={() => setIsAutoScrolling(true)}
     >
