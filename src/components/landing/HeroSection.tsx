@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -37,67 +38,81 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Human silhouette illustrations with clear z-index and higher visibility */}
+      {/* Human silhouette illustrations with realistic figures */}
       <div className="absolute inset-0 overflow-visible pointer-events-none z-10">
-        {/* Left silhouette */}
+        {/* Left silhouette - realistic human figure */}
         <div className="absolute left-0 md:left-12 lg:left-24 bottom-0 h-[75vh] w-auto opacity-80">
-          <svg width="100%" height="100%" viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-            <path d="M60,300 
-                   C55,280 55,270 50,260 
-                   C45,250 40,240 45,230 
-                   C50,220 55,210 50,200 
-                   C45,190 40,180 45,170 
-                   C50,160 55,150 55,140 
-                   C55,130 50,120 55,110 
-                   C60,100 65,90 60,80 
-                   C55,70 50,60 55,50 
-                   C60,40 70,35 70,30
-                   C70,25 65,20 60,15
-                   C55,10 50,5 50,0
-                   
-                   M60,60
-                   C70,60 75,65 80,70
-                   C85,75 90,85 85,90
-                   C80,95 70,90 65,85
-                   C60,80 60,70 60,60
-                   
-                   M60,130
-                   C50,130 45,135 40,140
-                   C35,145 30,155 35,160
-                   C40,165 50,160 55,155
-                   C60,150 60,140 60,130"
-                  fill="#9b87f5" opacity="0.7" />
+          <svg width="100%" height="100%" viewBox="0 0 300 600" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+            {/* Realistic human silhouette based on reference */}
+            <path d="M150,600 
+                   L150,500
+                   L145,480
+                   C140,450 140,440 140,430
+                   L140,400
+                   L145,380
+                   C150,370 160,360 165,350
+                   C170,340 170,330 175,320
+                   C180,310 185,300 185,290
+                   C185,280 180,270 175,260
+                   C170,250 165,240 160,230
+                   C155,220 150,210 145,200
+                   C135,190 125,185 120,180
+                   C115,175 110,170 110,160
+                   C110,150 115,140 120,130
+                   C125,120 130,110 130,100
+                   C130,90 125,80 120,70
+                   C115,60 110,50 110,40
+                   C110,30 115,20 120,15
+                   C125,10 130,5 135,5
+                   L140,5
+                   C145,5 150,10 150,15
+                   C155,20 160,25 160,30
+                   C160,40 155,50 150,55
+                   C145,60 140,70 145,80
+                   C150,90 160,100 170,100
+                   C180,100 190,90 195,80
+                   C200,70 200,60 200,50
+                   C200,40 195,30 190,20
+                   L185,5"
+                   fill="#333333" />
           </svg>
         </div>
         
-        {/* Right silhouette */}
-        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[75vh] w-auto opacity-80">
-          <svg width="100%" height="100%" viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-            <path d="M60,300 
-                   C65,280 65,270 70,260 
-                   C75,250 80,240 75,230 
-                   C70,220 65,210 70,200 
-                   C75,190 80,180 75,170 
-                   C70,160 65,150 65,140 
-                   C65,130 70,120 65,110 
-                   C60,100 55,90 60,80 
-                   C65,70 70,60 65,50 
-                   C60,40 50,35 50,30
-                   C50,25 55,20 60,15
-                   C65,10 70,5 70,0
-                   
-                   M60,60
-                   C50,60 45,65 40,70
-                   C35,75 30,85 35,90
-                   C40,95 50,90 55,85
-                   C60,80 60,70 60,60
-                   
-                   M60,130
-                   C70,130 75,135 80,140
-                   C85,145 90,155 85,160
-                   C80,165 70,160 65,155
-                   C60,150 60,140 60,130"
-                  fill="#7E69AB" opacity="0.7" />
+        {/* Right silhouette - realistic human figure */}
+        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[75vh] w-auto opacity-80 scale-x-[-1]">
+          <svg width="100%" height="100%" viewBox="0 0 300 600" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+            {/* Realistic human silhouette based on reference - same as left but flipped with CSS */}
+            <path d="M150,600 
+                   L150,500
+                   L145,480
+                   C140,450 140,440 140,430
+                   L140,400
+                   L145,380
+                   C150,370 160,360 165,350
+                   C170,340 170,330 175,320
+                   C180,310 185,300 185,290
+                   C185,280 180,270 175,260
+                   C170,250 165,240 160,230
+                   C155,220 150,210 145,200
+                   C135,190 125,185 120,180
+                   C115,175 110,170 110,160
+                   C110,150 115,140 120,130
+                   C125,120 130,110 130,100
+                   C130,90 125,80 120,70
+                   C115,60 110,50 110,40
+                   C110,30 115,20 120,15
+                   C125,10 130,5 135,5
+                   L140,5
+                   C145,5 150,10 150,15
+                   C155,20 160,25 160,30
+                   C160,40 155,50 150,55
+                   C145,60 140,70 145,80
+                   C150,90 160,100 170,100
+                   C180,100 190,90 195,80
+                   C200,70 200,60 200,50
+                   C200,40 195,30 190,20
+                   L185,5"
+                   fill="#333333" />
           </svg>
         </div>
         
