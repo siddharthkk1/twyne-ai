@@ -49,7 +49,7 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
           >
-            The AI Social Platform
+            The AI Platform The AI platform for making connections and building relationships.
           </h2>
           
           {/* Main title with fade-in from right and gradient - Increased font sizes and adjusted to force two rows */}
@@ -71,7 +71,6 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
-            The intentional platform for making connections and building relationships.
             <br className="hidden sm:block" />
             <span className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</span>
           </p>
