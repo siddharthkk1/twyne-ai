@@ -7,7 +7,7 @@ import {
   IoBookSharp, 
   IoLaptopOutline, 
   IoChatbubbleEllipses, 
-  IoBrain, 
+  IoBulb, // Changed from IoBrain to IoBulb which exists in the io5 package
   IoHeartSharp, 
   IoFastFoodOutline,
   IoBasketballSharp,
@@ -83,7 +83,7 @@ export const scenarios: ScenarioItemProps[] = [
   {
     id: 10,
     title: "I want to share my thoughts and ideas with like-minded people.",
-    icon: <div className="p-2 bg-primary-100 rounded-full"><IoCloudSharp size={28} className="text-primary" /></div>
+    icon: <div className="p-2 bg-primary-100 rounded-full"><IoBulb size={28} className="text-primary" /></div>
   },
   {
     id: 11,
