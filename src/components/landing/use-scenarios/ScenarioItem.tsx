@@ -10,7 +10,7 @@ import {
   Brain, 
   Heart, 
   Utensils,
-  Basketball,
+  Trophy, // Replacing Basketball with Trophy
   Cloud,
   Palette,
   Music,
@@ -63,7 +63,7 @@ export const scenarios: ScenarioItemProps[] = [
   {
     id: 6,
     title: "I'm looking for NBA fans to watch games with.",
-    icon: <div className="p-2 bg-accent-100 rounded-full"><Basketball size={32} className="text-accent" /></div>
+    icon: <div className="p-2 bg-accent-100 rounded-full"><Trophy size={32} className="text-accent" /></div>
   },
   {
     id: 7,
