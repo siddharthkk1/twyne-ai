@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { ScenarioItemProps } from "./ScenarioItem";
 
 interface ScenariosCarouselProps {
@@ -14,6 +14,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         className="w-full max-w-4xl mx-auto"
         opts={{
           loop: true,
+          align: "start",
+          dragFree: true,
         }}
       >
         <CarouselContent className="-ml-1 md:-ml-4">
@@ -26,6 +28,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
             </CarouselItem>
           ))}
         </CarouselContent>
+        <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
+        <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
       </Carousel>
     </div>
   );
