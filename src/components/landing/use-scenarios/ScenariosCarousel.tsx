@@ -9,90 +9,119 @@ interface ScenariosCarouselProps {
 }
 
 export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios }) => {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
-  const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
+  const [translateX, setTranslateX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [dragStartTranslate, setDragStartTranslate] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
-  
-  // Function to go to next slide with wraparound
-  const goToNextSlide = () => {
-    setActiveSlide((prev) => (prev + 1) % scenarios.length);
-  };
 
-  // Function to go to previous slide with wraparound
-  const goToPrevSlide = () => {
-    setActiveSlide((prev) => (prev - 1 + scenarios.length) % scenarios.length);
-  };
+  const scrollSpeed = 0.5; // pixels per frame at 60fps
+  const totalWidth = scenarios.length * 350; // Each card is about 300px + margin
 
-  // Set up automatic sliding
-  useEffect(() => {
-    if (isAutoScrolling) {
-      autoScrollRef.current = setInterval(() => {
-        goToNextSlide();
-      }, 3000); // Change slide every 3 seconds
+  // Animation function for constant movement
+  const animate = () => {
+    if (isPaused) {
+      animationRef.current = requestAnimationFrame(animate);
+      return;
     }
-    
+
+    setTranslateX(prev => {
+      // Reset position when all cards have scrolled by
+      if (Math.abs(prev) >= totalWidth / 2) {
+        return 0;
+      }
+      return prev - scrollSpeed;
+    });
+
+    animationRef.current = requestAnimationFrame(animate);
+  };
+
+  // Start animation on mount
+  useEffect(() => {
+    console.log("Starting sushi carousel animation");
+    animationRef.current = requestAnimationFrame(animate);
+
     return () => {
-      if (autoScrollRef.current) {
-        clearInterval(autoScrollRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isAutoScrolling, scenarios.length]);
+  }, [isPaused]);
 
-  // Debug log to check if component is rendering with proper data
-  useEffect(() => {
-    console.log("ScenariosCarousel rendering with", scenarios.length, "scenarios", 
-      "Active slide:", activeSlide);
-  }, [scenarios, activeSlide]);
+  // Handle manual interaction
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsPaused(true);
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setDragStartTranslate(translateX);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    setDragStartTranslate(translateX);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - startX;
+    setTranslateX(dragStartTranslate + deltaX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const deltaX = e.touches[0].clientX - startX;
+    setTranslateX(dragStartTranslate + deltaX);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    // Resume animation after a short pause
+    setTimeout(() => {
+      setIsPaused(false);
+    }, 2000);
+  };
+
+  // Ensure we have enough cards to create an infinite effect
+  const displayItems = [...scenarios, ...scenarios];
 
   return (
     <div 
-      className="relative w-full px-4 min-h-[400px] flex items-center justify-center"
-      onMouseEnter={() => setIsAutoScrolling(false)}
-      onMouseLeave={() => setIsAutoScrolling(true)}
+      className="relative w-full overflow-hidden min-h-[220px]"
+      ref={containerRef}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div 
-          className="w-full overflow-hidden"
-          style={{ maxWidth: '1200px' }}  
-        >
+      <div 
+        className="flex items-center transition-transform cursor-grab"
+        style={{
+          transform: `translateX(${translateX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.1s linear',
+        }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
+        onMouseUp={handleDragEnd}
+        onTouchEnd={handleDragEnd}
+        onMouseLeave={isDragging ? handleDragEnd : undefined}
+      >
+        {displayItems.map((scenario, index) => (
           <div
-            className="flex transition-transform duration-500 ease-in-out"
-            style={{
-              transform: `translateX(-${activeSlide * 100 / scenarios.length}%)`,
-              width: `${scenarios.length * 100}%`
-            }}
+            key={`${scenario.id}-${index}`}
+            className="flex-shrink-0 px-4"
+            style={{ width: '350px' }}
           >
-            {scenarios.map((scenario, index) => (
-              <div
-                key={`${scenario.id}-${index}`}
-                className="flex-shrink-0"
-                style={{ width: `${100 / scenarios.length}%` }}
-              >
-                <div className="flex justify-center items-center py-8">
-                  <ScenarioCard
-                    scenario={scenario}
-                    isActive={activeSlide === index}
-                    index={index}
-                  />
-                </div>
-              </div>
-            ))}
+            <ScenarioCard 
+              scenario={scenario}
+              isActive={true}
+              index={index}
+            />
           </div>
-        </div>
-      </div>
-      
-      {/* Navigation dots */}
-      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 z-10">
-        {scenarios.map((_, index) => (
-          <button
-            key={index}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              activeSlide === index ? 'bg-primary' : 'bg-gray-300'
-            }`}
-            onClick={() => setActiveSlide(index)}
-            aria-label={`Go to slide ${index + 1}`}
-          />
         ))}
       </div>
       

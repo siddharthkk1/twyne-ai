@@ -16,8 +16,10 @@ export const RotatingUseScenarios = () => {
         </h3>
       </div>
       
-      {/* Carousel component for rotating scenarios */}
-      <ScenariosCarousel scenarios={scenarios} />
+      {/* Sushi carousel component for horizontally scrolling scenarios */}
+      <div className="w-full overflow-hidden">
+        <ScenariosCarousel scenarios={scenarios} />
+      </div>
       
       {/* Scroll indicator arrow */}
       <ScrollIndicator />
