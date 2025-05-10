@@ -41,6 +41,15 @@ export const HeroSection = ({
         </div>
       </div>
       
+      {/* Girl illustration in background */}
+      <div className="absolute left-0 md:left-[5%] top-1/2 transform -translate-y-1/2 pointer-events-none opacity-50 md:opacity-70 z-0">
+        <img 
+          src="/lovable-uploads/0062c0fe-e9a3-4594-a70a-670593f1bf6c.png" 
+          alt="Illustration" 
+          className="w-48 md:w-64 lg:w-80 object-contain"
+        />
+      </div>
+      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
         <div className="flex flex-col items-center text-center gap-3 md:gap-4">
           {/* Main title with fade-in from right and gradient */}
