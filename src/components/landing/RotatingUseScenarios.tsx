@@ -237,7 +237,7 @@ export const RotatingUseScenarios = () => {
       </div>
       
       {/* Scroll indicator - Positioned at the very bottom of the viewport */}
-      <div className="flex justify-center fixed bottom-10 left-0 right-0 animate-bounce z-30">
+      <div className="flex justify-center fixed bottom-24 left-0 right-0 animate-bounce z-30">
         <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>
