@@ -41,7 +41,7 @@ export const HeroSection = ({
       </div>
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
-        <div className="flex flex-col items-center text-center gap-4 md:gap-5">
+        <div className="flex flex-col items-center text-center gap-3 md:gap-4">
           {/* Title with fade-in from left */}
           
           
@@ -117,7 +117,7 @@ export const HeroSection = ({
           {/* Waitlist Count - With adjusted bottom margin */}
           {!isLoading && waitlistCount !== null && (
             <div 
-              className={`flex items-center justify-center text-sm text-muted-foreground mt-2 mb-6 md:mb-8 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
+              className={`flex items-center justify-center text-sm text-muted-foreground mt-2 mb-2 md:mb-4 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
                 isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
               }`}
               style={{ transitionDelay: '1000ms' }}
@@ -131,7 +131,7 @@ export const HeroSection = ({
 
       {/* Rotating text with full-width carousel */}
       <div 
-        className={`w-full transition-all duration-700 transform ${
+        className={`w-full transition-all duration-700 transform mt-4 sm:mt-8 md:mt-0 ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
         style={{ transitionDelay: '1200ms' }}

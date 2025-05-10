@@ -9,7 +9,7 @@ export const RotatingUseScenarios = () => {
   console.log("RotatingUseScenarios rendering with", scenarios.length, "scenarios");
   
   return (
-    <div className="w-full mx-auto pt-8">
+    <div className="w-full mx-auto pt-4">
       {/* Sushi carousel component for horizontally scrolling scenarios */}
       <div className="w-full overflow-hidden">
         <ScenariosCarousel scenarios={scenarios} />
