@@ -199,7 +199,7 @@ export const RotatingUseScenarios = () => {
               className="flex flex-col items-center"
             >
               {/* Icon now positioned above the card with larger size */}
-              <div className={`transform transition-all duration-300 mb-5 ${
+              <div className={`transform transition-all duration-300 mb-3 ${
                 activeCardIndex === index ? 'scale-110' : 'scale-100'
               }`}>
                 {scenario.icon}
@@ -237,7 +237,7 @@ export const RotatingUseScenarios = () => {
       </div>
       
       {/* Scroll indicator - Positioned at the very bottom of the viewport */}
-      <div className="flex justify-center fixed bottom-6 left-0 right-0 animate-bounce z-30">
+      <div className="flex justify-center fixed bottom-12 left-0 right-0 animate-bounce z-30">
         <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>
