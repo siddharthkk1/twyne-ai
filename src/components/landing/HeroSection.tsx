@@ -28,7 +28,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-10 md:py-14 mt-16 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
+    <section className="relative py-10 md:py-14 mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
