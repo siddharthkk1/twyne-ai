@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
+import { ScrollIndicator } from "@/components/landing/use-scenarios/ScrollIndicator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -38,6 +39,26 @@ export const HeroSection = ({
           <div className="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full bg-secondary/30 blur-3xl"></div>
           <div className="absolute top-2/3 left-2/3 w-72 h-72 rounded-full bg-accent/30 blur-3xl"></div>
         </div>
+      </div>
+      
+      {/* Silhouette - Left side */}
+      <div className="absolute left-8 md:left-16 lg:left-32 top-1/2 transform -translate-y-1/2 opacity-70 hidden md:block">
+        <img 
+          src="/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png" 
+          alt="Silhouette of person" 
+          className="h-96 object-contain opacity-80"
+          style={{ clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' }}
+        />
+      </div>
+      
+      {/* Silhouette - Right side */}
+      <div className="absolute right-8 md:right-16 lg:right-32 top-1/2 transform -translate-y-1/2 opacity-70 hidden md:block">
+        <img 
+          src="/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png" 
+          alt="Silhouette of person" 
+          className="h-96 object-contain opacity-80"
+          style={{ clipPath: 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)' }}
+        />
       </div>
       
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
@@ -138,6 +159,9 @@ export const HeroSection = ({
       > 
         <RotatingUseScenarios />
       </div>
+      
+      {/* Scroll indicator at the bottom of the page */}
+      <ScrollIndicator />
     </section>
   );
 };

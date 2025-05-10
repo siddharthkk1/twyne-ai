@@ -2,7 +2,6 @@
 import React from "react";
 import { scenarios } from "./use-scenarios/ScenarioItem";
 import { ScenariosCarousel } from "./use-scenarios/ScenariosCarousel";
-import { ScrollIndicator } from "./use-scenarios/ScrollIndicator";
 
 export const RotatingUseScenarios = () => {
   // Debug log to check if component is rendering with scenarios
@@ -14,9 +13,6 @@ export const RotatingUseScenarios = () => {
       <div className="w-full overflow-hidden">
         <ScenariosCarousel scenarios={scenarios} />
       </div>
-      
-      {/* Scroll indicator arrow */}
-      <ScrollIndicator />
     </div>
   );
 };
