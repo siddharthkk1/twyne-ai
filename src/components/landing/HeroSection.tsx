@@ -43,14 +43,7 @@ export const HeroSection = ({
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
         <div className="flex flex-col items-center text-center gap-4 md:gap-5">
           {/* Title with fade-in from left */}
-          <h2 
-            className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
-              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
-            }`}
-            style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
-          >
-            The AI platform for making connections and building relationships.
-          </h2>
+          
           
           {/* Main title with fade-in from right and gradient - Increased font sizes and adjusted to force two rows */}
           <h1 
@@ -71,6 +64,14 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
+            <h2 
+            className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
+              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
+            }`}
+            style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
+          >
+            The AI platform for making connections and building relationships.
+          </h2>
             <br className="hidden sm:block" />
             <span className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</span>
           </p>
