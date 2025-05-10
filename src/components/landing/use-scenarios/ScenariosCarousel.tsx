@@ -71,15 +71,16 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   // Improved touch handlers for better mobile experience
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     if (!scrollContainerRef.current) return;
-    setTouchStartX(e.touches[0].clientX);
-    setManualScrolling(true);
-    setIsAutoScrolling(false);
     
-    // Cancel any ongoing animation
+    // Immediately stop auto-scrolling and animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     }
+    
+    setTouchStartX(e.touches[0].clientX);
+    setManualScrolling(true);
+    setIsAutoScrolling(false);
   };
 
   const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
@@ -102,10 +103,12 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   const handleTouchEnd = () => {
     setTouchStartX(null);
+    
+    // Add a delay before resuming auto-scrolling
     setTimeout(() => {
       setManualScrolling(false);
       setIsAutoScrolling(true);
-    }, 1000); // Delay before resuming auto-scrolling
+    }, 1500); // Longer delay before resuming auto-scrolling
   };
 
   // Add scroll event listener to update active card
@@ -116,19 +119,20 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         updateActiveCard();
       };
       
-      container.addEventListener('scroll', handleScroll, { passive: false });
+      container.addEventListener('scroll', handleScroll, { passive: true });
       return () => {
         container.removeEventListener('scroll', handleScroll);
       };
     }
   }, []);
 
-  // Start animation when component mounts
+  // Start/stop animation based on state
   useEffect(() => {
     if (isAutoScrolling && !manualScrolling) {
       animationRef.current = requestAnimationFrame(animate);
     } else if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
     }
     
     return () => {
@@ -146,23 +150,29 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     >
       <div 
         ref={scrollContainerRef}
-        className="flex gap-6 pb-16 overflow-x-auto hide-scrollbar touch-pan-x" 
+        className="flex gap-6 pb-16 overflow-x-auto hide-scrollbar touch-pan-x snap-x snap-mandatory" 
         style={{ 
-          scrollBehavior: 'auto', // Changed to auto for better touch responsiveness
+          scrollBehavior: 'auto',
           WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain' // Prevent scroll chaining
+          overscrollBehavior: 'contain',
+          scrollSnapType: 'x mandatory'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {allScenarios.map((scenario, index) => (
-          <ScenarioCard
+          <div 
             key={`${scenario.id}-${index}`}
-            scenario={scenario}
-            isActive={activeCardIndex === index}
-            index={index}
-          />
+            className="snap-center"
+            style={{ scrollSnapAlign: 'center' }}
+          >
+            <ScenarioCard
+              scenario={scenario}
+              isActive={activeCardIndex === index}
+              index={index}
+            />
+          </div>
         ))}
       </div>
       
