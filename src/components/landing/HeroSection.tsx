@@ -70,7 +70,7 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
           >
-            The AI platform for making connections and building relationships.
+            The AI platform for making connections and building relationships
           </h2>
             <span className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</span>
           </p>
