@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Carousel,
@@ -20,6 +21,7 @@ import {
   IoCafe,
   IoChatbubbleEllipses
 } from "react-icons/io5";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ScenarioItem {
   id: number;
@@ -34,8 +36,9 @@ export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
+  const isMobile = useIsMobile();
 
-  // Define all use scenarios - updated to match with RotatingUseScenarios
+  // Define all use scenarios
   const scenarios: ScenarioItem[] = [
     {
       id: 1,
@@ -116,39 +119,19 @@ export const UseScenarioCarousel = () => {
     return () => clearInterval(interval);
   }, [scenarios.length, autoplay]);
 
-  // Handle manual navigation via touch swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setAutoplay(false); // Pause autoplay on touch
-    const touchStartX = e.touches[0].clientX;
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      const touchCurrentX = e.touches[0].clientX;
-      const diff = touchStartX - touchCurrentX;
-      
-      // If swipe is significant enough (more than 50px), change slide
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) {
-          // Swipe left - go to next slide
-          setActiveSlide((prev) => (prev + 1) % scenarios.length);
-        } else {
-          // Swipe right - go to previous slide
-          setActiveSlide((prev) => (prev === 0 ? scenarios.length - 1 : prev - 1));
-        }
-        document.removeEventListener('touchmove', handleTouchMove);
-        document.removeEventListener('touchend', handleTouchEnd);
-      }
-    };
-    
-    const handleTouchEnd = () => {
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-      
-      // Resume autoplay after a delay
-      setTimeout(() => setAutoplay(true), 3000);
-    };
-    
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
+  // Go to next slide
+  const goToNextSlide = () => {
+    setActiveSlide((prev) => (prev + 1) % scenarios.length);
+  };
+
+  // Go to previous slide
+  const goToPreviousSlide = () => {
+    setActiveSlide((prev) => (prev === 0 ? scenarios.length - 1 : prev - 1));
+  };
+
+  // Go to specific slide
+  const goToSlide = (index: number) => {
+    setActiveSlide(index);
   };
 
   return (
@@ -161,70 +144,80 @@ export const UseScenarioCarousel = () => {
           </p>
         </div>
         
-        <Carousel 
-          className="w-full touch-pan-y" 
-          onMouseEnter={() => setAutoplay(false)}
-          onMouseLeave={() => setAutoplay(true)}
-          onTouchStart={handleTouchStart}
-        >
-          <CarouselContent>
-            {scenarios.map((scenario) => (
-              <CarouselItem 
-                key={scenario.id} 
-                className="transition-opacity duration-500"
-                style={{
-                  opacity: activeSlide === scenario.id - 1 ? 1 : 0
-                }}
-              >
-                <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center">
-                  <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
-                    <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
+        <div className="relative w-full">
+          {/* Carousel content */}
+          <div className="w-full overflow-hidden">
+            <div className="relative">
+              {scenarios.map((scenario, index) => (
+                <div 
+                  key={scenario.id} 
+                  className={`transition-all duration-500 ${
+                    activeSlide === index ? 'block opacity-100' : 'hidden opacity-0'
+                  }`}
+                >
+                  <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center">
+                    <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
+                      <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
+                    <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
+                    {user ? (
+                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
+                        <Link to="/connections" className="flex items-center">
+                          <IoChatbubbleEllipses size={18} className="mr-2" />
+                          View Your Connections
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
+                        <Link to="/auth" className="flex items-center">
+                          <IoChatbubbleEllipses size={18} className="mr-2" />
+                          Connect & Say Hi
+                        </Link>
+                      </Button>
+                    )}
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
-                  <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
-                  {user ? (
-                    <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
-                      <Link to="/connections" className="flex items-center">
-                        <IoChatbubbleEllipses size={18} className="mr-2" />
-                        View Your Connections
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
-                      <Link to="/auth" className="flex items-center">
-                        <IoChatbubbleEllipses size={18} className="mr-2" />
-                        Connect & Say Hi
-                      </Link>
-                    </Button>
-                  )}
                 </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          
-          {/* Visual progress bar instead of dots */}
-          <div className="flex justify-center mt-6">
-            <div className="h-1 w-32 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary transition-all duration-300 ease-in-out"
-                style={{
-                  width: `${((activeSlide + 1) / scenarios.length) * 100}%`
-                }}
-              ></div>
+              ))}
             </div>
           </div>
           
-          <div className="hidden md:flex">
-            <CarouselPrevious 
-              onClick={() => setActiveSlide(prev => (prev === 0 ? scenarios.length - 1 : prev - 1))}
-              className="absolute -left-12 sm:-left-4" 
-            />
-            <CarouselNext 
-              onClick={() => setActiveSlide(prev => (prev + 1) % scenarios.length)}
-              className="absolute -right-12 sm:-right-4" 
-            />
+          {/* Navigation controls */}
+          <div className="flex items-center justify-between absolute top-1/2 left-0 right-0 -mt-5 px-4">
+            <button 
+              onClick={goToPreviousSlide}
+              className="bg-white rounded-full shadow-md p-2 hover:bg-gray-100 transition-colors focus:outline-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button 
+              onClick={goToNextSlide}
+              className="bg-white rounded-full shadow-md p-2 hover:bg-gray-100 transition-colors focus:outline-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
           </div>
-        </Carousel>
+          
+          {/* Visual progress indicators */}
+          <div className="flex justify-center mt-8">
+            <div className="flex space-x-2">
+              {scenarios.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    activeSlide === index ? 'bg-primary w-4' : 'bg-gray-300'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                ></button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
