@@ -41,23 +41,18 @@ export const HeroSection = ({
         </div>
       </div>
       
+      {/* Girl illustration positioned as absolute in the background */}
+      <div className="absolute left-0 md:left-[5%] top-1/2 transform -translate-y-1/2 h-full md:h-[90%] flex items-center pointer-events-none z-0 opacity-80">
+        <img 
+          src="/lovable-uploads/3aecdeed-de07-4838-92f7-4d00dfd02fe3.png" 
+          alt="Girl smiling" 
+          className="w-auto h-[60%] md:h-[70%] max-h-[400px] object-contain"
+        />
+      </div>
+      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
-        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-3 md:gap-4">
-          {/* Girl illustration on the left */}
-          <div 
-            className={`hidden md:block w-1/3 mt-4 transition-all duration-700 transform ${
-              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-20px] opacity-0'
-            }`}
-            style={{ transitionDelay: '200ms' }}
-          >
-            <img 
-              src="/lovable-uploads/3aecdeed-de07-4838-92f7-4d00dfd02fe3.png" 
-              alt="Girl smiling" 
-              className="w-full max-w-[260px] h-auto mx-auto"
-            />
-          </div>
-          
-          <div className="md:w-2/3 flex flex-col items-center md:items-start">
+        <div className="flex flex-col items-center text-center md:text-left gap-3 md:gap-4">
+          <div className="w-full flex flex-col items-center md:items-start">
             {/* Main title with fade-in from right and gradient */}
             <h1 
               className={`text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1] max-w-[18ch] pb-2 mt-0 transition-all duration-700 transform ${
@@ -139,20 +134,6 @@ export const HeroSection = ({
                 <span>{waitlistCount.toLocaleString()} people already on the waitlist</span>
               </div>
             )}
-          </div>
-          
-          {/* Mobile view only - Show girl illustration below the content */}
-          <div 
-            className={`md:hidden w-full mt-6 transition-all duration-700 transform ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-            }`}
-            style={{ transitionDelay: '600ms' }}
-          >
-            <img 
-              src="/lovable-uploads/3aecdeed-de07-4838-92f7-4d00dfd02fe3.png" 
-              alt="Girl smiling" 
-              className="w-full max-w-[200px] h-auto mx-auto"
-            />
           </div>
         </div>
       </div>
