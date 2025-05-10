@@ -9,138 +9,77 @@ interface ScenariosCarouselProps {
 }
 
 export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios }) => {
+  const [activeSlide, setActiveSlide] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number | null>(null);
-  const scrollSpeed = 0.5; // Controls the speed of scrolling (pixels per frame)
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [manualScrolling, setManualScrolling] = useState(false);
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   const isMobile = useIsMobile();
   
-  // Clone scenarios multiple times for seamless infinite scrolling effect
-  const allScenarios = [...scenarios, ...scenarios, ...scenarios];
-
-  // Function to determine which card is in the center of view
-  const updateActiveCard = () => {
-    if (!scrollContainerRef.current) return;
-    
-    const container = scrollContainerRef.current;
-    const containerCenter = container.offsetLeft + container.offsetWidth / 2;
-    const cards = container.children;
-    
-    // Find the card that's closest to the center
-    let closestCardIndex = 0;
-    let minDistance = Infinity;
-    
-    // Loop through all cards to find the one closest to center
-    for (let i = 0; i < cards.length; i++) {
-      const card = cards[i] as HTMLElement;
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const distance = Math.abs(containerCenter - cardCenter);
-      
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestCardIndex = i;
-      }
-    }
-    
-    setActiveCardIndex(closestCardIndex);
+  // Function to go to next slide with wraparound
+  const goToNextSlide = () => {
+    setActiveSlide((prev) => (prev + 1) % scenarios.length);
   };
 
-  // Continuous smooth scrolling animation
-  const animate = () => {
-    if (!scrollContainerRef.current || !isAutoScrolling || manualScrolling) return;
-    
-    const container = scrollContainerRef.current;
-    
-    // Move by scrollSpeed pixels each frame
-    container.scrollLeft += scrollSpeed;
-    
-    // If we've scrolled past the first set of items, reset to create infinite loop effect
-    if (container.scrollLeft >= (container.scrollWidth / 3)) {
-      container.scrollLeft = 1; // Reset to beginning (not 0 to avoid flicker)
-    }
-    
-    // Update which card is in the center
-    updateActiveCard();
-    
-    animationRef.current = requestAnimationFrame(animate);
+  // Function to go to previous slide with wraparound
+  const goToPrevSlide = () => {
+    setActiveSlide((prev) => (prev - 1 + scenarios.length) % scenarios.length);
   };
 
-  // Improved touch handlers for better mobile experience
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    if (!scrollContainerRef.current) return;
-    
-    // Immediately stop auto-scrolling and animation
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
-    
-    setTouchStartX(e.touches[0].clientX);
-    setManualScrolling(true);
-    setIsAutoScrolling(false);
-  };
-
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    if (touchStartX === null || !scrollContainerRef.current) return;
-    
-    const container = scrollContainerRef.current;
-    const touchCurrentX = e.touches[0].clientX;
-    const touchDiff = touchStartX - touchCurrentX;
-    
-    // Update scroll position directly based on touch movement
-    container.scrollLeft += touchDiff * 1.5; // Multiply for more responsive feeling
-    setTouchStartX(touchCurrentX);
-    
-    // Update the active card during manual scrolling
-    updateActiveCard();
-    
-    // Prevent default to avoid page scrolling while swiping the carousel
-    e.preventDefault();
-  };
-
-  const handleTouchEnd = () => {
-    setTouchStartX(null);
-    
-    // Add a delay before resuming auto-scrolling
-    setTimeout(() => {
-      setManualScrolling(false);
-      setIsAutoScrolling(true);
-    }, 1500); // Longer delay before resuming auto-scrolling
-  };
-
-  // Add scroll event listener to update active card
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      const handleScroll = () => {
-        updateActiveCard();
-      };
-      
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      return () => {
-        container.removeEventListener('scroll', handleScroll);
-      };
-    }
-  }, []);
-
-  // Start/stop animation based on state
+  // Set up automatic sliding
   useEffect(() => {
     if (isAutoScrolling && !manualScrolling) {
-      animationRef.current = requestAnimationFrame(animate);
-    } else if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
+      autoScrollRef.current = setInterval(() => {
+        goToNextSlide();
+      }, 3000); // Change slide every 3 seconds
     }
     
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
       }
     };
-  }, [isAutoScrolling, manualScrolling]);
+  }, [isAutoScrolling, manualScrolling, scenarios.length]);
+
+  // Handle touch start
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    setTouchStartX(e.touches[0].clientX);
+    setManualScrolling(true);
+    setIsAutoScrolling(false);
+    
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current);
+    }
+  };
+
+  // Handle touch move
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (touchStartX === null) return;
+    
+    const touchCurrentX = e.touches[0].clientX;
+    const diff = touchStartX - touchCurrentX;
+    
+    // Threshold for slide change (20% of screen width)
+    if (Math.abs(diff) > window.innerWidth * 0.2) {
+      if (diff > 0) {
+        goToNextSlide();
+      } else {
+        goToPrevSlide();
+      }
+      setTouchStartX(null);
+    }
+  };
+
+  // Handle touch end
+  const handleTouchEnd = () => {
+    setTouchStartX(null);
+    
+    // Resume auto-scrolling after a delay
+    setTimeout(() => {
+      setManualScrolling(false);
+      setIsAutoScrolling(true);
+    }, 1500);
+  };
 
   return (
     <div 
@@ -148,32 +87,30 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       onMouseEnter={() => setIsAutoScrolling(false)}
       onMouseLeave={() => setIsAutoScrolling(true)}
     >
-      <div 
-        ref={scrollContainerRef}
-        className="flex gap-6 pb-16 overflow-x-auto hide-scrollbar touch-pan-x snap-x snap-mandatory" 
-        style={{ 
-          scrollBehavior: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain',
-          scrollSnapType: 'x mandatory'
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {allScenarios.map((scenario, index) => (
-          <div 
-            key={`${scenario.id}-${index}`}
-            className="snap-center"
-            style={{ scrollSnapAlign: 'center' }}
-          >
-            <ScenarioCard
-              scenario={scenario}
-              isActive={activeCardIndex === index}
-              index={index}
-            />
-          </div>
-        ))}
+      <div className="relative w-full overflow-hidden">
+        <div
+          className="flex transition-transform duration-500 ease-in-out will-change-transform"
+          style={{
+            transform: `translateX(-${activeSlide * 100}%)`,
+            width: `${scenarios.length * 100}%`
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {scenarios.map((scenario, index) => (
+            <div
+              key={`${scenario.id}-${index}`}
+              className="w-full flex-shrink-0 flex justify-center items-center"
+            >
+              <ScenarioCard
+                scenario={scenario}
+                isActive={activeSlide === index}
+                index={index}
+              />
+            </div>
+          ))}
+        </div>
       </div>
       
       {/* Shadow effect for edges to create fading effect */}
