@@ -37,11 +37,11 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Human silhouette illustrations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Human silhouette illustrations with clear z-index and higher visibility */}
+      <div className="absolute inset-0 overflow-visible pointer-events-none z-10">
         {/* Left silhouette */}
-        <div className="absolute left-0 md:left-12 lg:left-24 bottom-0 h-[60vh] md:h-[70vh] w-auto opacity-70 md:opacity-80">
-          <svg viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <div className="absolute left-0 md:left-12 lg:left-24 bottom-0 h-[75vh] w-auto opacity-80">
+          <svg width="100%" height="100%" viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
             <path d="M60,300 
                    C55,280 55,270 50,260 
                    C45,250 40,240 45,230 
@@ -71,8 +71,8 @@ export const HeroSection = ({
         </div>
         
         {/* Right silhouette */}
-        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[60vh] md:h-[70vh] w-auto opacity-70 md:opacity-80">
-          <svg viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[75vh] w-auto opacity-80">
+          <svg width="100%" height="100%" viewBox="0 0 120 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
             <path d="M60,300 
                    C65,280 65,270 70,260 
                    C75,250 80,240 75,230 
@@ -101,11 +101,11 @@ export const HeroSection = ({
           </svg>
         </div>
         
-        {/* Connecting tether/twyne */}
+        {/* Connecting tether/twyne with increased visibility */}
         <div className="absolute left-1/2 bottom-[35vh] w-full h-32 -translate-x-1/2">
           <svg width="100%" height="100%" viewBox="0 0 800 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             <path d="M0,80 C200,20 600,120 800,40" 
-                  stroke="url(#gradient)" strokeWidth="3" strokeDasharray="5,5" strokeLinecap="round" fill="transparent" />
+                  stroke="url(#gradient)" strokeWidth="4" strokeDasharray="5,5" strokeLinecap="round" fill="transparent" />
             <defs>
               <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#9b87f5" />
@@ -117,7 +117,7 @@ export const HeroSection = ({
         </div>
       </div>
       
-      <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
+      <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
         <div className="flex flex-col items-center text-center gap-5">
           {/* Title with fade-in from left */}
           <h2 
