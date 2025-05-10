@@ -40,6 +40,26 @@ export const HeroSection = ({
         </div>
       </div>
       
+      {/* Left Silhouette */}
+      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-full max-h-[500px] hidden md:block pointer-events-none">
+        <img 
+          src="https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=300&q=80" 
+          alt="Silhouette" 
+          className="h-full object-contain opacity-20"
+          style={{ filter: "brightness(0) invert(0.2)" }}
+        />
+      </div>
+      
+      {/* Right Silhouette */}
+      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-full max-h-[500px] hidden md:block pointer-events-none">
+        <img 
+          src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=300&q=80" 
+          alt="Silhouette" 
+          className="h-full object-contain opacity-20"
+          style={{ filter: "brightness(0) invert(0.2)" }}
+        />
+      </div>
+      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
         <div className="flex flex-col items-center text-center gap-4 md:gap-5">
           {/* Title with fade-in from left */}
