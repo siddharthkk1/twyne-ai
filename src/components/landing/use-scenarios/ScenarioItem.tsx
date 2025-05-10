@@ -36,6 +36,11 @@ export const createScenario = ({ id, title, icon }: ScenarioItemProps): Scenario
 // Create scenarios data that will be used in the carousel
 export const scenarios: ScenarioItemProps[] = [
   {
+    id: 12,
+    title: "I'm looking for people to attend concerts and music festivals with.",
+    icon: <div className="p-2 bg-accent-100 rounded-full"><IoMusicalNotes size={28} className="text-accent" /></div>
+  },
+  {
     id: 1,
     title: "I'm a new grad who just moved to a new city and don't know anyone.",
     icon: <div className="p-2 bg-primary-100 rounded-full"><IoLocationSharp size={28} className="text-primary" /></div>
