@@ -18,16 +18,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Users } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
   location: z.string().min(2, { message: "Please enter your location." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   phoneNumber: z.string().optional(),
-  // Make age required now, not optional
   age: z.string()
     .refine(val => !isNaN(parseInt(val)), { message: "Age must be a number" })
-    .transform(val => parseInt(val)), // Transform to number after validation
+    .transform(val => parseInt(val)),
   interests: z.string().min(2, { message: "Please share at least one interest." }),
   motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -59,6 +59,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchWaitlistCount = async () => {
@@ -177,7 +178,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className={`sm:max-w-[425px] ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4 rounded-lg' : ''}`}>
         <DialogHeader className="space-y-2 pb-1">
           <DialogTitle className="text-2xl">Join the Waitlist</DialogTitle>
           <DialogDescription>
@@ -312,7 +313,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               )}
             />
             
-            <DialogFooter className="mt-4 pt-1">
+            <DialogFooter className="mt-4 pt-1 pb-4">
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Join Waitlist"}
               </Button>

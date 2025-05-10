@@ -28,7 +28,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-10 md:py-14 mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
+    <section className="relative py-10 md:py-14 mt-16 md:mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
@@ -38,127 +38,8 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Stylized characters background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
-        {/* Left character */}
-        <div className="absolute left-0 bottom-0 h-[80vh] w-auto opacity-30 md:opacity-40">
-          <svg viewBox="0 0 200 400" width="300" height="500" className="h-full w-auto">
-            <path 
-              d="M100,80 Q120,50 150,80 T180,120 V200 Q180,240 150,280 T100,320 T50,280 T20,200 V120 Q20,80 50,50 T100,80" 
-              fill="#9b87f5" 
-              fillOpacity="0.4" 
-            />
-            {/* Head */}
-            <circle cx="100" cy="60" r="30" fill="#9b87f5" fillOpacity="0.4" />
-            {/* Body */}
-            <path 
-              d="M80,90 Q100,100 120,90 V200 Q100,220 80,200 Z" 
-              fill="#9b87f5" 
-              fillOpacity="0.5" 
-            />
-            {/* Legs */}
-            <path 
-              d="M85,200 L75,300 Q60,310 70,320 L90,320 L100,220 L110,320 L130,320 Q140,310 125,300 L115,200" 
-              fill="#9b87f5" 
-              fillOpacity="0.4" 
-            />
-            {/* Arms */}
-            <path 
-              d="M80,110 L40,170 Q30,180 40,190 L50,185 L90,130 M120,110 L160,170 Q170,180 160,190 L150,185 L110,130" 
-              fill="#9b87f5" 
-              fillOpacity="0.4" 
-              stroke="#9b87f5" 
-              strokeWidth="2" 
-              strokeOpacity="0.3" 
-              strokeLinecap="round" 
-            />
-          </svg>
-        </div>
-        
-        {/* Right character */}
-        <div className="absolute right-0 bottom-0 h-[80vh] w-auto opacity-30 md:opacity-40">
-          <svg viewBox="0 0 200 400" width="300" height="500" className="h-full w-auto">
-            <path 
-              d="M100,80 Q130,50 160,60 T190,120 V200 Q190,260 140,310 T100,340 T60,310 T10,200 V120 Q10,60 40,50 T100,80" 
-              fill="#7E69AB" 
-              fillOpacity="0.4" 
-            />
-            {/* Head */}
-            <circle cx="100" cy="60" r="30" fill="#7E69AB" fillOpacity="0.4" />
-            {/* Body */}
-            <path 
-              d="M85,90 Q100,100 115,90 V210 Q100,230 85,210 Z" 
-              fill="#7E69AB" 
-              fillOpacity="0.5" 
-            />
-            {/* Dress/Skirt */}
-            <path 
-              d="M85,200 Q100,210 115,200 L125,300 Q115,310 100,310 Q85,310 75,300 Z" 
-              fill="#7E69AB" 
-              fillOpacity="0.4" 
-            />
-            {/* Arms */}
-            <path 
-              d="M85,110 L45,160 Q35,170 45,180 L55,175 L90,130 M115,110 L155,160 Q165,170 155,180 L145,175 L110,130" 
-              fill="#7E69AB" 
-              fillOpacity="0.4" 
-              stroke="#7E69AB" 
-              strokeWidth="2" 
-              strokeOpacity="0.3" 
-              strokeLinecap="round" 
-            />
-          </svg>
-        </div>
-        
-        {/* Center group of characters */}
-        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 h-[70vh] w-auto opacity-20 hidden md:block">
-          <svg viewBox="0 0 500 400" width="500" height="500" className="h-full w-auto">
-            {/* Multiple simplified character shapes in a group */}
-            {/* Character 1 */}
-            <g transform="translate(50, 20)">
-              <circle cx="60" cy="50" r="25" fill="#D6BCFA" fillOpacity="0.5" />
-              <path d="M45,75 L45,180 M75,75 L75,180 M45,120 L75,120 M60,180 L40,250 M60,180 L80,250" 
-                stroke="#D6BCFA" strokeWidth="15" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
-            </g>
-            {/* Character 2 */}
-            <g transform="translate(150, 0)">
-              <circle cx="60" cy="40" r="22" fill="#9b87f5" fillOpacity="0.5" />
-              <path d="M45,65 L45,160 M75,65 L75,160 M45,100 L75,100 M60,160 L30,230 M60,160 L90,230" 
-                stroke="#9b87f5" strokeWidth="12" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
-            </g>
-            {/* Character 3 */}
-            <g transform="translate(250, 30)">
-              <circle cx="60" cy="50" r="25" fill="#7E69AB" fillOpacity="0.5" />
-              <path d="M45,75 L45,190 M75,75 L75,190 M45,120 L75,120 M60,190 L40,260 M60,190 L80,260" 
-                stroke="#7E69AB" strokeWidth="15" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
-            </g>
-            {/* Character 4 */}
-            <g transform="translate(350, 10)">
-              <circle cx="60" cy="45" r="23" fill="#D6BCFA" fillOpacity="0.5" />
-              <path d="M45,70 L45,170 M75,70 L75,170 M45,110 L75,110 M60,170 L35,240 M60,170 L85,240" 
-                stroke="#D6BCFA" strokeWidth="13" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
-            </g>
-          </svg>
-        </div>
-        
-        {/* Connecting elements - stylized dashed line showing connection */}
-        <div className="absolute left-1/2 bottom-[35vh] w-full h-32 -translate-x-1/2">
-          <svg width="100%" height="100%" viewBox="0 0 800 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            <path d="M0,80 C200,20 600,120 800,40" 
-                  stroke="url(#gradient)" strokeWidth="4" strokeDasharray="5,5" strokeLinecap="round" fill="transparent" />
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#9b87f5" />
-                <stop offset="50%" stopColor="#D6BCFA" />
-                <stop offset="100%" stopColor="#7E69AB" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
-        <div className="flex flex-col items-center text-center gap-5">
+        <div className="flex flex-col items-center text-center gap-4 md:gap-5">
           {/* Title with fade-in from left */}
           <h2 
             className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
@@ -171,7 +52,7 @@ export const HeroSection = ({
           
           {/* Main title with fade-in from right and gradient */}
           <h1 
-            className={`text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] max-w-full pb-3 mt-1 transition-all duration-700 transform ${
+            className={`text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] max-w-full pb-2 mt-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
             }`}
             style={{ transitionDelay: '400ms', letterSpacing: '-0.02em' }}
@@ -183,7 +64,7 @@ export const HeroSection = ({
           
           {/* Description with fade-in from bottom */}
           <p 
-            className={`max-w-[700px] text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
+            className={`max-w-[700px] text-base sm:text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
@@ -193,24 +74,24 @@ export const HeroSection = ({
           
           {/* Buttons with horizontal space between them */}
           <div 
-            className={`flex flex-col sm:flex-row sm:space-x-4 transition-all duration-700 transform ${
+            className={`flex flex-col sm:flex-row sm:space-x-4 w-full sm:w-auto transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '800ms' }}
           >
             {user ? (
-              <Button asChild size="lg" className="rounded-full px-8 hover-scale">
+              <Button asChild size="lg" className="rounded-full px-8 hover-scale w-full sm:w-auto">
                 <Link to="/connections" className="flex items-center">
                   View Your Connections
                   <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">→</span>
                 </Link>
               </Button>
             ) : (
-              <div className="flex flex-col sm:flex-row sm:space-x-4 items-center">
+              <div className="flex flex-col sm:flex-row sm:space-x-4 items-center w-full">
                 {/* Join Waitlist button with purple-to-pink gradient */}
                 <Button 
                   size="lg" 
-                  className="rounded-full px-8 hover-scale shadow-sm hover:shadow-md transition-all bg-gradient-to-r from-primary to-accent text-white border-none font-medium"
+                  className="rounded-full px-8 hover-scale shadow-sm hover:shadow-md transition-all bg-gradient-to-r from-primary to-accent text-white border-none font-medium w-full sm:w-auto"
                   onClick={onOpenWaitlist}
                 >
                   Join Waitlist
@@ -221,7 +102,7 @@ export const HeroSection = ({
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="rounded-full px-8 bg-gradient-to-r from-primary/90 to-primary/70 text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0"
+                  className="rounded-full px-8 bg-gradient-to-r from-primary/90 to-primary/70 text-white border-none font-medium shadow-md hover:shadow-lg mt-4 sm:mt-0 w-full sm:w-auto"
                   onClick={onScrollToHowItWorks}
                 >
                   Learn More
@@ -233,7 +114,7 @@ export const HeroSection = ({
           {/* Waitlist Count - With adjusted bottom margin */}
           {!isLoading && waitlistCount !== null && (
             <div 
-              className={`flex items-center justify-center text-sm text-muted-foreground mt-2 mb-8 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
+              className={`flex items-center justify-center text-sm text-muted-foreground mt-2 mb-6 md:mb-8 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
                 isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
               }`}
               style={{ transitionDelay: '1000ms' }}

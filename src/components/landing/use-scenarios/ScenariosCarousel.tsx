@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, TouchEvent } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ScenariosCarouselProps {
   scenarios: ScenarioItemProps[];
@@ -13,9 +14,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const animationRef = useRef<number | null>(null);
   const scrollSpeed = 0.5; // Controls the speed of scrolling (pixels per frame)
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchOffset, setTouchOffset] = useState(0);
   const [manualScrolling, setManualScrolling] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const isMobile = useIsMobile();
   
   // Clone scenarios multiple times for seamless infinite scrolling effect
   const allScenarios = [...scenarios, ...scenarios, ...scenarios];
@@ -73,20 +74,30 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     setTouchStartX(e.touches[0].clientX);
     setManualScrolling(true);
     setIsAutoScrolling(false);
+    
+    // Cancel any ongoing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
   };
 
   const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
     if (touchStartX === null || !scrollContainerRef.current) return;
     
     const container = scrollContainerRef.current;
-    const touchDiff = touchStartX - e.touches[0].clientX;
+    const touchCurrentX = e.touches[0].clientX;
+    const touchDiff = touchStartX - touchCurrentX;
     
     // Update scroll position directly based on touch movement
     container.scrollLeft += touchDiff;
-    setTouchStartX(e.touches[0].clientX);
+    setTouchStartX(touchCurrentX);
     
     // Update the active card during manual scrolling
     updateActiveCard();
+    
+    // Prevent default to avoid page scrolling while swiping the carousel
+    e.preventDefault();
   };
 
   const handleTouchEnd = () => {
@@ -136,7 +147,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       <div 
         ref={scrollContainerRef}
         className="flex gap-6 pb-16 overflow-x-auto hide-scrollbar" 
-        style={{ scrollBehavior: 'auto' }}
+        style={{ 
+          scrollBehavior: isMobile ? 'auto' : 'smooth',
+          WebkitOverflowScrolling: 'touch' // Improved scrolling on iOS
+        }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
