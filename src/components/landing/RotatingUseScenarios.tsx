@@ -178,7 +178,7 @@ export const RotatingUseScenarios = () => {
   }, [isAutoScrolling, manualScrolling]);
 
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full mx-auto pt-8">
       {/* Continuously scrolling carousel container with touch support */}
       <div 
         className="relative overflow-hidden w-full px-4"
@@ -236,8 +236,8 @@ export const RotatingUseScenarios = () => {
         <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
       </div>
       
-      {/* Scroll indicator - Positioned at the very bottom of the viewport */}
-      <div className="flex justify-center fixed bottom-0 left-0 right-0 animate-bounce z-30">
+      {/* Scroll indicator - Modified to be positioned directly at the bottom of the component */}
+      <div className="flex justify-center animate-bounce z-30 mt-1">
         <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>
