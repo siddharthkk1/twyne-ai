@@ -52,9 +52,9 @@ export const HeroSection = ({
             The AI Social Platform
           </h2>
           
-          {/* Main title with fade-in from right and gradient - Made more responsive */}
+          {/* Main title with fade-in from right and gradient - Increased font sizes and adjusted to force two rows */}
           <h1 
-            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.2] sm:leading-[1.15] md:leading-[1.1] max-w-full pb-2 mt-0 transition-all duration-700 transform ${
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1] max-w-[18ch] pb-2 mt-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
             }`}
             style={{ transitionDelay: '400ms', letterSpacing: '-0.02em' }}

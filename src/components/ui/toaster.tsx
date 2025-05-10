@@ -16,8 +16,8 @@ export function Toaster() {
     "top-left": "top-0 left-0 flex-col",
     "top-center": "top-0 left-1/2 -translate-x-1/2 flex-col",
     "top-right": "top-0 right-0 flex-col",
-    // Modified center position to move it higher up vertically (5% from top instead of 10%)
-    "center": "fixed top-[5%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex-col",
+    // Modified center position to be truly centered both horizontally and vertically
+    "center": "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex-col",
     "bottom-left": "bottom-0 left-0 flex-col-reverse",
     "bottom-center": "bottom-0 left-1/2 -translate-x-1/2 flex-col-reverse",
     "bottom-right": "bottom-0 right-0 flex-col-reverse",
