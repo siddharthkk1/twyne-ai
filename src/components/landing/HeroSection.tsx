@@ -38,35 +38,48 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Silhouettes from uploaded image */}
-      <div className="absolute inset-0 overflow-visible pointer-events-none z-10">
-        {/* Left silhouette - male figure from the image */}
-        <div className="absolute left-0 md:left-12 lg:left-24 bottom-0 h-[75vh] w-auto opacity-80">
+      {/* Modern background with people images */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+        {/* Left background person */}
+        <div className="absolute left-0 bottom-0 h-[80vh] w-auto opacity-20 md:opacity-30">
           <img 
-            src="/lovable-uploads/533e14b3-0387-4f04-a142-8baba3401f5d.png" 
-            alt="Male silhouette" 
+            src="https://images.unsplash.com/photo-1529068755536-a5ade0dcb4e8?q=80&w=3456&auto=format&fit=crop"
+            alt="Person silhouette" 
             className="h-full w-auto object-contain object-left-bottom"
             style={{ 
-              clipPath: 'inset(0 50% 0 0)', 
-              transform: 'scale(0.9)'
+              filter: 'brightness(0.7) contrast(1.2) grayscale(0.8)',
+              transform: 'scale(0.95)'
             }} 
           />
         </div>
         
-        {/* Right silhouette - female figure from the image */}
-        <div className="absolute right-0 md:right-12 lg:right-24 bottom-0 h-[75vh] w-auto opacity-80">
+        {/* Right background person */}
+        <div className="absolute right-0 bottom-0 h-[80vh] w-auto opacity-20 md:opacity-30">
           <img 
-            src="/lovable-uploads/533e14b3-0387-4f04-a142-8baba3401f5d.png" 
-            alt="Female silhouette" 
+            src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=3456&auto=format&fit=crop"
+            alt="Person silhouette" 
             className="h-full w-auto object-contain object-right-bottom"
             style={{ 
-              clipPath: 'inset(0 0 0 50%)',
-              transform: 'scale(0.9)'
+              filter: 'brightness(0.7) contrast(1.2) grayscale(0.8)',
+              transform: 'scale(0.95)'
             }}
           />
         </div>
         
-        {/* Connecting tether/twyne with increased visibility */}
+        {/* Center background people group */}
+        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 h-[70vh] w-auto opacity-15 hidden md:block">
+          <img 
+            src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=3456&auto=format&fit=crop"
+            alt="Group of people" 
+            className="h-full w-auto object-contain object-bottom"
+            style={{ 
+              filter: 'brightness(0.8) contrast(1.1) grayscale(0.9)',
+              transform: 'scale(0.85)'
+            }}
+          />
+        </div>
+        
+        {/* Connecting elements */}
         <div className="absolute left-1/2 bottom-[35vh] w-full h-32 -translate-x-1/2">
           <svg width="100%" height="100%" viewBox="0 0 800 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             <path d="M0,80 C200,20 600,120 800,40" 
