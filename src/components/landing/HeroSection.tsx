@@ -49,7 +49,7 @@ export const HeroSection = ({
             }`}
             style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
           >
-            The AI Platform The AI platform for making connections and building relationships.
+            The AI platform for making connections and building relationships.
           </h2>
           
           {/* Main title with fade-in from right and gradient - Increased font sizes and adjusted to force two rows */}
