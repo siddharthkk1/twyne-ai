@@ -38,6 +38,40 @@ export const HeroSection = ({
         </div>
       </div>
       
+      {/* Silhouette illustrations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Left silhouette */}
+        <div className="absolute left-0 md:left-12 lg:left-24 bottom-32 w-28 md:w-36 lg:w-48 opacity-70 md:opacity-80">
+          <svg viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M40,200 C30,180 25,150 35,130 C45,110 50,90 45,70 C40,50 30,40 40,20 C50,0 65,10 70,20 C75,30 70,45 75,60 C80,75 85,85 80,100 C75,115 85,130 80,150 C75,170 60,190 40,200 Z" 
+                  fill="#9b87f5" opacity="0.7" />
+          </svg>
+        </div>
+        
+        {/* Right silhouette */}
+        <div className="absolute right-0 md:right-12 lg:right-24 bottom-32 w-28 md:w-36 lg:w-48 opacity-70 md:opacity-80">
+          <svg viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60,200 C70,180 75,150 65,130 C55,110 50,90 55,70 C60,50 70,40 60,20 C50,0 35,10 30,20 C25,30 30,45 25,60 C20,75 15,85 20,100 C25,115 15,130 20,150 C25,170 40,190 60,200 Z" 
+                  fill="#7E69AB" opacity="0.7" />
+          </svg>
+        </div>
+        
+        {/* Connecting tether/twyne */}
+        <div className="absolute left-1/2 bottom-40 w-full h-32 -translate-x-1/2">
+          <svg width="100%" height="100%" viewBox="0 0 800 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M0,80 C200,20 600,120 800,40" 
+                  stroke="url(#gradient)" strokeWidth="3" strokeDasharray="5,5" strokeLinecap="round" fill="transparent" />
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#9b87f5" />
+                <stop offset="50%" stopColor="#D6BCFA" />
+                <stop offset="100%" stopColor="#7E69AB" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
         <div className="flex flex-col items-center text-center gap-5">
           {/* Title with fade-in from left */}
@@ -138,4 +172,3 @@ export const HeroSection = ({
     </section>
   );
 };
-
