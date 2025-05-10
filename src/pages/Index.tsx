@@ -10,6 +10,7 @@ import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { WarmIntrosSection } from "@/components/landing/WarmIntrosSection";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { CallToActionSection } from "@/components/landing/CallToActionSection";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // The artificial boost we want to add to the waitlist count
 const WAITLIST_BOOST = 524;
@@ -19,6 +20,7 @@ const Index = () => {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isMobile = useIsMobile();
   
   // Function to scroll to How It Works section
   const scrollToHowItWorks = (e: React.MouseEvent) => {
@@ -89,7 +91,10 @@ const Index = () => {
       <CallToActionSection onOpenWaitlist={openWaitlist} />
 
       {/* Waitlist Form Modal */}
-      <WaitlistForm open={isWaitlistOpen} onOpenChange={setIsWaitlistOpen} />
+      <WaitlistForm 
+        open={isWaitlistOpen} 
+        onOpenChange={setIsWaitlistOpen} 
+      />
     </div>
   );
 };

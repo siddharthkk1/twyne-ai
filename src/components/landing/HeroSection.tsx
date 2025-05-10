@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
 import { RotatingUseScenarios } from "@/components/landing/RotatingUseScenarios";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HeroSectionProps {
   waitlistCount: number | null;
@@ -21,6 +22,7 @@ export const HeroSection = ({
 }: HeroSectionProps) => {
   const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useIsMobile();
   
   // Animation effect that staggers the appearance of elements
   useEffect(() => {
@@ -50,9 +52,9 @@ export const HeroSection = ({
             The AI Social Platform
           </h2>
           
-          {/* Main title with fade-in from right and gradient */}
+          {/* Main title with fade-in from right and gradient - Made more responsive */}
           <h1 
-            className={`text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] max-w-full pb-2 mt-0 transition-all duration-700 transform ${
+            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.2] sm:leading-[1.15] md:leading-[1.1] max-w-full pb-2 mt-0 transition-all duration-700 transform ${
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-10px] opacity-0'
             }`}
             style={{ transitionDelay: '400ms', letterSpacing: '-0.02em' }}
@@ -62,7 +64,7 @@ export const HeroSection = ({
             </span>
           </h1>
           
-          {/* Description with fade-in from bottom */}
+          {/* Description with fade-in from bottom - Force line break for "our AI" */}
           <p 
             className={`max-w-[700px] text-base sm:text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -70,7 +72,8 @@ export const HeroSection = ({
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
             The intentional platform for making connections and building relationships.
-            Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.
+            <br className="hidden sm:block" />
+            <span className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</span>
           </p>
           
           {/* Buttons with horizontal space between them */}
