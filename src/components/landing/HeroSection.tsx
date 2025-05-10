@@ -41,34 +41,6 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Silhouette - Left side - Larger, more outward, duller color */}
-      <div className="absolute left-0 md:left-4 lg:left-8 top-1/2 transform -translate-y-1/2 hidden md:block">
-        <img 
-          src="/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png" 
-          alt="Silhouette of person" 
-          className="h-[32rem] object-contain"
-          style={{ 
-            clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)',
-            opacity: '0.5',
-            filter: 'grayscale(40%) brightness(0.8) contrast(0.9)',
-          }}
-        />
-      </div>
-      
-      {/* Silhouette - Right side - Larger, more outward, duller color */}
-      <div className="absolute right-0 md:right-4 lg:right-8 top-1/2 transform -translate-y-1/2 hidden md:block">
-        <img 
-          src="/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png" 
-          alt="Silhouette of person" 
-          className="h-[32rem] object-contain"
-          style={{ 
-            clipPath: 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)',
-            opacity: '0.5',
-            filter: 'grayscale(40%) brightness(0.8) contrast(0.9)',
-          }}
-        />
-      </div>
-      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
         <div className="flex flex-col items-center text-center gap-3 md:gap-4">
           {/* Title with fade-in from left */}
