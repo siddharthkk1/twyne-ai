@@ -38,48 +38,110 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Modern background with people images */}
+      {/* Stylized characters background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
-        {/* Left background person */}
-        <div className="absolute left-0 bottom-0 h-[80vh] w-auto opacity-20 md:opacity-30">
-          <img 
-            src="https://images.unsplash.com/photo-1529068755536-a5ade0dcb4e8?q=80&w=3456&auto=format&fit=crop"
-            alt="Person silhouette" 
-            className="h-full w-auto object-contain object-left-bottom"
-            style={{ 
-              filter: 'brightness(0.7) contrast(1.2) grayscale(0.8)',
-              transform: 'scale(0.95)'
-            }} 
-          />
+        {/* Left character */}
+        <div className="absolute left-0 bottom-0 h-[80vh] w-auto opacity-30 md:opacity-40">
+          <svg viewBox="0 0 200 400" width="300" height="500" className="h-full w-auto">
+            <path 
+              d="M100,80 Q120,50 150,80 T180,120 V200 Q180,240 150,280 T100,320 T50,280 T20,200 V120 Q20,80 50,50 T100,80" 
+              fill="#9b87f5" 
+              fillOpacity="0.4" 
+            />
+            {/* Head */}
+            <circle cx="100" cy="60" r="30" fill="#9b87f5" fillOpacity="0.4" />
+            {/* Body */}
+            <path 
+              d="M80,90 Q100,100 120,90 V200 Q100,220 80,200 Z" 
+              fill="#9b87f5" 
+              fillOpacity="0.5" 
+            />
+            {/* Legs */}
+            <path 
+              d="M85,200 L75,300 Q60,310 70,320 L90,320 L100,220 L110,320 L130,320 Q140,310 125,300 L115,200" 
+              fill="#9b87f5" 
+              fillOpacity="0.4" 
+            />
+            {/* Arms */}
+            <path 
+              d="M80,110 L40,170 Q30,180 40,190 L50,185 L90,130 M120,110 L160,170 Q170,180 160,190 L150,185 L110,130" 
+              fill="#9b87f5" 
+              fillOpacity="0.4" 
+              stroke="#9b87f5" 
+              strokeWidth="2" 
+              strokeOpacity="0.3" 
+              strokeLinecap="round" 
+            />
+          </svg>
         </div>
         
-        {/* Right background person */}
-        <div className="absolute right-0 bottom-0 h-[80vh] w-auto opacity-20 md:opacity-30">
-          <img 
-            src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=3456&auto=format&fit=crop"
-            alt="Person silhouette" 
-            className="h-full w-auto object-contain object-right-bottom"
-            style={{ 
-              filter: 'brightness(0.7) contrast(1.2) grayscale(0.8)',
-              transform: 'scale(0.95)'
-            }}
-          />
+        {/* Right character */}
+        <div className="absolute right-0 bottom-0 h-[80vh] w-auto opacity-30 md:opacity-40">
+          <svg viewBox="0 0 200 400" width="300" height="500" className="h-full w-auto">
+            <path 
+              d="M100,80 Q130,50 160,60 T190,120 V200 Q190,260 140,310 T100,340 T60,310 T10,200 V120 Q10,60 40,50 T100,80" 
+              fill="#7E69AB" 
+              fillOpacity="0.4" 
+            />
+            {/* Head */}
+            <circle cx="100" cy="60" r="30" fill="#7E69AB" fillOpacity="0.4" />
+            {/* Body */}
+            <path 
+              d="M85,90 Q100,100 115,90 V210 Q100,230 85,210 Z" 
+              fill="#7E69AB" 
+              fillOpacity="0.5" 
+            />
+            {/* Dress/Skirt */}
+            <path 
+              d="M85,200 Q100,210 115,200 L125,300 Q115,310 100,310 Q85,310 75,300 Z" 
+              fill="#7E69AB" 
+              fillOpacity="0.4" 
+            />
+            {/* Arms */}
+            <path 
+              d="M85,110 L45,160 Q35,170 45,180 L55,175 L90,130 M115,110 L155,160 Q165,170 155,180 L145,175 L110,130" 
+              fill="#7E69AB" 
+              fillOpacity="0.4" 
+              stroke="#7E69AB" 
+              strokeWidth="2" 
+              strokeOpacity="0.3" 
+              strokeLinecap="round" 
+            />
+          </svg>
         </div>
         
-        {/* Center background people group */}
-        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 h-[70vh] w-auto opacity-15 hidden md:block">
-          <img 
-            src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=3456&auto=format&fit=crop"
-            alt="Group of people" 
-            className="h-full w-auto object-contain object-bottom"
-            style={{ 
-              filter: 'brightness(0.8) contrast(1.1) grayscale(0.9)',
-              transform: 'scale(0.85)'
-            }}
-          />
+        {/* Center group of characters */}
+        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 h-[70vh] w-auto opacity-20 hidden md:block">
+          <svg viewBox="0 0 500 400" width="500" height="500" className="h-full w-auto">
+            {/* Multiple simplified character shapes in a group */}
+            {/* Character 1 */}
+            <g transform="translate(50, 20)">
+              <circle cx="60" cy="50" r="25" fill="#D6BCFA" fillOpacity="0.5" />
+              <path d="M45,75 L45,180 M75,75 L75,180 M45,120 L75,120 M60,180 L40,250 M60,180 L80,250" 
+                stroke="#D6BCFA" strokeWidth="15" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
+            </g>
+            {/* Character 2 */}
+            <g transform="translate(150, 0)">
+              <circle cx="60" cy="40" r="22" fill="#9b87f5" fillOpacity="0.5" />
+              <path d="M45,65 L45,160 M75,65 L75,160 M45,100 L75,100 M60,160 L30,230 M60,160 L90,230" 
+                stroke="#9b87f5" strokeWidth="12" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
+            </g>
+            {/* Character 3 */}
+            <g transform="translate(250, 30)">
+              <circle cx="60" cy="50" r="25" fill="#7E69AB" fillOpacity="0.5" />
+              <path d="M45,75 L45,190 M75,75 L75,190 M45,120 L75,120 M60,190 L40,260 M60,190 L80,260" 
+                stroke="#7E69AB" strokeWidth="15" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
+            </g>
+            {/* Character 4 */}
+            <g transform="translate(350, 10)">
+              <circle cx="60" cy="45" r="23" fill="#D6BCFA" fillOpacity="0.5" />
+              <path d="M45,70 L45,170 M75,70 L75,170 M45,110 L75,110 M60,170 L35,240 M60,170 L85,240" 
+                stroke="#D6BCFA" strokeWidth="13" strokeLinecap="round" strokeOpacity="0.5" fill="none" />
+            </g>
+          </svg>
         </div>
         
-        {/* Connecting elements */}
+        {/* Connecting elements - stylized dashed line showing connection */}
         <div className="absolute left-1/2 bottom-[35vh] w-full h-32 -translate-x-1/2">
           <svg width="100%" height="100%" viewBox="0 0 800 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             <path d="M0,80 C200,20 600,120 800,40" 
