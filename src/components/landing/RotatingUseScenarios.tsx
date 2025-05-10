@@ -23,47 +23,47 @@ export const RotatingUseScenarios = () => {
     {
       id: 1,
       title: "I'm a new grad who just moved to a new city and don't know anyone.",
-      icon: <div className="text-5xl">🎓</div>
+      icon: <div className="text-6xl">🎓</div>
     },
     {
       id: 2,
       title: "I work remotely and barely see people during the week.",
-      icon: <div className="text-5xl">💻</div>
+      icon: <div className="text-6xl">💻</div>
     },
     {
       id: 3,
       title: "I want friendships that aren't random roommates or coworkers.",
-      icon: <div className="text-5xl">🤝</div>
+      icon: <div className="text-6xl">🤝</div>
     },
     {
       id: 4,
       title: "I'm in college but still feel like I haven't found my people yet.",
-      icon: <div className="text-5xl">📚</div>
+      icon: <div className="text-6xl">📚</div>
     },
     {
       id: 5,
       title: "I want deep conversations about books and philosophy over coffee.",
-      icon: <div className="text-5xl">☕</div>
+      icon: <div className="text-6xl">☕</div>
     },
     {
       id: 6,
       title: "I'm looking for NBA fans to watch games with.",
-      icon: <div className="text-5xl">🏀</div>
+      icon: <div className="text-6xl">🏀</div>
     },
     {
       id: 7,
       title: "I've outgrown my circles and want to consciously rebuild my social life.",
-      icon: <div className="text-5xl">🔄</div>
+      icon: <div className="text-6xl">🔄</div>
     },
     {
       id: 8,
       title: "I have friends but no one I feel deeply connected with.",
-      icon: <div className="text-5xl">💭</div>
+      icon: <div className="text-6xl">💭</div>
     },
     {
       id: 9,
       title: "I'm a foodie looking for friends to try restaurants with.",
-      icon: <div className="text-5xl">🍽️</div>
+      icon: <div className="text-6xl">🍽️</div>
     },
   ];
   
@@ -181,13 +181,13 @@ export const RotatingUseScenarios = () => {
     <div className="w-full mx-auto">
       {/* Continuously scrolling carousel container with touch support */}
       <div 
-        className="relative overflow-hidden w-full"
+        className="relative overflow-hidden w-full px-4"
         onMouseEnter={() => setIsAutoScrolling(false)}
         onMouseLeave={() => setIsAutoScrolling(true)}
       >
         <div 
           ref={scrollContainerRef}
-          className="flex gap-6 pb-4 overflow-x-auto hide-scrollbar" 
+          className="flex gap-6 pb-8 overflow-x-auto hide-scrollbar" 
           style={{ scrollBehavior: 'auto' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -199,20 +199,26 @@ export const RotatingUseScenarios = () => {
               className="flex flex-col items-center"
             >
               {/* Icon now positioned above the card with larger size */}
-              <div className={`transform transition-all duration-300 ${
+              <div className={`transform transition-all duration-300 mb-3 ${
                 activeCardIndex === index ? 'scale-110' : 'scale-100'
               }`}>
                 {scenario.icon}
               </div>
               
               <div 
-                className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-300 ${
+                className={`flex-shrink-0 bg-white/80 p-6 rounded-xl shadow-sm transition-all duration-300 ${
                   activeCardIndex === index ? 'scale-105 shadow-md' : ''
                 }`}
                 style={{
                   minWidth: '300px',
                   maxWidth: '350px',
-                  borderColor: '#e5e7eb' // Consistent gray border color
+                  borderColor: '#e5e7eb', // Consistent gray border color
+                  height: '130px', // Fixed height for all cards
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)', // Consistent gray shadow
+                  border: '1px solid #e5e7eb' // Explicit border to prevent any color variations
                 }}
               >
                 <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800">
@@ -231,7 +237,7 @@ export const RotatingUseScenarios = () => {
       </div>
       
       {/* Scroll indicator - Positioned at the very bottom of the viewport */}
-      <div className="flex justify-center fixed bottom-2 left-0 right-0 animate-bounce z-30">
+      <div className="flex justify-center fixed bottom-3 left-0 right-0 animate-bounce z-30">
         <ArrowDown className="h-8 w-8 text-primary/70" />
       </div>
     </div>

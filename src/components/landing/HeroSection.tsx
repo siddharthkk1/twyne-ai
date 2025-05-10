@@ -28,7 +28,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-8 md:py-12 mt-0 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
+    <section className="relative py-10 md:py-14 mt-0 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
@@ -111,10 +111,10 @@ export const HeroSection = ({
             )}
           </div>
           
-          {/* Waitlist Count - Moved below the buttons */}
+          {/* Waitlist Count - With adjusted bottom margin */}
           {!isLoading && waitlistCount !== null && (
             <div 
-              className={`flex items-center justify-center text-sm text-muted-foreground mt-2 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
+              className={`flex items-center justify-center text-sm text-muted-foreground mt-2 mb-8 bg-white/80 py-1 px-3 rounded-full transition-all duration-700 shadow-sm ${
                 isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
               }`}
               style={{ transitionDelay: '1000ms' }}
