@@ -7,7 +7,8 @@ export interface ScenarioItemProps {
   icon: React.ReactNode;
 }
 
-export const ScenarioItem: React.FC<ScenarioItemProps> = ({ id, title, icon }) => {
+// Changed to a regular function that returns the data object instead of an FC
+export const createScenario = ({ id, title, icon }: ScenarioItemProps): ScenarioItemProps => {
   return {
     id,
     title,
