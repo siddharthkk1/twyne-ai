@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -112,19 +112,60 @@ export const UseScenarioCarousel = () => {
   }, [scenarios.length, autoplay]);
 
   // Go to next slide
-  const goToNextSlide = () => {
+  const goToNextSlide = useCallback(() => {
     setActiveSlide((prev) => (prev + 1) % scenarios.length);
-  };
+  }, [scenarios.length]);
 
   // Go to previous slide
-  const goToPreviousSlide = () => {
+  const goToPreviousSlide = useCallback(() => {
     setActiveSlide((prev) => (prev === 0 ? scenarios.length - 1 : prev - 1));
-  };
+  }, [scenarios.length]);
 
   // Go to specific slide
-  const goToSlide = (index: number) => {
+  const goToSlide = useCallback((index: number) => {
     setActiveSlide(index);
-  };
+  }, []);
+
+  // Touch handling for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!e.touches[0]) return;
+      
+      const currentX = e.touches[0].clientX;
+      const diff = startX - currentX;
+      
+      // Determine swipe direction based on threshold
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          goToNextSlide();
+        } else {
+          goToPreviousSlide();
+        }
+        
+        // Clean up event listeners after successful swipe
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    // Temporarily pause autoplay during touch interactions
+    setAutoplay(false);
+    
+    // Add event listeners for touch movement and end
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    // Resume autoplay after touch interaction ends
+    setTimeout(() => setAutoplay(true), 3000);
+  }, [goToNextSlide, goToPreviousSlide]);
 
   return (
     <section className="py-16 bg-white">
@@ -140,32 +181,33 @@ export const UseScenarioCarousel = () => {
           className="relative w-full"
           onMouseEnter={() => setAutoplay(false)}
           onMouseLeave={() => setAutoplay(true)}
+          onTouchStart={handleTouchStart}
         >
           {/* Carousel content */}
           <div className="w-full overflow-hidden">
-            <div className="relative">
+            <div className="relative h-[350px]"> {/* Fixed height container */}
               {scenarios.map((scenario, index) => (
                 <div 
                   key={scenario.id} 
-                  className={`transition-all duration-500 ${
-                    activeSlide === index ? 'block opacity-100' : 'hidden opacity-0'
+                  className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+                    activeSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                   }`}
                 >
-                  <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center">
+                  <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center h-full">
                     <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
                       <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
                     </div>
                     <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
                     <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
                     {user ? (
-                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
+                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
                         <Link to="/connections" className="flex items-center">
                           <IoChatbubbleEllipses size={18} className="mr-2" />
                           View Your Connections
                         </Link>
                       </Button>
                     ) : (
-                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all">
+                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
                         <Link to="/auth" className="flex items-center">
                           <IoChatbubbleEllipses size={18} className="mr-2" />
                           Connect & Say Hi
