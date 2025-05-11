@@ -46,8 +46,7 @@ export const HeroSection = ({
         <img 
           src="/lovable-uploads/a3663bd6-22a4-4d9b-beab-54790b6ad515.png" 
           alt="Basketball Player" 
-          className="w-56 md:w-72 lg:w-96 object-contain h-auto"
-          style={{ maxHeight: "380px" }}
+          className="w-48 md:w-64 lg:w-120 object-contain"
         />
       </div>
       
@@ -56,8 +55,7 @@ export const HeroSection = ({
         <img 
           src="/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png" 
           alt="People Reading" 
-          className="w-56 md:w-72 lg:w-96 object-contain h-auto"
-          style={{ maxHeight: "380px" }}
+          className="w-48 md:w-64 lg:w-80 object-contain"
         />
       </div>
       
