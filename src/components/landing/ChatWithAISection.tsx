@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ChevronDown } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -131,7 +132,7 @@ export const ChatWithAISection = () => {
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState(0);
   const [messages, setMessages] = useState<Message[]>(conversationSnapshots[0]);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const [hasScrollContent, setHasScrollContent] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   // Animation effect for element appearance
@@ -148,7 +149,7 @@ export const ChatWithAISection = () => {
     const timeout = setTimeout(() => {
       setMessages(conversationSnapshots[currentSnapshotIndex]);
       setIsVisible(true);
-      setShowScrollIndicator(true);
+      setHasScrollContent(true);
       
       // Reset scroll position to top when changing conversations
       if (scrollAreaRef.current) {
@@ -162,9 +163,16 @@ export const ChatWithAISection = () => {
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
 
-  // Hide scroll indicator when user scrolls
+  // Hide gradient indicator when user has scrolled to bottom
   const handleScroll = () => {
-    setShowScrollIndicator(false);
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
+      if (viewport) {
+        // Check if scrolled to bottom (or nearly)
+        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 20;
+        setHasScrollContent(!isAtBottom);
+      }
+    }
   };
 
   return (
@@ -229,32 +237,32 @@ export const ChatWithAISection = () => {
                 </div>
               </div>
               
-              <ScrollArea 
-                ref={scrollAreaRef} 
-                className="h-[300px] pr-2"
-                onScrollCapture={handleScroll}
-              >
-                <div className="space-y-4 mb-4">
-                  {messages.map((message) => (
-                    <div
-                      key={`${currentSnapshotIndex}-${message.id}`}
-                      className={`animate-fade-in ${
-                        message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-                      }`}
-                    >
-                      {message.text}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-              
-              {/* New scroll indicator - more prominent and visible */}
-              {showScrollIndicator && (
-                <div className="absolute bottom-14 left-1/2 transform -translate-x-1/2 bg-primary/20 rounded-md p-2 animate-pulse-slow flex items-center gap-2 text-sm text-primary">
-                  <span>Scroll to see more</span>
-                  <ChevronDown className="h-4 w-4" />
-                </div>
-              )}
+              {/* Scroll container with gradient fade at the bottom */}
+              <div className="relative">
+                <ScrollArea 
+                  ref={scrollAreaRef} 
+                  className="h-[300px] pr-2 overflow-visible"
+                  onScrollCapture={handleScroll}
+                >
+                  <div className="space-y-4 mb-4">
+                    {messages.map((message) => (
+                      <div
+                        key={`${currentSnapshotIndex}-${message.id}`}
+                        className={`animate-fade-in ${
+                          message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+                        }`}
+                      >
+                        {message.text}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                
+                {/* Gradient fade overlay that appears when content is scrollable */}
+                {hasScrollContent && (
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                )}
+              </div>
               
               <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
                 <input 
