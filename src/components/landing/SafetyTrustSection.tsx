@@ -28,9 +28,24 @@ export const SafetyTrustSection = () => {
                 Every member goes through our verification process so you can be sure you're connecting with real people.
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
-                <li>Phone verification</li>
-                <li>Profile review process</li>
-                <li>Community reporting tools</li>
+                <li>Phone verification required</li>
+                <li>AI-generated profiles based on real user responses</li>
+                <li>Fake or bot-like behavior is monitored for</li>
+                Real People, Verified [use existing description section]
+
+
+We monitor for fake or bot-like behavior ... no unwanted contact. [keep same description] Mutual consent required
+
+Control what information is shared
+
+ ... Protection & Accountability
+[cerate a description section for this one]
+
+
+
+Every report is reviewed and acted upon 
+
+ --> keep same format just update the words
               </ul>
             </CardContent>
           </Card>
@@ -46,8 +61,8 @@ export const SafetyTrustSection = () => {
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
                 <li>Mutual consent required</li>
-                <li>Block users at any time</li>
                 <li>Control what information is shared</li>
+                <li>Pause intros or go invisible anytime</li>
               </ul>
             </CardContent>
           </Card>
@@ -57,14 +72,14 @@ export const SafetyTrustSection = () => {
               <div className="rounded-full bg-accent/10 p-3 w-14 h-14 flex items-center justify-center mb-4">
                 <Shield className="h-7 w-7 text-accent" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Safe Meeting Options</h3>
+              <h3 className="text-xl font-semibold mb-3">Protection & Accountability</h3>
               <p className="text-muted-foreground">
                 We provide tools and guidelines to help you meet safely and comfortably when you're ready to connect in person.
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
-                <li>Public place recommendations</li>
-                <li>Meeting scheduling tools</li>
-                <li>Friend safety check-ins</li>
+                <li>Block or report anyone instantly</li>
+                <li>Every report is reviewed and acted upon </li>
+                <li>Harmful behavior is monitored proactively</li>
               </ul>
             </CardContent>
           </Card>
