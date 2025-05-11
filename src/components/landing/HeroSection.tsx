@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -50,12 +49,12 @@ export const HeroSection = ({
         />
       </div>
       
-      {/* People reading books illustration in background lower right */}
+      {/* People reading books illustration in background lower right - Height reduced */}
       <div className="absolute right-0 md:right-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
           src="/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png" 
           alt="People Reading" 
-          className="h-[30rem] w-auto object-contain"
+          className="h-[24rem] w-auto object-contain"
         />
       </div>
       
@@ -145,9 +144,9 @@ export const HeroSection = ({
         </div>
       </div>
 
-      {/* Rotating text with full-width carousel - Moved down by 30% */}
+      {/* Rotating text with full-width carousel - Adjusted position (15% up from previous position) */}
       <div 
-        className={`w-full transition-all duration-700 transform mt-20 sm:mt-24 md:mt-32 ${
+        className={`w-full transition-all duration-700 transform mt-10 sm:mt-16 md:mt-20 ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
         style={{ transitionDelay: '1200ms' }}
