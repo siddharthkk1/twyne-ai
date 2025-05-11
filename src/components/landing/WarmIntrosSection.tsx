@@ -177,20 +177,26 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
               <div 
                 key={intro.id}
                 className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
+                style={{ 
+                  height: "240px", // Fixed height
+                  width: "100%" // 100% of the grid cell width
+                }}
               >
                 <p className="text-lg mb-2">
                   <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
                   {" both " + intro.text.split(" both ")[1]}
                 </p>
-                <Button 
-                  onClick={onOpenWaitlist}
-                  variant="default" 
-                  size="sm"
-                  className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-                >
-                  <MessageCircle size={16} className="mr-1" />
-                  Connect & Say Hi
-                </Button>
+                <div className="mt-auto">
+                  <Button 
+                    onClick={onOpenWaitlist}
+                    variant="default" 
+                    size="sm"
+                    className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+                  >
+                    <MessageCircle size={16} className="mr-1" />
+                    Connect & Say Hi
+                  </Button>
+                </div>
               </div>
             );
           })}
