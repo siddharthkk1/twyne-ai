@@ -50,6 +50,15 @@ export const HeroSection = ({
         />
       </div>
       
+      {/* People reading books illustration in background lower right */}
+      <div className="absolute right-0 md:right-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
+        <img 
+          src="/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png" 
+          alt="People Reading" 
+          className="w-48 md:w-64 lg:w-80 object-contain"
+        />
+      </div>
+      
       <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-20">
         <div className="flex flex-col items-center text-center gap-3 md:gap-4">
           {/* Main title with fade-in from right and gradient */}
