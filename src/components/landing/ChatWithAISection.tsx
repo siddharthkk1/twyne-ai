@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown } from "lucide-react";
@@ -260,9 +261,11 @@ export const ChatWithAISection = () => {
                 {/* Combined arrow indicator and gradient fade overlay */}
                 {hasScrollContent && (
                   <>
-                    {/* Arrow indicator */}
-                    <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-primary animate-bounce">
-                      <ArrowDown className="h-6 w-6" />
+                    {/* Arrow indicator with circular background - moved closer to bottom */}
+                    <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+                      <div className="bg-primary/20 rounded-full p-2">
+                        <ArrowDown className="h-4 w-4 text-primary" />
+                      </div>
                     </div>
                     {/* Gradient fade */}
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -154,7 +155,7 @@ export const HeroSection = ({
             </span>
           </h1>
           
-          {/* Description with fade-in from bottom */}
+          {/* Updated subtitle - single line */}
           <div 
             className={`max-w-[700px] text-base sm:text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -167,9 +168,12 @@ export const HeroSection = ({
               }`}
               style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
             >
-              Twyne gets to know your energy, interests, personality, and life context
+              The AI platform for making connections and building relationships
             </h2>
-            <p className="block mt-1">Then introduces you to people nearby who actually click with your vibe—without the typical dating app experience.</p>
+            {/* Updated description - shortened */}
+            <p className="block mt-1">
+              Twyne gets to know your energy, interests, personality, and life context-then introduces you to people nearby who actually click.
+            </p>
           </div>
           
           {/* Buttons with horizontal space between them */}
