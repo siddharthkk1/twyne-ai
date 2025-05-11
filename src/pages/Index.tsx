@@ -23,6 +23,12 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   
+  // Preload hero image
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
+  }, []);
+  
   // Function to scroll to How It Works section
   const scrollToHowItWorks = (e: React.MouseEvent) => {
     e.preventDefault();

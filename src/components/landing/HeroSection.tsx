@@ -24,7 +24,8 @@ export const HeroSection = ({
   const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const isMobile = useIsMobile();
-  
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   // Animation effect that staggers the appearance of elements
   useEffect(() => {
     setIsVisible(true);
@@ -41,15 +42,42 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Image container with fixed layout - center image only with fixed width until breakpoint */}
-      <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto flex justify-center">
-        {/* Coffee friends illustration in center */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 hidden sm:block">
+      {/* Image container with responsive positioning - left on desktop, center on mobile */}
+      <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto">
+        {/* Coffee friends illustration moved to left on desktop, center on mobile */}
+        <div 
+          className={`absolute bottom-0 pointer-events-none opacity-80 z-0 hidden sm:block
+            ${imageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
+            left-8 md:left-12 lg:left-24 xl:left-48 2xl:left-1/4
+            sm:max-w-[450px] md:max-w-[550px]`}
+        >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-[900px] min-w-[550px] max-h-[32rem] object-contain"
+              className="h-auto w-full max-h-[32rem] object-contain"
+              onLoad={() => setImageLoaded(true)}
+              fetchPriority="high"
+              loading="eager"
+            />
+            {/* Gradient overlay for fade effect */}
+            <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+          </div>
+        </div>
+
+        {/* For mobile - center the coffee illustration */}
+        <div 
+          className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 block sm:hidden
+            ${imageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
+        >
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
+              alt="Friends with Coffee" 
+              className="h-auto w-[90vw] max-w-[400px] max-h-[28rem] object-contain"
+              onLoad={() => setImageLoaded(true)}
+              fetchPriority="high"
+              loading="eager"
             />
             {/* Gradient overlay for fade effect */}
             <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>

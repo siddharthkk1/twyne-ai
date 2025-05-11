@@ -21,10 +21,10 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </p>
         </div>
         
-        {/* Images positioned on left and right sides */}
-        <div className="hidden md:block">
+        {/* Images positioned on left and right sides - desktop only */}
+        <div className="hidden lg:block">
           {/* Basketball image on left */}
-          <div className="absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
+          <div className="absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[240px] lg:max-w-[336px]">
             <div className="relative">
               <img 
                 src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
@@ -36,11 +36,11 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </div>
           
           {/* Reading people image on right */}
-          <div className="absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
+          <div className="absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[240px] lg:max-w-[336px]">
             <div className="relative">
               <img 
-                src="/lovable-uploads/dfa15283-ccbd-44d6-be07-aacaf7436b85.png" 
-                alt="People Reading" 
+                src="/lovable-uploads/7dae1ebe-bc11-4593-b2b4-71ba6ede6d22.png" 
+                alt="People Reading and Using Phones" 
                 className="h-auto w-full object-contain"
               />
               <div className="absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
