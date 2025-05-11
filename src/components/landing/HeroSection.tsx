@@ -46,7 +46,7 @@ export const HeroSection = ({
         <img 
           src="/lovable-uploads/a3663bd6-22a4-4d9b-beab-54790b6ad515.png" 
           alt="Basketball Player" 
-          className="h-120 w-auto object-contain"
+          className="h-80 w-auto object-contain"
         />
       </div>
       
@@ -55,7 +55,7 @@ export const HeroSection = ({
         <img 
           src="/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png" 
           alt="People Reading" 
-          className="h-100 w-auto object-contain"
+          className="h-80 w-auto object-contain"
         />
       </div>
       
