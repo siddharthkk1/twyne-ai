@@ -33,15 +33,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       // Create continuous scrolling effect by decrementing position
       let newPos = prev - scrollSpeed;
       
-      // Reset position when the first card has completely scrolled off
-      // Only reset when we've scrolled a complete card width
-      if (Math.abs(newPos) >= cardWidth) {
-        // Move the position by exactly one card width to maintain the illusion
-        // This ensures the animation appears continuous without jumps
-        return newPos + cardWidth;
-      }
-      
-      return newPos;
+      // Instead of resetting, we'll use modulo to create a continuous loop effect
+      // When cards move off the left edge, we need to ensure identical cards appear from the right
+      // This creates the illusion of an infinite loop without any reset
+      return newPos % (cardWidth * scenarios.length);
     });
 
     animationRef.current = requestAnimationFrame(animate);
@@ -94,9 +89,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }, 2000);
   };
 
-  // Create a large set of duplicated items to ensure smooth scrolling
-  // We duplicate the scenarios multiple times to provide enough content
-  const displayItems = [...scenarios, ...scenarios, ...scenarios];
+  // We need enough duplicates to ensure continuous scrolling
+  // We use multiple copies to ensure we always have enough cards off-screen
+  const displayItems = [...scenarios, ...scenarios, ...scenarios, ...scenarios];
 
   return (
     <div 
