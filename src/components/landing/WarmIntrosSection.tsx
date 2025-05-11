@@ -23,7 +23,6 @@ const initialIntros: IntroCard[] = [
     id: 1,
     text: "You and Siddharth both love basketball, burritos, and late-night debates.",
     visible: true,
-    isGroup: true,
     position: 0
   },
   {
@@ -73,7 +72,7 @@ const additionalIntros: IntroCard[] = [
   },
   {
     id: 9,
-    text: "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
+    text: "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it."
     visible: false,
   },
   {
