@@ -258,13 +258,13 @@ export const ChatWithAISection = () => {
                   </div>
                 </ScrollArea>
                 
-                {/* Combined arrow indicator and gradient fade overlay - moved 50% lower */}
+                {/* Combined arrow indicator and gradient fade overlay - moved closer to bottom with increased opacity */}
                 {hasScrollContent && (
                   <>
-                    {/* Arrow indicator with circular background - moved 50% lower and more transparent */}
-                    <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
-                      <div className="bg-primary/5 rounded-full p-2">
-                        <ArrowDown className="h-4 w-4 text-primary" />
+                    {/* Arrow indicator with circular background - moved closer to bottom with increased opacity */}
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
+                      <div className="bg-primary/70 rounded-full p-2">
+                        <ArrowDown className="h-4 w-4 text-white" />
                       </div>
                     </div>
                     {/* Gradient fade */}

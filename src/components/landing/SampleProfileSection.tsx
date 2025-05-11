@@ -13,7 +13,7 @@ const connectionProfiles = [
     location: "San Francisco",
     initial: "AK",
     avatar: "A", // Will be used as avatar fallback
-    avatarImage: "/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png", // Alex's avatar image
+    avatarImage: "/lovable-uploads/136ab2cd-2f22-4e16-ad1d-e412ef06a221.png", // Alex's avatar image
     sharedInterests: [
       { icon: Coffee, text: "Coffee shops" },
       { icon: Book, text: "Fiction" },
@@ -43,7 +43,7 @@ const connectionProfiles = [
     location: "Berkeley",
     initial: "JT",
     avatar: "J",
-    avatarImage: "/lovable-uploads/66a6d9cc-0713-40a8-9efd-7603ed7304ba.png", // Jordan's avatar image
+    avatarImage: "/lovable-uploads/06ac0ee4-f564-4efd-8eea-d1ae7ff7a345.png", // Jordan's avatar image with dog
     sharedInterests: [
       { icon: Music, text: "Jazz" },
       { icon: Book, text: "Non-fiction" },
@@ -93,7 +93,7 @@ export const SampleProfileSection = () => {
               Through conversations with our AI, we identify meaningful connections between you and potential friends—your shared interests, complementary energies, and compatible activities.
             </p>
             <p className="mb-6">
-              <span className="font-medium">This is not public.</span> These connection profiles are only visible between connected individuals and they contain only information both users have agreed to share.
+              <span className="font-medium">This is not public.</span> These connection profiles are only visible between introduced individuals and they contain only information both users have agreed to share.
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10">No endless swiping</Badge>
@@ -104,18 +104,20 @@ export const SampleProfileSection = () => {
 
           <Card className="shadow-md border border-border/50 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 py-3">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-14 w-14 border-2 border-white">
-                  <AvatarImage src={profile.avatarImage} alt={profile.name} />
-                  <AvatarFallback className="bg-secondary/20 text-secondary text-xl">{profile.avatar}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-xs text-muted-foreground">Your Twyne with</p>
-                  <h3 className="text-xl font-semibold">{profile.name}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 mr-1" />
-                    <span>{profile.location}</span>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">Your Twyne with</p>
+                <div className="flex items-center">
+                  <div>
+                    <h3 className="text-2xl font-semibold">{profile.name}</h3>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5 mr-1" />
+                      <span>{profile.location}</span>
+                    </div>
                   </div>
+                  <Avatar className="h-14 w-14 border-2 border-white ml-4">
+                    <AvatarImage src={profile.avatarImage} alt={profile.name} />
+                    <AvatarFallback className="bg-secondary/20 text-secondary text-xl">{profile.avatar}</AvatarFallback>
+                  </Avatar>
                 </div>
               </div>
             </CardHeader>
@@ -132,9 +134,9 @@ export const SampleProfileSection = () => {
                         </Avatar>
                       ))}
                     </div>
-                    <span className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground mt-1">
                       Connected through {profile.mutuals.map(m => m.name).join(", ")}
-                    </span>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center text-sm text-muted-foreground">
@@ -188,9 +190,9 @@ export const SampleProfileSection = () => {
               </div>
 
               {/* COMPATIBILITY HIGHLIGHTS section - improved styling */}
-              {profile.compatibilityHighlights.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">COMPATIBILITY HIGHLIGHTS</h4>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">COMPATIBILITY HIGHLIGHTS</h4>
+                {profile.compatibilityHighlights.length > 0 ? (
                   <div className="space-y-1.5">
                     {profile.compatibilityHighlights.map((highlight, i) => (
                       <div key={i} className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-2 text-sm border border-primary/10">
@@ -198,8 +200,12 @@ export const SampleProfileSection = () => {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="bg-muted/30 rounded-lg p-3 text-sm border border-muted">
+                    <p className="text-muted-foreground">No compatibility highlights available. This user hasn't shared this information publicly.</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
