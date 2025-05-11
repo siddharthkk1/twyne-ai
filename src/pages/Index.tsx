@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -5,6 +6,7 @@ import { SampleProfileSection } from "@/components/landing/SampleProfileSection"
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { supabase } from "@/integrations/supabase/client";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { ChatWithAISection } from "@/components/landing/ChatWithAISection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { WarmIntrosSection } from "@/components/landing/WarmIntrosSection";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
@@ -83,6 +85,9 @@ const Index = () => {
         onOpenWaitlist={openWaitlist}
         onScrollToHowItWorks={scrollToHowItWorks}
       />
+
+      {/* New Chat With AI Section */}
+      <ChatWithAISection />
 
       {/* How It Works Section */}
       <HowItWorksSection />
