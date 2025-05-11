@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -25,10 +26,30 @@ export const HeroSection = ({
   const isMobile = useIsMobile();
   const [coffeeImageLoaded, setCoffeeImageLoaded] = useState(false);
   const [readingImageLoaded, setReadingImageLoaded] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   // Animation effect that staggers the appearance of elements
   useEffect(() => {
     setIsVisible(true);
+  }, []);
+
+  // Track window width for responsive adjustments
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Determine if we should center the coffee image (between mobile and desktop breakpoints)
+  const shouldCenterCoffeeImage = windowWidth < 1200 && windowWidth >= 768;
+  
+  // Preload images
+  useEffect(() => {
+    const coffeeImg = new Image();
+    coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
+    
+    const readingImg = new Image();
+    readingImg.src = "/lovable-uploads/7c804f22-0b4e-4a87-a191-18c787590a79.png";
   }, []);
   
   return (
@@ -44,11 +65,11 @@ export const HeroSection = ({
       
       {/* Images container with responsive positioning */}
       <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto">
-        {/* Coffee friends illustration - Left positioned with 100px from center */}
+        {/* Coffee friends illustration - Left positioned with 300px from center on desktop */}
         <div 
-          className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
+          className={`absolute bottom-0 pointer-events-none z-0 hidden md:block
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            left-[calc(50%-450px)]`}
+            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(50%-650px)]'}`}
         >
           <div className="relative">
             <img 
@@ -63,11 +84,11 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* Reading/Listening people illustration - Right positioned with 100px from center */}
+        {/* Reading/Listening people illustration - Right positioned with 300px from center */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            right-[calc(50%-450px)]`}
+            right-[calc(50%-650px)]`}
         >
           <div className="relative">
             <img 
@@ -75,6 +96,24 @@ export const HeroSection = ({
               alt="People Reading and Listening" 
               className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setReadingImageLoaded(true)}
+              loading="eager"
+            />
+            {/* Gradient overlay for fade effect */}
+            <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+          </div>
+        </div>
+
+        {/* For small mobile - center the coffee illustration */}
+        <div 
+          className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 block sm:block md:hidden
+            ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
+        >
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
+              alt="Friends with Coffee" 
+              className="h-auto w-[90vw] max-w-[400px] max-h-[28rem] object-contain"
+              onLoad={() => setCoffeeImageLoaded(true)}
               loading="eager"
             />
             {/* Gradient overlay for fade effect */}
