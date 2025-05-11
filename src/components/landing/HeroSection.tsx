@@ -41,7 +41,7 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Image container with fixed layout - center image only */}
+      {/* Image container with fixed layout - center image only with improved responsiveness */}
       <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto flex justify-center">
         {/* Coffee friends illustration in center */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 hidden md:block">
@@ -49,7 +49,7 @@ export const HeroSection = ({
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-auto max-h-[32rem] object-contain"
+              className="h-auto w-auto min-w-[400px] max-h-[32rem] object-contain"
             />
             {/* Gradient overlay for fade effect */}
             <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
