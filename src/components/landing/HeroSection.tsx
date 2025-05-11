@@ -41,8 +41,8 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Basketball players illustration on left - moved closer to edge */}
-      <div className="absolute left-0 md:left-[2.5%] bottom-0 pointer-events-none opacity-80 z-0">
+      {/* Basketball players illustration on left - moved even closer to edge */}
+      <div className="absolute left-0 md:left-0 bottom-0 pointer-events-none opacity-80 z-0">
         <img 
           src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
           alt="Basketball Players" 
