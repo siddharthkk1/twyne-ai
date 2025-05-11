@@ -31,21 +31,6 @@ export const SafetyTrustSection = () => {
                 <li>Phone verification required</li>
                 <li>AI-generated profiles based on real user responses</li>
                 <li>Fake or bot-like behavior is monitored for</li>
-                Real People, Verified [use existing description section]
-
-
-We monitor for fake or bot-like behavior ... no unwanted contact. [keep same description] Mutual consent required
-
-Control what information is shared
-
- ... Protection & Accountability
-[cerate a description section for this one]
-
-
-
-Every report is reviewed and acted upon 
-
- --> keep same format just update the words
               </ul>
             </CardContent>
           </Card>
