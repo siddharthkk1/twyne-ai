@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -51,7 +52,7 @@ export const HeroSection = ({
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png";
+    readingImg.src = "/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png";
   }, []);
   
   return (
@@ -91,7 +92,7 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* New Reading illustration - Center of right half */}
+        {/* New Reading illustration - Center of right half - UPDATED WITH NEW IMAGE */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
@@ -105,7 +106,7 @@ export const HeroSection = ({
         >
           <div className="relative">
             <img 
-              src="/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png" 
+              src="/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png" 
               alt="People Reading and Using Phone" 
               className="h-auto w-full object-contain"
               style={{ width: `${coffeeImageWidth}px` }} // Reduced width (10% smaller)
