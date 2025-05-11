@@ -100,7 +100,7 @@ export const HeroSection = ({
             right: 'calc(25% - 20px)',  /* Adjusted to match the coffee image positioning */
             bottom: '-30px',
             display: windowWidth < 1240 ? 'none' : 'block',  /* Hide when coffee is centered */
-            width: `${coffeeImageWidth}px`  /* Use the same width as coffee image */
+            width: `${coffeeImageWidth*1.2}px`  /* Use the same width as coffee image */
           }}
         >
           <div className="relative">
