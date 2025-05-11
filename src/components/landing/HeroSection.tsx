@@ -100,7 +100,7 @@ export const HeroSection = ({
             right: 'calc(25% - 20px)',  /* Adjusted to match the coffee image positioning */
             bottom: '-30px',
             display: windowWidth < 1240 ? 'none' : 'block',  /* Hide when coffee is centered */
-            width: `${coffeeImageWidth*1.5}px`  /* Use the same width as coffee image */
+            width: `${coffeeImageWidth*1}px`  /* Use the same width as coffee image */
           }}
         >
           <div className="relative">
@@ -108,7 +108,7 @@ export const HeroSection = ({
               src="/lovable-uploads/3971dfb4-3115-4a94-8e5c-b863d344cb77.png" 
               alt="People Reading and Using Phone" 
               className="h-auto object-contain"
-              style={{ width: `${coffeeImageWidth*1}px` }}
+              style={{ width: `${coffeeImageWidth*1.5}px` }}
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
             />
