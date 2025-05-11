@@ -98,6 +98,6 @@ export const scenarios: ScenarioItemProps[] = [
   {
     id: 13,
     title: "I'm in my healing era and looking for people who get it.",
-    icon: <div className="p-2 bg-secondary-100 rounded-full"><IoColorPaletteSharp size={28} className="text-secondary" /></div>
+    icon: <div className="p-2 bg-secondary-100 rounded-full"><IoHeartSharp size={28} className="text-secondary" /></div>
   },
 ];
