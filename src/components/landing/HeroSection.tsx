@@ -45,7 +45,7 @@ export const HeroSection = ({
         <img 
           src="/lovable-uploads/f1a84327-ff0b-4686-ad1c-b36d6209176e.png" 
           alt="Basketball Players" 
-          className="h-auto w-auto max-h-[30rem] object-contain"
+          className="h-auto w-auto max-h-[39rem] object-contain"
           style={{ maxWidth: '40vw' }}
         />
       </div>
