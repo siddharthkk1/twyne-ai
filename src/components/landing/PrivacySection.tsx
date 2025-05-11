@@ -12,7 +12,7 @@ export const PrivacySection = () => {
           <div className="rounded-full bg-primary/10 p-3 inline-flex mb-4">
             <Shield className="h-6 w-6 text-primary" />
           </div>
-          <h2 className="text-3xl font-bold">Privacy By Design</h2>
+          <h2 className="text-3xl font-bold">Privacy & Security By Design</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
             We prioritize your privacy and data security at every step
           </p>
