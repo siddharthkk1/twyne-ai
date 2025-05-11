@@ -46,9 +46,6 @@ export const HeroSection = ({
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
   const shouldCenterCoffeeImage = windowWidth < layoutBreakpoint && windowWidth >= 768;
   
-  // Define a consistent width for the coffee image - never changes regardless of position
-  const coffeeImageWidth = 480; // Fixed width in pixels
-  
   // Preload images
   useEffect(() => {
     const coffeeImg = new Image();
@@ -78,16 +75,15 @@ export const HeroSection = ({
             ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
-            width: `${coffeeImageWidth}px`, // Fixed explicit width that never changes
             maxHeight: '32rem',
+            width: shouldCenterCoffeeImage ? '480px' : '480px', // Fixed width regardless of centering
           }}
         >
-          <div className="relative w-full">
+          <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-full object-contain"
-              style={{ width: '100%' }}
+              className="h-auto w-full object-contain" 
               onLoad={() => setCoffeeImageLoaded(true)}
               loading="eager"
             />
@@ -124,16 +120,12 @@ export const HeroSection = ({
         <div 
           className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 md:hidden
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
-          style={{ 
-            width: `${Math.min(coffeeImageWidth, windowWidth * 0.9)}px`, // Responsive but never larger than coffeeImageWidth
-          }}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-full object-contain"
-              style={{ maxHeight: '28rem' }}
+              className="h-auto w-[90vw] max-w-[400px] max-h-[28rem] object-contain"
               onLoad={() => setCoffeeImageLoaded(true)}
               loading="eager"
             />
