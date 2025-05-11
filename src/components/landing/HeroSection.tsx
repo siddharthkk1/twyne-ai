@@ -92,6 +92,11 @@ export const HeroSection = ({
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
             right-1/4 translate-x-1/2`}
+          style={{ 
+            right: 'calc(25% - 20px)',  /* Adjust 20px to the right */
+            bottom: '-30px',            /* Move 30px down */
+            display: shouldCenterCoffeeImage ? 'none' : 'block'  /* Hide when coffee is centered */
+          }}
         >
           <div className="relative">
             <img 
