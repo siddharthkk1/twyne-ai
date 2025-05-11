@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Message {
   id: number;
@@ -131,6 +132,7 @@ export const ChatWithAISection = () => {
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState(0);
   const [messages, setMessages] = useState<Message[]>(conversationSnapshots[0]);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   // Animation effect for element appearance
   useEffect(() => {
@@ -146,7 +148,15 @@ export const ChatWithAISection = () => {
     const timeout = setTimeout(() => {
       setMessages(conversationSnapshots[currentSnapshotIndex]);
       setIsVisible(true);
-    }, 150); // Reduced from 200ms to 150ms for faster transition
+      
+      // Reset scroll position to top when changing conversations
+      if (scrollAreaRef.current) {
+        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (viewport) {
+          viewport.scrollTop = 0;
+        }
+      }
+    }, 150); // Short transition time
     
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
@@ -213,18 +223,20 @@ export const ChatWithAISection = () => {
                 </div>
               </div>
               
-              <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto">
-                {messages.map((message) => (
-                  <div
-                    key={`${currentSnapshotIndex}-${message.id}`}
-                    className={`animate-fade-in ${
-                      message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-                    }`}
-                  >
-                    {message.text}
-                  </div>
-                ))}
-              </div>
+              <ScrollArea ref={scrollAreaRef} className="h-[300px] pr-2">
+                <div className="space-y-4 mb-4">
+                  {messages.map((message) => (
+                    <div
+                      key={`${currentSnapshotIndex}-${message.id}`}
+                      className={`animate-fade-in ${
+                        message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
               
               <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
                 <input 

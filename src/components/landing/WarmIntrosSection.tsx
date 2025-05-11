@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkles, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -7,7 +7,108 @@ interface WarmIntrosSectionProps {
   onOpenWaitlist: () => void;
 }
 
+// Define all intro cards data
+const initialIntros = [
+  {
+    id: 1,
+    text: "You and Nina both love basketball, burritos, and late-night debates.",
+    visible: true
+  },
+  {
+    id: 2,
+    text: "You and Priya both read too many psychology books and have 300+ tabs open.",
+    visible: true
+  },
+  {
+    id: 3, 
+    text: "You and Chris are both getting married in a month and feeling all the chaos and excitement.",
+    visible: true
+  },
+  {
+    id: 4,
+    text: "You and Lena both just moved to the city and are figuring out how to feel at home here.",
+    visible: true
+  },
+  {
+    id: 5,
+    text: "You and Ethan are both in healthcare and could use a break from being everyone else's support system. Walk and talk?",
+    visible: true
+  },
+  {
+    id: 6,
+    text: "You and Jay are both startup people—figuring out life, product-market fit, and how to have hobbies again. Coffee?",
+    visible: true
+  }
+];
+
+const additionalIntros = [
+  {
+    id: 7,
+    text: "You and Tre both grew up watching LeBron chase greatness—and never back down from the GOAT debate. MJ or Bron? You've got takes.",
+    visible: false
+  },
+  {
+    id: 8,
+    text: "You and Amara both read spicy books faster than your TBR can handle. Sarah J. Maas? Colleen Hoover? You've got annotated paperbacks and a lot of opinions.",
+    visible: false
+  },
+  {
+    id: 9,
+    text: "You and Lily are both Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you both know it.",
+    visible: false
+  },
+  {
+    id: 10,
+    text: "You and Noah both play games to decompress—whether it's Valorant, Stardew, or something in-between. You speak in Discord emojis and side quests.",
+    visible: false
+  },
+  {
+    id: 11,
+    text: "You and Zayn are both gym rats with a soft side. You lift heavy, journal often, and still believe in character development.",
+    visible: false
+  },
+  {
+    id: 12,
+    text: "You and Sam both grew up on anime, still think about the Attack on Titan finale, and maybe cried during Your Name.",
+    visible: false
+  }
+];
+
 export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) => {
+  const [intros, setIntros] = useState([...initialIntros, ...additionalIntros]);
+  
+  // Function to randomly show additional intro cards over time
+  useEffect(() => {
+    const showRandomIntro = () => {
+      // Find hidden intros
+      const hiddenIntros = intros.filter(intro => !intro.visible && intro.id > 6);
+      
+      // If there are still hidden intros, pick a random one to show
+      if (hiddenIntros.length > 0) {
+        const randomIndex = Math.floor(Math.random() * hiddenIntros.length);
+        const introToShow = hiddenIntros[randomIndex];
+        
+        setIntros(current => 
+          current.map(intro => 
+            intro.id === introToShow.id ? { ...intro, visible: true } : intro
+          )
+        );
+      }
+    };
+    
+    // Set initial delay before starting to show additional intros
+    const initialDelay = setTimeout(() => {
+      // Show a new intro every 2-4 seconds
+      const interval = setInterval(() => {
+        showRandomIntro();
+      }, Math.random() * 2000 + 2000);
+      
+      return () => clearInterval(interval);
+    }, 1500);
+    
+    return () => clearTimeout(initialDelay);
+  }, [intros]);
+  
   return (
     <section className="py-16 bg-white relative">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -21,96 +122,31 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-8 relative z-10">
-          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
-            <p className="text-lg mb-2">
-              <span className="font-semibold">You and Nina</span> both love basketball, burritos, and late-night debates.
-            </p>
-            <Button 
-              onClick={onOpenWaitlist}
-              variant="default" 
-              size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-            >
-              <MessageCircle size={16} className="mr-1" />
-              Connect & Say Hi
-            </Button>
-          </div>
-          
-          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
-            <p className="text-lg mb-2">
-              <span className="font-semibold">You and Priya</span> both read too many psychology books and have 300+ tabs open.
-            </p>
-            <Button 
-              onClick={onOpenWaitlist}
-              variant="default" 
-              size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-            >
-              <MessageCircle size={16} className="mr-1" />
-              Connect & Say Hi
-            </Button>
-          </div>
-          
-          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-accent/20">
-            <p className="text-lg mb-2">
-              <span className="font-semibold">You and Chris</span> are both getting married in a month and feeling all the chaos and excitement.
-            </p>
-            <Button 
-              onClick={onOpenWaitlist}
-              variant="default" 
-              size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-            >
-              <MessageCircle size={16} className="mr-1" />
-              Connect & Say Hi
-            </Button>
-          </div>
-          
-          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
-            <p className="text-lg mb-2">
-              <span className="font-semibold">You and Lena</span> both just moved to the city and are figuring out how to feel at home here.
-            </p>
-            <Button 
-              onClick={onOpenWaitlist}
-              variant="default" 
-              size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-            >
-              <MessageCircle size={16} className="mr-1" />
-              Connect & Say Hi
-            </Button>
-          </div>
-
-          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-secondary/20">
-            <p className="text-lg mb-2">
-              <span className="font-semibold">You and Ethan</span> are both in healthcare and could use a break from being everyone else's support system. Walk and talk?
-            </p>
-            <Button 
-              onClick={onOpenWaitlist}
-              variant="default" 
-              size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-            >
-              <MessageCircle size={16} className="mr-1" />
-              Connect & Say Hi
-            </Button>
-          </div>
-          
-          <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
-            <p className="text-lg mb-2">
-              <span className="font-semibold">You and Jay</span> are both startup people—figuring out life, product-market fit, and how to have hobbies again. Coffee?
-            </p>
-            <Button 
-              onClick={onOpenWaitlist}
-              variant="default" 
-              size="sm"
-              className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-            >
-              <MessageCircle size={16} className="mr-1" />
-              Connect & Say Hi
-            </Button>
-          </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10">
+          {intros.map(intro => (
+            intro.visible && (
+              <div 
+                key={intro.id}
+                className={`bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 ${
+                  intro.id > 6 ? 'animate-fade-in' : ''
+                }`}
+              >
+                <p className="text-lg mb-2">
+                  <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
+                  {" both " + intro.text.split(" both ")[1]}
+                </p>
+                <Button 
+                  onClick={onOpenWaitlist}
+                  variant="default" 
+                  size="sm"
+                  className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+                >
+                  <MessageCircle size={16} className="mr-1" />
+                  Connect & Say Hi
+                </Button>
+              </div>
+            )
+          ))}
         </div>
       </div>
     </section>
