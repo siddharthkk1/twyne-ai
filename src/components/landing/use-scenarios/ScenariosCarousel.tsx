@@ -30,13 +30,13 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }
 
     setTranslateX(prev => {
-      // Create continuous scrolling effect
+      // Create continuous scrolling effect by decrementing position
       let newPos = prev - scrollSpeed;
       
-      // When one full item has scrolled off screen, move it to the end
-      // This creates a seamless infinite scroll effect
-      if (newPos < -cardWidth) {
-        // Reset position but adjust for the scrolled amount
+      // When scrolled past a certain threshold, reset subtly
+      if (newPos <= -cardWidth) {
+        // Instead of jumping back to 0, just move forward one card width
+        // This creates the illusion of infinite scrolling
         return newPos + cardWidth;
       }
       
@@ -93,20 +93,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }, 2000);
   };
 
-  // Create enough duplicates to ensure smooth infinite scrolling
-  // We duplicate the scenarios multiple times to ensure there are always enough cards
+  // Create a large set of duplicated items to ensure smooth scrolling
+  // We duplicate the scenarios multiple times
   const displayItems = [...scenarios, ...scenarios, ...scenarios];
-
-  // Function to get the visual position of each item accounting for infinite scroll
-  const getItemStyle = (index: number) => {
-    // This allows items to "jump" back to maintain the illusion of infinite scrolling
-    const adjustedTranslateX = translateX % cardWidth;
-    
-    return {
-      transform: `translateX(${adjustedTranslateX}px)`,
-      transition: isDragging ? 'none' : 'transform 0.1s linear',
-    };
-  };
 
   return (
     <div 
@@ -117,7 +106,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     >
       <div 
         className="flex items-center transition-transform cursor-grab"
-        style={getItemStyle(0)}
+        style={{
+          transform: `translateX(${translateX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.1s linear',
+        }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onMouseMove={handleMouseMove}
