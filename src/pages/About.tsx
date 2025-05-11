@@ -92,17 +92,18 @@ const About = () => {
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold">🌆 The Vision</h2>
               <p>
-              We don’t just want to help people make new friends. We want to help reshape how connection feels in modern life.
-              </p>
-              <
-              <p>
-              We imagine a world where cities feel smaller, and friendships feel easier. Where you can move to a new neighborhood and easily meet people. Where your social life isn’t built on swipes or group chats — it’s built on small, genuine moments that grow over time.
+                We don't just want to help people make new friends. We want to help reshape how connection feels in modern life.
               </p>
               <p>
-              In this world, no one goes weeks without feeling connected. Connection isn’t a project — it’s part of the background of your life.
+                We imagine a world where cities feel smaller, and friendships feel easier. Where you can move to a new neighborhood and easily meet people. Where your social life isn't built on swipes or group chats — it's built on small, genuine moments that grow over time.
               </p>
-              That’s what we’re working toward. Not a feed. Not a dopamine rush.
-              Just a slower, softer, more human kind of social network — one that helps us all feel a little more at home, wherever we are.
+              <p>
+                In this world, no one goes weeks without feeling connected. Connection isn't a project — it's part of the background of your life.
+              </p>
+              <p>
+                That's what we're working toward. Not a feed. Not a dopamine rush.
+                Just a slower, softer, more human kind of social network — one that helps us all feel a little more at home, wherever we are.
+              </p>
             </div>
             
           </div>
