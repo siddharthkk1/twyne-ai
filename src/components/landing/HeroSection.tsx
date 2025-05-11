@@ -23,17 +23,12 @@ export const HeroSection = ({
 }: HeroSectionProps) => {
   const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
   const isMobile = useIsMobile();
   
   // Animation effect that staggers the appearance of elements
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-  };
   
   return (
     <section className="relative py-10 md:py-14 mt-16 md:mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
@@ -51,17 +46,10 @@ export const HeroSection = ({
         {/* Coffee friends illustration in center */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 hidden sm:block">
           <div className="relative">
-            {!imageLoaded && (
-              <div className="w-[550px] h-[32rem] bg-muted/20 animate-pulse rounded-md flex items-center justify-center">
-                <span className="text-muted-foreground">Loading image...</span>
-              </div>
-            )}
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className={`h-auto w-[550px] max-h-[32rem] object-contain ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onLoad={handleImageLoad}
-              fetchPriority="high"
+              className="h-auto w-[900px] min-w-[550px] max-h-[32rem] object-contain"
             />
             {/* Gradient overlay for fade effect */}
             <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
