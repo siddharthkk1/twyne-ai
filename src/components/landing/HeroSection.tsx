@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -41,21 +40,23 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Basketball players illustration in background lower left */}
-      <div className="absolute left-0 md:left-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
+      {/* Basketball players illustration in background bottom left, aligned to bottom of screen */}
+      <div className="absolute left-0 md:left-[5%] bottom-0 pointer-events-none opacity-70 md:opacity-80 z-0">
         <img 
-          src="/lovable-uploads/66a6d9cc-0713-40a8-9efd-7603ed7304ba.png" 
+          src="/lovable-uploads/f1a84327-ff0b-4686-ad1c-b36d6209176e.png" 
           alt="Basketball Players" 
-          className="h-[30rem] w-auto object-contain"
+          className="h-auto w-auto max-h-[30rem] object-contain"
+          style={{ maxWidth: '40vw' }}
         />
       </div>
       
-      {/* People reading books illustration in background lower right */}
-      <div className="absolute right-0 md:right-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
+      {/* People reading books illustration in background bottom right, aligned to bottom of screen */}
+      <div className="absolute right-0 md:right-[5%] bottom-0 pointer-events-none opacity-70 md:opacity-80 z-0">
         <img 
-          src="/lovable-uploads/709a7d41-9bb4-4313-9076-ae91eb8ff051.png" 
+          src="/lovable-uploads/f8b2e6c9-ec61-494d-94a9-1fb7d957a295.png" 
           alt="People Reading" 
-          className="h-[24rem] w-auto object-contain"
+          className="h-auto w-auto max-h-[30rem] object-contain"
+          style={{ maxWidth: '40vw' }}
         />
       </div>
       
