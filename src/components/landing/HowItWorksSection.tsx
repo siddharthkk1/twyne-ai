@@ -14,7 +14,7 @@ export const HowItWorksSection = () => {
         {/* Images positioned on left and right sides */}
         <div className="hidden md:block">
           {/* Basketball image on left */}
-          <div className="absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[200px] lg:max-w-[280px]">
+          <div className="absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
             <div className="relative">
               <img 
                 src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
@@ -26,7 +26,7 @@ export const HowItWorksSection = () => {
           </div>
           
           {/* Reading people image on right */}
-          <div className="absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[200px] lg:max-w-[280px]">
+          <div className="absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
             <div className="relative">
               <img 
                 src="/lovable-uploads/dfa15283-ccbd-44d6-be07-aacaf7436b85.png" 
