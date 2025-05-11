@@ -40,23 +40,21 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Basketball players illustration in background bottom left, aligned to bottom of screen */}
-      <div className="absolute left-0 md:left-[5%] bottom-0 pointer-events-none opacity-70 md:opacity-80 z-0">
+      {/* Basketball players illustration in background lower left */}
+      <div className="absolute left-0 md:left-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
-          src="/lovable-uploads/f1a84327-ff0b-4686-ad1c-b36d6209176e.png" 
+          src="/lovable-uploads/66a6d9cc-0713-40a8-9efd-7603ed7304ba.png" 
           alt="Basketball Players" 
-          className="h-auto w-auto max-h-[39rem] object-contain"
-          style={{ maxWidth: '40vw' }}
+          className="h-[30rem] w-auto object-contain"
         />
       </div>
       
-      {/* People reading books illustration in background bottom right, aligned to bottom of screen */}
-      <div className="absolute right-0 md:right-[5%] bottom-0 pointer-events-none opacity-70 md:opacity-80 z-0">
+      {/* People reading books illustration in background lower right */}
+      <div className="absolute right-0 md:right-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
-          src="/lovable-uploads/f8b2e6c9-ec61-494d-94a9-1fb7d957a295.png" 
+          src="/lovable-uploads/709a7d41-9bb4-4313-9076-ae91eb8ff051.png" 
           alt="People Reading" 
-          className="h-auto w-auto max-h-[30rem] object-contain"
-          style={{ maxWidth: '40vw' }}
+          className="h-[24rem] w-auto object-contain"
         />
       </div>
       
@@ -74,26 +72,22 @@ export const HeroSection = ({
             </span>
           </h1>
           
-          {/* Description with fade-in from bottom - NOW WITH SUBTLE BLUR EFFECT */}
+          {/* Description with fade-in from bottom */}
           <div 
             className={`max-w-[700px] text-base sm:text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
-            {/* Added subtle blur effect behind subtitle text */}
-            <div className="relative">
-              <div className="absolute inset-0 backdrop-blur-sm rounded-xl bg-white/30 z-[-1]"></div>
-              <h2 
-                className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
-                  isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
-                }`}
-                style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
-              >
-                The AI platform for making connections and building relationships
-              </h2>
-              <p className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</p>
-            </div>
+            <h2 
+              className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
+                isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
+              }`}
+              style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
+            >
+              The AI platform for making connections and building relationships
+            </h2>
+            <p className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</p>
           </div>
           
           {/* Buttons with horizontal space between them */}
@@ -159,6 +153,8 @@ export const HeroSection = ({
       > 
         <RotatingUseScenarios />
       </div>
+      
+      {/* Remove scroll indicator from hero section since we've moved it to be fixed at bottom of page */}
     </section>
   );
 };

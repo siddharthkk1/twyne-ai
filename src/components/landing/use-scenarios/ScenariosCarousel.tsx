@@ -19,10 +19,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const isMobile = useIsMobile();
 
   const scrollSpeed = 0.5; // pixels per frame at 60fps
-  const cardWidth = 350; // Each card is about 350px including margin
-  const totalWidth = scenarios.length * cardWidth;
+  const totalWidth = scenarios.length * 350; // Each card is about 300px + margin
 
-  // Animation function for continuous movement
+  // Animation function for constant movement
   const animate = () => {
     if (isPaused) {
       animationRef.current = requestAnimationFrame(animate);
@@ -30,13 +29,11 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }
 
     setTranslateX(prev => {
-      // Create continuous scrolling effect by decrementing position
-      let newPos = prev - scrollSpeed;
-      
-      // Instead of resetting, we'll use modulo to create a continuous loop effect
-      // When cards move off the left edge, we need to ensure identical cards appear from the right
-      // This creates the illusion of an infinite loop without any reset
-      return newPos % (cardWidth * scenarios.length);
+      // Reset position when all cards have scrolled by
+      if (Math.abs(prev) >= totalWidth / 2) {
+        return 0;
+      }
+      return prev - scrollSpeed;
     });
 
     animationRef.current = requestAnimationFrame(animate);
@@ -44,7 +41,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   // Start animation on mount
   useEffect(() => {
-    console.log("Starting smooth infinite carousel animation");
+    console.log("Starting sushi carousel animation");
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -89,9 +86,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }, 2000);
   };
 
-  // We need enough duplicates to ensure continuous scrolling
-  // We use multiple copies to ensure we always have enough cards off-screen
-  const displayItems = [...scenarios, ...scenarios, ...scenarios, ...scenarios];
+  // Ensure we have enough cards to create an infinite effect
+  const displayItems = [...scenarios, ...scenarios];
 
   return (
     <div 
@@ -118,7 +114,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
           <div
             key={`${scenario.id}-${index}`}
             className="flex-shrink-0 px-4"
-            style={{ width: `${cardWidth}px` }}
+            style={{ width: '350px' }}
           >
             <div className="flex flex-col items-center h-full">
               {/* Icon above the card */}
