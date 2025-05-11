@@ -41,7 +41,7 @@ export const HeroSection = ({
   }, []);
   
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
-  const shouldCenterCoffeeImage = windowWidth < 1200 && windowWidth >= 768;
+  const shouldCenterCoffeeImage = windowWidth < 1240 && windowWidth >= 768;
   
   // Preload images
   useEffect(() => {
@@ -72,14 +72,19 @@ export const HeroSection = ({
             ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
-            maxHeight: shouldCenterCoffeeImage ? '32rem' : undefined
+            width: "500px", // Fixed width for the image container regardless of position
+            maxWidth: "500px"
           }}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-full max-h-[32rem] object-contain"
+              className="h-auto w-full object-contain"
+              style={{
+                width: "500px", // Fixed width for the image itself
+                maxWidth: "100%"
+              }}
               onLoad={() => setCoffeeImageLoaded(true)}
               loading="eager"
             />
@@ -96,7 +101,7 @@ export const HeroSection = ({
           style={{ 
             right: 'calc(25% - 20px)',  /* Adjust 20px to the right */
             bottom: '-30px',            /* Move 30px down */
-            display: shouldCenterCoffeeImage ? 'none' : 'block'  /* Hide when coffee is centered */
+            display: windowWidth < 1240 ? 'none' : 'block'  /* Hide when coffee is centered */
           }}
         >
           <div className="relative">
@@ -116,12 +121,16 @@ export const HeroSection = ({
         <div 
           className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 md:hidden
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
+          style={{
+            width: "90vw",  
+            maxWidth: "500px"  // Match the fixed width from above
+          }}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-[90vw] max-w-[400px] max-h-[28rem] object-contain"
+              className="h-auto w-full object-contain"
               onLoad={() => setCoffeeImageLoaded(true)}
               loading="eager"
             />
@@ -229,4 +238,3 @@ export const HeroSection = ({
     </section>
   );
 };
-
