@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
+import { WaitlistForm } from "@/components/landing/WaitlistForm";
 
 interface Message {
   id: number;
@@ -101,6 +102,7 @@ export const ChatWithAISection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState(0);
   const [messages, setMessages] = useState<Message[]>(conversationSnapshots[0]);
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   
   // Animation effect for element appearance
   useEffect(() => {
@@ -127,7 +129,7 @@ export const ChatWithAISection = () => {
     const timeout = setTimeout(() => {
       setMessages(conversationSnapshots[currentSnapshotIndex]);
       setIsVisible(true);
-    }, 300); // This delay should be shorter than the interval above
+    }, 200); // Reduced from 300ms to 200ms for less animation delay
     
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
@@ -141,17 +143,17 @@ export const ChatWithAISection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center">
-          {/* Text content */}
+          {/* Text content - Updated font styles to match the rest of the page */}
           <div 
-            className={`space-y-6 transition-all duration-700 transform ${
-              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-20px] opacity-0'
+            className={`space-y-6 transition-opacity duration-500 ${
+              isVisible ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-foreground">
               Through natural conversations, Twyne's AI learns your personality, interests,
               and what matters to you—creating a nuanced picture of who you are.
             </p>
-            <div className="space-y-3 text-muted-foreground">
+            <div className="space-y-3 text-foreground">
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <span className="text-primary text-sm font-medium">1</span>
@@ -174,7 +176,7 @@ export const ChatWithAISection = () => {
             <div>
               <Button 
                 className="rounded-full px-8 hover-scale"
-                onClick={() => window.location.href = "/onboarding"}
+                onClick={() => setIsWaitlistOpen(true)}
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Try It Now
@@ -182,12 +184,11 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation */}
+          {/* Chat simulation - Reduced transform animation for smoother transitions */}
           <div 
-            className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-all duration-700 transform ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+            className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-500 ${
+              isVisible ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ transitionDelay: '300ms' }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
@@ -196,11 +197,7 @@ export const ChatWithAISection = () => {
                 </div>
                 <h3 className="font-medium">Chat with Twyne</h3>
               </div>
-              <div className="flex space-x-2">
-                <div className="h-2 w-2 rounded-full bg-secondary animate-pulse"></div>
-                <div className="h-2 w-2 rounded-full bg-muted"></div>
-                <div className="h-2 w-2 rounded-full bg-muted"></div>
-              </div>
+              {/* Removed the 3 dots as requested */}
             </div>
             
             <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto">
@@ -251,6 +248,10 @@ export const ChatWithAISection = () => {
       {/* Background decorative elements */}
       <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-secondary/10 blur-3xl"></div>
       <div className="absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-primary/10 blur-3xl"></div>
+      
+      {/* Add the WaitlistForm modal */}
+      <WaitlistForm open={isWaitlistOpen} onOpenChange={setIsWaitlistOpen} />
     </section>
   );
 };
+
