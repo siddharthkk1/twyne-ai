@@ -46,7 +46,7 @@ export const HeroSection = ({
         <img 
           src="/lovable-uploads/a3663bd6-22a4-4d9b-beab-54790b6ad515.png" 
           alt="Basketball Player" 
-          className="h-100 w-auto object-contain"
+          className="h-90 w-auto object-contain"
         />
       </div>
       
