@@ -169,7 +169,7 @@ export const HeroSection = ({
             >
               The AI platform for making connections and building relationships
             </h2>
-            <p className="block mt-1">Twyne gets to know your energy, interests, personality, and life context-then introduces you to people nearby who actually click..</p>
+            <p className="block mt-1">Twyne gets to know your energy, interests, personality, and life context—then introduces you to people nearby who actually click..</p>
           </div>
           
           {/* Buttons with horizontal space between them */}
