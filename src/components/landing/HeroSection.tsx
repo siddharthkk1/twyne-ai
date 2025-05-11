@@ -43,31 +43,43 @@ export const HeroSection = ({
       
       {/* Image container with fixed layout */}
       <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto flex justify-center">
-        {/* Basketball players illustration on left - positioned relative to center */}
-        <div className="absolute bottom-0 right-[calc(50%+12rem)] pointer-events-none opacity-80 z-0">
-          <img 
-            src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
-            alt="Basketball Players" 
-            className="h-auto w-auto max-h-[35rem] object-contain"
-          />
+        {/* Basketball players illustration on left - positioned relative to center with increased distance */}
+        <div className="absolute bottom-0 right-[calc(50%+24rem)] pointer-events-none opacity-80 z-0">
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
+              alt="Basketball Players" 
+              className="h-auto w-auto max-h-[35rem] object-contain"
+            />
+            {/* Gradient overlay for fade effect */}
+            <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+          </div>
         </div>
         
         {/* Coffee friends illustration in middle */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 hidden md:block">
-          <img 
-            src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
-            alt="Friends with Coffee" 
-            className="h-auto w-auto max-h-[32rem] object-contain"
-          />
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
+              alt="Friends with Coffee" 
+              className="h-auto w-auto max-h-[32rem] object-contain"
+            />
+            {/* Gradient overlay for fade effect */}
+            <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+          </div>
         </div>
         
-        {/* Reading people illustration on right - positioned relative to center */}
-        <div className="absolute bottom-0 left-[calc(50%+12rem)] pointer-events-none opacity-80 z-0">
-          <img 
-            src="/lovable-uploads/dfa15283-ccbd-44d6-be07-aacaf7436b85.png" 
-            alt="People Reading" 
-            className="h-auto w-auto max-h-[32rem] object-contain"
-          />
+        {/* Reading people illustration on right - positioned relative to center with increased distance */}
+        <div className="absolute bottom-0 left-[calc(50%+24rem)] pointer-events-none opacity-80 z-0">
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/dfa15283-ccbd-44d6-be07-aacaf7436b85.png" 
+              alt="People Reading" 
+              className="h-auto w-auto max-h-[32rem] object-contain"
+            />
+            {/* Gradient overlay for fade effect */}
+            <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+          </div>
         </div>
       </div>
       
