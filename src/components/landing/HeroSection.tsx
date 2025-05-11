@@ -43,7 +43,7 @@ export const HeroSection = ({
   const shouldCenterCoffeeImage = windowWidth < 1240 && windowWidth >= 768;
   
   // Image dimensions - defined once to maintain consistency
-  const coffeeImageWidth = 750;
+  const coffeeImageWidth = 800;
   
   // Preload images
   useEffect(() => {
