@@ -27,12 +27,12 @@ const initialIntros = [
   },
   {
     id: 4,
-    text: "You and Lena both just moved to the city and are figuring out how to feel at home here.",
+    text: "You, Lena, and Zara both just moved to the city and are figuring out how to feel at home here.",
     visible: true
   },
   {
     id: 5,
-    text: "You and Ethan are both in healthcare and could use a break from being everyone else's support system. Walk and talk?",
+    text: "You, Lexi, and Ethan are both in healthcare and could use a break from being everyone else's support system. Walk and talk?",
     visible: true
   },
   {
@@ -55,7 +55,7 @@ const additionalIntros = [
   },
   {
     id: 9,
-    text: "You and Lily are both Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you both know it.",
+    text: "Yo, Sabina, and Lily are both Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you both know it.",
     visible: false
   },
   {
@@ -80,13 +80,13 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   const isMobile = useIsMobile();
   const visibleCount = isMobile ? 4 : 6;
   
-  // Function to rotate just one intro at a time without movement
+  // Function to randomly pick intros for display
   useEffect(() => {
-    const rotateOneIntro = () => {
+    const rotateIntro = () => {
       // Create a copy of the current intros
       const currentIntros = [...intros];
       
-      // First pick a visible intro to replace (just one at a time)
+      // First pick a visible intro to replace
       const visibleIntros = currentIntros.filter(intro => intro.visible);
       const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
       const introToHide = visibleIntros[randomVisibleIndex];
@@ -101,7 +101,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
       const introToShow = hiddenIntros[randomHiddenIndex];
       
-      // Update the visibility states - only change exactly 2 cards (one hides, one shows)
+      // Update the visibility states
       setIntros(current => 
         current.map(intro => {
           if (intro.id === introToHide.id) return { ...intro, visible: false };
@@ -111,13 +111,13 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       );
     };
     
-    // Set interval to rotate intros every 3-5 seconds (only one at a time)
+    // Set interval to rotate intros every 3-5 seconds
     const interval = setInterval(() => {
-      rotateOneIntro();
+      rotateIntro();
     }, Math.random() * 2000 + 3000);
     
     return () => clearInterval(interval);
-  }, [intros]);
+  }, [intros, isMobile]);
   
   // Make sure we have the correct number of visible intros when the screen size changes
   useEffect(() => {
@@ -155,9 +155,6 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
     });
   }, [isMobile]);
   
-  // Get only visible intros
-  const visibleIntros = intros.filter(intro => intro.visible);
-  
   return (
     <section className="py-16 bg-white relative">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -172,32 +169,37 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         </div>
         
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10`}>
-          {visibleIntros.map(intro => (
-            <div 
-              key={intro.id}
-              className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
-              style={{ 
-                height: "240px", // Fixed height
-                width: "100%" // 100% of the grid cell width
-              }}
-            >
-              <p className="text-lg mb-2">
-                <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
-                {" both " + intro.text.split(" both ")[1]}
-              </p>
-              <div className="mt-auto">
-                <Button 
-                  onClick={onOpenWaitlist}
-                  variant="default" 
-                  size="sm"
-                  className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-                >
-                  <MessageCircle size={16} className="mr-1" />
-                  Connect & Say Hi
-                </Button>
+          {intros.map(intro => {
+            // Only render visible intros and only up to the visibleCount limit
+            if (!intro.visible) return null;
+            
+            return (
+              <div 
+                key={intro.id}
+                className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
+                style={{ 
+                  height: "240px", // Fixed height
+                  width: "100%" // 100% of the grid cell width
+                }}
+              >
+                <p className="text-lg mb-2">
+                  <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
+                  {" both " + intro.text.split(" both ")[1]}
+                </p>
+                <div className="mt-auto">
+                  <Button 
+                    onClick={onOpenWaitlist}
+                    variant="default" 
+                    size="sm"
+                    className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+                  >
+                    <MessageCircle size={16} className="mr-1" />
+                    Connect & Say Hi
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
