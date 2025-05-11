@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Sparkles, MessageCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -72,8 +71,8 @@ const additionalIntros: IntroCard[] = [
   },
   {
     id: 9,
-    text: "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it."
-    visible: false,
+    text: "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
+    visible: false
   },
   {
     id: 10,
@@ -273,4 +272,3 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
     </section>
   );
 };
-
