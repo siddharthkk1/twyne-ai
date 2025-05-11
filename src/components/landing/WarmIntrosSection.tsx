@@ -9,7 +9,7 @@ interface WarmIntrosSectionProps {
 
 export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) => {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-white relative">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <div className="rounded-full bg-secondary/20 p-3 inline-flex mb-4">
@@ -21,7 +21,34 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-8">
+        {/* Images positioned on left and right sides */}
+        <div className="hidden md:block">
+          {/* Basketball image on left */}
+          <div className="absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
+            <div className="relative">
+              <img 
+                src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
+                alt="Basketball Players" 
+                className="h-auto w-full object-contain"
+              />
+              <div className="absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
+            </div>
+          </div>
+          
+          {/* Reading people image on right */}
+          <div className="absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
+            <div className="relative">
+              <img 
+                src="/lovable-uploads/dfa15283-ccbd-44d6-be07-aacaf7436b85.png" 
+                alt="People Reading" 
+                className="h-auto w-full object-contain"
+              />
+              <div className="absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-8 relative z-10">
           <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
             <p className="text-lg mb-2">
               <span className="font-semibold">You and Nina</span> both love basketball, burritos, and late-night debates.

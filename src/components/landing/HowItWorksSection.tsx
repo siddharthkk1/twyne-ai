@@ -11,33 +11,6 @@ export const HowItWorksSection = () => {
           <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
         </div>
         
-        {/* Images positioned on left and right sides */}
-        <div className="hidden md:block">
-          {/* Basketball image on left */}
-          <div className="absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
-            <div className="relative">
-              <img 
-                src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
-                alt="Basketball Players" 
-                className="h-auto w-full object-contain"
-              />
-              <div className="absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
-            </div>
-          </div>
-          
-          {/* Reading people image on right */}
-          <div className="absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[300px] lg:max-w-[420px]">
-            <div className="relative">
-              <img 
-                src="/lovable-uploads/dfa15283-ccbd-44d6-be07-aacaf7436b85.png" 
-                alt="People Reading" 
-                className="h-auto w-full object-contain"
-              />
-              <div className="absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
-            </div>
-          </div>
-        </div>
-        
         <div className="grid md:grid-cols-3 gap-8 relative z-10">
           <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
