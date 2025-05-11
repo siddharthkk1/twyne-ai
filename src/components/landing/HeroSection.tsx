@@ -70,6 +70,9 @@ export const HeroSection = ({
           className={`absolute bottom-0 pointer-events-none z-0 hidden md:block
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
             ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
+          style={{ 
+            display: windowWidth < 768 ? 'none' : 'block'
+          }}
         >
           <div className="relative">
             <img 
@@ -93,7 +96,7 @@ export const HeroSection = ({
           <div className="relative">
             <img 
               src="/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png" 
-              alt="People Reading and Listening" 
+              alt="Three Friends Together" 
               className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
@@ -105,7 +108,7 @@ export const HeroSection = ({
 
         {/* For small mobile - center the coffee illustration */}
         <div 
-          className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 block sm:block md:hidden
+          className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 md:hidden
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
         >
           <div className="relative">
