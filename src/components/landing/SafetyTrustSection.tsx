@@ -24,7 +24,7 @@ export const SafetyTrustSection = () => {
                 <UserCheck className="h-7 w-7 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">
-                <span className="text-primary">🟣</span> Real People, Not Bots
+                <span className="text-primary">🟣</span> Real People, Verified
               </h3>
               <p className="text-muted-foreground">
                 <span className="font-medium">Focus:</span> Authenticity & identity verification
@@ -49,8 +49,8 @@ export const SafetyTrustSection = () => {
                 <span className="font-medium">Focus:</span> Control over interaction & boundaries
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
-                <li>No one can message you unless both people opt in</li>
-                <li>You choose what to share and when</li>
+                <li>Mutual consent required</li>
+                <li>Control what information is shared</li>
                 <li>Pause intros or go invisible anytime</li>
               </ul>
             </CardContent>
@@ -69,8 +69,8 @@ export const SafetyTrustSection = () => {
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
                 <li>Block or report anyone instantly</li>
-                <li>We review every report and take action when needed</li>
-                <li>Our systems monitor harmful behavior and patterns proactively</li>
+                <li>Every report is reviewed and acted upon</li>
+                <li>Harmful behavior is monitored proactively</li>
               </ul>
             </CardContent>
           </Card>
