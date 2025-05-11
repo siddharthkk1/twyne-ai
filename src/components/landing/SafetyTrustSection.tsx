@@ -49,8 +49,8 @@ export const SafetyTrustSection = () => {
                 <span className="font-medium">Focus:</span> Control over interaction & boundaries
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
-                <li>Mutual consent required</li>
-                <li>Control what information is shared</li>
+                <li>No one can message you unless both people opt in</li>
+                <li>You choose what to share and when</li>
                 <li>Pause intros or go invisible anytime</li>
               </ul>
             </CardContent>
@@ -68,9 +68,9 @@ export const SafetyTrustSection = () => {
                 <span className="font-medium">Focus:</span> Response systems & safety enforcement
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
-                <li>Block or report users at any time</li>
+                <li>Block or report anyone instantly</li>
                 <li>We review every report and take action when needed</li>
-                <li>Our systems monitor harmful behavior proactively</li>
+                <li>Our systems monitor harmful behavior and patterns proactively</li>
               </ul>
             </CardContent>
           </Card>
