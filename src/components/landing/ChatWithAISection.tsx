@@ -24,7 +24,17 @@ export const ChatWithAISection = () => {
     },
     {
       id: 3,
-      text: "That sounds great! Do you prefer solo hikes or going with others? And what kind of games do you enjoy most?",
+      text: "That sounds great! I'm a fan of hiking too. Any favorite trails or national parks you've been to? And what type of games do you usually play on your game nights?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I recently hiked at Redwood National Park. For game nights, we play everything from Catan to Cards Against Humanity. Depends on the mood!",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "Redwood is stunning! Those ancient trees are something else. And your game nights sound like the perfect mix of strategy and laughs. You seem like someone who values both outdoor adventures and quality time with friends. What kind of restaurants do you enjoy exploring?",
       sender: "ai"
     },
   ]);
