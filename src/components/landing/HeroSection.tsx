@@ -43,8 +43,8 @@ export const HeroSection = ({
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
   const shouldCenterCoffeeImage = windowWidth < 1240 && windowWidth >= 768;
   
-  // Coffee image dimensions - reduced by 10% from the 20% increased size
-  const coffeeImageWidth = 756; // Original 840 * 0.9 = 756
+  // Coffee image dimensions - defined once to maintain consistency
+  const coffeeImageWidth = 700;
   
   // Preload images
   useEffect(() => {
@@ -52,7 +52,7 @@ export const HeroSection = ({
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png";
+    readingImg.src = "/lovable-uploads/3971dfb4-3115-4a94-8e5c-b863d344cb77.png";
   }, []);
   
   return (
@@ -72,10 +72,10 @@ export const HeroSection = ({
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden md:block
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(25%-40px)] -translate-x-1/2'}`}
+            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(25%-20px)] -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
-            width: `${coffeeImageWidth}px` // Reduced width (10% smaller)
+            width: `${coffeeImageWidth}px` // Original fixed width in all cases
           }}
         >
           <div className="relative">
@@ -92,24 +92,22 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* New Reading illustration - Center of right half - UPDATED WITH NEW IMAGE */}
+        {/* New Reading illustration - Center of right half */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
             right-1/4 translate-x-1/2`}
           style={{ 
-            right: 'calc(25% - 20px)',
+            right: 'calc(25% - 20px)',  /* Adjusted to match the coffee image positioning */
             bottom: '-30px',
-            display: windowWidth < 1240 ? 'none' : 'block',
-            width: `${coffeeImageWidth}px` // Reduced width (10% smaller)
+            display: windowWidth < 1240 ? 'none' : 'block'  /* Hide when coffee is centered */
           }}
         >
           <div className="relative">
             <img 
-              src="/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png" 
+              src="/lovable-uploads/3971dfb4-3115-4a94-8e5c-b863d344cb77.png" 
               alt="People Reading and Using Phone" 
-              className="h-auto w-full object-contain"
-              style={{ width: `${coffeeImageWidth}px` }} // Reduced width (10% smaller)
+              className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
             />
@@ -124,7 +122,7 @@ export const HeroSection = ({
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
           style={{
             width: "90vw",  
-            maxWidth: `${coffeeImageWidth}px`  // Match the reduced width
+            maxWidth: `${coffeeImageWidth}px`  // Match the fixed width from above
           }}
         >
           <div className="relative">
