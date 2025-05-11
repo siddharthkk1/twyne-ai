@@ -15,7 +15,7 @@ import {
   IoMusicalNotes,
   IoColorPaletteSharp,
   IoBeerOutline,  // For the bar hopping scenario
-  IoBaby        // For the baby mamas scenario
+  IoPersonOutline  // Using IoPersonOutline instead of IoBaby for the baby mamas scenario
 } from "react-icons/io5";
 
 export interface ScenarioItemProps {
@@ -93,7 +93,7 @@ export const scenarios: ScenarioItemProps[] = [
   {
     id: 12,
     title: "I'm a baby mama looking for other baby mamas to swap stories, laughs, and survival tips.",
-    icon: <div className="p-2 bg-primary-100 rounded-full"><IoBaby size={28} className="text-primary" /></div>
+    icon: <div className="p-2 bg-primary-100 rounded-full"><IoPersonOutline size={28} className="text-primary" /></div>
   },
   {
     id: 13,
