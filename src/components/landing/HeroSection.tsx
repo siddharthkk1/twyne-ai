@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -43,7 +42,7 @@ export const HeroSection = ({
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
   const shouldCenterCoffeeImage = windowWidth < 1240 && windowWidth >= 768;
   
-  // Coffee image dimensions - defined once to maintain consistency
+  // Image dimensions - defined once to maintain consistency
   const coffeeImageWidth = 700;
   
   // Preload images
@@ -100,14 +99,16 @@ export const HeroSection = ({
           style={{ 
             right: 'calc(25% - 20px)',  /* Adjusted to match the coffee image positioning */
             bottom: '-30px',
-            display: windowWidth < 1240 ? 'none' : 'block'  /* Hide when coffee is centered */
+            display: windowWidth < 1240 ? 'none' : 'block',  /* Hide when coffee is centered */
+            width: `${coffeeImageWidth}px`  /* Use the same width as coffee image */
           }}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/3971dfb4-3115-4a94-8e5c-b863d344cb77.png" 
               alt="People Reading and Using Phone" 
-              className="h-auto w-full max-h-[32rem] object-contain"
+              className="h-auto object-contain"
+              style={{ width: `${coffeeImageWidth}px` }}
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
             />
