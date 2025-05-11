@@ -197,7 +197,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
                 {intro.isGroup && (
                   <div className="mb-2 flex items-center text-primary">
                     <Users size={16} className="mr-1" />
-                    <span className="text-xs font-medium">Group Connection</span>
+                    <span className="text-xs font-medium">Group</span>
                   </div>
                 )}
                 <p className="text-lg mb-2">
