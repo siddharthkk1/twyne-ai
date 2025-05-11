@@ -65,11 +65,11 @@ export const HeroSection = ({
       
       {/* Images container with responsive positioning */}
       <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto">
-        {/* Coffee friends illustration - Left positioned with 300px from center on desktop */}
+        {/* Coffee friends illustration - Center of left half */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden md:block
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(50%-650px)]'}`}
+            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
         >
           <div className="relative">
             <img 
@@ -84,11 +84,11 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* Reading/Listening people illustration - Right positioned with 300px from center */}
+        {/* Reading/Listening people illustration - Center of right half */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            right-[calc(50%-650px)]`}
+            right-1/4 translate-x-1/2`}
         >
           <div className="relative">
             <img 
