@@ -40,19 +40,19 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Basketball player illustration in background lower left */}
+      {/* Basketball players illustration in background lower left */}
       <div className="absolute left-0 md:left-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
-          src="/lovable-uploads/a3663bd6-22a4-4d9b-beab-54790b6ad515.png" 
-          alt="Basketball Player" 
+          src="/lovable-uploads/66a6d9cc-0713-40a8-9efd-7603ed7304ba.png" 
+          alt="Basketball Players" 
           className="h-[30rem] w-auto object-contain"
         />
       </div>
       
-      {/* People reading books illustration in background lower right - Height reduced */}
+      {/* People reading books illustration in background lower right */}
       <div className="absolute right-0 md:right-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
-          src="/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png" 
+          src="/lovable-uploads/709a7d41-9bb4-4313-9076-ae91eb8ff051.png" 
           alt="People Reading" 
           className="h-[24rem] w-auto object-contain"
         />
