@@ -90,79 +90,85 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   const [intros, setIntros] = useState<IntroCard[]>([...initialIntros, ...additionalIntros]);
   const isMobile = useIsMobile();
   const visibleCount = isMobile ? 4 : 6;
-  const rotationDelay = Math.random() * 2000 + 3000; // 3-5 seconds
   
-  // Function to randomly change exactly one card at a time with no shifting
+  // Rotate one card every 5 seconds
   useEffect(() => {
-    const rotateIntro = () => {
-      // Create a copy of the current intros
-      const currentIntros = [...intros];
-      
-      // Get all visible and hidden intros
-      const visibleIntros = currentIntros.filter(intro => intro.visible);
-      const hiddenIntros = currentIntros.filter(intro => !intro.visible);
-      
-      // If there are no hidden intros, just return
-      if (hiddenIntros.length === 0) return;
-      
-      // Pick a random visible intro to hide
-      const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
-      const introToHide = visibleIntros[randomVisibleIndex];
-      
-      // Pick a random hidden intro to show
-      const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
-      const introToShow = hiddenIntros[randomHiddenIndex];
-      
-      // Update the visibility states
-      setIntros(current => 
-        current.map(intro => {
-          if (intro.id === introToHide.id) return { ...intro, visible: false };
-          if (intro.id === introToShow.id) return { ...intro, visible: true };
-          return intro; // All other cards stay exactly as they are
-        })
-      );
+    const rotateOneCard = () => {
+      setIntros(currentIntros => {
+        // Get visible and hidden intros
+        const visibleIntros = currentIntros.filter(intro => intro.visible);
+        const hiddenIntros = currentIntros.filter(intro => !intro.visible);
+        
+        // If no hidden intros available, don't change anything
+        if (hiddenIntros.length === 0) return currentIntros;
+        
+        // Pick one random visible card to hide
+        const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
+        const cardToHide = visibleIntros[randomVisibleIndex];
+        
+        // Pick one random hidden card to show
+        const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
+        const cardToShow = hiddenIntros[randomHiddenIndex];
+        
+        // Create a new array with the updated visibility states
+        return currentIntros.map(card => {
+          if (card.id === cardToHide.id) return { ...card, visible: false };
+          if (card.id === cardToShow.id) return { ...card, visible: true };
+          return card; // Keep all other cards unchanged
+        });
+      });
     };
     
-    // Set interval for the rotation with the calculated delay
-    const interval = setInterval(rotateIntro, rotationDelay);
+    // Set interval to rotate one card every 5 seconds
+    const interval = setInterval(rotateOneCard, 5000);
     
     return () => clearInterval(interval);
-  }, [intros, rotationDelay]);
+  }, []);
   
-  // Make sure we have the correct number of visible intros when the screen size changes
-  // This ensures we don't have cards appearing or disappearing when the viewport changes
+  // Ensure correct number of visible cards based on screen size
   useEffect(() => {
     setIntros(current => {
-      // Count currently visible
-      const visibleCount = current.filter(intro => intro.visible).length;
-      const desiredCount = isMobile ? 4 : 6;
+      const visibleIntros = current.filter(intro => intro.visible);
+      const hiddenIntros = current.filter(intro => !intro.visible);
+      const targetVisibleCount = isMobile ? 4 : 6;
       
       // If we already have the correct number, no change needed
-      if (visibleCount === desiredCount) return current;
+      if (visibleIntros.length === targetVisibleCount) return current;
       
-      // If we need to show more
-      if (visibleCount < desiredCount) {
-        const hiddenIntros = current.filter(intro => !intro.visible);
-        const toShow = hiddenIntros.slice(0, desiredCount - visibleCount);
+      let updatedIntros = [...current];
+      
+      // If we need more visible cards
+      if (visibleIntros.length < targetVisibleCount) {
+        // Calculate how many more cards we need to show
+        const cardsToAdd = targetVisibleCount - visibleIntros.length;
+        // Get that many cards from the hidden ones
+        const cardsToShow = hiddenIntros.slice(0, cardsToAdd);
         
-        return current.map(intro => {
-          if (toShow.some(i => i.id === intro.id)) {
-            return { ...intro, visible: true };
+        // Update visibility for these cards
+        updatedIntros = current.map(card => {
+          if (cardsToShow.some(c => c.id === card.id)) {
+            return { ...card, visible: true };
           }
-          return intro;
+          return card;
+        });
+      } 
+      // If we need to hide some cards
+      else if (visibleIntros.length > targetVisibleCount) {
+        // Calculate how many cards we need to hide
+        const cardsToRemove = visibleIntros.length - targetVisibleCount;
+        // Get that many cards from the visible ones
+        const cardsToHide = visibleIntros.slice(0, cardsToRemove);
+        
+        // Update visibility for these cards
+        updatedIntros = current.map(card => {
+          if (cardsToHide.some(c => c.id === card.id)) {
+            return { ...card, visible: false };
+          }
+          return card;
         });
       }
       
-      // If we need to hide some
-      const visibleIntros = current.filter(intro => intro.visible);
-      const toHide = visibleIntros.slice(desiredCount);
-      
-      return current.map(intro => {
-        if (toHide.some(i => i.id === intro.id)) {
-          return { ...intro, visible: false };
-        }
-        return intro;
-      });
+      return updatedIntros;
     });
   }, [isMobile]);
   
