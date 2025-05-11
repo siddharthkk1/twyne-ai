@@ -41,15 +41,6 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Girl illustration in background upper left */}
-      <div className="absolute left-0 md:left-[5%] top-1/3 transform -translate-y-1/2 pointer-events-none opacity-50 md:opacity-70 z-0">
-        <img 
-          src="/lovable-uploads/0062c0fe-e9a3-4594-a70a-670593f1bf6c.png" 
-          alt="Illustration" 
-          className="w-48 md:w-64 lg:w-80 object-contain"
-        />
-      </div>
-      
       {/* Basketball player illustration in background lower left */}
       <div className="absolute left-0 md:left-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
