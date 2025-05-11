@@ -67,7 +67,7 @@ export const scenarios: ScenarioItemProps[] = [
   },
   {
     id: 6,
-    title: "I'm looking for NBA fans to watch games with.",
+    title: "I'm looking for NBA fans to watch games at with.",
     icon: <div className="p-2 bg-accent-100 rounded-full"><IoBasketballSharp size={28} className="text-accent" /></div>
   },
   {
@@ -87,13 +87,17 @@ export const scenarios: ScenarioItemProps[] = [
   },
   {
     id: 10,
-    title: "I want to share my thoughts and ideas with like-minded people.",
+    title: "I'm looking for a group of lads to go bar hopping with regularly.",
+    icon: <div className="p-2 bg-primary-100 rounded-full"><IoBulb size={28} className="text-primary" /></div>
+  },
+  {
+    id: 10,
+    title: "I’m a baby mama looking for other baby mamas to swap stories, laughs, and survival tips.",
     icon: <div className="p-2 bg-primary-100 rounded-full"><IoBulb size={28} className="text-primary" /></div>
   },
   {
     id: 11,
-    title: "I'm an artist looking for creative collaborators.",
+    title: "I’m in my healing era and looking for people who get it.”,
     icon: <div className="p-2 bg-secondary-100 rounded-full"><IoColorPaletteSharp size={28} className="text-secondary" /></div>
   },
-  
 ];
