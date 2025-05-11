@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,7 +28,7 @@ const Index = () => {
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/7c804f22-0b4e-4a87-a191-18c787590a79.png";
+    readingImg.src = "/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png";
   }, []);
   
   // Function to scroll to How It Works section

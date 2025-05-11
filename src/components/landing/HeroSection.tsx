@@ -49,7 +49,7 @@ export const HeroSection = ({
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/7c804f22-0b4e-4a87-a191-18c787590a79.png";
+    readingImg.src = "/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png";
   }, []);
   
   return (
@@ -92,7 +92,7 @@ export const HeroSection = ({
         >
           <div className="relative">
             <img 
-              src="/lovable-uploads/7c804f22-0b4e-4a87-a191-18c787590a79.png" 
+              src="/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png" 
               alt="People Reading and Listening" 
               className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setReadingImageLoaded(true)}
