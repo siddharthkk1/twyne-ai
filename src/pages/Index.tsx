@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -91,8 +90,10 @@ const Index = () => {
       {/* How It Works Section */}
       <HowItWorksSection />
 
-      {/* Chat With AI Section - Now with rotating conversation snapshots */}
-      <ChatWithAISection />
+      {/* Chat With AI Section - with background set to white */}
+      <div className="bg-white">
+        <ChatWithAISection />
+      </div>
 
       {/* Example Warm Intros Section - without images in this section */}
       <WarmIntrosSection onOpenWaitlist={openWaitlist} />
@@ -100,10 +101,10 @@ const Index = () => {
       {/* Sample Profile Section */}
       <SampleProfileSection />
       
-      {/* Safety & Trust Section - New section after Sample Profile */}
+      {/* Safety & Trust Section - Now white background */}
       <SafetyTrustSection />
       
-      {/* Privacy Section */}
+      {/* Privacy Section - Now white background */}
       <PrivacySection />
 
       {/* Social Proof Section */}

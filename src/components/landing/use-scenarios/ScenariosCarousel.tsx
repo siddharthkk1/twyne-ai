@@ -20,7 +20,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   // Increase scrollSpeed by 25%, from 0.5 to 0.625
   const scrollSpeed = 0.625; // pixels per frame at 60fps (25% increase from 0.5)
-  const totalWidth = scenarios.length * 350; // Each card is about 300px + margin
+  
+  // Calculate the total width properly (full width of all original scenarios)
+  const scenarioWidth = 350; // Each card is about 350px (width + margins)
+  const totalWidth = scenarios.length * scenarioWidth;
 
   // Animation function for constant movement
   const animate = () => {
@@ -31,9 +34,11 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
     setTranslateX(prev => {
       // Reset position when all cards have scrolled by
-      // Using Math.abs to fix the jumping issue
       const newPosition = prev - scrollSpeed;
-      if (Math.abs(newPosition) >= totalWidth / 2) {
+      
+      // When we've scrolled past all scenarios, reset to beginning
+      // We don't want to use Math.abs here because we need to track direction
+      if (newPosition <= -totalWidth) {
         return 0;
       }
       return newPosition;
@@ -44,7 +49,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   // Start animation on mount
   useEffect(() => {
-    console.log("Starting sushi carousel animation");
+    console.log("Starting sushi carousel animation with totalWidth:", totalWidth);
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -52,7 +57,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPaused]);
+  }, [isPaused, totalWidth]);
 
   // Handle manual interaction
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -121,7 +126,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
           <div
             key={`${scenario.id}-${index}`}
             className="flex-shrink-0 px-4"
-            style={{ width: '350px' }}
+            style={{ width: `${scenarioWidth}px` }}
           >
             <div className="flex flex-col items-center h-full">
               {/* Icon above the card */}

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const SafetyTrustSection = () => {
   return (
-    <section className="py-16 bg-muted/20">
+    <section className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <div className="rounded-full bg-green-100 p-3 inline-flex mb-4">
@@ -18,7 +18,7 @@ export const SafetyTrustSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white shadow-sm hover:shadow-md transition-all border border-border/20">
+          <Card className="bg-background shadow-sm hover:shadow-md transition-all border border-border/20">
             <CardContent className="pt-6">
               <div className="rounded-full bg-primary/10 p-3 w-14 h-14 flex items-center justify-center mb-4">
                 <User className="h-7 w-7 text-primary" />
@@ -35,7 +35,7 @@ export const SafetyTrustSection = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white shadow-sm hover:shadow-md transition-all border border-border/20">
+          <Card className="bg-background shadow-sm hover:shadow-md transition-all border border-border/20">
             <CardContent className="pt-6">
               <div className="rounded-full bg-secondary/10 p-3 w-14 h-14 flex items-center justify-center mb-4">
                 <Lock className="h-7 w-7 text-secondary" />
@@ -52,7 +52,7 @@ export const SafetyTrustSection = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white shadow-sm hover:shadow-md transition-all border border-border/20">
+          <Card className="bg-background shadow-sm hover:shadow-md transition-all border border-border/20">
             <CardContent className="pt-6">
               <div className="rounded-full bg-accent/10 p-3 w-14 h-14 flex items-center justify-center mb-4">
                 <Shield className="h-7 w-7 text-accent" />

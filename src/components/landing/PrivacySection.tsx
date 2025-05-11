@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 
 export const PrivacySection = () => {
   return (
-    <section className="py-16 bg-muted/30">
+    <section className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-10">
           <div className="rounded-full bg-primary/10 p-3 inline-flex mb-4">
@@ -19,7 +19,7 @@ export const PrivacySection = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <Card className="bg-white p-6 shadow-sm hover:shadow-md transition-all">
+          <Card className="bg-background p-6 shadow-sm hover:shadow-md transition-all">
             <div className="rounded-full bg-green-100 p-2 w-10 h-10 flex items-center justify-center mb-4">
               <Lock className="h-5 w-5 text-green-700" />
             </div>
@@ -33,7 +33,7 @@ export const PrivacySection = () => {
             </p>
           </Card>
 
-          <Card className="bg-white p-6 shadow-sm hover:shadow-md transition-all">
+          <Card className="bg-background p-6 shadow-sm hover:shadow-md transition-all">
             <div className="rounded-full bg-blue-100 p-2 w-10 h-10 flex items-center justify-center mb-4">
               <Eye className="h-5 w-5 text-blue-700" />
             </div>
@@ -47,7 +47,7 @@ export const PrivacySection = () => {
             </p>
           </Card>
 
-          <Card className="bg-white p-6 shadow-sm hover:shadow-md transition-all">
+          <Card className="bg-background p-6 shadow-sm hover:shadow-md transition-all">
             <div className="rounded-full bg-purple-100 p-2 w-10 h-10 flex items-center justify-center mb-4">
               <Shield className="h-5 w-5 text-purple-700" />
             </div>
