@@ -105,7 +105,7 @@ const About = () => {
                 Just a slower, softer, more human kind of social network — one that helps us all feel a little more at home, wherever we are.
               </p>
             </div>
-            
+            <p className="italic text-gray-600">— The Twyne Team</p>
           </div>
         </section>
       </div>
