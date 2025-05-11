@@ -19,9 +19,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const isMobile = useIsMobile();
 
   const scrollSpeed = 0.5; // pixels per frame at 60fps
-  const totalWidth = scenarios.length * 350; // Each card is about 300px + margin
+  const cardWidth = 350; // Each card is about 350px including margin
+  const totalWidth = scenarios.length * cardWidth;
 
-  // Animation function for constant movement
+  // Animation function for continuous movement
   const animate = () => {
     if (isPaused) {
       animationRef.current = requestAnimationFrame(animate);
@@ -29,11 +30,17 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }
 
     setTranslateX(prev => {
-      // Reset position when all cards have scrolled by
-      if (Math.abs(prev) >= totalWidth / 2) {
-        return 0;
+      // Create continuous scrolling effect
+      let newPos = prev - scrollSpeed;
+      
+      // When one full item has scrolled off screen, move it to the end
+      // This creates a seamless infinite scroll effect
+      if (newPos < -cardWidth) {
+        // Reset position but adjust for the scrolled amount
+        return newPos + cardWidth;
       }
-      return prev - scrollSpeed;
+      
+      return newPos;
     });
 
     animationRef.current = requestAnimationFrame(animate);
@@ -41,7 +48,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   // Start animation on mount
   useEffect(() => {
-    console.log("Starting sushi carousel animation");
+    console.log("Starting smooth infinite carousel animation");
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -86,8 +93,20 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }, 2000);
   };
 
-  // Ensure we have enough cards to create an infinite effect
-  const displayItems = [...scenarios, ...scenarios];
+  // Create enough duplicates to ensure smooth infinite scrolling
+  // We duplicate the scenarios multiple times to ensure there are always enough cards
+  const displayItems = [...scenarios, ...scenarios, ...scenarios];
+
+  // Function to get the visual position of each item accounting for infinite scroll
+  const getItemStyle = (index: number) => {
+    // This allows items to "jump" back to maintain the illusion of infinite scrolling
+    const adjustedTranslateX = translateX % cardWidth;
+    
+    return {
+      transform: `translateX(${adjustedTranslateX}px)`,
+      transition: isDragging ? 'none' : 'transform 0.1s linear',
+    };
+  };
 
   return (
     <div 
@@ -98,10 +117,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     >
       <div 
         className="flex items-center transition-transform cursor-grab"
-        style={{
-          transform: `translateX(${translateX}px)`,
-          transition: isDragging ? 'none' : 'transform 0.1s linear',
-        }}
+        style={getItemStyle(0)}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onMouseMove={handleMouseMove}
@@ -114,7 +130,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
           <div
             key={`${scenario.id}-${index}`}
             className="flex-shrink-0 px-4"
-            style={{ width: '350px' }}
+            style={{ width: `${cardWidth}px` }}
           >
             <div className="flex flex-col items-center h-full">
               {/* Icon above the card */}
