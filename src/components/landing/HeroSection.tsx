@@ -108,7 +108,7 @@ export const HeroSection = ({
               src="/lovable-uploads/3971dfb4-3115-4a94-8e5c-b863d344cb77.png" 
               alt="People Reading and Using Phone" 
               className="h-auto object-contain"
-              style={{ width: `${coffeeImageWidth*1.5}px` }}
+              style={{ width: `${coffeeImageWidth*1}px` }}
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
             />
