@@ -40,8 +40,11 @@ export const HeroSection = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
+  // Modified threshold width (1200 + 40 = 1240)
+  const layoutBreakpoint = 1240;
+  
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
-  const shouldCenterCoffeeImage = windowWidth < 1200 && windowWidth >= 768;
+  const shouldCenterCoffeeImage = windowWidth < layoutBreakpoint && windowWidth >= 768;
   
   // Preload images
   useEffect(() => {
@@ -72,14 +75,15 @@ export const HeroSection = ({
             ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
-            maxHeight: shouldCenterCoffeeImage ? '32rem' : undefined
+            maxHeight: '32rem',
+            width: shouldCenterCoffeeImage ? '480px' : '480px', // Fixed width regardless of centering
           }}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-full max-h-[32rem] object-contain"
+              className="h-auto w-full object-contain" 
               onLoad={() => setCoffeeImageLoaded(true)}
               loading="eager"
             />
@@ -94,9 +98,9 @@ export const HeroSection = ({
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
             right-1/4 translate-x-1/2`}
           style={{ 
-            right: 'calc(25% - 20px)',  /* Adjust 20px to the right */
-            bottom: '-30px',            /* Move 30px down */
-            display: shouldCenterCoffeeImage ? 'none' : 'block'  /* Hide when coffee is centered */
+            right: 'calc(25% + 20px)',  /* Adjusted 20px to the right */
+            bottom: '30px',            /* Moved 30px down */
+            display: windowWidth < layoutBreakpoint ? 'none' : 'block'  /* Use increased threshold */
           }}
         >
           <div className="relative">
@@ -229,4 +233,3 @@ export const HeroSection = ({
     </section>
   );
 };
-
