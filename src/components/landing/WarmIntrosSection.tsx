@@ -23,6 +23,7 @@ const initialIntros: IntroCard[] = [
     id: 1,
     text: "You, Siddharth, and Calib both love basketball, burritos, and late-night debates.",
     visible: true,
+    isGroup: true,
     position: 0
   },
   {
