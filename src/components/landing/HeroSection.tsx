@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -72,22 +73,26 @@ export const HeroSection = ({
             </span>
           </h1>
           
-          {/* Description with fade-in from bottom */}
+          {/* Description with fade-in from bottom - NOW WITH BLUR EFFECT */}
           <div 
             className={`max-w-[700px] text-base sm:text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
-            <h2 
-              className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
-                isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
-              }`}
-              style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
-            >
-              The AI platform for making connections and building relationships
-            </h2>
-            <p className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</p>
+            {/* Added specific blur effect behind subtitle text */}
+            <div className="relative">
+              <div className="absolute inset-0 backdrop-blur-md rounded-xl bg-white/50 z-[-1]"></div>
+              <h2 
+                className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
+                  isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
+                }`}
+                style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
+              >
+                The AI platform for making connections and building relationships
+              </h2>
+              <p className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</p>
+            </div>
           </div>
           
           {/* Buttons with horizontal space between them */}
@@ -158,3 +163,4 @@ export const HeroSection = ({
     </section>
   );
 };
+
