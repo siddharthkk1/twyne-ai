@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -43,8 +42,8 @@ export const HeroSection = ({
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
   const shouldCenterCoffeeImage = windowWidth < 1240 && windowWidth >= 768;
   
-  // Coffee image dimensions - increased by 20%
-  const coffeeImageWidth = 840; // Original 700 * 1.2 = 840
+  // Coffee image dimensions - reduced by 10% from the 20% increased size
+  const coffeeImageWidth = 756; // Original 840 * 0.9 = 756
   
   // Preload images
   useEffect(() => {
@@ -75,7 +74,7 @@ export const HeroSection = ({
             ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(25%-40px)] -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
-            width: `${coffeeImageWidth}px` // Increased width (20% larger)
+            width: `${coffeeImageWidth}px` // Reduced width (10% smaller)
           }}
         >
           <div className="relative">
@@ -101,7 +100,7 @@ export const HeroSection = ({
             right: 'calc(25% - 20px)',
             bottom: '-30px',
             display: windowWidth < 1240 ? 'none' : 'block',
-            width: `${coffeeImageWidth}px` // Match coffee image width (20% larger)
+            width: `${coffeeImageWidth}px` // Reduced width (10% smaller)
           }}
         >
           <div className="relative">
@@ -109,7 +108,7 @@ export const HeroSection = ({
               src="/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png" 
               alt="People Reading and Using Phone" 
               className="h-auto w-full object-contain"
-              style={{ width: `${coffeeImageWidth}px` }} // Increased width (20% larger)
+              style={{ width: `${coffeeImageWidth}px` }} // Reduced width (10% smaller)
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
             />
@@ -124,7 +123,7 @@ export const HeroSection = ({
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
           style={{
             width: "90vw",  
-            maxWidth: `${coffeeImageWidth}px`  // Match the new larger width
+            maxWidth: `${coffeeImageWidth}px`  // Match the reduced width
           }}
         >
           <div className="relative">
