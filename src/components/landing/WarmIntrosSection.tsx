@@ -21,7 +21,7 @@ interface IntroCard {
 const initialIntros: IntroCard[] = [
   {
     id: 1,
-    text: "You and Nina both love basketball, burritos, and late-night debates.",
+    text: "You, Siddharth, and Calib both love basketball, burritos, and late-night debates.",
     visible: true,
     position: 0
   },
@@ -33,7 +33,7 @@ const initialIntros: IntroCard[] = [
   },
   {
     id: 3, 
-    text: "You and Chris are both getting married in a month and feeling all the chaos and excitement.",
+    text: "You and Bryton are both getting married in a month and feeling all the chaos and excitement.",
     visible: true,
     position: 2
   },
@@ -53,7 +53,7 @@ const initialIntros: IntroCard[] = [
   },
   {
     id: 6,
-    text: "You and Jay are both startup people—figuring out life, product-market fit, and how to have hobbies again. Coffee?",
+    text: "You and Dake are both startup people—figuring out life, product-market fit, and how to have hobbies again. Coffee?",
     visible: true,
     position: 5
   }
@@ -72,9 +72,8 @@ const additionalIntros: IntroCard[] = [
   },
   {
     id: 9,
-    text: "You, Sabina, and Lily are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation's underrated—you all know it.",
+    text: "You and Rebekah are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation's underrated—you all know it.",
     visible: false,
-    isGroup: true
   },
   {
     id: 10,
