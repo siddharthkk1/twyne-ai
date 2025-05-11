@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -40,8 +41,8 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Girl illustration in background left side */}
-      <div className="absolute left-0 md:left-[5%] top-1/2 transform -translate-y-1/2 pointer-events-none opacity-50 md:opacity-70 z-0">
+      {/* Girl illustration in background upper left */}
+      <div className="absolute left-0 md:left-[5%] top-1/3 transform -translate-y-1/2 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
           src="/lovable-uploads/0062c0fe-e9a3-4594-a70a-670593f1bf6c.png" 
           alt="Illustration" 
@@ -49,8 +50,8 @@ export const HeroSection = ({
         />
       </div>
       
-      {/* Basketball player illustration in background right side */}
-      <div className="absolute right-0 md:right-[5%] top-1/2 transform -translate-y-1/2 pointer-events-none opacity-50 md:opacity-70 z-0">
+      {/* Basketball player illustration in background lower left */}
+      <div className="absolute left-0 md:left-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
         <img 
           src="/lovable-uploads/a3663bd6-22a4-4d9b-beab-54790b6ad515.png" 
           alt="Basketball Player" 
