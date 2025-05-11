@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -45,12 +44,11 @@ export const HeroSection = ({
       
       {/* Images container with responsive positioning */}
       <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto">
-        {/* Coffee friends illustration - Further left position on desktop, hidden on mobile */}
+        {/* Coffee friends illustration - Left positioned with 100px from center */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            left-0 lg:left-4 xl:left-[10%]
-            max-w-[450px]`}
+            left-[calc(50%-450px)]`}
         >
           <div className="relative">
             <img 
@@ -58,7 +56,6 @@ export const HeroSection = ({
               alt="Friends with Coffee" 
               className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setCoffeeImageLoaded(true)}
-              fetchPriority="high"
               loading="eager"
             />
             {/* Gradient overlay for fade effect */}
@@ -66,12 +63,11 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* Reading/Listening people illustration on right */}
+        {/* Reading/Listening people illustration - Right positioned with 100px from center */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            right-0 lg:right-4 xl:right-[10%]
-            max-w-[450px]`}
+            right-[calc(50%-450px)]`}
         >
           <div className="relative">
             <img 
@@ -79,24 +75,6 @@ export const HeroSection = ({
               alt="People Reading and Listening" 
               className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setReadingImageLoaded(true)}
-            />
-            {/* Gradient overlay for fade effect */}
-            <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
-          </div>
-        </div>
-
-        {/* For mobile - center the coffee illustration */}
-        <div 
-          className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 block sm:hidden
-            ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
-        >
-          <div className="relative">
-            <img 
-              src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
-              alt="Friends with Coffee" 
-              className="h-auto w-[90vw] max-w-[400px] max-h-[28rem] object-contain"
-              onLoad={() => setCoffeeImageLoaded(true)}
-              fetchPriority="high"
               loading="eager"
             />
             {/* Gradient overlay for fade effect */}

@@ -88,7 +88,7 @@ const Index = () => {
       {/* How It Works Section */}
       <HowItWorksSection />
 
-      {/* Example Warm Intros Section */}
+      {/* Example Warm Intros Section - without images in this section */}
       <WarmIntrosSection onOpenWaitlist={openWaitlist} />
 
       {/* Sample Profile Section */}
