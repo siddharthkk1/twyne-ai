@@ -25,7 +25,7 @@ const About = () => {
           </Button>
         </div>
       
-        <section className="py-12 bg-background text-foreground">
+        <section className="py-12 text-foreground">
           <div className="max-w-3xl mx-auto space-y-10">
             <div className="space-y-4 text-center">
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight">About Twyne</h1>
