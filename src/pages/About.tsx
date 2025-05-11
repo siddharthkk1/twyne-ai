@@ -95,7 +95,7 @@ const About = () => {
                 We don't just want to help people make new friends. We want to help reshape how connection feels in modern life.
               </p>
               <p>
-                We imagine a world where cities feel smaller, and friendships feel easier. Where you can move to a new neighborhood and easily meet people. Where your social life isn't built on swipes or group chats — it's built on small, genuine moments that grow over time.
+                We imagine a world where cities feel smaller, and friendships feel easier. Where you can move to a new neighborhood and easily meet people. Where your social life isn't built on swipes or group chats — it's built on small, genuine moments that grow into something real.
               </p>
               <p>
                 In this world, no one goes weeks without feeling connected. Connection isn't a project — it's part of the background of your life.
