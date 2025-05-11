@@ -7,15 +7,15 @@ import {
   IoBookSharp, 
   IoLaptopOutline, 
   IoChatbubbleEllipses, 
-  IoBulb, // Changed from IoBrain to IoBulb which exists in the io5 package
+  IoBulb,
   IoHeartSharp, 
   IoFastFoodOutline,
   IoBasketballSharp,
-  IoCloudSharp,
-  IoColorPaletteSharp,
-  IoMusicalNotes,
   IoGlobeOutline,
-  IoCameraSharp
+  IoMusicalNotes,
+  IoColorPaletteSharp,
+  IoBeerOutline,  // For the bar hopping scenario
+  IoBaby        // For the baby mamas scenario
 } from "react-icons/io5";
 
 export interface ScenarioItemProps {
@@ -88,12 +88,12 @@ export const scenarios: ScenarioItemProps[] = [
   {
     id: 11,
     title: "I'm looking for a group of lads to go bar hopping with regularly.",
-    icon: <div className="p-2 bg-primary-100 rounded-full"><IoBulb size={28} className="text-primary" /></div>
+    icon: <div className="p-2 bg-primary-100 rounded-full"><IoBeerOutline size={28} className="text-primary" /></div>
   },
   {
     id: 12,
     title: "I'm a baby mama looking for other baby mamas to swap stories, laughs, and survival tips.",
-    icon: <div className="p-2 bg-primary-100 rounded-full"><IoBulb size={28} className="text-primary" /></div>
+    icon: <div className="p-2 bg-primary-100 rounded-full"><IoBaby size={28} className="text-primary" /></div>
   },
   {
     id: 13,
