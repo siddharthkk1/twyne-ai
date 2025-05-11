@@ -21,7 +21,7 @@ interface IntroCard {
 const initialIntros: IntroCard[] = [
   {
     id: 1,
-    text: "You, Siddharth, and Calib both love basketball, burritos, and late-night debates.",
+    text: "You and Siddharth both love basketball, burritos, and late-night debates.",
     visible: true,
     isGroup: true,
     position: 0
@@ -73,12 +73,12 @@ const additionalIntros: IntroCard[] = [
   },
   {
     id: 9,
-    text: "You and Rebekah are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation's underrated—you all know it.",
+    text: "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
     visible: false,
   },
   {
     id: 10,
-    text: "You and Noah both play games to decompress—whether it's Valorant, Stardew, or something in-between. You speak in Discord emojis and side quests.",
+    text: "You and Sage both play games to decompress—whether it's Valorant, Stardew, or something in-between. You speak in Discord emojis and side quests.",
     visible: false
   },
   {
@@ -88,7 +88,7 @@ const additionalIntros: IntroCard[] = [
   },
   {
     id: 12,
-    text: "You and Sam both grew up on anime, still think about the Attack on Titan finale, and maybe cried during Your Name.",
+    text: "You and Levi both grew up on anime, still think about the Attack on Titan finale, and maybe cried during Your Name.",
     visible: false
   }
 ];
