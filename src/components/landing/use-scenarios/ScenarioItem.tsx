@@ -91,13 +91,13 @@ export const scenarios: ScenarioItemProps[] = [
     icon: <div className="p-2 bg-primary-100 rounded-full"><IoBulb size={28} className="text-primary" /></div>
   },
   {
-    id: 10,
-    title: "I’m a baby mama looking for other baby mamas to swap stories, laughs, and survival tips.",
+    id: 11,
+    title: "I'm a baby mama looking for other baby mamas to swap stories, laughs, and survival tips.",
     icon: <div className="p-2 bg-primary-100 rounded-full"><IoBulb size={28} className="text-primary" /></div>
   },
   {
-    id: 11,
-    title: "I’m in my healing era and looking for people who get it.”,
+    id: 12,
+    title: "I'm in my healing era and looking for people who get it.",
     icon: <div className="p-2 bg-secondary-100 rounded-full"><IoColorPaletteSharp size={28} className="text-secondary" /></div>
   },
 ];
