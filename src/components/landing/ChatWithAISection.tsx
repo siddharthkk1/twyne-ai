@@ -12,7 +12,7 @@ interface Message {
 
 // Define multiple conversation snapshots with proper typing
 const conversationSnapshots: Message[][] = [
-  // Hiking and game nights conversation
+  // General interests conversation - Starting with a greeting (First impression)
   [
     {
       id: 1,
@@ -40,7 +40,7 @@ const conversationSnapshots: Message[][] = [
       sender: "ai"
     },
   ],
-  // Music conversation - starting mid-conversation
+  // Music conversation - Starting mid-conversation (Cultural interests)
   [
     {
       id: 1,
@@ -68,35 +68,7 @@ const conversationSnapshots: Message[][] = [
       sender: "ai"
     },
   ],
-  // Reading conversation - starting mid-conversation
-  [
-    {
-      id: 1,
-      text: "What have you been reading lately that you've really enjoyed?",
-      sender: "ai"
-    },
-    {
-      id: 2,
-      text: "I just finished 'Tomorrow, and Tomorrow, and Tomorrow' by Gabrielle Zevin. It's about friendship, video games, and creative collaboration. Couldn't put it down!",
-      sender: "user"
-    },
-    {
-      id: 3,
-      text: "That book was one of my favorites from last year! The way Zevin explores the complex relationship between Sam and Sadie through decades is so nuanced. Did you have a favorite timeline or game they created in the story?",
-      sender: "ai"
-    },
-    {
-      id: 4,
-      text: "I loved 'Solution,' the game where you're just trying to help someone across a river. The simplicity yet meaning behind it was powerful. Also enjoyed the entire MIT era of their friendship.",
-      sender: "user"
-    },
-    {
-      id: 5,
-      text: "Yes! Solution was such a beautiful metaphor in the book. Your connection to both the simple, meaningful game and the formative college years suggests you value authentic connections and creative problem-solving. Have you read any of Emily St. John Mandel's work? I think her narrative style might resonate with you.",
-      sender: "ai"
-    },
-  ],
-  // Deep conversation about values and life goals - starting mid-conversation
+  // Deep conversation about values and life goals (Meaningful interests)
   [
     {
       id: 1,
@@ -123,6 +95,34 @@ const conversationSnapshots: Message[][] = [
       text: "What a beautiful way to honor your grandmother's legacy. That connection between growing food and growing community is profound. The way you speak about this reveals how deeply you value meaningful human connections and creating spaces that nurture both people and the planet. Have you taken any steps toward this garden project yet?",
       sender: "ai"
     },
+  ],
+  // New travel conversation - Aspirational interests
+  [
+    {
+      id: 1,
+      text: "If you could travel anywhere in the world tomorrow, where would you go?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "I've always dreamed of visiting Japan, especially during cherry blossom season. I'm fascinated by the blend of ancient traditions and cutting-edge technology there.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "Japan during sakura season is magical! Have you been learning any Japanese or researching specific regions you want to visit? The contrast between Tokyo's energy and Kyoto's temples is incredible.",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I've been using Duolingo for basic phrases and watching travel documentaries. I definitely want to experience Tokyo, but I'm also drawn to less touristy places like the rural villages in Hokkaido and the art islands like Naoshima.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "Your approach to travel seems thoughtful and immersive - learning the language and seeking out authentic experiences beyond the typical tourist path. Naoshima is a hidden gem with those amazing Yayoi Kusama installations. This says a lot about how you approach new experiences - with curiosity and a desire for genuine cultural connection rather than just checking off famous landmarks.",
+      sender: "ai"
+    },
   ]
 ];
 
@@ -146,7 +146,7 @@ export const ChatWithAISection = () => {
     const timeout = setTimeout(() => {
       setMessages(conversationSnapshots[currentSnapshotIndex]);
       setIsVisible(true);
-    }, 200);
+    }, 150); // Reduced from 200ms to 150ms for faster transition
     
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
@@ -162,11 +162,11 @@ export const ChatWithAISection = () => {
         <div className="grid md:grid-cols-2 gap-10 items-center">
           {/* Text content - No animation when chat changes */}
           <div className="space-y-6">
-            <p className="text-lg text-foreground">
+            <p className="text-lg">
               Through natural conversations, Twyne's AI learns your personality, interests,
               and what matters to you—creating a nuanced picture of who you are.
             </p>
-            <div className="space-y-3 text-foreground">
+            <div className="space-y-3">
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <span className="text-primary text-sm font-medium">1</span>
@@ -200,7 +200,7 @@ export const ChatWithAISection = () => {
           {/* Chat simulation - Only this part fades when changing */}
           <div className="flex flex-col items-center">
             <div 
-              className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-500 w-full ${
+              className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full ${
                 isVisible ? 'opacity-100' : 'opacity-0'
               }`}
             >
