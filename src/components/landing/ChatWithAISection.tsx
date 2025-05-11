@@ -262,8 +262,8 @@ export const ChatWithAISection = () => {
                 {hasScrollContent && (
                   <>
                     {/* Arrow indicator with circular background - moved closer to bottom */}
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center justify-center">
-                      <div className="bg-primary/20 rounded-full p-2">
+                    <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
+                      <div className="bg-primary/10 rounded-full p-2">
                         <ArrowDown className="h-4 w-4 text-primary" />
                       </div>
                     </div>

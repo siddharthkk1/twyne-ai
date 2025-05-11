@@ -89,7 +89,7 @@ export const SampleProfileSection = () => {
 
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <h3 className="text-xl md:text-2xl font-bold mb-4">Connection Profile</h3>
+            <h3 className="text-xl md:text-2xl font-bold mb-4">Twyne Profile</h3>
             <p className="mb-6">
               Through conversations with our AI, we identify meaningful connections between you and potential friends—your shared interests, complementary energies, and compatible activities.
             </p>
@@ -110,7 +110,7 @@ export const SampleProfileSection = () => {
                   <AvatarFallback className="bg-secondary/20 text-secondary text-xl">{profile.avatar}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-xs text-muted-foreground">Your connection with</p>
+                  <p className="text-xs text-muted-foreground">Your Twyne with</p>
                   <h3 className="text-xl font-semibold">{profile.name}</h3>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
@@ -120,45 +120,7 @@ export const SampleProfileSection = () => {
               </div>
             </CardHeader>
             <CardContent className="pt-3 space-y-3">
-              {/* IDEAL HANGS section */}
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {profile.idealHangs.map((hang, i) => (
-                    <div key={i} className={`bg-gradient-to-br from-${['purple', 'blue', 'amber', 'green', 'pink', 'indigo'][i % 6]}-100 to-${['purple', 'blue', 'amber', 'green', 'pink', 'indigo'][i % 6]}-50 border border-${['purple', 'blue', 'amber', 'green', 'pink', 'indigo'][i % 6]}-200 rounded-lg p-2 flex items-center`}>
-                      <span className="text-lg mr-2">{hang.emoji}</span>
-                      <span className="text-sm">{hang.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* SHARED INTERESTS section */}
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">SHARED INTERESTS</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {profile.sharedInterests.map((interest, i) => (
-                    <div key={i} className="flex items-center bg-muted rounded-full px-2.5 py-0.5 text-xs">
-                      <interest.icon className="h-3 w-3 mr-1" />
-                      <span>{interest.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* COMPATIBILITY HIGHLIGHTS section */}
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">COMPATIBILITY HIGHLIGHTS</h4>
-                <div className="space-y-1.5">
-                  {profile.compatibilityHighlights.map((highlight, i) => (
-                    <div key={i} className="bg-primary/5 rounded-lg p-1.5 text-sm">
-                      <span className="font-medium">You both</span> {highlight.substring(9)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* MUTUALS section - new addition */}
+              {/* MUTUALS section - moved to first position */}
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1.5">MUTUAL CONNECTIONS</h4>
                 {profile.mutuals.length > 0 ? (
@@ -180,6 +142,61 @@ export const SampleProfileSection = () => {
                     <span>You are {profile.connectionDegrees} {profile.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection apart</span>
                   </div>
                 )}
+              </div>
+
+              {/* SHARED INTERESTS section - moved to second position */}
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">SHARED INTERESTS</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.sharedInterests.map((interest, i) => (
+                    <div key={i} className="flex items-center bg-muted rounded-full px-2.5 py-0.5 text-xs">
+                      <interest.icon className="h-3 w-3 mr-1" />
+                      <span>{interest.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* IDEAL HANGS section - moved to third position and modernized */}
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {profile.idealHangs.map((hang, i) => {
+                    // Modern tech gradient backgrounds
+                    const gradients = [
+                      'from-blue-100 to-indigo-50 border-blue-200',
+                      'from-purple-100 to-pink-50 border-purple-200',
+                      'from-green-100 to-teal-50 border-green-200',
+                      'from-amber-100 to-yellow-50 border-amber-200',
+                      'from-rose-100 to-red-50 border-rose-200',
+                      'from-sky-100 to-cyan-50 border-sky-200'
+                    ];
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className={`bg-gradient-to-br ${gradients[i % gradients.length]} border rounded-lg p-2 flex items-center shadow-sm transition-transform hover:scale-[1.02]`}
+                      >
+                        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-white/70 mr-2 flex-shrink-0">
+                          <span className="text-lg">{hang.emoji}</span>
+                        </div>
+                        <span className="text-sm font-medium">{hang.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* COMPATIBILITY HIGHLIGHTS section - kept as fourth position */}
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">COMPATIBILITY HIGHLIGHTS</h4>
+                <div className="space-y-1.5">
+                  {profile.compatibilityHighlights.map((highlight, i) => (
+                    <div key={i} className="bg-primary/5 rounded-lg p-1.5 text-sm">
+                      <span className="font-medium">You both</span> {highlight.substring(9)}
+                    </div>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
