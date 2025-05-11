@@ -13,6 +13,7 @@ const connectionProfiles = [
     location: "San Francisco",
     initial: "AK",
     avatar: "A", // Will be used as avatar fallback
+    avatarImage: "/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png", // Alex's avatar image
     sharedInterests: [
       { icon: Coffee, text: "Coffee shops" },
       { icon: Book, text: "Fiction" },
@@ -28,10 +29,7 @@ const connectionProfiles = [
       { emoji: "🎧", text: "EDM raves" },
       { emoji: "📺", text: "Anime binge session" },
     ],
-    compatibilityHighlights: [
-      "You both love trying unusual coffee brewing methods",
-      "You both prefer meaningful 1:1 conversations"
-    ],
+    compatibilityHighlights: [], // No compatibility highlights for Alex
     mutuals: [
       { name: "Sara", avatar: "S" },
       { name: "John", avatar: "J" },
@@ -45,6 +43,7 @@ const connectionProfiles = [
     location: "Berkeley",
     initial: "JT",
     avatar: "J",
+    avatarImage: "/lovable-uploads/66a6d9cc-0713-40a8-9efd-7603ed7304ba.png", // Jordan's avatar image
     sharedInterests: [
       { icon: Music, text: "Jazz" },
       { icon: Book, text: "Non-fiction" },
@@ -107,6 +106,7 @@ export const SampleProfileSection = () => {
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 py-3">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-14 w-14 border-2 border-white">
+                  <AvatarImage src={profile.avatarImage} alt={profile.name} />
                   <AvatarFallback className="bg-secondary/20 text-secondary text-xl">{profile.avatar}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -120,21 +120,21 @@ export const SampleProfileSection = () => {
               </div>
             </CardHeader>
             <CardContent className="pt-3 space-y-3">
-              {/* MUTUALS section - moved to first position */}
+              {/* MUTUAL CONNECTIONS section - first position */}
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">MUTUAL CONNECTIONS</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">MUTUAL FRIENDS</h4>
                 {profile.mutuals.length > 0 ? (
-                  <div className="flex items-center -space-x-2">
-                    {profile.mutuals.map((mutual, i) => (
-                      <Avatar key={i} className="border-2 border-white h-8 w-8">
-                        <AvatarFallback className="text-xs bg-primary/10 text-primary">{mutual.avatar}</AvatarFallback>
-                      </Avatar>
-                    ))}
-                    {profile.mutuals.length > 0 && (
-                      <span className="ml-3 text-sm text-muted-foreground">
-                        Connected through {profile.mutuals.map(m => m.name).join(", ")}
-                      </span>
-                    )}
+                  <div>
+                    <div className="flex items-center -space-x-2 mb-1">
+                      {profile.mutuals.map((mutual, i) => (
+                        <Avatar key={i} className="border-2 border-white h-8 w-8">
+                          <AvatarFallback className="text-xs bg-primary/10 text-primary">{mutual.avatar}</AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      Connected through {profile.mutuals.map(m => m.name).join(", ")}
+                    </span>
                   </div>
                 ) : (
                   <div className="flex items-center text-sm text-muted-foreground">
@@ -144,7 +144,7 @@ export const SampleProfileSection = () => {
                 )}
               </div>
 
-              {/* SHARED INTERESTS section - moved to second position */}
+              {/* SHARED INTERESTS section - second position */}
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1.5">SHARED INTERESTS</h4>
                 <div className="flex flex-wrap gap-1.5">
@@ -157,7 +157,7 @@ export const SampleProfileSection = () => {
                 </div>
               </div>
 
-              {/* IDEAL HANGS section - moved to third position and modernized */}
+              {/* IDEAL HANGS section - third position with modern tech gradient backgrounds */}
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1.5">IDEAL HANGS</h4>
                 <div className="grid grid-cols-2 gap-2">
@@ -187,17 +187,19 @@ export const SampleProfileSection = () => {
                 </div>
               </div>
 
-              {/* COMPATIBILITY HIGHLIGHTS section - kept as fourth position */}
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">COMPATIBILITY HIGHLIGHTS</h4>
-                <div className="space-y-1.5">
-                  {profile.compatibilityHighlights.map((highlight, i) => (
-                    <div key={i} className="bg-primary/5 rounded-lg p-1.5 text-sm">
-                      <span className="font-medium">You both</span> {highlight.substring(9)}
-                    </div>
-                  ))}
+              {/* COMPATIBILITY HIGHLIGHTS section - improved styling */}
+              {profile.compatibilityHighlights.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1">COMPATIBILITY HIGHLIGHTS</h4>
+                  <div className="space-y-1.5">
+                    {profile.compatibilityHighlights.map((highlight, i) => (
+                      <div key={i} className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-2 text-sm border border-primary/10">
+                        <span className="font-medium">You both</span> {highlight.substring(9)}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
