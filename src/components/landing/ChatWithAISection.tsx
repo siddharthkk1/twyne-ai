@@ -271,10 +271,6 @@ export const ChatWithAISection = () => {
         </div>
       </div>
 
-      {/* Background decorative elements */}
-      <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-secondary/10 blur-3xl"></div>
-      <div className="absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-primary/10 blur-3xl"></div>
-      
       {/* Add the WaitlistForm modal */}
       <WaitlistForm open={isWaitlistOpen} onOpenChange={setIsWaitlistOpen} />
     </section>
