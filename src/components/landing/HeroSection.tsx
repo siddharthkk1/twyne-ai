@@ -73,16 +73,16 @@ export const HeroSection = ({
             </span>
           </h1>
           
-          {/* Description with fade-in from bottom - NOW WITH BLUR EFFECT */}
+          {/* Description with fade-in from bottom - NOW WITH SUBTLE BLUR EFFECT */}
           <div 
             className={`max-w-[700px] text-base sm:text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
-            {/* Added specific blur effect behind subtitle text */}
+            {/* Added subtle blur effect behind subtitle text */}
             <div className="relative">
-              <div className="absolute inset-0 backdrop-blur-md rounded-xl bg-white/50 z-[-1]"></div>
+              <div className="absolute inset-0 backdrop-blur-sm rounded-xl bg-white/30 z-[-1]"></div>
               <h2 
                 className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
                   isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
@@ -158,9 +158,6 @@ export const HeroSection = ({
       > 
         <RotatingUseScenarios />
       </div>
-      
-      {/* Remove scroll indicator from hero section since we've moved it to be fixed at bottom of page */}
     </section>
   );
 };
-
