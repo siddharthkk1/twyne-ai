@@ -16,12 +16,29 @@ import { ScrollIndicator } from "@/components/landing/use-scenarios/ScrollIndica
 // The artificial boost we want to add to the waitlist count
 const WAITLIST_BOOST = 524;
 
+// Preload critical images
+const preloadImages = () => {
+  const imagesToPreload = [
+    '/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png' // Hero image
+  ];
+  
+  imagesToPreload.forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
+};
+
 const Index = () => {
   const { user } = useAuth();
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
+  
+  // Preload images when component mounts
+  useEffect(() => {
+    preloadImages();
+  }, []);
   
   // Function to scroll to How It Works section
   const scrollToHowItWorks = (e: React.MouseEvent) => {
