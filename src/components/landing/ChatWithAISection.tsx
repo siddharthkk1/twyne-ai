@@ -173,7 +173,7 @@ export const ChatWithAISection = () => {
       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">Our AI Gets to Know You</h2>
-          <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
+          <p className="text-muted-foreground mt-2">Through natural conversations that feel refreshingly human</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center">
