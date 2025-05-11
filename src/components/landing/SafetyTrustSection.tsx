@@ -30,7 +30,7 @@ export const SafetyTrustSection = () => {
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
                 <li>Phone verification required</li>
                 <li>AI-generated profiles based on real user responses</li>
-                <li>Human presence is verified during onboarding</li>
+                <li>Mutual connections or shared circles highlighted to build trust</li>
               </ul>
             </CardContent>
           </Card>
