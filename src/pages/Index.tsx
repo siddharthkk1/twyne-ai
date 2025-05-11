@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ChatWithAISection } from "@/components/landing/ChatWithAISection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
-import { WarmIntrosSection } from "@/components/landing/WarmIntrosSection";
+import { WarmIntrosSection } from "@/components/landing/warm-intros/WarmIntrosSection";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { CallToActionSection } from "@/components/landing/CallToActionSection";
 import { PrivacySection } from "@/components/landing/PrivacySection";
