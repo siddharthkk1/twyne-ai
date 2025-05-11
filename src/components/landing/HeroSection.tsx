@@ -55,7 +55,7 @@ export const HeroSection = ({
         <img 
           src="/lovable-uploads/279c8751-aaa0-4be6-b6f2-91c1183bc5d1.png" 
           alt="People Reading" 
-          className="h-[22rem] w-auto object-contain"
+          className="h-[30rem] w-auto object-contain"
         />
       </div>
       
@@ -145,9 +145,9 @@ export const HeroSection = ({
         </div>
       </div>
 
-      {/* Rotating text with full-width carousel */}
+      {/* Rotating text with full-width carousel - Moved down by 30% */}
       <div 
-        className={`w-full transition-all duration-700 transform mt-4 sm:mt-8 md:mt-0 ${
+        className={`w-full transition-all duration-700 transform mt-20 sm:mt-24 md:mt-32 ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
         style={{ transitionDelay: '1200ms' }}
@@ -155,8 +155,7 @@ export const HeroSection = ({
         <RotatingUseScenarios />
       </div>
       
-      {/* Scroll indicator at the bottom of the page */}
-      <ScrollIndicator />
+      {/* Remove scroll indicator from hero section since we've moved it to be fixed at bottom of page */}
     </section>
   );
 };
