@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ChevronDown } from "lucide-react";
@@ -13,31 +12,31 @@ interface Message {
 
 // Define multiple conversation snapshots with proper typing
 const conversationSnapshots: Message[][] = [
-  // General interests conversation - Starting with a greeting (First impression)
+  // Updated first conversation - More interesting personality/values conversation
   [
     {
       id: 1,
-      text: "Hey there! I'm Twyne. I'd love to get to know you better. What kinds of things do you enjoy doing on weekends?",
+      text: "If you could have dinner with anyone, living or dead, who would it be and why?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "I love hiking and trying new restaurants. Sometimes I host game nights with friends too.",
+      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling, breaking down cultural barriers. I'd love to hear his unfiltered perspective on life.",
       sender: "user"
     },
     {
       id: 3,
-      text: "That sounds great! I'm a fan of hiking too. Any favorite trails or national parks you've been to? And what type of games do you usually play on your game nights?",
+      text: "That's a fascinating choice! Bourdain had such a unique ability to find common ground with people across cultures. What aspect of his approach to connecting with others resonates with you most?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "I recently hiked at Redwood National Park. For game nights, we play everything from Catan to Cards Against Humanity. Depends on the mood!",
+      text: "His genuine curiosity about people's lives and stories. He never approached cultures as a tourist, but as someone trying to understand the human experience through their perspective. That's something I try to bring to my own relationships.",
       sender: "user"
     },
     {
       id: 5,
-      text: "Redwood is stunning! Those ancient trees are something else. And your game nights sound like the perfect mix of strategy and laughs. You seem like someone who values both outdoor adventures and quality time with friends. What kind of restaurants do you enjoy exploring?",
+      text: "That reveals a lot about your values - prioritizing authentic connections and understanding others on a deeper level. It sounds like you approach relationships with thoughtfulness and empathy rather than staying on the surface. What other values guide how you connect with people in your life?",
       sender: "ai"
     },
   ],
@@ -173,7 +172,7 @@ export const ChatWithAISection = () => {
       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">Our AI Gets to Know You</h2>
-          <p className="text-muted-foreground mt-2">Through natural conversations that feel refreshingly human</p>
+          <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center">
@@ -249,10 +248,11 @@ export const ChatWithAISection = () => {
                 </div>
               </ScrollArea>
               
-              {/* Scroll indicator */}
+              {/* New scroll indicator - more prominent and visible */}
               {showScrollIndicator && (
-                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-primary/10 rounded-full p-1 animate-bounce">
-                  <ChevronDown className="h-5 w-5 text-primary" />
+                <div className="absolute bottom-14 left-1/2 transform -translate-x-1/2 bg-primary/20 rounded-md p-2 animate-pulse-slow flex items-center gap-2 text-sm text-primary">
+                  <span>Scroll to see more</span>
+                  <ChevronDown className="h-4 w-4" />
                 </div>
               )}
               

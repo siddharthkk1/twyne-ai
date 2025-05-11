@@ -13,7 +13,6 @@ import { CallToActionSection } from "@/components/landing/CallToActionSection";
 import { PrivacySection } from "@/components/landing/PrivacySection";
 import { SafetyTrustSection } from "@/components/landing/SafetyTrustSection";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ScrollIndicator } from "@/components/landing/use-scenarios/ScrollIndicator";
 
 // The artificial boost we want to add to the waitlist count
 const WAITLIST_BOOST = 524;
@@ -116,9 +115,6 @@ const Index = () => {
         open={isWaitlistOpen} 
         onOpenChange={setIsWaitlistOpen} 
       />
-      
-      {/* ScrollIndicator at the bottom of the page */}
-      <ScrollIndicator />
     </div>
   );
 };

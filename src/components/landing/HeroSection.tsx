@@ -55,7 +55,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-10 md:py-14 mt-16 md:mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
+    <section className="relative py-20 md:py-24 mt-16 md:mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
@@ -167,9 +167,9 @@ export const HeroSection = ({
               }`}
               style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
             >
-              The AI platform for making connections and building relationships
+              Twyne gets to know your energy, interests, personality, and life context
             </h2>
-            <p className="block mt-1">Twyne gets to know your energy, interests, personality, and life context—then introduces you to people nearby who actually click..</p>
+            <p className="block mt-1">Then introduces you to people nearby who actually click with your vibe—without the typical dating app experience.</p>
           </div>
           
           {/* Buttons with horizontal space between them */}
@@ -228,7 +228,7 @@ export const HeroSection = ({
 
       {/* Rotating text with full-width carousel - Adjusted position */}
       <div 
-        className={`w-full transition-all duration-700 transform mt-10 sm:mt-16 md:mt-20 ${
+        className={`w-full transition-all duration-700 transform mt-16 sm:mt-24 md:mt-28 ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
         style={{ transitionDelay: '1200ms' }}
