@@ -72,7 +72,7 @@ const additionalIntros: IntroCard[] = [
   },
   {
     id: 9,
-    text: "You, Sabina, and Lily are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation’s underrated—you all know it.",
+    text: "You, Sabina, and Lily are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation's underrated—you all know it.",
     visible: false,
     isGroup: true
   },
@@ -94,7 +94,9 @@ const additionalIntros: IntroCard[] = [
 ];
 
 export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) => {
+  // Initialize with all cards and track the next card to show
   const [intros, setIntros] = useState<IntroCard[]>([...initialIntros, ...additionalIntros]);
+  const [nextHiddenCardIndex, setNextHiddenCardIndex] = useState(0);
   const isMobile = useIsMobile();
   const visibleCount = isMobile ? 4 : 6;
   
@@ -128,9 +130,11 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         // Get the position of the card being hidden
         const positionToReplace = cardToHide.position;
         
-        // Pick one random hidden card to show
-        const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
-        const cardToShow = hiddenIntros[randomHiddenIndex];
+        // Instead of picking randomly, get the next hidden card in line
+        const cardToShow = hiddenIntros[nextHiddenCardIndex % hiddenIntros.length];
+        
+        // Update the next card index for the next rotation
+        setNextHiddenCardIndex(prevIndex => (prevIndex + 1) % hiddenIntros.length);
         
         // Create a new array with the updated visibility states and position
         return currentIntros.map(card => {
@@ -145,7 +149,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
     const interval = setInterval(rotateOneCard, 5000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [nextHiddenCardIndex]);
   
   // Ensure correct number of visible cards based on screen size
   useEffect(() => {
@@ -163,8 +167,15 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       if (visibleIntros.length < targetVisibleCount) {
         // Calculate how many more cards we need to show
         const cardsToAdd = targetVisibleCount - visibleIntros.length;
-        // Get that many cards from the hidden ones
-        const cardsToShow = hiddenIntros.slice(0, cardsToAdd);
+        // Get that many cards from the hidden ones, starting with the next in line
+        const cardsToShow = [];
+        for (let i = 0; i < cardsToAdd; i++) {
+          const indexToUse = (nextHiddenCardIndex + i) % hiddenIntros.length;
+          cardsToShow.push(hiddenIntros[indexToUse]);
+        }
+        
+        // Update the next card index after adding these cards
+        setNextHiddenCardIndex((nextHiddenCardIndex + cardsToAdd) % hiddenIntros.length);
         
         // Update visibility for these cards and assign positions
         updatedIntros = current.map(card => {
@@ -201,7 +212,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       
       return updatedIntros;
     });
-  }, [isMobile]);
+  }, [isMobile, nextHiddenCardIndex]);
   
   return (
     <section className="py-16 bg-white relative">
@@ -263,3 +274,4 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
     </section>
   );
 };
+
