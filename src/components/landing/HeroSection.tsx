@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -43,6 +42,9 @@ export const HeroSection = ({
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
   const shouldCenterCoffeeImage = windowWidth < 1240 && windowWidth >= 768;
   
+  // Coffee image dimensions - defined once to maintain consistency
+  const coffeeImageWidth = 500;
+  
   // Preload images
   useEffect(() => {
     const coffeeImg = new Image();
@@ -72,19 +74,15 @@ export const HeroSection = ({
             ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
-            width: "500px", // Fixed width for the image container regardless of position
-            maxWidth: "500px"
+            width: `${coffeeImageWidth}px` // Original fixed width in all cases
           }}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-full object-contain"
-              style={{
-                width: "500px", // Fixed width for the image itself
-                maxWidth: "100%"
-              }}
+              className="h-auto object-contain"
+              style={{ width: `${coffeeImageWidth}px` }}
               onLoad={() => setCoffeeImageLoaded(true)}
               loading="eager"
             />
@@ -123,7 +121,7 @@ export const HeroSection = ({
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
           style={{
             width: "90vw",  
-            maxWidth: "500px"  // Match the fixed width from above
+            maxWidth: `${coffeeImageWidth}px`  // Match the fixed width from above
           }}
         >
           <div className="relative">
