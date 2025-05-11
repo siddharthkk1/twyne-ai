@@ -72,7 +72,7 @@ const additionalIntros: IntroCard[] = [
   },
   {
     id: 9,
-    text: "You, Sabina, and Lily are all Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
+    text: "You, Sabina, and Lily are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation’s underrated—you all know it.",
     visible: false,
     isGroup: true
   },
