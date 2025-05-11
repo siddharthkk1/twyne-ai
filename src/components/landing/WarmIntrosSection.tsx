@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from "react";
-import { Sparkles, MessageCircle, Users } from "lucide-react";
+import { Sparkles, MessageCircle, Users, Basketball, Book, HeartHandshake, Building, Home, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Card } from "@/components/ui/card";
 
 interface WarmIntrosSectionProps {
   onOpenWaitlist: () => void;
@@ -14,6 +16,7 @@ interface IntroCard {
   visible: boolean;
   isGroup?: boolean;
   position?: number; // Add position to track the slot in the UI
+  icon: React.ReactNode;
 }
 
 // Define all intro cards data
@@ -22,39 +25,45 @@ const initialIntros: IntroCard[] = [
     id: 1,
     text: "You and Siddharth both love basketball, burritos, and late-night debates.",
     visible: true,
-    position: 0
+    position: 0,
+    icon: <Basketball className="h-5 w-5 text-primary/60" />
   },
   {
     id: 2,
     text: "You and Priya both read too many psychology books and have 300+ tabs open.",
     visible: true,
-    position: 1
+    position: 1,
+    icon: <Book className="h-5 w-5 text-primary/60" />
   },
   {
     id: 3, 
     text: "You and Bryton are both getting married in a month and feeling all the chaos and excitement.",
     visible: true,
-    position: 2
+    position: 2,
+    icon: <HeartHandshake className="h-5 w-5 text-primary/60" />
   },
   {
     id: 4,
     text: "You, Lena, and Zara all just moved to the city and are figuring out how to feel at home here.",
     visible: true,
     isGroup: true,
-    position: 3
+    position: 3,
+    icon: <Home className="h-5 w-5 text-primary/60" />
   },
   {
     id: 5,
     text: "You, Lexi, and Ethan are all in healthcare and could use a break from being everyone else's support system. Walk and talk?",
     visible: true,
     isGroup: true,
-    position: 4
+    position: 4,
+    icon: <Activity className="h-5 w-5 text-primary/60" />
   },
   {
     id: 6,
     text: "You and Dake are both startup people—figuring out life, product-market fit, and how to have hobbies again. Coffee?",
     visible: true,
-    position: 5
+    position: 5,
+    icon: <Building className="h-5 w-5 text-primary/60" />
   }
 ];
 
@@ -62,32 +71,38 @@ const additionalIntros: IntroCard[] = [
   {
     id: 7,
     text: "You and Tre both grew up watching LeBron chase greatness—and never back down from the GOAT debate. MJ or Bron? You've got takes.",
-    visible: false
+    visible: false,
+    icon: <Basketball className="h-5 w-5 text-primary/60" />
   },
   {
     id: 8,
     text: "You and Amara both read spicy books faster than your TBR can handle. Sarah J. Maas? Colleen Hoover? You've got annotated paperbacks and a lot of opinions.",
-    visible: false
+    visible: false,
+    icon: <Book className="h-5 w-5 text-primary/60" />
   },
   {
     id: 9,
     text: "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
-    visible: false
+    visible: false,
+    icon: <MessageCircle className="h-5 w-5 text-primary/60" />
   },
   {
     id: 10,
     text: "You and Sage both play games to decompress—whether it's Valorant, Stardew, or something in-between. You speak in Discord emojis and side quests.",
-    visible: false
+    visible: false,
+    icon: <Activity className="h-5 w-5 text-primary/60" />
   },
   {
     id: 11,
     text: "You and Zayn are both gym rats with a soft side. You lift heavy, journal often, and still believe in character development.",
-    visible: false
+    visible: false,
+    icon: <Activity className="h-5 w-5 text-primary/60" />
   },
   {
     id: 12,
     text: "You and Levi both grew up on anime, still think about the Attack on Titan finale, and maybe cried during Your Name.",
-    visible: false
+    visible: false,
+    icon: <MessageCircle className="h-5 w-5 text-primary/60" />
   }
 ];
 
@@ -109,6 +124,21 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       });
     });
   }, []);
+  
+  // Helper function to split text correctly based on the presence of "both" or "all"
+  const splitIntroText = (text: string, isGroup: boolean | undefined) => {
+    const separator = isGroup ? " all " : " both ";
+    if (!text.includes(separator)) {
+      // If the text doesn't contain the expected separator, return it as is
+      return { firstPart: text, secondPart: "" };
+    }
+    
+    const parts = text.split(separator);
+    return {
+      firstPart: parts[0],
+      secondPart: separator + (parts[1] || "")
+    };
+  };
   
   // Rotate one card every 5 seconds
   useEffect(() => {
@@ -230,43 +260,46 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           {intros
             .filter(intro => intro.visible)
             .sort((a, b) => (a.position || 0) - (b.position || 0))
-            .map(intro => (
-            <div 
-              key={intro.id}
-              className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
-              style={{ 
-                height: "240px",
-                width: "100%"
-              }}
-            >
-              {/* Group indicator for group intros */}
-              {intro.isGroup && (
-                <div className="mb-2 flex items-center text-primary">
-                  <Users size={16} className="mr-1" />
-                  <span className="text-xs font-medium">Group</span>
-                </div>
-              )}
-              <p className="text-lg mb-2">
-                <span className="font-semibold">
-                  {intro.text.split(intro.isGroup ? " all " : " both ")[0]}
-                </span>
-                {intro.isGroup 
-                  ? (" all " + intro.text.split(" all ")[1])
-                  : (" both " + intro.text.split(" both ")[1])}
-              </p>
-              <div className="mt-auto">
-                <Button 
-                  onClick={onOpenWaitlist}
-                  variant="default" 
-                  size="sm"
-                  className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+            .map(intro => {
+              const { firstPart, secondPart } = splitIntroText(intro.text, intro.isGroup);
+              
+              return (
+                <div 
+                  key={intro.id}
+                  className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
+                  style={{ 
+                    height: "240px",
+                    width: "100%"
+                  }}
                 >
-                  <MessageCircle size={16} className="mr-1" />
-                  Connect & Say Hi
-                </Button>
-              </div>
-            </div>
-          ))}
+                  {/* Group indicator for group intros */}
+                  {intro.isGroup && (
+                    <div className="mb-2 flex items-center text-primary">
+                      <Users size={16} className="mr-1" />
+                      <span className="text-xs font-medium">Group</span>
+                    </div>
+                  )}
+                  <p className="text-lg mb-2">
+                    <span className="font-semibold">{firstPart}</span>
+                    {secondPart}
+                  </p>
+                  <div className="mt-auto flex items-center justify-between">
+                    <Button 
+                      onClick={onOpenWaitlist}
+                      variant="default" 
+                      size="sm"
+                      className="rounded-full w-auto self-end mb-3 hover:shadow-md transition-all"
+                    >
+                      <MessageCircle size={16} className="mr-1" />
+                      Connect & Say Hi
+                    </Button>
+                    <div className="mb-3 mr-2">
+                      {intro.icon}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
     </section>
