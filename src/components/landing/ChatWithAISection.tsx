@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ChevronDown } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -132,6 +132,7 @@ export const ChatWithAISection = () => {
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState(0);
   const [messages, setMessages] = useState<Message[]>(conversationSnapshots[0]);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   // Animation effect for element appearance
@@ -148,6 +149,7 @@ export const ChatWithAISection = () => {
     const timeout = setTimeout(() => {
       setMessages(conversationSnapshots[currentSnapshotIndex]);
       setIsVisible(true);
+      setShowScrollIndicator(true);
       
       // Reset scroll position to top when changing conversations
       if (scrollAreaRef.current) {
@@ -161,33 +163,38 @@ export const ChatWithAISection = () => {
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
 
+  // Hide scroll indicator when user scrolls
+  const handleScroll = () => {
+    setShowScrollIndicator(false);
+  };
+
   return (
     <section className="py-16 bg-white relative overflow-hidden">
       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">Our AI Gets to Know You</h2>
-          <p className="text-muted-foreground mt-2">Through natural conversations that feel refreshingly human</p>
+          <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center">
           {/* Text content - No animation when chat changes */}
           <div className="space-y-6">
             <p className="text-lg">
-              Through natural conversations, Twyne's AI learns your personality, interests,
-              and what matters to you—creating a nuanced picture of who you are.
+              Twyne learns your personality, interests, and what matters to you—creating 
+              a nuanced understanding of who you are beyond traditional profiles.
             </p>
             <div className="space-y-3">
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <span className="text-primary text-sm font-medium">1</span>
                 </div>
-                <p>Chat naturally—share your interests, values, and what you're looking for</p>
+                <p>Share your interests, values, and what you're looking for in connections</p>
               </div>
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <span className="text-primary text-sm font-medium">2</span>
                 </div>
-                <p>Our AI builds a deeper understanding of your vibe than traditional profiles ever could</p>
+                <p>Our AI builds a deeper understanding of your vibe than profiles ever could</p>
               </div>
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
@@ -210,7 +217,7 @@ export const ChatWithAISection = () => {
           {/* Chat simulation - Only this part fades when changing */}
           <div className="flex flex-col items-center">
             <div 
-              className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full ${
+              className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
                 isVisible ? 'opacity-100' : 'opacity-0'
               }`}
             >
@@ -223,7 +230,11 @@ export const ChatWithAISection = () => {
                 </div>
               </div>
               
-              <ScrollArea ref={scrollAreaRef} className="h-[300px] pr-2">
+              <ScrollArea 
+                ref={scrollAreaRef} 
+                className="h-[300px] pr-2"
+                onScrollCapture={handleScroll}
+              >
                 <div className="space-y-4 mb-4">
                   {messages.map((message) => (
                     <div
@@ -237,6 +248,13 @@ export const ChatWithAISection = () => {
                   ))}
                 </div>
               </ScrollArea>
+              
+              {/* Scroll indicator */}
+              {showScrollIndicator && (
+                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-primary/10 rounded-full p-1 animate-bounce">
+                  <ChevronDown className="h-5 w-5 text-primary" />
+                </div>
+              )}
               
               <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
                 <input 

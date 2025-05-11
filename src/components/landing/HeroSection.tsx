@@ -167,9 +167,9 @@ export const HeroSection = ({
               }`}
               style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
             >
-              The AI platform for making connections and building relationships
+              Twyne gets to know your personality, energy, interests, and life context
             </h2>
-            <p className="block mt-1">Our AI gets to know your personality, energy, interests, and life context—then introduces you to people nearby who actually click.</p>
+            <p className="block mt-1">Then introduces you to people nearby who actually click.</p>
           </div>
           
           {/* Buttons with horizontal space between them */}

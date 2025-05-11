@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <RedirectNewUser />
           <Routes>
             <Route path="/" element={<Index />} />

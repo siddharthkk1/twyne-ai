@@ -4,14 +4,14 @@ import { MessageCircle, MapPin, Users, Shield } from "lucide-react";
 
 export const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-16 bg-white relative">
-      <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+    <section id="how-it-works" className="py-24 bg-white relative">
+      <div className="container px-4 md:px-6 mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">How It Works</h2>
           <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
         </div>
         
-        {/* Updated responsive grid layout with better intermediate breakpoints */}
+        {/* Updated responsive grid with increased width for larger screens */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 relative z-10">
           <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50">
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
