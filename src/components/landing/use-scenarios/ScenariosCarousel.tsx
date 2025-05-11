@@ -18,7 +18,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const animationRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
 
-  const scrollSpeed = 0.5; // pixels per frame at 60fps
+  // Increase scrollSpeed by 25%, from 0.5 to 0.625
+  const scrollSpeed = 0.625; // pixels per frame at 60fps (25% increase from 0.5)
   const totalWidth = scenarios.length * 350; // Each card is about 300px + margin
 
   // Animation function for constant movement
@@ -30,10 +31,12 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
     setTranslateX(prev => {
       // Reset position when all cards have scrolled by
-      if (Math.abs(prev) >= totalWidth / 2) {
+      // Using Math.abs to fix the jumping issue
+      const newPosition = prev - scrollSpeed;
+      if (Math.abs(newPosition) >= totalWidth / 2) {
         return 0;
       }
-      return prev - scrollSpeed;
+      return newPosition;
     });
 
     animationRef.current = requestAnimationFrame(animate);
@@ -87,7 +90,11 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   };
 
   // Ensure we have enough cards to create an infinite effect
-  const displayItems = [...scenarios, ...scenarios];
+  // Fix the duplicate scenarios to ensure they all have unique keys
+  const displayItems = [...scenarios, ...scenarios.map((scenario, index) => ({
+    ...scenario,
+    id: scenario.id + scenarios.length // Ensure unique IDs for the duplicated items
+  }))];
 
   return (
     <div 
