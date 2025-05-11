@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
@@ -38,59 +39,59 @@ const conversationSnapshots: Message[][] = [
       sender: "ai"
     },
   ],
-  // Music and travel conversation
+  // Music conversation - starting mid-conversation
   [
     {
       id: 1,
-      text: "Hi there! I'd love to get to know you better. What are you passionate about these days?",
+      text: "So what kind of music are you into these days?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "I've been really into music production lately, and I'm planning a trip to Japan next year.",
+      text: "Lately I've been obsessed with Billie Eilish's new album. Her sound has really evolved since her early work.",
       sender: "user"
     },
     {
       id: 3,
-      text: "Music production sounds fascinating! What kind of music do you make? And Japan is an amazing destination - which cities are you hoping to visit?",
+      text: "Oh yes! Her production with FINNEAS is incredible. 'What Was I Made For' was such a powerful track from the Barbie soundtrack too. Do you prefer her more introspective ballads or her edgier electronic tracks?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "I produce electronic music with some jazz influences. For Japan, definitely Tokyo and Kyoto, but I'd love to explore some lesser-known areas too.",
+      text: "Definitely her ballads. The vulnerability in her voice on the slower tracks just hits differently. 'When The Party's Over' is still one of my all-time favorites.",
       sender: "user"
     },
     {
       id: 5,
-      text: "That's such a cool fusion of genres! And your travel style sounds perfect - balancing the must-see spots with authentic local experiences shows you're thoughtful and adventurous. Have you picked up any Japanese phrases yet?",
+      text: "That track is a masterpiece! The way she uses silence and space in that song is brilliant. You appreciate emotional depth in music, which says a lot about how you connect with art. Do you play any instruments yourself or is your relationship with music purely as a listener?",
       sender: "ai"
     },
   ],
-  // Reading and cooking conversation
+  // Reading conversation - starting mid-conversation
   [
     {
       id: 1,
-      text: "Hello! I'm Twyne. I'd like to get to know you a bit. What do you enjoy doing in your free time?",
+      text: "What have you been reading lately that you've really enjoyed?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "I read a lot of science fiction and I've been getting into cooking lately. Been trying to perfect my pasta-making skills.",
+      text: "I just finished 'Tomorrow, and Tomorrow, and Tomorrow' by Gabrielle Zevin. It's about friendship, video games, and creative collaboration. Couldn't put it down!",
       sender: "user"
     },
     {
       id: 3,
-      text: "Science fiction and homemade pasta? That's a fantastic combination! Who are some of your favorite sci-fi authors? And how's the pasta-making journey going?",
+      text: "That book was one of my favorites from last year! The way Zevin explores the complex relationship between Sam and Sadie through decades is so nuanced. Did you have a favorite timeline or game they created in the story?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "I love Octavia Butler and Ted Chiang. My pasta is getting better! Made a decent fettuccine last weekend, but ravioli is still challenging.",
+      text: "I loved 'Solution,' the game where you're just trying to help someone across a river. The simplicity yet meaning behind it was powerful. Also enjoyed the entire MIT era of their friendship.",
       sender: "user"
     },
     {
       id: 5,
-      text: "Octavia Butler's work is incredible, and Ted Chiang's short stories are so thought-provoking! Your pasta adventure sounds rewarding - starting with fettuccine before tackling ravioli shows you're methodical. Do you have a signature sauce to pair with your handmade pasta?",
+      text: "Yes! Solution was such a beautiful metaphor in the book. Your connection to both the simple, meaningful game and the formative college years suggests you value authentic connections and creative problem-solving. Have you read any of Emily St. John Mandel's work? I think her narrative style might resonate with you.",
       sender: "ai"
     },
   ]
