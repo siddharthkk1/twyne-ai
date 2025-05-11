@@ -1,6 +1,6 @@
 
 import React from "react";
-import { ShieldCheck, UserCheck, MessageSquareOff } from "lucide-react";
+import { Shield, Lock, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const SafetyTrustSection = () => {
@@ -9,7 +9,7 @@ export const SafetyTrustSection = () => {
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <div className="rounded-full bg-green-100 p-3 inline-flex mb-4">
-            <ShieldCheck className="h-6 w-6 text-green-700" />
+            <Shield className="h-6 w-6 text-green-700" />
           </div>
           <h2 className="text-3xl font-bold">Safety & Trust By Design</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
@@ -21,18 +21,16 @@ export const SafetyTrustSection = () => {
           <Card className="bg-white shadow-sm hover:shadow-md transition-all border border-border/20">
             <CardContent className="pt-6">
               <div className="rounded-full bg-primary/10 p-3 w-14 h-14 flex items-center justify-center mb-4">
-                <UserCheck className="h-7 w-7 text-primary" />
+                <User className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">
-                <span className="text-primary">🟣</span> Real People, Verified
-              </h3>
+              <h3 className="text-xl font-semibold mb-3">Real People, Verified</h3>
               <p className="text-muted-foreground">
-                <span className="font-medium">Focus:</span> Authenticity & identity verification
+                Every member goes through our verification process so you can be sure you're connecting with real people.
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
-                <li>Phone verification required to join</li>
-                <li>AI-generated profiles based on real user responses</li>
-                <li>We monitor for fake or bot-like behavior</li>
+                <li>Phone verification</li>
+                <li>Profile review process</li>
+                <li>Community reporting tools</li>
               </ul>
             </CardContent>
           </Card>
@@ -40,18 +38,16 @@ export const SafetyTrustSection = () => {
           <Card className="bg-white shadow-sm hover:shadow-md transition-all border border-border/20">
             <CardContent className="pt-6">
               <div className="rounded-full bg-secondary/10 p-3 w-14 h-14 flex items-center justify-center mb-4">
-                <MessageSquareOff className="h-7 w-7 text-secondary" />
+                <Lock className="h-7 w-7 text-secondary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">
-                <span className="text-secondary">🔵</span> No Unwanted Contact
-              </h3>
+              <h3 className="text-xl font-semibold mb-3">No Unwanted Contact</h3>
               <p className="text-muted-foreground">
-                <span className="font-medium">Focus:</span> Control over interaction & boundaries
+                Unlike traditional social platforms, no one can message you unless you both mutually opt-in to connect.
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
                 <li>Mutual consent required</li>
+                <li>Block users at any time</li>
                 <li>Control what information is shared</li>
-                <li>Pause intros or go invisible anytime</li>
               </ul>
             </CardContent>
           </Card>
@@ -59,18 +55,16 @@ export const SafetyTrustSection = () => {
           <Card className="bg-white shadow-sm hover:shadow-md transition-all border border-border/20">
             <CardContent className="pt-6">
               <div className="rounded-full bg-accent/10 p-3 w-14 h-14 flex items-center justify-center mb-4">
-                <ShieldCheck className="h-7 w-7 text-accent" />
+                <Shield className="h-7 w-7 text-accent" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">
-                <span className="text-accent">🩷</span> Protection & Accountability
-              </h3>
+              <h3 className="text-xl font-semibold mb-3">Safe Meeting Options</h3>
               <p className="text-muted-foreground">
-                <span className="font-medium">Focus:</span> Response systems & safety enforcement
+                We provide tools and guidelines to help you meet safely and comfortably when you're ready to connect in person.
               </p>
               <ul className="mt-4 space-y-2 list-disc list-inside text-sm text-muted-foreground">
-                <li>Block or report anyone instantly</li>
-                <li>Every report is reviewed and acted upon</li>
-                <li>Harmful behavior is monitored proactively</li>
+                <li>Public place recommendations</li>
+                <li>Meeting scheduling tools</li>
+                <li>Friend safety check-ins</li>
               </ul>
             </CardContent>
           </Card>
