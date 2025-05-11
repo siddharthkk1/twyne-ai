@@ -90,10 +90,8 @@ const Index = () => {
       {/* How It Works Section */}
       <HowItWorksSection />
 
-      {/* Chat With AI Section - with background set to white */}
-      <div className="bg-white">
-        <ChatWithAISection />
-      </div>
+      {/* Chat With AI Section - with explicit white background */}
+      <ChatWithAISection />
 
       {/* Example Warm Intros Section - without images in this section */}
       <WarmIntrosSection onOpenWaitlist={openWaitlist} />
@@ -101,10 +99,10 @@ const Index = () => {
       {/* Sample Profile Section */}
       <SampleProfileSection />
       
-      {/* Safety & Trust Section - Now white background */}
+      {/* Safety & Trust Section */}
       <SafetyTrustSection />
       
-      {/* Privacy Section - Now white background */}
+      {/* Privacy Section */}
       <PrivacySection />
 
       {/* Social Proof Section */}

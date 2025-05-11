@@ -280,7 +280,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
                     </div>
                   )}
                   <p className="text-lg mb-2">
-                    <span className="font-semibold">{firstPart}</span>
+                    {firstPart}
                     {secondPart}
                   </p>
                   <div className="mt-auto flex items-center justify-between">
