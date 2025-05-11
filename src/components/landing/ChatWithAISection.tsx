@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ArrowDown } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -237,7 +236,7 @@ export const ChatWithAISection = () => {
                 </div>
               </div>
               
-              {/* Scroll container with gradient fade at the bottom */}
+              {/* Scroll container with gradient fade and scroll arrow at the bottom */}
               <div className="relative">
                 <ScrollArea 
                   ref={scrollAreaRef} 
@@ -258,9 +257,16 @@ export const ChatWithAISection = () => {
                   </div>
                 </ScrollArea>
                 
-                {/* Gradient fade overlay that appears when content is scrollable */}
+                {/* Combined arrow indicator and gradient fade overlay */}
                 {hasScrollContent && (
-                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                  <>
+                    {/* Arrow indicator */}
+                    <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-primary animate-bounce">
+                      <ArrowDown className="h-6 w-6" />
+                    </div>
+                    {/* Gradient fade */}
+                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                  </>
                 )}
               </div>
               
