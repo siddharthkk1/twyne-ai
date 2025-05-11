@@ -29,7 +29,7 @@ export const HowItWorksSection = () => {
             </div>
             <h3 className="text-xl font-medium mb-2">Local Connections</h3>
             <p className="text-muted-foreground">
-              Get introduced to 1-2 people in your city who genuinely share your energy and interests.
+              Get introduced to people your age in your city who genuinely share your energy and interests.
             </p>
           </div>
           
