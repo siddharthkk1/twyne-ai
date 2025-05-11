@@ -80,13 +80,13 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   const isMobile = useIsMobile();
   const visibleCount = isMobile ? 4 : 6;
   
-  // Function to randomly pick intros for display
+  // Function to rotate just one intro at a time without movement
   useEffect(() => {
-    const rotateIntro = () => {
+    const rotateOneIntro = () => {
       // Create a copy of the current intros
       const currentIntros = [...intros];
       
-      // First pick a visible intro to replace
+      // First pick a visible intro to replace (just one at a time)
       const visibleIntros = currentIntros.filter(intro => intro.visible);
       const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
       const introToHide = visibleIntros[randomVisibleIndex];
@@ -101,7 +101,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
       const introToShow = hiddenIntros[randomHiddenIndex];
       
-      // Update the visibility states
+      // Update the visibility states - only change exactly 2 cards (one hides, one shows)
       setIntros(current => 
         current.map(intro => {
           if (intro.id === introToHide.id) return { ...intro, visible: false };
@@ -111,13 +111,13 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       );
     };
     
-    // Set interval to rotate intros every 3-5 seconds
+    // Set interval to rotate intros every 3-5 seconds (only one at a time)
     const interval = setInterval(() => {
-      rotateIntro();
+      rotateOneIntro();
     }, Math.random() * 2000 + 3000);
     
     return () => clearInterval(interval);
-  }, [intros, isMobile]);
+  }, [intros]);
   
   // Make sure we have the correct number of visible intros when the screen size changes
   useEffect(() => {
@@ -155,6 +155,9 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
     });
   }, [isMobile]);
   
+  // Get only visible intros
+  const visibleIntros = intros.filter(intro => intro.visible);
+  
   return (
     <section className="py-16 bg-white relative">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -169,37 +172,32 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         </div>
         
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10`}>
-          {intros.map(intro => {
-            // Only render visible intros and only up to the visibleCount limit
-            if (!intro.visible) return null;
-            
-            return (
-              <div 
-                key={intro.id}
-                className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
-                style={{ 
-                  height: "240px", // Fixed height
-                  width: "100%" // 100% of the grid cell width
-                }}
-              >
-                <p className="text-lg mb-2">
-                  <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
-                  {" both " + intro.text.split(" both ")[1]}
-                </p>
-                <div className="mt-auto">
-                  <Button 
-                    onClick={onOpenWaitlist}
-                    variant="default" 
-                    size="sm"
-                    className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-                  >
-                    <MessageCircle size={16} className="mr-1" />
-                    Connect & Say Hi
-                  </Button>
-                </div>
+          {visibleIntros.map(intro => (
+            <div 
+              key={intro.id}
+              className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
+              style={{ 
+                height: "240px", // Fixed height
+                width: "100%" // 100% of the grid cell width
+              }}
+            >
+              <p className="text-lg mb-2">
+                <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
+                {" both " + intro.text.split(" both ")[1]}
+              </p>
+              <div className="mt-auto">
+                <Button 
+                  onClick={onOpenWaitlist}
+                  variant="default" 
+                  size="sm"
+                  className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+                >
+                  <MessageCircle size={16} className="mr-1" />
+                  Connect & Say Hi
+                </Button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </section>
