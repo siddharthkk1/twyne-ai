@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -51,7 +52,7 @@ export const HeroSection = ({
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/eb1ea686-0a4a-41f7-a223-7bbe302dbcea.png";
+    readingImg.src = "/lovable-uploads/3971dfb4-3115-4a94-8e5c-b863d344cb77.png";
   }, []);
   
   return (
@@ -71,7 +72,7 @@ export const HeroSection = ({
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden md:block
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
+            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(25%-20px)] -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
             width: `${coffeeImageWidth}px` // Original fixed width in all cases
@@ -97,15 +98,15 @@ export const HeroSection = ({
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
             right-1/4 translate-x-1/2`}
           style={{ 
-            right: 'calc(25% - 20px)',  /* Adjust 20px to the right */
-            bottom: '-30px',            /* Move 30px down */
+            right: 'calc(25% - 20px)',  /* Adjusted to match the coffee image positioning */
+            bottom: '-30px',
             display: windowWidth < 1240 ? 'none' : 'block'  /* Hide when coffee is centered */
           }}
         >
           <div className="relative">
             <img 
-              src="/lovable-uploads/eb1ea686-0a4a-41f7-a223-7bbe302dbcea.png" 
-              alt="Three Friends Reading" 
+              src="/lovable-uploads/3971dfb4-3115-4a94-8e5c-b863d344cb77.png" 
+              alt="People Reading and Using Phone" 
               className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
