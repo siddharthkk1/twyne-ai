@@ -22,13 +22,13 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   
-  // Preload hero images
+  // Preload hero images - updated right image
   useEffect(() => {
     const coffeeImg = new Image();
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png";
+    readingImg.src = "/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png";
   }, []);
   
   // Function to scroll to How It Works section

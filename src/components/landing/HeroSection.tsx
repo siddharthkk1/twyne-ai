@@ -43,8 +43,8 @@ export const HeroSection = ({
   // Determine if we should center the coffee image (between mobile and desktop breakpoints)
   const shouldCenterCoffeeImage = windowWidth < 1240 && windowWidth >= 768;
   
-  // Coffee image dimensions - increased by 10% from 756px to ~832px
-  const coffeeImageWidth = 832;
+  // Coffee image dimensions - reduced by 10% from the 20% increased size
+  const coffeeImageWidth = 756; // Original 840 * 0.9 = 756
   
   // Preload images
   useEffect(() => {
@@ -52,7 +52,7 @@ export const HeroSection = ({
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png";
+    readingImg.src = "/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png";
   }, []);
   
   return (
@@ -68,14 +68,14 @@ export const HeroSection = ({
       
       {/* Images container with responsive positioning */}
       <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto">
-        {/* Coffee friends illustration - Center of left half, moved 10px more left */}
+        {/* Coffee friends illustration - Center of left half */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden md:block
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(25%-30px)] -translate-x-1/2'}`}
+            ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-[calc(25%-40px)] -translate-x-1/2'}`}
           style={{ 
             display: windowWidth < 768 ? 'none' : 'block',
-            width: `${coffeeImageWidth}px` // Increased width by 10%
+            width: `${coffeeImageWidth}px` // Reduced width (10% smaller)
           }}
         >
           <div className="relative">
@@ -92,23 +92,24 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* New Reading illustration - Center of right half, moved 10px more right */}
+        {/* New Reading illustration - Center of right half - UPDATED WITH NEW IMAGE */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
             right-1/4 translate-x-1/2`}
           style={{ 
-            right: 'calc(25% - 30px)',  /* Adjusted to move 10px more outward */
+            right: 'calc(25% - 20px)',
             bottom: '-30px',
-            display: windowWidth < 1240 ? 'none' : 'block'  /* Hide when coffee is centered */
+            display: windowWidth < 1240 ? 'none' : 'block',
+            width: `${coffeeImageWidth}px` // Reduced width (10% smaller)
           }}
         >
           <div className="relative">
             <img 
-              src="/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png" 
+              src="/lovable-uploads/488e2001-3efc-4668-9b93-8a493c73653e.png" 
               alt="People Reading and Using Phone" 
-              className="h-auto w-full max-h-[32rem] object-contain"
-              style={{ width: `${coffeeImageWidth}px` }} /* Match the coffee image width */
+              className="h-auto w-full object-contain"
+              style={{ width: `${coffeeImageWidth}px` }} // Reduced width (10% smaller)
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
             />
@@ -117,13 +118,13 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* For small mobile - center the coffee illustration with increased width */}
+        {/* For small mobile - center the coffee illustration */}
         <div 
           className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 md:hidden
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
           style={{
             width: "90vw",  
-            maxWidth: `${coffeeImageWidth}px`  // Match the increased width
+            maxWidth: `${coffeeImageWidth}px`  // Match the reduced width
           }}
         >
           <div className="relative">
