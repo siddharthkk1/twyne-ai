@@ -95,6 +95,34 @@ const conversationSnapshots: Message[][] = [
       text: "Yes! Solution was such a beautiful metaphor in the book. Your connection to both the simple, meaningful game and the formative college years suggests you value authentic connections and creative problem-solving. Have you read any of Emily St. John Mandel's work? I think her narrative style might resonate with you.",
       sender: "ai"
     },
+  ],
+  // Deep conversation about values and life goals - starting mid-conversation
+  [
+    {
+      id: 1,
+      text: "When you think about your life five years from now, what would make you feel like you've succeeded?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities that bring me joy. I also want to have made progress on my goal to start a community garden project.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "That's really thoughtful. It sounds like your definition of success centers around holistic fulfillment rather than conventional metrics. What inspired your interest in community gardening? It seems to combine environmental values with community building.",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "My grandmother was an avid gardener and taught me everything. When she passed, I realized how much her garden brought people together. Neighbors would stop by, chat, and leave with vegetables. I want to recreate that sense of connection in my urban neighborhood.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "What a beautiful way to honor your grandmother's legacy. That connection between growing food and growing community is profound. The way you speak about this reveals how deeply you value meaningful human connections and creating spaces that nurture both people and the planet. Have you taken any steps toward this garden project yet?",
+      sender: "ai"
+    },
   ]
 ];
 
@@ -109,27 +137,16 @@ export const ChatWithAISection = () => {
     setIsVisible(true);
   }, []);
   
-  // Effect to rotate through conversation snapshots
+  // Effect to update messages when snapshot index changes manually
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentSnapshotIndex((prevIndex) => 
-        (prevIndex + 1) % conversationSnapshots.length
-      );
-    }, 8000); // Change conversation every 8 seconds
-    
-    return () => clearInterval(intervalId);
-  }, []);
-  
-  // Update messages when snapshot index changes
-  useEffect(() => {
-    // First fade out messages
+    // Only fade out the chat element
     setIsVisible(false);
     
     // After a short delay, change the messages and fade them back in
     const timeout = setTimeout(() => {
       setMessages(conversationSnapshots[currentSnapshotIndex]);
       setIsVisible(true);
-    }, 200); // Reduced from 300ms to 200ms for less animation delay
+    }, 200);
     
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
@@ -143,12 +160,8 @@ export const ChatWithAISection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center">
-          {/* Text content - Updated font styles to match the rest of the page */}
-          <div 
-            className={`space-y-6 transition-opacity duration-500 ${
-              isVisible ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
+          {/* Text content - No animation when chat changes */}
+          <div className="space-y-6">
             <p className="text-lg text-foreground">
               Through natural conversations, Twyne's AI learns your personality, interests,
               and what matters to you—creating a nuanced picture of who you are.
@@ -184,57 +197,58 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation - Reduced transform animation for smoother transitions */}
-          <div 
-            className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-500 ${
-              isVisible ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <MessageCircle className="h-5 w-5 text-primary" />
+          {/* Chat simulation - Only this part fades when changing */}
+          <div className="flex flex-col items-center">
+            <div 
+              className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-500 w-full ${
+                isVisible ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-medium">Chat with Twyne</h3>
                 </div>
-                <h3 className="font-medium">Chat with Twyne</h3>
               </div>
-              {/* Removed the 3 dots as requested */}
-            </div>
-            
-            <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto">
-              {messages.map((message) => (
-                <div
-                  key={`${currentSnapshotIndex}-${message.id}`}
-                  className={`animate-fade-in ${
-                    message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-                  }`}
-                >
-                  {message.text}
+              
+              <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto">
+                {messages.map((message) => (
+                  <div
+                    key={`${currentSnapshotIndex}-${message.id}`}
+                    className={`animate-fade-in ${
+                      message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                ))}
+              </div>
+              
+              <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
+                <input 
+                  type="text" 
+                  placeholder="Tell me more about yourself..."
+                  className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
+                  disabled
+                />
+                <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                    <path d="M22 2L11 13"></path>
+                    <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                  </svg>
                 </div>
-              ))}
-            </div>
-            
-            <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
-              <input 
-                type="text" 
-                placeholder="Tell me more about yourself..."
-                className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
-                disabled
-              />
-              <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                  <path d="M22 2L11 13"></path>
-                  <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-                </svg>
               </div>
             </div>
             
-            {/* Conversation switcher dots */}
-            <div className="flex justify-center mt-4 space-x-2">
+            {/* Conversation switcher dots moved below the chat element */}
+            <div className="flex justify-center mt-6 space-x-3">
               {conversationSnapshots.map((_, index) => (
                 <button 
                   key={index}
                   onClick={() => setCurrentSnapshotIndex(index)}
-                  className={`h-2 w-2 rounded-full transition-all ${
+                  className={`h-3 w-3 rounded-full transition-all ${
                     currentSnapshotIndex === index ? 'bg-primary scale-125' : 'bg-muted'
                   }`}
                   aria-label={`View conversation ${index + 1}`}
@@ -254,4 +268,3 @@ export const ChatWithAISection = () => {
     </section>
   );
 };
-
