@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -40,21 +41,30 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Basketball players illustration in background lower left */}
-      <div className="absolute left-0 md:left-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
+      {/* Basketball players illustration on left */}
+      <div className="absolute left-0 md:left-[5%] bottom-0 pointer-events-none opacity-80 z-0">
         <img 
-          src="/lovable-uploads/66a6d9cc-0713-40a8-9efd-7603ed7304ba.png" 
+          src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
           alt="Basketball Players" 
-          className="h-[30rem] w-auto object-contain"
+          className="h-auto w-auto max-h-[35rem] object-contain"
         />
       </div>
       
-      {/* People reading books illustration in background lower right */}
-      <div className="absolute right-0 md:right-[5%] bottom-1/4 pointer-events-none opacity-50 md:opacity-70 z-0">
+      {/* Coffee friends illustration in middle */}
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 hidden md:block">
         <img 
-          src="/lovable-uploads/709a7d41-9bb4-4313-9076-ae91eb8ff051.png" 
+          src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
+          alt="Friends with Coffee" 
+          className="h-auto w-auto max-h-[32rem] object-contain"
+        />
+      </div>
+      
+      {/* Reading people illustration on right */}
+      <div className="absolute right-0 md:right-[5%] bottom-0 pointer-events-none opacity-80 z-0">
+        <img 
+          src="/lovable-uploads/dfa15283-ccbd-44d6-be07-aacaf7436b85.png" 
           alt="People Reading" 
-          className="h-[24rem] w-auto object-contain"
+          className="h-auto w-auto max-h-[32rem] object-contain"
         />
       </div>
       
@@ -144,7 +154,7 @@ export const HeroSection = ({
         </div>
       </div>
 
-      {/* Rotating text with full-width carousel - Adjusted position (15% up from previous position) */}
+      {/* Rotating text with full-width carousel - Adjusted position */}
       <div 
         className={`w-full transition-all duration-700 transform mt-10 sm:mt-16 md:mt-20 ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -153,8 +163,6 @@ export const HeroSection = ({
       > 
         <RotatingUseScenarios />
       </div>
-      
-      {/* Remove scroll indicator from hero section since we've moved it to be fixed at bottom of page */}
     </section>
   );
 };
