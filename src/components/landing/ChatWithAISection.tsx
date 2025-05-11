@@ -35,8 +35,13 @@ export const ChatWithAISection = () => {
   }, []);
 
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-primary/5 relative overflow-hidden">
+    <section className="py-16 bg-white relative overflow-hidden">
       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold">Our AI Gets to Know You</h2>
+          <p className="text-muted-foreground mt-2">Through natural conversations that feel refreshingly human</p>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-10 items-center">
           {/* Text content */}
           <div 
@@ -44,7 +49,6 @@ export const ChatWithAISection = () => {
               isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[-20px] opacity-0'
             }`}
           >
-            <h2 className="text-3xl font-bold">Our AI Gets to Know You</h2>
             <p className="text-lg text-muted-foreground">
               Through natural conversations, Twyne's AI learns your personality, interests,
               and what matters to you—creating a nuanced picture of who you are.

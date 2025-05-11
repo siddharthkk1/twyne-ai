@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -86,11 +85,11 @@ const Index = () => {
         onScrollToHowItWorks={scrollToHowItWorks}
       />
 
-      {/* New Chat With AI Section */}
-      <ChatWithAISection />
-
       {/* How It Works Section */}
       <HowItWorksSection />
+
+      {/* Chat With AI Section - Now positioned after How It Works */}
+      <ChatWithAISection />
 
       {/* Example Warm Intros Section - without images in this section */}
       <WarmIntrosSection onOpenWaitlist={openWaitlist} />
