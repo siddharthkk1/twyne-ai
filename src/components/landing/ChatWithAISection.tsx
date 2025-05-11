@@ -9,9 +9,10 @@ interface Message {
   sender: "ai" | "user";
 }
 
-export const ChatWithAISection = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
+// Define multiple conversation snapshots
+const conversationSnapshots = [
+  // Hiking and game nights conversation
+  [
     {
       id: 1,
       text: "Hey there! I'm Twyne. I'd love to get to know you better. What kinds of things do you enjoy doing on weekends?",
@@ -37,12 +38,99 @@ export const ChatWithAISection = () => {
       text: "Redwood is stunning! Those ancient trees are something else. And your game nights sound like the perfect mix of strategy and laughs. You seem like someone who values both outdoor adventures and quality time with friends. What kind of restaurants do you enjoy exploring?",
       sender: "ai"
     },
-  ]);
+  ],
+  // Music and travel conversation
+  [
+    {
+      id: 1,
+      text: "Hi there! I'd love to get to know you better. What are you passionate about these days?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "I've been really into music production lately, and I'm planning a trip to Japan next year.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "Music production sounds fascinating! What kind of music do you make? And Japan is an amazing destination - which cities are you hoping to visit?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I produce electronic music with some jazz influences. For Japan, definitely Tokyo and Kyoto, but I'd love to explore some lesser-known areas too.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "That's such a cool fusion of genres! And your travel style sounds perfect - balancing the must-see spots with authentic local experiences shows you're thoughtful and adventurous. Have you picked up any Japanese phrases yet?",
+      sender: "ai"
+    },
+  ],
+  // Reading and cooking conversation
+  [
+    {
+      id: 1,
+      text: "Hello! I'm Twyne. I'd like to get to know you a bit. What do you enjoy doing in your free time?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "I read a lot of science fiction and I've been getting into cooking lately. Been trying to perfect my pasta-making skills.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "Science fiction and homemade pasta? That's a fantastic combination! Who are some of your favorite sci-fi authors? And how's the pasta-making journey going?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I love Octavia Butler and Ted Chiang. My pasta is getting better! Made a decent fettuccine last weekend, but ravioli is still challenging.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "Octavia Butler's work is incredible, and Ted Chiang's short stories are so thought-provoking! Your pasta adventure sounds rewarding - starting with fettuccine before tackling ravioli shows you're methodical. Do you have a signature sauce to pair with your handmade pasta?",
+      sender: "ai"
+    },
+  ]
+];
+
+export const ChatWithAISection = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState(0);
+  const [messages, setMessages] = useState<Message[]>(conversationSnapshots[0]);
   
   // Animation effect for element appearance
   useEffect(() => {
     setIsVisible(true);
   }, []);
+  
+  // Effect to rotate through conversation snapshots
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentSnapshotIndex((prevIndex) => 
+        (prevIndex + 1) % conversationSnapshots.length
+      );
+    }, 8000); // Change conversation every 8 seconds
+    
+    return () => clearInterval(intervalId);
+  }, []);
+  
+  // Update messages when snapshot index changes
+  useEffect(() => {
+    // First fade out messages
+    setIsVisible(false);
+    
+    // After a short delay, change the messages and fade them back in
+    const timeout = setTimeout(() => {
+      setMessages(conversationSnapshots[currentSnapshotIndex]);
+      setIsVisible(true);
+    }, 300); // This delay should be shorter than the interval above
+    
+    return () => clearTimeout(timeout);
+  }, [currentSnapshotIndex]);
 
   return (
     <section className="py-16 bg-white relative overflow-hidden">
@@ -118,7 +206,7 @@ export const ChatWithAISection = () => {
             <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto">
               {messages.map((message) => (
                 <div
-                  key={message.id}
+                  key={`${currentSnapshotIndex}-${message.id}`}
                   className={`animate-fade-in ${
                     message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
                   }`}
@@ -141,6 +229,20 @@ export const ChatWithAISection = () => {
                   <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
                 </svg>
               </div>
+            </div>
+            
+            {/* Conversation switcher dots */}
+            <div className="flex justify-center mt-4 space-x-2">
+              {conversationSnapshots.map((_, index) => (
+                <button 
+                  key={index}
+                  onClick={() => setCurrentSnapshotIndex(index)}
+                  className={`h-2 w-2 rounded-full transition-all ${
+                    currentSnapshotIndex === index ? 'bg-primary scale-125' : 'bg-muted'
+                  }`}
+                  aria-label={`View conversation ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
