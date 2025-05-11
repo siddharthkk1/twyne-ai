@@ -28,7 +28,7 @@ const Index = () => {
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png";
+    readingImg.src = "/lovable-uploads/eb1ea686-0a4a-41f7-a223-7bbe302dbcea.png";
   }, []);
   
   // Function to scroll to How It Works section

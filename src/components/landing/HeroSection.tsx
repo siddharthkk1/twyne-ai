@@ -49,7 +49,7 @@ export const HeroSection = ({
     coffeeImg.src = "/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png";
     
     const readingImg = new Image();
-    readingImg.src = "/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png";
+    readingImg.src = "/lovable-uploads/eb1ea686-0a4a-41f7-a223-7bbe302dbcea.png";
   }, []);
   
   return (
@@ -71,7 +71,8 @@ export const HeroSection = ({
             ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
             ${shouldCenterCoffeeImage ? 'left-1/2 -translate-x-1/2' : 'left-1/4 -translate-x-1/2'}`}
           style={{ 
-            display: windowWidth < 768 ? 'none' : 'block'
+            display: windowWidth < 768 ? 'none' : 'block',
+            maxHeight: shouldCenterCoffeeImage ? '32rem' : undefined
           }}
         >
           <div className="relative">
@@ -87,7 +88,7 @@ export const HeroSection = ({
           </div>
         </div>
 
-        {/* Reading/Listening people illustration - Center of right half */}
+        {/* New Reading illustration - Center of right half */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
             ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
@@ -100,8 +101,8 @@ export const HeroSection = ({
         >
           <div className="relative">
             <img 
-              src="/lovable-uploads/a27c4b0b-c448-444a-a051-26cbceec9a1b.png" 
-              alt="Three Friends Together" 
+              src="/lovable-uploads/eb1ea686-0a4a-41f7-a223-7bbe302dbcea.png" 
+              alt="Three Friends Reading" 
               className="h-auto w-full max-h-[32rem] object-contain"
               onLoad={() => setReadingImageLoaded(true)}
               loading="eager"
@@ -228,3 +229,4 @@ export const HeroSection = ({
     </section>
   );
 };
+
