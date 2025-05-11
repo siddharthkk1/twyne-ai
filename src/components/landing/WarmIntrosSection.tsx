@@ -21,33 +21,6 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </p>
         </div>
         
-        {/* Images positioned on left and right sides - desktop only */}
-        <div className="hidden lg:block">
-          {/* Basketball image on left */}
-          <div className="absolute left-4 lg:left-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[240px] lg:max-w-[336px]">
-            <div className="relative">
-              <img 
-                src="/lovable-uploads/3be4369e-0545-468f-ac65-881cf739a4e7.png" 
-                alt="Basketball Players" 
-                className="h-auto w-full object-contain"
-              />
-              <div className="absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
-            </div>
-          </div>
-          
-          {/* Reading people image on right */}
-          <div className="absolute right-4 lg:right-12 top-1/2 -translate-y-1/2 opacity-60 max-w-[240px] lg:max-w-[336px]">
-            <div className="relative">
-              <img 
-                src="/lovable-uploads/7dae1ebe-bc11-4593-b2b4-71ba6ede6d22.png" 
-                alt="People Reading and Using Phones" 
-                className="h-auto w-full object-contain"
-              />
-              <div className="absolute left-0 right-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
-            </div>
-          </div>
-        </div>
-        
         <div className="grid md:grid-cols-2 gap-8 relative z-10">
           <div className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20">
             <p className="text-lg mb-2">

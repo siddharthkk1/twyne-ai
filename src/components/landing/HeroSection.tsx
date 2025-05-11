@@ -24,7 +24,8 @@ export const HeroSection = ({
   const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const isMobile = useIsMobile();
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [coffeeImageLoaded, setCoffeeImageLoaded] = useState(false);
+  const [readingImageLoaded, setReadingImageLoaded] = useState(false);
 
   // Animation effect that staggers the appearance of elements
   useEffect(() => {
@@ -42,23 +43,42 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Image container with responsive positioning - left on desktop, center on mobile */}
+      {/* Images container with responsive positioning */}
       <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto">
-        {/* Coffee friends illustration moved to left on desktop, center on mobile */}
+        {/* Coffee friends illustration - Further left position on desktop, hidden on mobile */}
         <div 
-          className={`absolute bottom-0 pointer-events-none opacity-80 z-0 hidden sm:block
-            ${imageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
-            left-8 md:left-12 lg:left-24 xl:left-48 2xl:left-1/4
-            sm:max-w-[450px] md:max-w-[550px]`}
+          className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
+            ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
+            left-0 lg:left-4 xl:left-[10%]
+            max-w-[450px]`}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
               className="h-auto w-full max-h-[32rem] object-contain"
-              onLoad={() => setImageLoaded(true)}
+              onLoad={() => setCoffeeImageLoaded(true)}
               fetchPriority="high"
               loading="eager"
+            />
+            {/* Gradient overlay for fade effect */}
+            <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+          </div>
+        </div>
+
+        {/* Reading/Listening people illustration on right */}
+        <div 
+          className={`absolute bottom-0 pointer-events-none z-0 hidden lg:block
+            ${readingImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500
+            right-0 lg:right-4 xl:right-[10%]
+            max-w-[450px]`}
+        >
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/7c804f22-0b4e-4a87-a191-18c787590a79.png" 
+              alt="People Reading and Listening" 
+              className="h-auto w-full max-h-[32rem] object-contain"
+              onLoad={() => setReadingImageLoaded(true)}
             />
             {/* Gradient overlay for fade effect */}
             <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
@@ -68,14 +88,14 @@ export const HeroSection = ({
         {/* For mobile - center the coffee illustration */}
         <div 
           className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 pointer-events-none opacity-80 z-0 block sm:hidden
-            ${imageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
+            ${coffeeImageLoaded ? 'opacity-80' : 'opacity-0'} transition-opacity duration-500`}
         >
           <div className="relative">
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
               className="h-auto w-[90vw] max-w-[400px] max-h-[28rem] object-contain"
-              onLoad={() => setImageLoaded(true)}
+              onLoad={() => setCoffeeImageLoaded(true)}
               fetchPriority="high"
               loading="eager"
             />
