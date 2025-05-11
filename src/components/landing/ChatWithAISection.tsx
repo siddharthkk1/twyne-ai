@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
@@ -9,8 +8,8 @@ interface Message {
   sender: "ai" | "user";
 }
 
-// Define multiple conversation snapshots
-const conversationSnapshots = [
+// Define multiple conversation snapshots with proper typing
+const conversationSnapshots: Message[][] = [
   // Hiking and game nights conversation
   [
     {
