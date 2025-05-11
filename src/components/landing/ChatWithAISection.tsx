@@ -181,7 +181,7 @@ export const ChatWithAISection = () => {
           <div className="space-y-6">
             <p className="text-lg">
               Twyne learns your personality, interests, and what matters to you—creating 
-              a nuanced understanding of who you are beyond traditional profiles.
+              a nuanced picture of who you are.
             </p>
             <div className="space-y-3">
               <div className="flex items-start">
