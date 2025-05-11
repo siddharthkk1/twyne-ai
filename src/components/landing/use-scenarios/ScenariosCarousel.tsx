@@ -33,10 +33,11 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       // Create continuous scrolling effect by decrementing position
       let newPos = prev - scrollSpeed;
       
-      // When scrolled past a certain threshold, reset subtly
-      if (newPos <= -cardWidth) {
-        // Instead of jumping back to 0, just move forward one card width
-        // This creates the illusion of infinite scrolling
+      // Reset position when the first card has completely scrolled off
+      // Only reset when we've scrolled a complete card width
+      if (Math.abs(newPos) >= cardWidth) {
+        // Move the position by exactly one card width to maintain the illusion
+        // This ensures the animation appears continuous without jumps
         return newPos + cardWidth;
       }
       
@@ -94,7 +95,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   };
 
   // Create a large set of duplicated items to ensure smooth scrolling
-  // We duplicate the scenarios multiple times
+  // We duplicate the scenarios multiple times to provide enough content
   const displayItems = [...scenarios, ...scenarios, ...scenarios];
 
   return (
