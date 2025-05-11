@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Sparkles, MessageCircle } from "lucide-react";
+import { Sparkles, MessageCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -8,8 +8,16 @@ interface WarmIntrosSectionProps {
   onOpenWaitlist: () => void;
 }
 
+// Define card type interface
+interface IntroCard {
+  id: number;
+  text: string;
+  visible: boolean;
+  isGroup?: boolean;
+}
+
 // Define all intro cards data
-const initialIntros = [
+const initialIntros: IntroCard[] = [
   {
     id: 1,
     text: "You and Nina both love basketball, burritos, and late-night debates.",
@@ -27,13 +35,15 @@ const initialIntros = [
   },
   {
     id: 4,
-    text: "You, Lena, and Zara both just moved to the city and are figuring out how to feel at home here.",
-    visible: true
+    text: "You, Lena, and Zara all just moved to the city and are figuring out how to feel at home here.",
+    visible: true,
+    isGroup: true
   },
   {
     id: 5,
-    text: "You, Lexi, and Ethan are both in healthcare and could use a break from being everyone else's support system. Walk and talk?",
-    visible: true
+    text: "You, Lexi, and Ethan are all in healthcare and could use a break from being everyone else's support system. Walk and talk?",
+    visible: true,
+    isGroup: true
   },
   {
     id: 6,
@@ -42,7 +52,7 @@ const initialIntros = [
   }
 ];
 
-const additionalIntros = [
+const additionalIntros: IntroCard[] = [
   {
     id: 7,
     text: "You and Tre both grew up watching LeBron chase greatness—and never back down from the GOAT debate. MJ or Bron? You've got takes.",
@@ -55,8 +65,9 @@ const additionalIntros = [
   },
   {
     id: 9,
-    text: "Yo, Sabina, and Lily are both Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you both know it.",
-    visible: false
+    text: "You, Sabina, and Lily are all Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
+    visible: false,
+    isGroup: true
   },
   {
     id: 10,
@@ -76,26 +87,27 @@ const additionalIntros = [
 ];
 
 export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) => {
-  const [intros, setIntros] = useState([...initialIntros, ...additionalIntros]);
+  const [intros, setIntros] = useState<IntroCard[]>([...initialIntros, ...additionalIntros]);
   const isMobile = useIsMobile();
   const visibleCount = isMobile ? 4 : 6;
+  const rotationDelay = Math.random() * 2000 + 3000; // 3-5 seconds
   
-  // Function to randomly pick intros for display
+  // Function to randomly change exactly one card at a time with no shifting
   useEffect(() => {
     const rotateIntro = () => {
       // Create a copy of the current intros
       const currentIntros = [...intros];
       
-      // First pick a visible intro to replace
+      // Get all visible and hidden intros
       const visibleIntros = currentIntros.filter(intro => intro.visible);
-      const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
-      const introToHide = visibleIntros[randomVisibleIndex];
-      
-      // Find all non-visible intros
       const hiddenIntros = currentIntros.filter(intro => !intro.visible);
       
       // If there are no hidden intros, just return
       if (hiddenIntros.length === 0) return;
+      
+      // Pick a random visible intro to hide
+      const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
+      const introToHide = visibleIntros[randomVisibleIndex];
       
       // Pick a random hidden intro to show
       const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
@@ -106,20 +118,19 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         current.map(intro => {
           if (intro.id === introToHide.id) return { ...intro, visible: false };
           if (intro.id === introToShow.id) return { ...intro, visible: true };
-          return intro;
+          return intro; // All other cards stay exactly as they are
         })
       );
     };
     
-    // Set interval to rotate intros every 3-5 seconds
-    const interval = setInterval(() => {
-      rotateIntro();
-    }, Math.random() * 2000 + 3000);
+    // Set interval for the rotation with the calculated delay
+    const interval = setInterval(rotateIntro, rotationDelay);
     
     return () => clearInterval(interval);
-  }, [intros, isMobile]);
+  }, [intros, rotationDelay]);
   
   // Make sure we have the correct number of visible intros when the screen size changes
+  // This ensures we don't have cards appearing or disappearing when the viewport changes
   useEffect(() => {
     setIntros(current => {
       // Count currently visible
@@ -168,9 +179,9 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </p>
         </div>
         
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10">
           {intros.map(intro => {
-            // Only render visible intros and only up to the visibleCount limit
+            // Only render visible intros
             if (!intro.visible) return null;
             
             return (
@@ -178,13 +189,24 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
                 key={intro.id}
                 className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
                 style={{ 
-                  height: "240px", // Fixed height
-                  width: "100%" // 100% of the grid cell width
+                  height: "240px",
+                  width: "100%"
                 }}
               >
+                {/* Group indicator for group intros */}
+                {intro.isGroup && (
+                  <div className="mb-2 flex items-center text-primary">
+                    <Users size={16} className="mr-1" />
+                    <span className="text-xs font-medium">Group Connection</span>
+                  </div>
+                )}
                 <p className="text-lg mb-2">
-                  <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
-                  {" both " + intro.text.split(" both ")[1]}
+                  <span className="font-semibold">
+                    {intro.text.split(intro.isGroup ? " all " : " both ")[0]}
+                  </span>
+                  {intro.isGroup 
+                    ? (" all " + intro.text.split(" all ")[1])
+                    : (" both " + intro.text.split(" both ")[1])}
                 </p>
                 <div className="mt-auto">
                   <Button 
