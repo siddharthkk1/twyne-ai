@@ -14,6 +14,7 @@ interface IntroCard {
   text: string;
   visible: boolean;
   isGroup?: boolean;
+  position?: number; // Add position to track the slot in the UI
 }
 
 // Define all intro cards data
@@ -21,34 +22,40 @@ const initialIntros: IntroCard[] = [
   {
     id: 1,
     text: "You and Nina both love basketball, burritos, and late-night debates.",
-    visible: true
+    visible: true,
+    position: 0
   },
   {
     id: 2,
     text: "You and Priya both read too many psychology books and have 300+ tabs open.",
-    visible: true
+    visible: true,
+    position: 1
   },
   {
     id: 3, 
     text: "You and Chris are both getting married in a month and feeling all the chaos and excitement.",
-    visible: true
+    visible: true,
+    position: 2
   },
   {
     id: 4,
     text: "You, Lena, and Zara all just moved to the city and are figuring out how to feel at home here.",
     visible: true,
-    isGroup: true
+    isGroup: true,
+    position: 3
   },
   {
     id: 5,
     text: "You, Lexi, and Ethan are all in healthcare and could use a break from being everyone else's support system. Walk and talk?",
     visible: true,
-    isGroup: true
+    isGroup: true,
+    position: 4
   },
   {
     id: 6,
     text: "You and Jay are both startup people—figuring out life, product-market fit, and how to have hobbies again. Coffee?",
-    visible: true
+    visible: true,
+    position: 5
   }
 ];
 
@@ -91,6 +98,18 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   const isMobile = useIsMobile();
   const visibleCount = isMobile ? 4 : 6;
   
+  // Initialize positions on first render
+  useEffect(() => {
+    setIntros(current => {
+      return current.map((card, index) => {
+        if (card.visible) {
+          return { ...card, position: index };
+        }
+        return card;
+      });
+    });
+  }, []);
+  
   // Rotate one card every 5 seconds
   useEffect(() => {
     const rotateOneCard = () => {
@@ -106,14 +125,17 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
         const cardToHide = visibleIntros[randomVisibleIndex];
         
+        // Get the position of the card being hidden
+        const positionToReplace = cardToHide.position;
+        
         // Pick one random hidden card to show
         const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
         const cardToShow = hiddenIntros[randomHiddenIndex];
         
-        // Create a new array with the updated visibility states
+        // Create a new array with the updated visibility states and position
         return currentIntros.map(card => {
           if (card.id === cardToHide.id) return { ...card, visible: false };
-          if (card.id === cardToShow.id) return { ...card, visible: true };
+          if (card.id === cardToShow.id) return { ...card, visible: true, position: positionToReplace };
           return card; // Keep all other cards unchanged
         });
       });
@@ -144,10 +166,19 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         // Get that many cards from the hidden ones
         const cardsToShow = hiddenIntros.slice(0, cardsToAdd);
         
-        // Update visibility for these cards
+        // Update visibility for these cards and assign positions
         updatedIntros = current.map(card => {
           if (cardsToShow.some(c => c.id === card.id)) {
-            return { ...card, visible: true };
+            // Find the next available position
+            const usedPositions = visibleIntros.map(v => v.position);
+            const availablePositions = Array.from(Array(targetVisibleCount).keys())
+              .filter(pos => !usedPositions.includes(pos));
+            
+            return { 
+              ...card, 
+              visible: true,
+              position: availablePositions[0]
+            };
           }
           return card;
         });
@@ -186,48 +217,47 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10">
-          {intros.map(intro => {
-            // Only render visible intros
-            if (!intro.visible) return null;
-            
-            return (
-              <div 
-                key={intro.id}
-                className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
-                style={{ 
-                  height: "240px",
-                  width: "100%"
-                }}
-              >
-                {/* Group indicator for group intros */}
-                {intro.isGroup && (
-                  <div className="mb-2 flex items-center text-primary">
-                    <Users size={16} className="mr-1" />
-                    <span className="text-xs font-medium">Group</span>
-                  </div>
-                )}
-                <p className="text-lg mb-2">
-                  <span className="font-semibold">
-                    {intro.text.split(intro.isGroup ? " all " : " both ")[0]}
-                  </span>
-                  {intro.isGroup 
-                    ? (" all " + intro.text.split(" all ")[1])
-                    : (" both " + intro.text.split(" both ")[1])}
-                </p>
-                <div className="mt-auto">
-                  <Button 
-                    onClick={onOpenWaitlist}
-                    variant="default" 
-                    size="sm"
-                    className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
-                  >
-                    <MessageCircle size={16} className="mr-1" />
-                    Connect & Say Hi
-                  </Button>
+          {/* Sort by position before rendering to maintain position in the grid */}
+          {intros
+            .filter(intro => intro.visible)
+            .sort((a, b) => (a.position || 0) - (b.position || 0))
+            .map(intro => (
+            <div 
+              key={intro.id}
+              className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
+              style={{ 
+                height: "240px",
+                width: "100%"
+              }}
+            >
+              {/* Group indicator for group intros */}
+              {intro.isGroup && (
+                <div className="mb-2 flex items-center text-primary">
+                  <Users size={16} className="mr-1" />
+                  <span className="text-xs font-medium">Group</span>
                 </div>
+              )}
+              <p className="text-lg mb-2">
+                <span className="font-semibold">
+                  {intro.text.split(intro.isGroup ? " all " : " both ")[0]}
+                </span>
+                {intro.isGroup 
+                  ? (" all " + intro.text.split(" all ")[1])
+                  : (" both " + intro.text.split(" both ")[1])}
+              </p>
+              <div className="mt-auto">
+                <Button 
+                  onClick={onOpenWaitlist}
+                  variant="default" 
+                  size="sm"
+                  className="rounded-full w-full md:w-auto self-end mb-3 hover:shadow-md transition-all"
+                >
+                  <MessageCircle size={16} className="mr-1" />
+                  Connect & Say Hi
+                </Button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </section>
