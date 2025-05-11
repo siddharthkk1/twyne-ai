@@ -11,6 +11,7 @@ import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { WarmIntrosSection } from "@/components/landing/WarmIntrosSection";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { CallToActionSection } from "@/components/landing/CallToActionSection";
+import { PrivacySection } from "@/components/landing/PrivacySection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollIndicator } from "@/components/landing/use-scenarios/ScrollIndicator";
 
@@ -97,6 +98,9 @@ const Index = () => {
 
       {/* Sample Profile Section */}
       <SampleProfileSection />
+      
+      {/* Privacy Section - New section after Sample Profile */}
+      <PrivacySection />
 
       {/* Social Proof Section */}
       <SocialProofSection />

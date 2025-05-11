@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WarmIntrosSectionProps {
   onOpenWaitlist: () => void;
@@ -76,38 +77,83 @@ const additionalIntros = [
 
 export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) => {
   const [intros, setIntros] = useState([...initialIntros, ...additionalIntros]);
+  const isMobile = useIsMobile();
+  const visibleCount = isMobile ? 4 : 6;
   
-  // Function to randomly show additional intro cards over time
+  // Function to randomly pick intros for display
   useEffect(() => {
-    const showRandomIntro = () => {
-      // Find hidden intros
-      const hiddenIntros = intros.filter(intro => !intro.visible && intro.id > 6);
+    const rotateIntro = () => {
+      // Create a copy of the current intros
+      const currentIntros = [...intros];
       
-      // If there are still hidden intros, pick a random one to show
-      if (hiddenIntros.length > 0) {
-        const randomIndex = Math.floor(Math.random() * hiddenIntros.length);
-        const introToShow = hiddenIntros[randomIndex];
-        
-        setIntros(current => 
-          current.map(intro => 
-            intro.id === introToShow.id ? { ...intro, visible: true } : intro
-          )
-        );
-      }
+      // First pick a visible intro to replace
+      const visibleIntros = currentIntros.filter(intro => intro.visible);
+      const randomVisibleIndex = Math.floor(Math.random() * visibleIntros.length);
+      const introToHide = visibleIntros[randomVisibleIndex];
+      
+      // Find all non-visible intros
+      const hiddenIntros = currentIntros.filter(intro => !intro.visible);
+      
+      // If there are no hidden intros, just return
+      if (hiddenIntros.length === 0) return;
+      
+      // Pick a random hidden intro to show
+      const randomHiddenIndex = Math.floor(Math.random() * hiddenIntros.length);
+      const introToShow = hiddenIntros[randomHiddenIndex];
+      
+      // Update the visibility states
+      setIntros(current => 
+        current.map(intro => {
+          if (intro.id === introToHide.id) return { ...intro, visible: false };
+          if (intro.id === introToShow.id) return { ...intro, visible: true };
+          return intro;
+        })
+      );
     };
     
-    // Set initial delay before starting to show additional intros
-    const initialDelay = setTimeout(() => {
-      // Show a new intro every 2-4 seconds
-      const interval = setInterval(() => {
-        showRandomIntro();
-      }, Math.random() * 2000 + 2000);
-      
-      return () => clearInterval(interval);
-    }, 1500);
+    // Set interval to rotate intros every 3-5 seconds
+    const interval = setInterval(() => {
+      rotateIntro();
+    }, Math.random() * 2000 + 3000);
     
-    return () => clearTimeout(initialDelay);
-  }, [intros]);
+    return () => clearInterval(interval);
+  }, [intros, isMobile]);
+  
+  // Make sure we have the correct number of visible intros when the screen size changes
+  useEffect(() => {
+    setIntros(current => {
+      // Count currently visible
+      const visibleCount = current.filter(intro => intro.visible).length;
+      const desiredCount = isMobile ? 4 : 6;
+      
+      // If we already have the correct number, no change needed
+      if (visibleCount === desiredCount) return current;
+      
+      // If we need to show more
+      if (visibleCount < desiredCount) {
+        const hiddenIntros = current.filter(intro => !intro.visible);
+        const toShow = hiddenIntros.slice(0, desiredCount - visibleCount);
+        
+        return current.map(intro => {
+          if (toShow.some(i => i.id === intro.id)) {
+            return { ...intro, visible: true };
+          }
+          return intro;
+        });
+      }
+      
+      // If we need to hide some
+      const visibleIntros = current.filter(intro => intro.visible);
+      const toHide = visibleIntros.slice(desiredCount);
+      
+      return current.map(intro => {
+        if (toHide.some(i => i.id === intro.id)) {
+          return { ...intro, visible: false };
+        }
+        return intro;
+      });
+    });
+  }, [isMobile]);
   
   return (
     <section className="py-16 bg-white relative">
@@ -122,14 +168,15 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10">
-          {intros.map(intro => (
-            intro.visible && (
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10`}>
+          {intros.map(intro => {
+            // Only render visible intros and only up to the visibleCount limit
+            if (!intro.visible) return null;
+            
+            return (
               <div 
                 key={intro.id}
-                className={`bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 ${
-                  intro.id > 6 ? 'animate-fade-in' : ''
-                }`}
+                className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
               >
                 <p className="text-lg mb-2">
                   <span className="font-semibold">{intro.text.split(" both ")[0]}</span>
@@ -145,8 +192,8 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
                   Connect & Say Hi
                 </Button>
               </div>
-            )
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
