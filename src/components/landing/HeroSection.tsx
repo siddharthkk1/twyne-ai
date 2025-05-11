@@ -49,7 +49,7 @@ export const HeroSection = ({
             <img 
               src="/lovable-uploads/319407dd-66e7-4d88-aa96-bdb8ffd89535.png" 
               alt="Friends with Coffee" 
-              className="h-auto w-[800px] min-w-[550px] max-h-[32rem] object-contain"
+              className="h-auto w-[900px] min-w-[550px] max-h-[32rem] object-contain"
             />
             {/* Gradient overlay for fade effect */}
             <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
