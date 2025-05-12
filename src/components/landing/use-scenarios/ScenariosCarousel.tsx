@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
@@ -38,19 +39,18 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const lastTimeRef = useRef<number>(0);
   const isMobile = useIsMobile();
   const lastTouchMove = useRef<number>(0);
-  const [isIOS, setIsIOS] = useState(false);
+  
+  // Use useMemo to evaluate isIOS only once per mount
+  const isIOS = React.useMemo(() => isIOSDevice(), []);
   const deviceDebugInfo = useDeviceDebugInfo();
 
   const scrollSpeed = 0.2; // Reduced speed for smoother animation
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  // Detect iOS devices
+  // Detect touch devices (non-iOS)
   useEffect(() => {
-    const iosDetected = isIOSDevice();
-    setIsIOS(iosDetected);
-    
-    if (iosDetected) {
+    if (isIOS) {
       setIsTouchDevice(true);
       console.log("iOS device detected, disabling auto-scroll");
     }
@@ -80,7 +80,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       window.removeEventListener('touchstart', touchHandler);
       clearTimeout(timeoutId);
     };
-  }, []);
+  }, [isIOS]);
 
   console.log("Carousel state:", {
     totalWidth,
@@ -99,7 +99,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
     
-    // Only animate if NOT paused AND NOT on iOS
+    // Only animate if NOT paused AND NOT on iOS AND NOT a touch device
     if (isPaused || isIOS || isTouchDevice) {
       animationRef.current = requestAnimationFrame(animate);
       return;
@@ -121,7 +121,11 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     animationRef.current = requestAnimationFrame(animate);
   };
 
+  // Only start animation if NOT on iOS
   useEffect(() => {
+    // Don't even start the animation loop on iOS
+    if (isIOS) return;
+    
     animationRef.current = requestAnimationFrame(animate);
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -131,6 +135,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   // Reset the animation when window size changes
   useEffect(() => {
     const handleResize = () => {
+      // Don't reset animation on iOS
+      if (isIOS) return;
+      
       // Stop existing animation
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -146,7 +153,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isIOS]);
 
   // Touch handling for manual scrolling
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -214,11 +221,11 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       <div
         className={`flex items-center ${isDragging ? 'will-change-transform' : 'transition-all duration-300'} cursor-grab`}
         style={{
-          transform: `translate3d(${translateX}px, 0, 0)`,
-          transition: isDragging ? "none" : "transform 0.3s ease-out",
+          transform: isIOS ? undefined : `translate3d(${translateX}px, 0, 0)`,
+          transition: isIOS || isDragging ? "none" : "transform 0.3s ease-out",
           WebkitBackfaceVisibility: "hidden", // Hardware acceleration for iOS
           WebkitPerspective: 1000,
-          WebkitTransform: `translate3d(${translateX}px, 0, 0)`,
+          WebkitTransform: isIOS ? undefined : `translate3d(${translateX}px, 0, 0)`,
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
