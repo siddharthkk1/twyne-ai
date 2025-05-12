@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Follow-up form schema with additional fields
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Please enter your full name." }),
-  age: z.coerce.number().min(1, { message: "Please enter a valid age." }),
+  age: z.string().min(1, { message: "Please enter a valid age." }).transform(val => parseInt(val, 10)),
   interests: z.string().min(3, { message: "Please share some of your interests." }),
   motivation: z.string().min(3, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -41,14 +41,13 @@ export const WaitlistFollowUpForm = ({
 }: WaitlistFollowUpFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [waitlistLocationCount, setWaitlistLocationCount] = useState(0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
-      age:-1, 
+      age: "", 
       interests: "",
       motivation: "",
     },
@@ -72,7 +71,7 @@ export const WaitlistFollowUpForm = ({
         .from('waitlist')
         .update({
           full_name: data.fullName,
-          age: data.age, // age is now properly transformed to a number by Zod
+          age: data.age,
           interests: data.interests,
           motivation: data.motivation
         })
@@ -96,8 +95,6 @@ export const WaitlistFollowUpForm = ({
         description: `You're joining ${randomLocationCount} other people from ${userData.location} on the waitlist. We'll be in touch soon!`,
         position: "center",
       });
-      
-      setShowSuccessNotification(true);
     } catch (error) {
       toast({
         title: "Something went wrong",

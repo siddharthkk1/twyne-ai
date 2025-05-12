@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,13 +88,12 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
     setIsSubmitting(true);
     
     try {
-      // Pass the simplified data to the parent component for the follow-up form
+      // Pass the data to the parent component for the follow-up form
       if (onSubmitSuccess) {
         onSubmitSuccess(data);
       }
       
-      // Store the partial submission in Supabase
-      // Do not add placeholder values for fields that will be updated in follow-up
+      // Store the initial submission in Supabase without placeholder data
       const { error } = await supabase
         .from('waitlist')
         .insert({
