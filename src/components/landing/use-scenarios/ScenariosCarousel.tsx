@@ -24,7 +24,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  console.log("Starting sushi carousel animation with totalWidth:", totalWidth);
+  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile);
 
   const animate = (timestamp: number) => {
     if (!lastTimeRef.current) {
@@ -35,7 +35,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
     
-    if (isPaused) {
+    if (isPaused || isMobile) {
       animationRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -61,7 +61,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isPaused, totalWidth]);
+  }, [isPaused, totalWidth, isMobile]);
 
   // Reset the animation when window size changes
   useEffect(() => {
@@ -120,7 +120,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   const handleDragEnd = () => {
     setIsDragging(false);
-    setTimeout(() => setIsPaused(false), 2000);
+    // Only resume animation if not on mobile
+    if (!isMobile) {
+      setTimeout(() => setIsPaused(false), 2000);
+    }
   };
 
   const displayItems = [...scenarios, ...scenarios.map((s, i) => ({ ...s, id: s.id + scenarios.length }))];
@@ -129,8 +132,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     <div
       className="relative w-full overflow-hidden py-4"
       ref={containerRef}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseEnter={() => !isMobile && setIsPaused(true)}
+      onMouseLeave={() => !isMobile && setIsPaused(false)}
     >
       <div
         className="flex items-center transition-transform cursor-grab will-change-transform"
