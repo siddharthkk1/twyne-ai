@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
@@ -17,49 +16,33 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
+  const lastTouchMove = useRef<number>(0);
 
-  // Increase scrollSpeed by 25%, from 0.5 to 0.625
-  const scrollSpeed = 0.625; // pixels per frame at 60fps (25% increase from 0.5)
-  
-  // Calculate the total width properly (full width of all original scenarios)
-  const scenarioWidth = 350; // Each card is about 350px (width + margins)
+  const scrollSpeed = 0.625;
+  const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  // Animation function for constant movement
   const animate = () => {
     if (isPaused) {
       animationRef.current = requestAnimationFrame(animate);
       return;
     }
 
-    setTranslateX(prev => {
-      // Reset position when all cards have scrolled by
+    setTranslateX((prev) => {
       const newPosition = prev - scrollSpeed;
-      
-      // When we've scrolled past all scenarios, reset to beginning
-      // We don't want to use Math.abs here because we need to track direction
-      if (newPosition <= -totalWidth) {
-        return 0;
-      }
-      return newPosition;
+      return newPosition <= -totalWidth ? 0 : newPosition;
     });
 
     animationRef.current = requestAnimationFrame(animate);
   };
 
-  // Start animation on mount
   useEffect(() => {
-    console.log("Starting sushi carousel animation with totalWidth:", totalWidth);
     animationRef.current = requestAnimationFrame(animate);
-
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [isPaused, totalWidth]);
 
-  // Handle manual interaction
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsPaused(true);
     setIsDragging(true);
@@ -82,37 +65,34 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
+
+    const now = Date.now();
+    if (now - lastTouchMove.current < 16) return; // ~60fps throttle
+    lastTouchMove.current = now;
+
     const deltaX = e.touches[0].clientX - startX;
     setTranslateX(dragStartTranslate + deltaX);
   };
 
   const handleDragEnd = () => {
     setIsDragging(false);
-    // Resume animation after a short pause
-    setTimeout(() => {
-      setIsPaused(false);
-    }, 2000);
+    setTimeout(() => setIsPaused(false), 2000);
   };
 
-  // Ensure we have enough cards to create an infinite effect
-  // Fix the duplicate scenarios to ensure they all have unique keys
-  const displayItems = [...scenarios, ...scenarios.map((scenario, index) => ({
-    ...scenario,
-    id: scenario.id + scenarios.length // Ensure unique IDs for the duplicated items
-  }))];
+  const displayItems = [...scenarios, ...scenarios.map((s, i) => ({ ...s, id: s.id + scenarios.length }))];
 
   return (
-    <div 
+    <div
       className="relative w-full overflow-hidden py-4"
       ref={containerRef}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div 
-        className="flex items-center transition-transform cursor-grab"
+      <div
+        className="flex items-center transition-transform cursor-grab will-change-transform"
         style={{
-          transform: `translateX(${translateX}px)`,
-          transition: isDragging ? 'none' : 'transform 0.1s linear',
+          transform: `translate3d(${translateX}px, 0, 0)`,
+          transition: isDragging ? "none" : "transform 0.1s linear",
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
@@ -129,21 +109,18 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
             style={{ width: `${scenarioWidth}px` }}
           >
             <div className="flex flex-col items-center h-full">
-              {/* Icon above the card */}
               <div className="mb-4 rounded-full p-3 bg-white/90 shadow-sm">
                 {scenario.icon}
               </div>
-              
-              {/* Fixed height card */}
-              <div 
-                className="bg-white/90 p-5 rounded-xl shadow-sm transition-all duration-300 border border-gray-100 w-full"
+              <div
+                className="bg-white/90 p-5 rounded-xl shadow-sm border border-gray-100 w-full"
                 style={{
-                  minHeight: '140px',
-                  height: '140px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
+                  minHeight: "140px",
+                  height: "140px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
                 }}
               >
                 <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800 text-center">
@@ -156,10 +133,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
           </div>
         ))}
       </div>
-      
-      {/* Shadow effect for edges to create fading effect */}
-      <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
-      <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
+
+      <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+      <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
     </div>
   );
 };
