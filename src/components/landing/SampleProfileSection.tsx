@@ -105,26 +105,24 @@ export const SampleProfileSection = () => {
           <Card className="shadow-md border border-border/50 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 py-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">Your Twyne with</p>
-                <div className="flex items-center">
-                  <div>
-                    <h3 className="text-2xl font-semibold">{profile.name}</h3>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5 mr-1" />
-                      <span>{profile.location}</span>
-                    </div>
+                <Avatar className="h-14 w-14 border-2 border-white">
+                  <AvatarImage src={profile.avatarImage} alt={profile.name} />
+                  <AvatarFallback className="bg-secondary/20 text-secondary text-xl">{profile.avatar}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-end">
+                  <p className="text-xs text-muted-foreground">Your Twyne with</p>
+                  <h3 className="text-2xl font-semibold">{profile.name}</h3>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 mr-1" />
+                    <span>{profile.location}</span>
                   </div>
-                  <Avatar className="h-14 w-14 border-2 border-white ml-4">
-                    <AvatarImage src={profile.avatarImage} alt={profile.name} />
-                    <AvatarFallback className="bg-secondary/20 text-secondary text-xl">{profile.avatar}</AvatarFallback>
-                  </Avatar>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="pt-3 space-y-3">
               {/* MUTUAL CONNECTIONS section - first position */}
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">MUTUAL FRIENDS</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1.5">MUTUALS</h4>
                 {profile.mutuals.length > 0 ? (
                   <div>
                     <div className="flex items-center -space-x-2 mb-1">
@@ -133,9 +131,6 @@ export const SampleProfileSection = () => {
                           <AvatarFallback className="text-xs bg-primary/10 text-primary">{mutual.avatar}</AvatarFallback>
                         </Avatar>
                       ))}
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      Connected through {profile.mutuals.map(m => m.name).join(", ")}
                     </div>
                   </div>
                 ) : (
