@@ -29,5 +29,20 @@ export function useIsMobile() {
 // Helper function to detect iOS devices more reliably
 export function isIOSDevice() {
   const userAgent = window.navigator.userAgent.toLowerCase()
-  return /iphone|ipad|ipod/.test(userAgent) && 'ontouchend' in document
+  const isIOS = /iphone|ipad|ipod/.test(userAgent) && 'ontouchend' in document
+  console.log("iOS detection:", { userAgent, isIOS })
+  return isIOS
+}
+
+// New debugging helper to access results
+export function useDeviceDebugInfo() {
+  const isMobile = useIsMobile()
+  const [isIOS, setIsIOS] = React.useState(false)
+  
+  React.useEffect(() => {
+    // Check only once on mount
+    setIsIOS(isIOSDevice())
+  }, [])
+  
+  return { isMobile, isIOS, userAgent: window.navigator.userAgent }
 }

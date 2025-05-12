@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
-import { useIsMobile, isIOSDevice } from "@/hooks/use-mobile";
+import { useIsMobile, isIOSDevice, useDeviceDebugInfo } from "@/hooks/use-mobile";
 
 interface ScenariosCarouselProps {
   scenarios: ScenarioItemProps[];
@@ -20,6 +19,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const lastTimeRef = useRef<number>(0);
   const isMobile = useIsMobile();
   const lastTouchMove = useRef<number>(0);
+  const deviceDebugInfo = useDeviceDebugInfo();
 
   const scrollSpeed = 0.5; // Slightly reduced speed for smoother animation
   const scenarioWidth = 350;
@@ -176,6 +176,14 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       onMouseEnter={() => !isTouchDevice && setIsPaused(true)}
       onMouseLeave={() => !isTouchDevice && setIsPaused(false)}
     >
+      {/* Debug Info Overlay */}
+      <div className="absolute top-0 right-0 z-50 bg-black/70 text-white p-2 text-xs rounded-bl-md font-mono">
+        <div>isIOS: {deviceDebugInfo.isIOS ? 'true' : 'false'}</div>
+        <div>isMobile: {deviceDebugInfo.isMobile ? 'true' : 'false'}</div>
+        <div>isTouchDevice: {isTouchDevice ? 'true' : 'false'}</div>
+        <div className="max-w-[300px] truncate">UA: {deviceDebugInfo.userAgent}</div>
+      </div>
+
       <div
         className={`flex items-center ${isDragging ? '' : 'transition-transform'} cursor-grab will-change-transform`}
         style={{
