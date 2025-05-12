@@ -14,6 +14,7 @@ import { CallToActionSection } from "@/components/landing/CallToActionSection";
 import { PrivacySection } from "@/components/landing/PrivacySection";
 import { SafetyTrustSection } from "@/components/landing/SafetyTrustSection";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { WaitlistFollowUpForm } from "@/components/landing/WaitlistFollowUpForm";
 
 // The artificial boost we want to add to the waitlist count
 const WAITLIST_BOOST = 524;
@@ -21,8 +22,10 @@ const WAITLIST_BOOST = 524;
 const Index = () => {
   const { user } = useAuth();
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [submittedUserData, setSubmittedUserData] = useState<{email: string, location: string, phoneNumber?: string} | null>(null);
   const isMobile = useIsMobile();
   
   // Preload hero images
@@ -46,6 +49,13 @@ const Index = () => {
   // Function to open waitlist modal
   const openWaitlist = () => {
     setIsWaitlistOpen(true);
+  };
+  
+  // Function to handle waitlist submission and open follow-up form
+  const handleWaitlistSubmit = (userData: {email: string, location: string, phoneNumber?: string}) => {
+    setSubmittedUserData(userData);
+    setIsWaitlistOpen(false);
+    setIsFollowUpOpen(true);
   };
 
   useEffect(() => {
@@ -87,8 +97,8 @@ const Index = () => {
         onScrollToHowItWorks={scrollToHowItWorks}
       />
 
-      {/* How It Works Section - Added extra padding to compensate for moving the carousel down */}
-      <div className="pt-32">
+      {/* How It Works Section - Adjusted padding to be consistent with bottom padding */}
+      <div className="pt-24 pb-0">
         <HowItWorksSection />
       </div>
 
@@ -113,10 +123,18 @@ const Index = () => {
       {/* Call to Action */}
       <CallToActionSection onOpenWaitlist={openWaitlist} />
 
-      {/* Waitlist Form Modal */}
+      {/* Waitlist Form Modal - Initial simplified version */}
       <WaitlistForm 
         open={isWaitlistOpen} 
-        onOpenChange={setIsWaitlistOpen} 
+        onOpenChange={setIsWaitlistOpen}
+        onSubmitSuccess={handleWaitlistSubmit}
+      />
+      
+      {/* Follow-up Form Modal - For additional information */}
+      <WaitlistFollowUpForm
+        open={isFollowUpOpen}
+        onOpenChange={setIsFollowUpOpen}
+        userData={submittedUserData}
       />
     </div>
   );

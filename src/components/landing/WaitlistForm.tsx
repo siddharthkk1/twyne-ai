@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -20,41 +19,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Simplified form schema with just email, location, and optional phone number
 const formSchema = z.object({
-  fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
-  location: z.string().min(2, { message: "Please enter your location." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
+  location: z.string().min(2, { message: "Please enter your location." }),
   phoneNumber: z.string().optional(),
-  age: z.string()
-    .refine(val => !isNaN(parseInt(val)), { message: "Age must be a number" })
-    .transform(val => parseInt(val)),
-  interests: z.string().min(2, { message: "Please share at least one interest." }),
-  motivation: z.string().min(2, { message: "Please tell us why you're interested in Twyne." }),
 });
 
-// This helps TypeScript determine the type BEFORE any transformations occur in the schema
-type FormInputValues = {
-  fullName: string;
-  location: string;
-  email: string;
-  phoneNumber?: string;
-  age: string; // Age is a string in the form input
-  interests: string;
-  motivation: string;
-};
-
-// This is what comes out after transformation
 type FormValues = z.infer<typeof formSchema>;
 
 interface WaitlistFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmitSuccess?: (data: FormValues) => void;
 }
 
 // The artificial boost we want to add to the waitlist count
 const WAITLIST_BOOST = 524;
 
-export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
+export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
@@ -67,25 +50,17 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
       
       try {
         setIsLoading(true);
-        console.log("WaitlistForm: Fetching waitlist count...");
         
         // Instead of using count: 'exact', fetch all entries and count them
         const { data, error } = await supabase
           .from('waitlist')
           .select('id');
         
-        // Log the full response data for debugging
-        console.log("WaitlistForm: DETAILED DATA:", data);
-        
         if (error) {
           console.error("WaitlistForm: Error fetching waitlist count:", error);
         } else {
           // Count the actual entries returned
           const actualCount = data ? data.length : 0;
-          console.log("WaitlistForm: Actual count from DB:", actualCount);
-          console.log("WaitlistForm: Data type:", typeof data);
-          console.log("WaitlistForm: Is data an array?", Array.isArray(data));
-          console.log("WaitlistForm: Setting total count to:", actualCount + WAITLIST_BOOST);
           setWaitlistCount(actualCount + WAITLIST_BOOST);
         }
       } catch (error) {
@@ -100,46 +75,33 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
     }
   }, [open]);
 
-  // Use FormInputValues here instead of FormValues to get the pre-transformation types
-  const form = useForm<FormInputValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
-      location: "",
       email: "",
+      location: "",
       phoneNumber: "",
-      age: "", // This is correct now - string type in inputs
-      interests: "",
-      motivation: "",
     },
   });
 
-  // Update the onSubmit function to use FormInputValues instead of FormValues
-  const onSubmit = async (data: FormInputValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
     try {
-      // Generate a random number of people on waitlist from user's city (between 20-200)
-      const cityWaitlistCount = Math.floor(Math.random() * (200 - 20 + 1)) + 20;
+      // Pass the simplified data to the parent component for the follow-up form
+      if (onSubmitSuccess) {
+        onSubmitSuccess(data);
+      }
       
-      // Convert age to number (fixed the issue)
-      const age = parseInt(data.age);
-      
-      // Fixed: Type the submission object properly to match the database schema
-      const submissionData = {
-        email: data.email,
-        full_name: data.fullName,
-        location: data.location,
-        phone_number: data.phoneNumber || null,
-        age: age, // Now using the parsed number value
-        interests: data.interests,
-        motivation: data.motivation
-      };
-
-      // Insert data into the waitlist table
+      // Store the partial submission in Supabase
+      // Note: The full submission will be completed in the follow-up form
       const { error } = await supabase
         .from('waitlist')
-        .insert(submissionData);
+        .insert({
+          email: data.email,
+          location: data.location,
+          phone_number: data.phoneNumber || null
+        });
       
       if (error) {
         if (error.code === '23505') {
@@ -153,16 +115,7 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
           console.error("Error submitting to waitlist:", error);
           throw error;
         }
-      } else {
-        toast({
-          title: "You've joined the waitlist!",
-          description: `We'll notify you via email${data.phoneNumber ? " or text" : ""} when Twyne is ready. There are already ${cityWaitlistCount} people from ${data.location} on our waitlist!`,
-          position: "center",
-        });
       }
-      
-      form.reset();
-      onOpenChange(false);
     } catch (error) {
       toast({
         title: "Something went wrong",
@@ -195,54 +148,8 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 py-1">
-            {/* Row 1: Full Name (single line) */}
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Row 2: Location and Age (on same line) */}
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="City, Country" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="age"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Age</FormLabel>
-                    <FormControl>
-                      <Input placeholder="30" type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            {/* Row 3: Email (single line) */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-1">
+            {/* Email */}
             <FormField
               control={form.control}
               name="email"
@@ -257,7 +164,22 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
               )}
             />
             
-            {/* Row 4: Phone Number with description */}
+            {/* Location */}
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="City, Country" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Phone Number (Optional) */}
             <FormField
               control={form.control}
               name="phoneNumber"
@@ -270,44 +192,6 @@ export const WaitlistForm = ({ open, onOpenChange }: WaitlistFormProps) => {
                   <FormDescription className="text-xs">
                     This allows us to contact you when Twyne is available in your area.
                   </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Row 5: Interests with smaller height */}
-            <FormField
-              control={form.control}
-              name="interests"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>List a few of your interests</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Reading, hiking, photography, etc."
-                      className="resize-none h-12"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Row 6: Motivation with smaller height */}
-            <FormField
-              control={form.control}
-              name="motivation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Why are you interested in Twyne?</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="What draws you to join our community?"
-                      className="resize-none h-12"
-                      {...field}
-                    />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

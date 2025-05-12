@@ -5,10 +5,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
+import { WaitlistFollowUpForm } from "@/components/landing/WaitlistFollowUpForm";
 
 export const TopNavBar = () => {
   const { user } = useAuth();
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
+  const [submittedUserData, setSubmittedUserData] = useState<{email: string, location: string, phoneNumber?: string} | null>(null);
+  
+  const handleWaitlistSubmit = (userData: {email: string, location: string, phoneNumber?: string}) => {
+    setSubmittedUserData(userData);
+    setIsWaitlistOpen(false);
+    setIsFollowUpOpen(true);
+  };
   
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50">
@@ -48,7 +57,17 @@ export const TopNavBar = () => {
         </div>
       </div>
       
-      <WaitlistForm open={isWaitlistOpen} onOpenChange={setIsWaitlistOpen} />
+      <WaitlistForm 
+        open={isWaitlistOpen} 
+        onOpenChange={setIsWaitlistOpen} 
+        onSubmitSuccess={handleWaitlistSubmit}
+      />
+      
+      <WaitlistFollowUpForm
+        open={isFollowUpOpen}
+        onOpenChange={setIsFollowUpOpen}
+        userData={submittedUserData}
+      />
     </nav>
   );
 };
