@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,16 +93,13 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
       }
       
       // Store the partial submission in Supabase
-      // Add default values for required fields that will be updated in follow-up
+      // Do not add placeholder values for fields that will be updated in follow-up
       const { error } = await supabase
         .from('waitlist')
         .insert({
           email: data.email,
           location: data.location,
           phone_number: data.phoneNumber || null,
-          full_name: "To be updated", // Add placeholder for required fields
-          interests: "To be updated",
-          motivation: "To be updated"
         });
       
       if (error) {

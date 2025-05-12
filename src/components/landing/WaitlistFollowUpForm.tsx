@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Follow-up form schema with additional fields
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Please enter your full name." }),
-  age: z.coerce.number().min(1, { message: "Please enter a valid age." }),
+  age: z.string().transform(val => parseInt(val, 10)),  // Parse string to number
   interests: z.string().min(3, { message: "Please share some of your interests." }),
   motivation: z.string().min(3, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -114,7 +115,7 @@ export const WaitlistFollowUpForm = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Tell us a bit more</DialogTitle>
+          <DialogTitle className="text-2xl">You've joined the waitlist!</DialogTitle>
           <DialogDescription>
             This helps us make better connections for you when Twyne launches in {userData?.location}.
           </DialogDescription>
