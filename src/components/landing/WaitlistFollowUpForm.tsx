@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,11 +65,12 @@ export const WaitlistFollowUpForm = ({
     
     try {
       // Update the existing record with additional information
+      // Ensure age is sent as a number to match the database type
       const { error } = await supabase
         .from('waitlist')
         .update({
           full_name: data.fullName,
-          age: data.age, // Now properly typed as number from the schema transformation
+          age: Number(data.age), // Explicitly convert to number
           interests: data.interests,
           motivation: data.motivation
         })
