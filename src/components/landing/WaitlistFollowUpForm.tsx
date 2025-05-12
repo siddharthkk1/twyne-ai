@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Follow-up form schema with additional fields
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Please enter your full name." }),
-  age: z.coerce.number().min(1, { message: "Please enter a valid age." }), // ✅ coerce string to number
+  age: z.coerce.number().min(1, { message: "Please enter a valid age." }),
   interests: z.string().min(3, { message: "Please share some of your interests." }),
   motivation: z.string().min(3, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -47,11 +47,23 @@ export const WaitlistFollowUpForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
-      age: 0, 
+      age: undefined as unknown as number, // Initialize as undefined but type as number
       interests: "",
       motivation: "",
     },
   });
+
+  // Reset form when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        fullName: "",
+        age: undefined as unknown as number,
+        interests: "",
+        motivation: "",
+      });
+    }
+  }, [open, form]);
 
   const onSubmit = async (data: FormValues) => {
     if (!userData?.email) {
@@ -75,7 +87,7 @@ export const WaitlistFollowUpForm = ({
           interests: data.interests,
           motivation: data.motivation
         })
-        .eq('email', userData.email).single();
+        .eq('email', userData.email);
       
       if (error) {
         console.error("Error updating waitlist information:", error);
@@ -147,7 +159,16 @@ export const WaitlistFollowUpForm = ({
                 <FormItem>
                   <FormLabel>Age</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="24" {...field} />
+                    <Input 
+                      type="number" 
+                      placeholder="24" 
+                      {...field} 
+                      onChange={(e) => {
+                        const value = e.target.value === "" ? undefined : parseInt(e.target.value, 10);
+                        field.onChange(value);
+                      }}
+                      value={field.value || ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
