@@ -1,9 +1,17 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { scenarios } from "./use-scenarios/ScenarioItem";
 import { ScenariosCarousel } from "./use-scenarios/ScenariosCarousel";
+import { isIOSDevice } from "@/hooks/use-mobile";
 
 export const RotatingUseScenarios = () => {
+  const [isIOS, setIsIOS] = useState(false);
+  
+  // Check iOS on component mount
+  useEffect(() => {
+    setIsIOS(isIOSDevice());
+  }, []);
+  
   // Debug log to check if component is rendering with scenarios
   console.log("RotatingUseScenarios rendering with", scenarios.length, "scenarios");
   

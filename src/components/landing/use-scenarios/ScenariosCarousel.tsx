@@ -18,6 +18,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const isMobile = useIsMobile();
   const lastTouchMove = useRef<number>(0);
   const deviceDebugInfo = useDeviceDebugInfo();
+  const [isIOS, setIsIOS] = useState(false);
 
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
@@ -25,9 +26,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   // Improved iOS and touch device detection
   useEffect(() => {
     // First check for iOS specifically using our enhanced detection
-    const isIOS = isIOSDevice();
+    const iosDetected = isIOSDevice();
+    setIsIOS(iosDetected);
     
-    if (isIOS) {
+    if (iosDetected) {
       setIsTouchDevice(true);
       console.log("iOS device detected, disabling auto-scroll");
       return;
@@ -60,7 +62,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     };
   }, []);
 
-  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile, "isTouchDevice:", isTouchDevice);
+  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile, "isTouchDevice:", isTouchDevice, "isIOS:", isIOS);
 
   // Enhanced touch handling for smoother scrolling
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -110,7 +112,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     >
       {/* Debug Info Overlay */}
       <div className="absolute top-0 right-0 z-50 bg-black/70 text-white p-2 text-xs rounded-bl-md font-mono">
-        <div>isIOS: {deviceDebugInfo.isIOS ? 'true' : 'false'}</div>
+        <div>isIOS: {isIOS ? 'true' : 'false'}</div>
         <div>isMobile: {deviceDebugInfo.isMobile ? 'true' : 'false'}</div>
         <div>isTouchDevice: {isTouchDevice ? 'true' : 'false'}</div>
         <div>Platform: {deviceDebugInfo.platform}</div>
