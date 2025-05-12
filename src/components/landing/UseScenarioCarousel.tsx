@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,13 +12,6 @@ import {
   IoCafe,
   IoChatbubbleEllipses,
 } from "react-icons/io5";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious
-} from "@/components/ui/carousel";
 
 interface ScenarioItem {
   id: number;
@@ -32,6 +25,7 @@ interface ScenarioItem {
 export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
 
   const scenarios: ScenarioItem[] = [
     {
@@ -100,6 +94,29 @@ export const UseScenarioCarousel = () => {
     },
   ];
 
+  // Auto-rotate every 5 seconds
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (autoplay) {
+      interval = setInterval(() => {
+        setActiveSlide((prev) => (prev + 1) % scenarios.length);
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [autoplay, scenarios.length]);
+
+  const goToNextSlide = () => {
+    setActiveSlide((prev) => (prev + 1) % scenarios.length);
+  };
+
+  const goToPreviousSlide = () => {
+    setActiveSlide((prev) => (prev === 0 ? scenarios.length - 1 : prev - 1));
+  };
+
+  const goToSlide = (index: number) => {
+    setActiveSlide(index);
+  };
+
   return (
     <section className="py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -110,58 +127,77 @@ export const UseScenarioCarousel = () => {
           </p>
         </div>
 
-        <Carousel
-          opts={{ 
-            loop: true,
-            align: "center"
-          }}
-          className="w-full"
-          onSelect={(api) => {
-            const index = api?.selectedScrollSnap() || 0;
-            setActiveSlide(index);
-          }}
+        <div
+          className="relative w-full overflow-hidden h-[400px]"
+          onMouseEnter={() => setAutoplay(false)}
+          onMouseLeave={() => setAutoplay(true)}
         >
-          <CarouselContent>
+          <div
+            className="flex transition-transform duration-500 ease-in-out h-full"
+            style={{
+              width: `${scenarios.length * 100}%`,
+              transform: `translateX(-${(100 / scenarios.length) * activeSlide}%)`,
+            }}
+          >
             {scenarios.map((scenario) => (
-              <CarouselItem key={scenario.id} className="basis-full md:basis-full lg:basis-full">
-                <div className="p-4">
-                  <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center w-full max-w-xl h-full mx-auto">
-                    <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
-                      <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
-                    </div>
-                    <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
-                    <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
-                    {user ? (
-                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
-                        <Link to="/connections" className="flex items-center">
-                          <IoChatbubbleEllipses size={18} className="mr-2" />
-                          View Your Connections
-                        </Link>
-                      </Button>
-                    ) : (
-                      <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
-                        <Link to="/auth" className="flex items-center">
-                          <IoChatbubbleEllipses size={18} className="mr-2" />
-                          Connect & Say Hi
-                        </Link>
-                      </Button>
-                    )}
+              <div
+                key={scenario.id}
+                className="w-full flex-shrink-0 flex justify-center items-center px-4"
+                style={{ width: `${100 / scenarios.length}%` }}
+              >
+                <div className="bg-background rounded-2xl p-8 shadow-sm border border-border/50 flex flex-col items-center text-center w-full max-w-xl h-full">
+                  <div className={`rounded-full ${scenario.iconBgColor} p-4 inline-flex mb-5`}>
+                    <scenario.icon className={`h-6 w-6 ${scenario.iconColor}`} />
                   </div>
+                  <h3 className="text-xl md:text-2xl font-bold mb-4">"{scenario.title}"</h3>
+                  <p className="text-lg text-muted-foreground mb-8">{scenario.description}</p>
+                  {user ? (
+                    <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
+                      <Link to="/connections" className="flex items-center">
+                        <IoChatbubbleEllipses size={18} className="mr-2" />
+                        View Your Connections
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button asChild size="lg" className="rounded-full px-8 hover:shadow-md transition-all mt-auto">
+                      <Link to="/auth" className="flex items-center">
+                        <IoChatbubbleEllipses size={18} className="mr-2" />
+                        Connect & Say Hi
+                      </Link>
+                    </Button>
+                  )}
                 </div>
-              </CarouselItem>
+              </div>
             ))}
-          </CarouselContent>
-          
-          <div className="flex justify-center mt-6">
+          </div>
+
+          {/* Arrows */}
+          <div className="flex items-center justify-between absolute top-1/2 left-0 right-0 -mt-5 px-4 z-10">
+            <button
+              onClick={goToPreviousSlide}
+              className="bg-white rounded-full shadow-md p-2 hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button
+              onClick={goToNextSlide}
+              className="bg-white rounded-full shadow-md p-2 hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Dots */}
+          <div className="flex justify-center mt-8">
             <div className="flex space-x-2">
               {scenarios.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => {
-                    setActiveSlide(index);
-                    const api = (document.querySelector('[data-embla-carousel]') as any)?.__emblaApi;
-                    if (api) api.scrollTo(index);
-                  }}
+                  onClick={() => goToSlide(index)}
                   className={`w-2 h-2 rounded-full transition-all ${
                     activeSlide === index ? "bg-primary w-4" : "bg-gray-300"
                   }`}
@@ -170,12 +206,7 @@ export const UseScenarioCarousel = () => {
               ))}
             </div>
           </div>
-          
-          <div className="flex items-center justify-center mt-8">
-            <CarouselPrevious className="static transform-none mx-2" />
-            <CarouselNext className="static transform-none mx-2" />
-          </div>
-        </Carousel>
+        </div>
       </div>
     </section>
   );

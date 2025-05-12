@@ -3,115 +3,183 @@ import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface ScenariosCarouselProps {
   scenarios: ScenarioItemProps[];
 }
 
 export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios }) => {
+  const [translateX, setTranslateX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [dragStartTranslate, setDragStartTranslate] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(0);
   const isMobile = useIsMobile();
-  const [autoPlay, setAutoPlay] = useState(true);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  
-  // Handle auto rotation
-  useEffect(() => {
-    if (!autoPlay) {
-      if (autoPlayRef.current) {
-        clearInterval(autoPlayRef.current);
-        autoPlayRef.current = null;
-      }
+  const lastTouchMove = useRef<number>(0);
+
+  const scrollSpeed = 0.5; // Slightly reduced speed for smoother animation
+  const scenarioWidth = 350;
+  const totalWidth = scenarios.length * scenarioWidth;
+
+  console.log("Starting sushi carousel animation with totalWidth:", totalWidth);
+
+  const animate = (timestamp: number) => {
+    if (!lastTimeRef.current) {
+      lastTimeRef.current = timestamp;
+    }
+
+    // Calculate delta time for smoother animation
+    const deltaTime = timestamp - lastTimeRef.current;
+    lastTimeRef.current = timestamp;
+    
+    if (isPaused) {
+      animationRef.current = requestAnimationFrame(animate);
       return;
     }
-    
-    autoPlayRef.current = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % scenarios.length);
+
+    // Use delta time to create smoother animation
+    const pixelsPerFrame = (scrollSpeed * deltaTime) / 16.67; // Normalize to 60fps
+
+    setTranslateX((prev) => {
+      const newPosition = prev - pixelsPerFrame;
       
-      // Manually scroll the carousel if needed
-      if (carouselRef.current) {
-        const scrollAmount = carouselRef.current.scrollWidth / scenarios.length;
-        carouselRef.current.scrollTo({
-          left: (currentIndex + 1) % scenarios.length * scrollAmount,
-          behavior: 'smooth'
-        });
+      // Ensure smooth looping
+      if (newPosition <= -totalWidth) {
+        return 0;
       }
-    }, 5000); // rotate every 5 seconds
-    
+      return newPosition;
+    });
+
+    animationRef.current = requestAnimationFrame(animate);
+  };
+
+  useEffect(() => {
+    animationRef.current = requestAnimationFrame(animate);
     return () => {
-      if (autoPlayRef.current) {
-        clearInterval(autoPlayRef.current);
-      }
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [autoPlay, scenarios.length, currentIndex]);
-  
-  // Display items include the original scenarios plus duplicates for smooth looping
+  }, [isPaused, totalWidth]);
+
+  // Reset the animation when window size changes
+  useEffect(() => {
+    const handleResize = () => {
+      // Stop existing animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+
+      // Reset state
+      setTranslateX(0);
+      lastTimeRef.current = 0;
+
+      // Restart animation
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsPaused(true);
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setDragStartTranslate(translateX);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    setDragStartTranslate(translateX);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - startX;
+    setTranslateX(dragStartTranslate + deltaX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+
+    // Throttle touch events for better performance on mobile
+    const now = Date.now();
+    if (now - lastTouchMove.current < 16) return; // ~60fps throttle
+    lastTouchMove.current = now;
+
+    const deltaX = e.touches[0].clientX - startX;
+    setTranslateX(dragStartTranslate + deltaX);
+    
+    // Prevent default to stop page scrolling while dragging
+    e.preventDefault();
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setTimeout(() => setIsPaused(false), 2000);
+  };
+
   const displayItems = [...scenarios, ...scenarios.map((s, i) => ({ ...s, id: s.id + scenarios.length }))];
-  
+
   return (
-    <div 
+    <div
       className="relative w-full overflow-hidden py-4"
-      onMouseEnter={() => setAutoPlay(false)}
-      onMouseLeave={() => setAutoPlay(true)}
-      onTouchStart={() => setAutoPlay(false)}
-      onTouchEnd={() => setTimeout(() => setAutoPlay(true), 2000)}
+      ref={containerRef}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
-      <Carousel
-        className="w-full"
-        opts={{
-          align: "start",
-          loop: true,
-          skipSnaps: true,
-          dragFree: true
+      <div
+        className="flex items-center transition-transform cursor-grab will-change-transform"
+        style={{
+          transform: `translate3d(${translateX}px, 0, 0)`,
+          transition: isDragging ? "none" : "transform 0.1s linear",
+          WebkitBackfaceVisibility: "hidden", // Hardware acceleration for iOS
+          WebkitPerspective: 1000,
+          WebkitTransform: `translate3d(${translateX}px, 0, 0)`,
         }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
+        onMouseUp={handleDragEnd}
+        onTouchEnd={handleDragEnd}
+        onMouseLeave={isDragging ? handleDragEnd : undefined}
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
-          {displayItems.map((scenario, index) => (
-            <CarouselItem 
-              key={`${scenario.id}-${index}`} 
-              className="pl-2 md:pl-4 basis-[350px]"
-            >
-              <div className="flex flex-col items-center h-full">
-                <div className="mb-4 rounded-full p-3 bg-white/90 shadow-sm">
-                  {scenario.icon}
-                </div>
-                <div
-                  className="bg-white/90 p-5 rounded-xl shadow-sm border border-gray-100 w-full"
-                  style={{
-                    minHeight: "140px",
-                    height: "140px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    overflow: "hidden",
-                  }}
-                >
-                  <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800 text-center">
-                    <span className="text-primary text-xl">"</span>
-                    {scenario.title}
-                    <span className="text-primary text-xl">"</span>
-                  </h3>
-                </div>
+        {displayItems.map((scenario, index) => (
+          <div
+            key={`${scenario.id}-${index}`}
+            className="flex-shrink-0 px-4"
+            style={{ width: `${scenarioWidth}px` }}
+          >
+            <div className="flex flex-col items-center h-full">
+              <div className="mb-4 rounded-full p-3 bg-white/90 shadow-sm">
+                {scenario.icon}
               </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <div className="flex items-center justify-center mt-4">
-          <div className="flex space-x-2">
-            {scenarios.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`h-2 rounded-full transition-all ${
-                  currentIndex === index ? 'w-4 bg-primary' : 'w-2 bg-muted'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
+              <div
+                className="bg-white/90 p-5 rounded-xl shadow-sm border border-gray-100 w-full"
+                style={{
+                  minHeight: "140px",
+                  height: "140px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800 text-center">
+                  <span className="text-primary text-xl">"</span>
+                  {scenario.title}
+                  <span className="text-primary text-xl">"</span>
+                </h3>
+              </div>
+            </div>
           </div>
-        </div>
-      </Carousel>
+        ))}
+      </div>
 
       <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none" />
       <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
