@@ -87,8 +87,8 @@ const Index = () => {
         onScrollToHowItWorks={scrollToHowItWorks}
       />
 
-      {/* How It Works Section - Added extra padding to compensate for moving up the carousel */}
-      <div className="pt-16">
+      {/* How It Works Section - Added extra padding to compensate for moving the carousel down */}
+      <div className="pt-32">
         <HowItWorksSection />
       </div>
 

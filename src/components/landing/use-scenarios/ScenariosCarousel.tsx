@@ -213,15 +213,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       onMouseEnter={() => !isIOS && !isTouchDevice && setIsPaused(true)}
       onMouseLeave={() => !isIOS && !isTouchDevice && setIsPaused(false)}
     >
-      {/* Debug Info Overlay */}
-      <div className="absolute top-0 right-0 z-50 bg-black/70 text-white p-2 text-xs rounded-bl-md font-mono">
-        <div>isIOS: {isIOS ? 'true' : 'false'}</div>
-        <div>isMobile: {isMobile ? 'true' : 'false'}</div>
-        <div>autoScroll: {(!isIOS && !isPaused && !isTouchDevice) ? 'true' : 'false'}</div>
-        <div>Platform: {deviceDebugInfo.platform}</div>
-        <div>TouchPoints: {deviceDebugInfo.touchPoints}</div>
-        <div>isDragging: {isDragging ? 'true' : 'false'}</div>
-      </div>
+      {/* Debug info overlay removed */}
 
       {isIOS ? (
         // Native horizontal scroll for iOS - much more responsive with native touch handling
