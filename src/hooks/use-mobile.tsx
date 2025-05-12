@@ -25,3 +25,9 @@ export function useIsMobile() {
 
   return !!isMobile
 }
+
+// Helper function to detect iOS devices more reliably
+export function isIOSDevice() {
+  const userAgent = window.navigator.userAgent.toLowerCase()
+  return /iphone|ipad|ipod|macintosh/.test(userAgent) && 'ontouchend' in document
+}

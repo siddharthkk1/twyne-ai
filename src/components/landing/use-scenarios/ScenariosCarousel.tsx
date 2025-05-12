@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, isIOSDevice } from "@/hooks/use-mobile";
 
 interface ScenariosCarouselProps {
   scenarios: ScenarioItemProps[];
@@ -24,50 +25,42 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  // More accurate touch device detection
+  // Better iOS and touch device detection
   useEffect(() => {
-    // Check if actual touch events have been fired
-    let touchFired = false;
+    // First check for iOS specifically
+    const isIOS = isIOSDevice();
     
-    const touchStartHandler = () => {
-      touchFired = true;
+    if (isIOS) {
       setIsTouchDevice(true);
-      // Remove event listeners once we've determined it's a touch device
-      cleanup();
-    };
-    
-    // Check for iOS specifically using userAgent
-    const isActualIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    
-    if (isActualIOS) {
-      setIsTouchDevice(true);
-      console.log("iOS device detected:", isActualIOS);
+      console.log("iOS device detected via useragent & touch events");
       return;
     }
     
-    // Add event listeners to detect actual touch interaction
-    const addListeners = () => {
-      window.addEventListener('touchstart', touchStartHandler, { once: true });
+    // For non-iOS devices, detect touch capability
+    let touchDetected = false;
+    
+    const touchHandler = () => {
+      touchDetected = true;
+      setIsTouchDevice(true);
+      window.removeEventListener('touchstart', touchHandler);
+      console.log("Touch events detected, treating as touch device");
     };
     
-    // Clean up event listeners
-    const cleanup = () => {
-      window.removeEventListener('touchstart', touchStartHandler);
-    };
+    window.addEventListener('touchstart', touchHandler, { once: true });
     
-    addListeners();
-    
-    // After a short delay, if no touch events fired, treat as non-touch device
-    const timer = setTimeout(() => {
-      if (!touchFired) {
+    // After a short timeout, if no touch events have been detected,
+    // assume it's not a touch device
+    const timeoutId = setTimeout(() => {
+      if (!touchDetected) {
         setIsTouchDevice(false);
         console.log("No touch events detected, treating as non-touch device");
       }
+      window.removeEventListener('touchstart', touchHandler);
     }, 1000);
     
     return () => {
-      cleanup();
-      clearTimeout(timer);
+      window.removeEventListener('touchstart', touchHandler);
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -184,7 +177,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       onMouseLeave={() => !isTouchDevice && setIsPaused(false)}
     >
       <div
-        className="flex items-center transition-transform cursor-grab will-change-transform"
+        className={`flex items-center ${isDragging ? '' : 'transition-transform'} cursor-grab will-change-transform`}
         style={{
           transform: `translate3d(${translateX}px, 0, 0)`,
           transition: isDragging ? "none" : "transform 0.1s linear",
