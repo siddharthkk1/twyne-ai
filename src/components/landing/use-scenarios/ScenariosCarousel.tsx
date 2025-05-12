@@ -3,6 +3,25 @@ import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
 import { useIsMobile, isIOSDevice } from "@/hooks/use-mobile";
 
+// Define the useDeviceDebugInfo hook at the top level
+function useDeviceDebugInfo() {
+  const isMobile = useIsMobile();
+  const [isIOS, setIsIOS] = React.useState(false);
+  
+  React.useEffect(() => {
+    // Check only once on mount
+    setIsIOS(isIOSDevice());
+  }, []);
+  
+  return { 
+    isMobile, 
+    isIOS, 
+    userAgent: window.navigator.userAgent,
+    platform: navigator.platform,
+    touchPoints: navigator.maxTouchPoints
+  };
+}
+
 interface ScenariosCarouselProps {
   scenarios: ScenarioItemProps[];
 }
@@ -246,24 +265,3 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     </div>
   );
 };
-
-// Include the full useDeviceDebugInfo hook here for completeness
-import * as React from "react";
-
-function useDeviceDebugInfo() {
-  const isMobile = useIsMobile();
-  const [isIOS, setIsIOS] = React.useState(false);
-  
-  React.useEffect(() => {
-    // Check only once on mount
-    setIsIOS(isIOSDevice());
-  }, []);
-  
-  return { 
-    isMobile, 
-    isIOS, 
-    userAgent: window.navigator.userAgent,
-    platform: navigator.platform,
-    touchPoints: navigator.maxTouchPoints
-  };
-}
