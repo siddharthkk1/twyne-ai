@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +71,7 @@ export const WaitlistFollowUpForm = ({
         .from('waitlist')
         .update({
           full_name: data.fullName,
-          age: Number(data.age), // Explicitly convert to number
+          age: Number(data.age), // Explicitly convert to number here
           interests: data.interests,
           motivation: data.motivation
         })
