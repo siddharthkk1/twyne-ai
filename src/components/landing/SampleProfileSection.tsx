@@ -82,18 +82,18 @@ export const SampleProfileSection = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">How You View Others</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-            Twyne creates personalized connection profiles that highlight what you share with each new acquaintance
+            Twyne creates personalized connection cards that highlight what you share with each new acquaintance
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <h3 className="text-xl md:text-2xl font-bold mb-4">Twyne Profile</h3>
+            <h3 className="text-xl md:text-2xl font-bold mb-4">Twyne Card</h3>
             <p className="mb-6">
               Through conversations with our AI, we identify meaningful connections between you and potential friends—your shared interests, complementary energies, and compatible activities.
             </p>
             <p className="mb-6">
-              <span className="font-medium">This is not public.</span> These connection profiles are only visible between introduced individuals and they contain only information both users have agreed to share.
+              <span className="font-medium">This is not public.</span> These connection cards are only visible between introduced individuals and they contain only information both users have agreed to share.
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10">No endless swiping</Badge>
@@ -202,7 +202,7 @@ export const SampleProfileSection = () => {
                   </div>
                 ) : (
                   <div className="bg-muted/30 rounded-lg p-3 text-sm border border-muted">
-                    <p className="text-muted-foreground">You and {profile.name} have no compatibility highlights based on the information you've made public.</p>
+                    <p className="text-muted-foreground">We'll highlight vibe matches once more is shared.</p>
                   </div>
                 )}
               </div>
@@ -213,7 +213,7 @@ export const SampleProfileSection = () => {
           <div className="hidden md:block">
             {/* Empty placeholder to maintain grid layout */}
           </div>
-          <div className="flex justify-center space-x-3 mt-1 pb-1">
+          <div className="flex justify-center space-x-3 mt-0 mb-4">
             {connectionProfiles.map((_, index) => (
               <button 
                 key={index}
