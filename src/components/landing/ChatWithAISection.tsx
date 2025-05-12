@@ -191,8 +191,8 @@ export const ChatWithAISection = () => {
             </p>
             <div className="space-y-3">
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">1</span>
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20">
+                  <span className="text-primary text-xs font-medium leading-none">1</span>
                 </div>
                 <p>Share your interests, values, and what you're looking for in connections</p>
               </div>
