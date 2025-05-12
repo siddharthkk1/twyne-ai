@@ -139,7 +139,7 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
           {!isLoading && waitlistCount !== null && (
             <div className="flex items-center justify-center py-1 px-4 bg-muted/40 rounded-md mb-1">
               <Users size={18} className="mr-2 text-primary" />
-              <span className="text-sm font-xs">
+              <span className="text-xs font-med">
                 {waitlistCount.toLocaleString()} people are already waiting to meet someone new in their city!
               </span>
             </div>
