@@ -29,12 +29,19 @@ export function useIsMobile() {
 // Helper function to detect iOS devices more reliably
 export function isIOSDevice() {
   const userAgent = window.navigator.userAgent.toLowerCase()
-  const isIOS = /iphone|ipad|ipod/.test(userAgent) && 'ontouchend' in document
-  console.log("iOS detection:", { userAgent, isIOS })
+  
+  // Improved iOS detection checking both user agent and touch capabilities
+  const isIOS = (/iphone|ipad|ipod|mac/.test(userAgent) && 'ontouchend' in document) ||
+                // Additional check for newer iOS devices that might use different user agents
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                // iPadOS might report as Mac + touch
+                (/iphone|ipad|ipod|ios/.test(userAgent))
+  
+  console.log("iOS detection:", { userAgent, platform: navigator.platform, maxTouchPoints: navigator.maxTouchPoints, isIOS })
   return isIOS
 }
 
-// New debugging helper to access results
+// Debug helper to access device information
 export function useDeviceDebugInfo() {
   const isMobile = useIsMobile()
   const [isIOS, setIsIOS] = React.useState(false)
@@ -44,5 +51,11 @@ export function useDeviceDebugInfo() {
     setIsIOS(isIOSDevice())
   }, [])
   
-  return { isMobile, isIOS, userAgent: window.navigator.userAgent }
+  return { 
+    isMobile, 
+    isIOS, 
+    userAgent: window.navigator.userAgent,
+    platform: navigator.platform,
+    touchPoints: navigator.maxTouchPoints
+  }
 }

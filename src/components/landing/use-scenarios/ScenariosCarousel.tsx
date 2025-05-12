@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
@@ -21,18 +22,19 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const lastTouchMove = useRef<number>(0);
   const deviceDebugInfo = useDeviceDebugInfo();
 
-  const scrollSpeed = 0.5; // Slightly reduced speed for smoother animation
+  const scrollSpeed = 0.2; // Reduced speed even further for smoother animation
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  // Better iOS and touch device detection
+  // Improved iOS and touch device detection
   useEffect(() => {
-    // First check for iOS specifically
+    // First check for iOS specifically using our enhanced detection
     const isIOS = isIOSDevice();
     
     if (isIOS) {
       setIsTouchDevice(true);
-      console.log("iOS device detected via useragent & touch events");
+      setIsPaused(true); // Always pause animation for iOS devices
+      console.log("iOS device detected, disabling auto-scroll");
       return;
     }
     
@@ -42,14 +44,14 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const touchHandler = () => {
       touchDetected = true;
       setIsTouchDevice(true);
+      setIsPaused(true); // Pause animation for touch devices
       window.removeEventListener('touchstart', touchHandler);
       console.log("Touch events detected, treating as touch device");
     };
     
     window.addEventListener('touchstart', touchHandler, { once: true });
     
-    // After a short timeout, if no touch events have been detected,
-    // assume it's not a touch device
+    // After a timeout, if no touch events detected, assume non-touch device
     const timeoutId = setTimeout(() => {
       if (!touchDetected) {
         setIsTouchDevice(false);
@@ -81,7 +83,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       return;
     }
 
-    // Use delta time to create smoother animation
+    // Use delta time for even smoother animation
     const pixelsPerFrame = (scrollSpeed * deltaTime) / 16.67; // Normalize to 60fps
 
     setTranslateX((prev) => {
@@ -124,6 +126,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Enhanced touch handling for smoother scrolling on iOS
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsPaused(true);
     setIsDragging(true);
@@ -132,6 +135,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent default behavior to avoid iOS bouncing
     setIsPaused(true);
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
@@ -147,15 +151,15 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
 
-    // Throttle touch events for better performance on mobile
+    // More aggressive throttling for iOS devices to reduce jitter
     const now = Date.now();
-    if (now - lastTouchMove.current < 16) return; // ~60fps throttle
+    if (now - lastTouchMove.current < 32) return; // Throttle to ~30fps for smoother motion
     lastTouchMove.current = now;
 
     const deltaX = e.touches[0].clientX - startX;
     setTranslateX(dragStartTranslate + deltaX);
     
-    // Prevent default to stop page scrolling while dragging
+    // Prevent default to avoid iOS bouncing/scrolling
     e.preventDefault();
   };
 
@@ -181,14 +185,16 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         <div>isIOS: {deviceDebugInfo.isIOS ? 'true' : 'false'}</div>
         <div>isMobile: {deviceDebugInfo.isMobile ? 'true' : 'false'}</div>
         <div>isTouchDevice: {isTouchDevice ? 'true' : 'false'}</div>
+        <div>Platform: {deviceDebugInfo.platform}</div>
+        <div>TouchPoints: {deviceDebugInfo.touchPoints}</div>
         <div className="max-w-[300px] truncate">UA: {deviceDebugInfo.userAgent}</div>
       </div>
 
       <div
-        className={`flex items-center ${isDragging ? '' : 'transition-transform'} cursor-grab will-change-transform`}
+        className={`flex items-center ${isDragging ? 'will-change-transform' : 'transition-all duration-300'} cursor-grab`}
         style={{
           transform: `translate3d(${translateX}px, 0, 0)`,
-          transition: isDragging ? "none" : "transform 0.1s linear",
+          transition: isDragging ? "none" : "transform 0.3s ease-out",
           WebkitBackfaceVisibility: "hidden", // Hardware acceleration for iOS
           WebkitPerspective: 1000,
           WebkitTransform: `translate3d(${translateX}px, 0, 0)`,
