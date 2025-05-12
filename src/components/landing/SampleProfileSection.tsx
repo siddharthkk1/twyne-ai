@@ -104,18 +104,23 @@ export const SampleProfileSection = () => {
 
           <Card className="shadow-md border border-border/50 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 py-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                {/* Left: Avatar */}
                 <Avatar className="h-14 w-14 border-2 border-white">
                   <AvatarImage src={profile.avatarImage} alt={profile.name} />
                   <AvatarFallback className="bg-secondary/20 text-secondary text-xl">{profile.avatar}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-end">
+                
+                {/* Middle: Name and Twyne info with padding */}
+                <div className="flex flex-col ml-4 flex-1">
                   <p className="text-xs text-muted-foreground">Your Twyne with</p>
                   <h3 className="text-2xl font-semibold">{profile.name}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 mr-1" />
-                    <span>{profile.location}</span>
-                  </div>
+                </div>
+                
+                {/* Right: Location vertically centered */}
+                <div className="flex items-center text-sm text-muted-foreground self-center">
+                  <MapPin className="h-3.5 w-3.5 mr-1" />
+                  <span>{profile.location}</span>
                 </div>
               </div>
             </CardHeader>
@@ -197,18 +202,18 @@ export const SampleProfileSection = () => {
                   </div>
                 ) : (
                   <div className="bg-muted/30 rounded-lg p-3 text-sm border border-muted">
-                    <p className="text-muted-foreground">No compatibility highlights available. This user hasn't shared this information publicly.</p>
+                    <p className="text-muted-foreground">You and {profile.name} have no compatibility highlights based on the information you've made public.</p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Profile switcher dots */}
+          {/* Profile switcher dots - reduced bottom margin */}
           <div className="hidden md:block">
             {/* Empty placeholder to maintain grid layout */}
           </div>
-          <div className="flex justify-center mt-4 space-x-3">
+          <div className="flex justify-center mt-2 space-x-3">
             {connectionProfiles.map((_, index) => (
               <button 
                 key={index}
