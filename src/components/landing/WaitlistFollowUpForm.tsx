@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,8 +230,8 @@ export const WaitlistFollowUpForm = ({
               )}
             />
             
-            {/* Using a custom div instead of DialogFooter for better control */}
-            <div className="mt-6 flex flex-col space-y-4 w-full">
+            {/* Using a custom div with reduced spacing between buttons (space-y-2 instead of space-y-4) */}
+            <div className="mt-6 flex flex-col space-y-2 w-full">
               <Button 
                 type="submit" 
                 className="w-full" 
