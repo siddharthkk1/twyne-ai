@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { isIOSDevice } from "@/hooks/use-mobile";
 import {
   IoLocationSharp,
   IoHeartSharp,
@@ -26,6 +27,19 @@ export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
+  const [isIOS, setIsIOS] = useState(false);
+
+  // Detect iOS on component mount
+  useEffect(() => {
+    const iosDetected = isIOSDevice();
+    setIsIOS(iosDetected);
+    
+    // Disable autoplay on iOS devices
+    if (iosDetected) {
+      console.log("iOS device detected, disabling carousel autoplay");
+      setAutoplay(false);
+    }
+  }, []);
 
   const scenarios: ScenarioItem[] = [
     {
@@ -94,16 +108,19 @@ export const UseScenarioCarousel = () => {
     },
   ];
 
-  // Auto-rotate every 5 seconds
+  // Auto-rotate every 5 seconds only if not iOS and autoplay is enabled
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (autoplay) {
+    
+    // Only run autoplay if not an iOS device and autoplay is enabled
+    if (autoplay && !isIOS) {
       interval = setInterval(() => {
         setActiveSlide((prev) => (prev + 1) % scenarios.length);
       }, 5000);
     }
+    
     return () => clearInterval(interval);
-  }, [autoplay, scenarios.length]);
+  }, [autoplay, scenarios.length, isIOS]);
 
   const goToNextSlide = () => {
     setActiveSlide((prev) => (prev + 1) % scenarios.length);
@@ -125,13 +142,24 @@ export const UseScenarioCarousel = () => {
           <p className="text-muted-foreground">
             Twyne connects you with like-minded people, whatever your situation
           </p>
+          {isIOS && (
+            <p className="text-xs text-muted-foreground mt-2">
+              (Auto-scrolling disabled on iOS devices for better performance)
+            </p>
+          )}
         </div>
 
         <div
           className="relative w-full overflow-hidden h-[400px]"
-          onMouseEnter={() => setAutoplay(false)}
-          onMouseLeave={() => setAutoplay(true)}
+          onMouseEnter={() => !isIOS && setAutoplay(false)}
+          onMouseLeave={() => !isIOS && setAutoplay(true)}
         >
+          {/* Debug info */}
+          <div className="absolute top-0 left-0 z-50 bg-black/70 text-white p-2 text-xs rounded-br-md font-mono">
+            <div>isIOS: {isIOS ? 'true' : 'false'}</div>
+            <div>autoplay: {autoplay && !isIOS ? 'true' : 'false'}</div>
+          </div>
+
           <div
             className="flex transition-transform duration-500 ease-in-out h-full"
             style={{

@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
-import { useIsMobile, isIOSDevice, useDeviceDebugInfo } from "@/hooks/use-mobile";
+import { useIsMobile, isIOSDevice } from "@/hooks/use-mobile";
 
 interface ScenariosCarouselProps {
   scenarios: ScenarioItemProps[];
@@ -20,31 +19,29 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const lastTimeRef = useRef<number>(0);
   const isMobile = useIsMobile();
   const lastTouchMove = useRef<number>(0);
+  const [isIOS, setIsIOS] = useState(false);
   const deviceDebugInfo = useDeviceDebugInfo();
 
-  const scrollSpeed = 0.2; // Reduced speed even further for smoother animation
+  const scrollSpeed = 0.2; // Reduced speed for smoother animation
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  // Improved iOS and touch device detection
+  // Detect iOS devices
   useEffect(() => {
-    // First check for iOS specifically using our enhanced detection
-    const isIOS = isIOSDevice();
+    const iosDetected = isIOSDevice();
+    setIsIOS(iosDetected);
     
-    if (isIOS) {
+    if (iosDetected) {
       setIsTouchDevice(true);
-      setIsPaused(true); // Always pause animation for iOS devices
       console.log("iOS device detected, disabling auto-scroll");
-      return;
     }
     
-    // For non-iOS devices, detect touch capability
+    // For non-iOS touch devices
     let touchDetected = false;
     
     const touchHandler = () => {
       touchDetected = true;
       setIsTouchDevice(true);
-      setIsPaused(true); // Pause animation for touch devices
       window.removeEventListener('touchstart', touchHandler);
       console.log("Touch events detected, treating as touch device");
     };
@@ -66,7 +63,13 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     };
   }, []);
 
-  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile, "isTouchDevice:", isTouchDevice);
+  console.log("Carousel state:", {
+    totalWidth,
+    isMobile,
+    isTouchDevice,
+    isIOS,
+    isPaused: isPaused || isIOS // Log whether we're effectively paused
+  });
 
   const animate = (timestamp: number) => {
     if (!lastTimeRef.current) {
@@ -77,13 +80,13 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
     
-    // Don't animate when paused or on touch devices
-    if (isPaused || isTouchDevice) {
+    // Only animate if NOT paused AND NOT on iOS
+    if (isPaused || isIOS || isTouchDevice) {
       animationRef.current = requestAnimationFrame(animate);
       return;
     }
 
-    // Use delta time for even smoother animation
+    // Use delta time for smoother animation
     const pixelsPerFrame = (scrollSpeed * deltaTime) / 16.67; // Normalize to 60fps
 
     setTranslateX((prev) => {
@@ -104,7 +107,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isPaused, totalWidth, isTouchDevice]);
+  }, [isPaused, totalWidth, isTouchDevice, isIOS]);
 
   // Reset the animation when window size changes
   useEffect(() => {
@@ -126,7 +129,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Enhanced touch handling for smoother scrolling on iOS
+  // Touch handling for manual scrolling
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsPaused(true);
     setIsDragging(true);
@@ -135,7 +138,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault(); // Prevent default behavior to avoid iOS bouncing
+    e.preventDefault();
     setIsPaused(true);
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
@@ -151,9 +154,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
 
-    // More aggressive throttling for iOS devices to reduce jitter
+    // Throttle for smoother motion
     const now = Date.now();
-    if (now - lastTouchMove.current < 32) return; // Throttle to ~30fps for smoother motion
+    if (now - lastTouchMove.current < 32) return;
     lastTouchMove.current = now;
 
     const deltaX = e.touches[0].clientX - startX;
@@ -165,8 +168,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   const handleDragEnd = () => {
     setIsDragging(false);
-    // Only resume animation if not on a touch device
-    if (!isTouchDevice) {
+    // Only resume animation if not on iOS and not a touch device
+    if (!isIOS && !isTouchDevice) {
       setTimeout(() => setIsPaused(false), 2000);
     }
   };
@@ -177,17 +180,16 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     <div
       className="relative w-full overflow-hidden py-4"
       ref={containerRef}
-      onMouseEnter={() => !isTouchDevice && setIsPaused(true)}
-      onMouseLeave={() => !isTouchDevice && setIsPaused(false)}
+      onMouseEnter={() => !isIOS && !isTouchDevice && setIsPaused(true)}
+      onMouseLeave={() => !isIOS && !isTouchDevice && setIsPaused(false)}
     >
       {/* Debug Info Overlay */}
       <div className="absolute top-0 right-0 z-50 bg-black/70 text-white p-2 text-xs rounded-bl-md font-mono">
-        <div>isIOS: {deviceDebugInfo.isIOS ? 'true' : 'false'}</div>
-        <div>isMobile: {deviceDebugInfo.isMobile ? 'true' : 'false'}</div>
-        <div>isTouchDevice: {isTouchDevice ? 'true' : 'false'}</div>
+        <div>isIOS: {isIOS ? 'true' : 'false'}</div>
+        <div>isMobile: {isMobile ? 'true' : 'false'}</div>
+        <div>autoScroll: {(!isIOS && !isPaused && !isTouchDevice) ? 'true' : 'false'}</div>
         <div>Platform: {deviceDebugInfo.platform}</div>
         <div>TouchPoints: {deviceDebugInfo.touchPoints}</div>
-        <div className="max-w-[300px] truncate">UA: {deviceDebugInfo.userAgent}</div>
       </div>
 
       <div
@@ -244,3 +246,24 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     </div>
   );
 };
+
+// Include the full useDeviceDebugInfo hook here for completeness
+import * as React from "react";
+
+function useDeviceDebugInfo() {
+  const isMobile = useIsMobile();
+  const [isIOS, setIsIOS] = React.useState(false);
+  
+  React.useEffect(() => {
+    // Check only once on mount
+    setIsIOS(isIOSDevice());
+  }, []);
+  
+  return { 
+    isMobile, 
+    isIOS, 
+    userAgent: window.navigator.userAgent,
+    platform: navigator.platform,
+    touchPoints: navigator.maxTouchPoints
+  };
+}
