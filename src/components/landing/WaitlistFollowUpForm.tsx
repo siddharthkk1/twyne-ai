@@ -231,7 +231,8 @@ export const WaitlistFollowUpForm = ({
               )}
             />
             
-            <DialogFooter className="mt-6 flex flex-col space-y-3 w-full">
+            {/* Using a custom div instead of DialogFooter for better control */}
+            <div className="mt-6 flex flex-col space-y-4 w-full">
               <Button 
                 type="submit" 
                 className="w-full" 
@@ -248,7 +249,7 @@ export const WaitlistFollowUpForm = ({
               >
                 Skip
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
       </DialogContent>
