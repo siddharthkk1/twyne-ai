@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
@@ -25,27 +24,54 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile, "isTouchDevice:", isTouchDevice);
-
-  // Detect touch devices on mount
+  // More accurate touch device detection
   useEffect(() => {
-    // More comprehensive check for touch devices, including iOS
-    const isTouch = 'ontouchstart' in window || 
-                   navigator.maxTouchPoints > 0 || 
-                   (navigator as any).msMaxTouchPoints > 0;
+    // Check if actual touch events have been fired
+    let touchFired = false;
     
-    setIsTouchDevice(isTouch);
-    console.log("Touch device detected:", isTouch);
-    
-    // For iOS detection
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    
-    if (isIOS) {
-      console.log("iOS device detected");
+    const touchStartHandler = () => {
+      touchFired = true;
       setIsTouchDevice(true);
+      // Remove event listeners once we've determined it's a touch device
+      cleanup();
+    };
+    
+    // Check for iOS specifically using userAgent
+    const isActualIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isActualIOS) {
+      setIsTouchDevice(true);
+      console.log("iOS device detected:", isActualIOS);
+      return;
     }
+    
+    // Add event listeners to detect actual touch interaction
+    const addListeners = () => {
+      window.addEventListener('touchstart', touchStartHandler, { once: true });
+    };
+    
+    // Clean up event listeners
+    const cleanup = () => {
+      window.removeEventListener('touchstart', touchStartHandler);
+    };
+    
+    addListeners();
+    
+    // After a short delay, if no touch events fired, treat as non-touch device
+    const timer = setTimeout(() => {
+      if (!touchFired) {
+        setIsTouchDevice(false);
+        console.log("No touch events detected, treating as non-touch device");
+      }
+    }, 1000);
+    
+    return () => {
+      cleanup();
+      clearTimeout(timer);
+    };
   }, []);
+
+  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile, "isTouchDevice:", isTouchDevice);
 
   const animate = (timestamp: number) => {
     if (!lastTimeRef.current) {
@@ -56,8 +82,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
     
-    // Don't animate on mobile or touch devices or when paused
-    if (isPaused || isMobile || isTouchDevice) {
+    // Don't animate when paused or on touch devices
+    if (isPaused || isTouchDevice) {
       animationRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -83,7 +109,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isPaused, totalWidth, isMobile, isTouchDevice]);
+  }, [isPaused, totalWidth, isTouchDevice]);
 
   // Reset the animation when window size changes
   useEffect(() => {
@@ -142,8 +168,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   const handleDragEnd = () => {
     setIsDragging(false);
-    // Only resume animation if not on mobile or touch device
-    if (!isMobile && !isTouchDevice) {
+    // Only resume animation if not on a touch device
+    if (!isTouchDevice) {
       setTimeout(() => setIsPaused(false), 2000);
     }
   };
@@ -154,8 +180,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     <div
       className="relative w-full overflow-hidden py-4"
       ref={containerRef}
-      onMouseEnter={() => !isMobile && !isTouchDevice && setIsPaused(true)}
-      onMouseLeave={() => !isMobile && !isTouchDevice && setIsPaused(false)}
+      onMouseEnter={() => !isTouchDevice && setIsPaused(true)}
+      onMouseLeave={() => !isTouchDevice && setIsPaused(false)}
     >
       <div
         className="flex items-center transition-transform cursor-grab will-change-transform"

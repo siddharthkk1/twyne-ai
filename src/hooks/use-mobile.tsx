@@ -11,15 +11,10 @@ export function useIsMobile() {
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     
     const onChange = () => {
-      // Base check on screen size
+      // Base check on screen size only, not attempting iOS detection here
+      // This will be used just for layout/responsive purposes
       const isSmallScreen = window.innerWidth < MOBILE_BREAKPOINT
-      
-      // Additional iOS detection (iPads might have larger screens)
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-                   
-      // Combined check - treat as mobile if either screen is small OR it's an iOS device
-      setIsMobile(isSmallScreen || isIOS)
+      setIsMobile(isSmallScreen)
     }
     
     mql.addEventListener("change", onChange)
