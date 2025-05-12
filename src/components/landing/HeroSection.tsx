@@ -224,7 +224,7 @@ export const HeroSection = ({
               style={{ transitionDelay: '1000ms' }}
             >
               <Users size={16} className="mr-2 text-primary" />
-              <span>{waitlistCount.toLocaleString()} people are already waiting to meet someone new in their city</span>
+              <span>{waitlistCount.toLocaleString()} people are already waiting to meet someone new in their city!</span>
             </div>
           )}
         </div>
