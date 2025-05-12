@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,8 +17,7 @@ import {
   CarouselContent,
   CarouselItem,
   CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
+  CarouselPrevious
 } from "@/components/ui/carousel";
 
 interface ScenarioItem {
@@ -34,27 +32,6 @@ interface ScenarioItem {
 export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
-  // Add state for carousel API
-  const [api, setApi] = useState<CarouselApi>();
-
-  // Use effect to track carousel changes
-  React.useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    // Update activeSlide when the carousel changes
-    const onSelect = () => {
-      setActiveSlide(api.selectedScrollSnap());
-    };
-    
-    api.on("select", onSelect);
-    
-    // Cleanup listener
-    return () => {
-      api.off("select", onSelect);
-    };
-  }, [api]);
 
   const scenarios: ScenarioItem[] = [
     {
@@ -139,7 +116,10 @@ export const UseScenarioCarousel = () => {
             align: "center"
           }}
           className="w-full"
-          setApi={setApi}
+          onSelect={(api) => {
+            const index = api?.selectedScrollSnap() || 0;
+            setActiveSlide(index);
+          }}
         >
           <CarouselContent>
             {scenarios.map((scenario) => (
@@ -178,6 +158,8 @@ export const UseScenarioCarousel = () => {
                 <button
                   key={index}
                   onClick={() => {
+                    setActiveSlide(index);
+                    const api = (document.querySelector('[data-embla-carousel]') as any)?.__emblaApi;
                     if (api) api.scrollTo(index);
                   }}
                   className={`w-2 h-2 rounded-full transition-all ${
