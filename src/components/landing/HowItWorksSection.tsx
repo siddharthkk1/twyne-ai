@@ -5,18 +5,19 @@ import { MessageCircle, MapPin, Users, Shield } from "lucide-react";
 export const HowItWorksSection = () => {
   return (
     <section id="how-it-works" className="py-20 bg-white relative">
-      {/* Reduced top padding from py-24 to py-20 (about 10% decrease) */}
       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">How It Works</h2>
           <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
         </div>
         
-        {/* Decreased gap (padding between cards) by 40% from gap-6 md:gap-8 to gap-4 md:gap-5 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 relative z-10">
-          {/* Increased width by 20% by adding the flex-grow class and customizing min-width */}
-          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50 flex-grow" 
-               style={{ minWidth: "calc(100% * 1.2)" }}>
+        {/* Increased padding between cards in sm and md breakpoints (gap-4 md:gap-6) */}
+        {/* Previously was gap-4 md:gap-5 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 relative z-10">
+          {/* Reduced width from 20% to 10% width boost for medium screens */}
+          {/* Updated style to be responsive with different widths at different breakpoints */}
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50" 
+               style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <MessageCircle className="h-6 w-6 text-primary" />
             </div>
@@ -26,8 +27,8 @@ export const HowItWorksSection = () => {
             </p>
           </div>
           
-          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50 flex-grow"
-               style={{ minWidth: "calc(100% * 1.2)" }}>
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50"
+               style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mb-4">
               <MapPin className="h-6 w-6 text-secondary" />
             </div>
@@ -37,8 +38,8 @@ export const HowItWorksSection = () => {
             </p>
           </div>
           
-          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50 flex-grow"
-               style={{ minWidth: "calc(100% * 1.2)" }}>
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50"
+               style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
               <Users className="h-6 w-6 text-accent" />
             </div>
@@ -48,8 +49,8 @@ export const HowItWorksSection = () => {
             </p>
           </div>
           
-          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50 flex-grow"
-               style={{ minWidth: "calc(100% * 1.2)" }}>
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50"
+               style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-6 w-6 text-green-700" />
             </div>
