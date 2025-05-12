@@ -53,33 +53,33 @@ export type Database = {
           age: number | null
           created_at: string
           email: string
-          full_name: string
+          full_name: string | null
           id: string
-          interests: string
+          interests: string | null
           location: string
-          motivation: string
+          motivation: string | null
           phone_number: string | null
         }
         Insert: {
           age?: number | null
           created_at?: string
           email: string
-          full_name: string
+          full_name?: string | null
           id?: string
-          interests: string
+          interests?: string | null
           location: string
-          motivation: string
+          motivation?: string | null
           phone_number?: string | null
         }
         Update: {
           age?: number | null
           created_at?: string
           email?: string
-          full_name?: string
+          full_name?: string | null
           id?: string
-          interests?: string
+          interests?: string | null
           location?: string
-          motivation?: string
+          motivation?: string | null
           phone_number?: string | null
         }
         Relationships: []

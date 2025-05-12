@@ -72,6 +72,13 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
 
     if (open) {
       fetchWaitlistCount();
+      
+      // Reset form when opened
+      form.reset({
+        email: "",
+        location: "",
+        phoneNumber: "",
+      });
     }
   }, [open]);
 
@@ -88,11 +95,6 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
     setIsSubmitting(true);
     
     try {
-      // Pass the data to the parent component for the follow-up form
-      if (onSubmitSuccess) {
-        onSubmitSuccess(data);
-      }
-      
       // Store the initial submission in Supabase without placeholder data
       const { error } = await supabase
         .from('waitlist')
@@ -113,6 +115,11 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
         } else {
           console.error("Error submitting to waitlist:", error);
           throw error;
+        }
+      } else {
+        // Pass the data to the parent component for the follow-up form
+        if (onSubmitSuccess) {
+          onSubmitSuccess(data);
         }
       }
     } catch (error) {

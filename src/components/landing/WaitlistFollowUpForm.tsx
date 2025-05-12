@@ -21,7 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 // Follow-up form schema with additional fields
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Please enter your full name." }),
-  age: z.string().min(1, { message: "Please enter a valid age." }).transform(val => parseInt(val, 10)),
+  age: z.string().min(1, { message: "Please enter a valid age." })
+    .transform((val) => parseInt(val, 10)),
   interests: z.string().min(3, { message: "Please share some of your interests." }),
   motivation: z.string().min(3, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -114,7 +115,7 @@ export const WaitlistFollowUpForm = ({
         <DialogHeader>
           <DialogTitle className="text-2xl">You've joined the waitlist!</DialogTitle>
           <DialogDescription>
-            This helps us make better connections for you when Twyne launches in {userData?.location}.
+            We'd love to learn a bit more about you to help find your perfect connections when Twyne launches.
           </DialogDescription>
         </DialogHeader>
         
