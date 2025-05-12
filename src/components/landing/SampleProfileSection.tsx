@@ -13,7 +13,7 @@ const connectionProfiles = [
     location: "San Francisco",
     initial: "AK",
     avatar: "A", // Will be used as avatar fallback
-    avatarImage: "/lovable-uploads/136ab2cd-2f22-4e16-ad1d-e412ef06a221.png", // Alex's avatar image
+    avatarImage: "/lovable-uploads/18e2f95c-dc5b-4ce6-b7d2-d1b59a046366.png", // Updated to use the new avatar image
     sharedInterests: [
       { icon: Coffee, text: "Coffee shops" },
       { icon: Book, text: "Fiction" },
@@ -43,7 +43,7 @@ const connectionProfiles = [
     location: "Berkeley",
     initial: "JT",
     avatar: "J",
-    avatarImage: "/lovable-uploads/06ac0ee4-f564-4efd-8eea-d1ae7ff7a345.png", // Jordan's avatar image with dog
+    avatarImage: "/lovable-uploads/b37dd3c3-ff54-4199-8907-907a0fac716e.png", // Updated to use the new dog avatar image
     sharedInterests: [
       { icon: Music, text: "Jazz" },
       { icon: Book, text: "Non-fiction" },
@@ -117,8 +117,8 @@ export const SampleProfileSection = () => {
                   <h3 className="text-2xl font-semibold">{profile.name}</h3>
                 </div>
                 
-                {/* Right: Location vertically centered */}
-                <div className="flex items-center text-sm text-muted-foreground self-center">
+                {/* Right: Location vertically centered - adjusted to align with name */}
+                <div className="flex items-center text-sm text-muted-foreground self-end pb-1">
                   <MapPin className="h-3.5 w-3.5 mr-1" />
                   <span>{profile.location}</span>
                 </div>
@@ -209,11 +209,11 @@ export const SampleProfileSection = () => {
             </CardContent>
           </Card>
 
-          {/* Profile switcher dots - reduced bottom margin */}
+          {/* Profile switcher dots - moved closer to bottom edge */}
           <div className="hidden md:block">
             {/* Empty placeholder to maintain grid layout */}
           </div>
-          <div className="flex justify-center mt-2 space-x-3">
+          <div className="flex justify-center space-x-3 mt-1 pb-1">
             {connectionProfiles.map((_, index) => (
               <button 
                 key={index}
