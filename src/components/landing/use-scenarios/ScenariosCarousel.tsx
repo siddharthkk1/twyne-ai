@@ -2,26 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
-import { useIsMobile, isIOSDevice } from "@/hooks/use-mobile";
-
-// Define the useDeviceDebugInfo hook at the top level
-function useDeviceDebugInfo() {
-  const isMobile = useIsMobile();
-  const [isIOS, setIsIOS] = React.useState(false);
-  
-  React.useEffect(() => {
-    // Check only once on mount
-    setIsIOS(isIOSDevice());
-  }, []);
-  
-  return { 
-    isMobile, 
-    isIOS, 
-    userAgent: window.navigator.userAgent,
-    platform: navigator.platform,
-    touchPoints: navigator.maxTouchPoints
-  };
-}
+import { useIsMobile, isIOSDevice, useDeviceDebugInfo } from "@/hooks/use-mobile";
 
 interface ScenariosCarouselProps {
   scenarios: ScenarioItemProps[];
@@ -164,7 +145,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Remove e.preventDefault() to allow natural touch scrolling on iOS
+    // Don't prevent default on touch events to allow natural scrolling on iOS
     setIsPaused(true);
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
@@ -188,7 +169,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const deltaX = e.touches[0].clientX - startX;
     setTranslateX(dragStartTranslate + deltaX);
     
-    // Only prevent default for non-iOS to avoid blocking native scrolling behavior on iOS
+    // Never prevent default for iOS touch events to ensure native scrolling works
     if (!isIOS) {
       e.preventDefault();
     }
@@ -218,16 +199,17 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         <div>autoScroll: {(!isIOS && !isPaused && !isTouchDevice) ? 'true' : 'false'}</div>
         <div>Platform: {deviceDebugInfo.platform}</div>
         <div>TouchPoints: {deviceDebugInfo.touchPoints}</div>
+        <div>isDragging: {isDragging ? 'true' : 'false'}</div>
       </div>
 
       <div
         className={`flex items-center ${isDragging ? 'will-change-transform' : 'transition-all duration-300'} cursor-grab`}
         style={{
-          transform: isIOS ? undefined : `translate3d(${translateX}px, 0, 0)`,
-          transition: isIOS || isDragging ? "none" : "transform 0.3s ease-out",
+          transform: isIOS ? `translate3d(${translateX}px, 0, 0)` : `translate3d(${translateX}px, 0, 0)`,
+          transition: isDragging ? "none" : "transform 0.3s ease-out",
           WebkitBackfaceVisibility: "hidden", // Hardware acceleration for iOS
           WebkitPerspective: 1000,
-          WebkitTransform: isIOS ? undefined : `translate3d(${translateX}px, 0, 0)`,
+          WebkitTransform: `translate3d(${translateX}px, 0, 0)`,
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
