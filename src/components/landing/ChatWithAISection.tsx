@@ -179,7 +179,7 @@ export const ChatWithAISection = () => {
     <section className="py-16 bg-white relative overflow-hidden">
       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold">Our AI Gets to Know You</h2>
+          <h2 className="text-3xl font-bold">How We Get to Know You</h2>
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
@@ -187,7 +187,7 @@ export const ChatWithAISection = () => {
           {/* Text content - No animation when chat changes */}
           <div className="space-y-6">
             <p className="text-lg">
-              Twyne learns your personality, interests, and what matters to you—creating 
+              Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
             </p>
             <div className="space-y-3">
@@ -208,6 +208,12 @@ export const ChatWithAISection = () => {
                   <span className="text-primary text-sm font-medium">3</span>
                 </div>
                 <p>No awkward bios or curated photos—just authentic conversations</p>
+              </div>
+              <div className="flex items-start">
+                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                  <span className="text-primary text-sm font-medium">4</span>
+                </div>
+                <p>You choose what information can be shared with others during warm intros and connections</p>
               </div>
             </div>
             <div>
@@ -261,8 +267,8 @@ export const ChatWithAISection = () => {
                 {/* Combined arrow indicator and gradient fade overlay - moved closer to bottom with increased opacity */}
                 {hasScrollContent && (
                   <>
-                    {/* Arrow indicator with circular background - moved closer to bottom with increased opacity */}
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
+                    {/* Arrow indicator with circular background - positioned lower with increased opacity */}
+                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
                       <div className="bg-primary/70 rounded-full p-2">
                         <ArrowDown className="h-4 w-4 text-white" />
                       </div>
