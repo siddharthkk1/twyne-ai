@@ -197,20 +197,20 @@ export const ChatWithAISection = () => {
                 <p>Share your interests, values, and what you're looking for in connections</p>
               </div>
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">2</span>
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20">
+                  <span className="text-primary text-xs font-medium leading-none">2</span>
                 </div>
                 <p>Our AI builds a deeper understanding of your vibe than profiles ever could</p>
               </div>
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">3</span>
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20">
+                  <span className="text-primary text-xs font-medium leading-none">3</span>
                 </div>
                 <p>No awkward bios or curated photos—just authentic conversations</p>
               </div>
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">4</span>
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20">
+                  <span className="text-primary text-xs font-medium leading-none">4</span>
                 </div>
                 <p>You choose what information can be shared with others during warm intros and connections</p>
               </div>
