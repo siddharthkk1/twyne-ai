@@ -144,7 +144,7 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
             Be the first to know when Twyne launches in your city.
           </DialogDescription>
           {!isLoading && waitlistCount !== null && (
-            <div className="flex items-center justify-center py-1 px-2 bg-muted/40 rounded-md mb-1 w-[115%] mx-auto">
+            <div className="flex items-center justify-center py-1 px-2 bg-muted/40 rounded-md mb-1 w-[105%] mx-auto">
               <Users size={18} className="mr-2 text-primary" />
               <span className="text-[12px] font-med ">
                 {waitlistCount.toLocaleString()} people are already waiting to meet someone new in their city!
