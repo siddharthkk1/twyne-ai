@@ -232,9 +232,14 @@ export const WaitlistFollowUpForm = ({
             />
             
             <DialogFooter className="mt-6 flex flex-col space-y-3 w-full">
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Submitting..." : "Complete Registration"}
               </Button>
+              
               <Button 
                 type="button"
                 variant="outline" 
