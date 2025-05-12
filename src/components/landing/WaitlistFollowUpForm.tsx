@@ -87,7 +87,7 @@ export const WaitlistFollowUpForm = ({
           interests: data.interests,
           motivation: data.motivation
         })
-        .eq('email', userData.email);
+        .eq('email', userData.email).single();
       
       if (error) {
         console.error("Error updating waitlist information:", error);
