@@ -102,7 +102,7 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
           email: data.email,
           location: data.location,
           phone_number: data.phoneNumber || null,
-        });
+        }).single();
       
       if (error) {
         if (error.code === '23505') {
