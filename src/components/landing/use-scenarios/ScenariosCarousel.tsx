@@ -44,7 +44,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const isIOS = React.useMemo(() => isIOSDevice(), []);
   const deviceDebugInfo = useDeviceDebugInfo();
 
-  const scrollSpeed = 0.2; // Reduced speed for smoother animation
+  const scrollSpeed = 0.5; // Increased speed (was 0.2, now 0.5 which is 2.5x faster)
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
@@ -164,7 +164,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
+    // Remove e.preventDefault() to allow natural touch scrolling on iOS
     setIsPaused(true);
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
@@ -188,8 +188,10 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const deltaX = e.touches[0].clientX - startX;
     setTranslateX(dragStartTranslate + deltaX);
     
-    // Prevent default to avoid iOS bouncing/scrolling
-    e.preventDefault();
+    // Only prevent default for non-iOS to avoid blocking native scrolling behavior on iOS
+    if (!isIOS) {
+      e.preventDefault();
+    }
   };
 
   const handleDragEnd = () => {
