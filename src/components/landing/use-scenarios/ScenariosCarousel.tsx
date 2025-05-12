@@ -87,7 +87,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     isMobile,
     isTouchDevice,
     isIOS,
-    isPaused: isPaused || isIOS // Log whether we're effectively paused
+    isPaused: isPaused || isIOS,
+    isDragging // Added isDragging to debug info
   });
 
   const animate = (timestamp: number) => {
@@ -202,6 +203,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     }
   };
 
+  // Use double scenarios to ensure smooth wrapping
   const displayItems = [...scenarios, ...scenarios.map((s, i) => ({ ...s, id: s.id + scenarios.length }))];
 
   return (
@@ -218,56 +220,94 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         <div>autoScroll: {(!isIOS && !isPaused && !isTouchDevice) ? 'true' : 'false'}</div>
         <div>Platform: {deviceDebugInfo.platform}</div>
         <div>TouchPoints: {deviceDebugInfo.touchPoints}</div>
+        <div>isDragging: {isDragging ? 'true' : 'false'}</div>
       </div>
 
-      <div
-        className={`flex items-center ${isDragging ? 'will-change-transform' : 'transition-all duration-300'} cursor-grab`}
-        style={{
-          transform: isIOS ? undefined : `translate3d(${translateX}px, 0, 0)`,
-          transition: isIOS || isDragging ? "none" : "transform 0.3s ease-out",
-          WebkitBackfaceVisibility: "hidden", // Hardware acceleration for iOS
-          WebkitPerspective: 1000,
-          WebkitTransform: isIOS ? undefined : `translate3d(${translateX}px, 0, 0)`,
-        }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        onMouseMove={handleMouseMove}
-        onTouchMove={handleTouchMove}
-        onMouseUp={handleDragEnd}
-        onTouchEnd={handleDragEnd}
-        onMouseLeave={isDragging ? handleDragEnd : undefined}
-      >
-        {displayItems.map((scenario, index) => (
-          <div
-            key={`${scenario.id}-${index}`}
-            className="flex-shrink-0 px-4"
-            style={{ width: `${scenarioWidth}px` }}
-          >
-            <div className="flex flex-col items-center h-full">
-              <div className="mb-4 rounded-full p-3 bg-white/90 shadow-sm">
-                {scenario.icon}
-              </div>
-              <div
-                className="bg-white/90 p-5 rounded-xl shadow-sm border border-gray-100 w-full"
-                style={{
-                  minHeight: "140px",
-                  height: "140px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
-              >
-                <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800 text-center">
-                  <span className="text-primary text-xl">"</span>
-                  {scenario.title}
-                  <span className="text-primary text-xl">"</span>
-                </h3>
+      {isIOS ? (
+        // Native horizontal scroll for iOS - much more responsive with native touch handling
+        <div className="overflow-x-auto flex gap-4 px-4 pb-4 -mx-4 snap-x snap-mandatory">
+          {scenarios.map((scenario, index) => (
+            <div
+              key={scenario.id}
+              className="flex-shrink-0 snap-center"
+              style={{ width: `${scenarioWidth}px` }}
+            >
+              <div className="flex flex-col items-center h-full">
+                <div className="mb-4 rounded-full p-3 bg-white/90 shadow-sm">
+                  {scenario.icon}
+                </div>
+                <div
+                  className="bg-white/90 p-5 rounded-xl shadow-sm border border-gray-100 w-full"
+                  style={{
+                    minHeight: "140px",
+                    height: "140px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                  }}
+                >
+                  <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800 text-center">
+                    <span className="text-primary text-xl">"</span>
+                    {scenario.title}
+                    <span className="text-primary text-xl">"</span>
+                  </h3>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        // Custom translateX animation for non-iOS
+        <div
+          className={`flex items-center ${isDragging ? 'will-change-transform' : 'transition-all duration-300'} cursor-grab`}
+          style={{
+            transform: `translate3d(${translateX}px, 0, 0)`,
+            transition: isDragging ? "none" : "transform 0.3s ease-out",
+            WebkitBackfaceVisibility: "hidden", // Hardware acceleration for iOS
+            WebkitPerspective: 1000,
+            WebkitTransform: `translate3d(${translateX}px, 0, 0)`,
+          }}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          onMouseMove={handleMouseMove}
+          onTouchMove={handleTouchMove}
+          onMouseUp={handleDragEnd}
+          onTouchEnd={handleDragEnd}
+          onMouseLeave={isDragging ? handleDragEnd : undefined}
+        >
+          {displayItems.map((scenario, index) => (
+            <div
+              key={`${scenario.id}-${index}`}
+              className="flex-shrink-0 px-4"
+              style={{ width: `${scenarioWidth}px` }}
+            >
+              <div className="flex flex-col items-center h-full">
+                <div className="mb-4 rounded-full p-3 bg-white/90 shadow-sm">
+                  {scenario.icon}
+                </div>
+                <div
+                  className="bg-white/90 p-5 rounded-xl shadow-sm border border-gray-100 w-full"
+                  style={{
+                    minHeight: "140px",
+                    height: "140px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                  }}
+                >
+                  <h3 className="text-lg font-medium tracking-tight leading-relaxed text-gray-800 text-center">
+                    <span className="text-primary text-xl">"</span>
+                    {scenario.title}
+                    <span className="text-primary text-xl">"</span>
+                  </h3>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-background to-transparent pointer-events-none" />
       <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
