@@ -170,9 +170,9 @@ export const HeroSection = ({
             >
               The AI platform for making connections and building relationships
             </h2>
-            {/* Updated description - shortened */}
+            {/* Updated description - shortened with em dash instead of hyphen */}
             <p className="block mt-1">
-              Twyne gets to know your energy, interests, personality, and life context-then introduces you to people nearby who actually click.
+              Twyne gets to know your energy, interests, personality, and life context—then introduces you to people nearby who actually click.
             </p>
           </div>
           
