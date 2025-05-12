@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Follow-up form schema with additional fields
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Please enter your full name." }),
-  age: z.string().transform(val => parseInt(val, 10)),  // Parse string to number
+  age: z.coerce.number().min(1, { message: "Please enter a valid age." }),
   interests: z.string().min(3, { message: "Please share some of your interests." }),
   motivation: z.string().min(3, { message: "Please tell us why you're interested in Twyne." }),
 });
@@ -48,7 +48,7 @@ export const WaitlistFollowUpForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
-      age: "", // Store as string in the form
+      age:-1, 
       interests: "",
       motivation: "",
     },
@@ -146,12 +146,7 @@ export const WaitlistFollowUpForm = ({
                 <FormItem>
                   <FormLabel>Age</FormLabel>
                   <FormControl>
-                    <Input
-                        type="number"
-                        placeholder="24"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)} // keep value as string
-                      />
+                    <Input type="number" placeholder="24" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
