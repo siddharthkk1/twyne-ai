@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +25,7 @@ interface ScenarioItem {
 export const UseScenarioCarousel = () => {
   const { user } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
 
   const scenarios: ScenarioItem[] = [
     {
@@ -93,6 +94,17 @@ export const UseScenarioCarousel = () => {
     },
   ];
 
+  // Auto-rotate every 5 seconds
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (autoplay) {
+      interval = setInterval(() => {
+        setActiveSlide((prev) => (prev + 1) % scenarios.length);
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [autoplay, scenarios.length]);
+
   const goToNextSlide = () => {
     setActiveSlide((prev) => (prev + 1) % scenarios.length);
   };
@@ -115,7 +127,11 @@ export const UseScenarioCarousel = () => {
           </p>
         </div>
 
-        <div className="relative w-full overflow-hidden h-[400px]">
+        <div
+          className="relative w-full overflow-hidden h-[400px]"
+          onMouseEnter={() => setAutoplay(false)}
+          onMouseLeave={() => setAutoplay(true)}
+        >
           <div
             className="flex transition-transform duration-500 ease-in-out h-full"
             style={{
