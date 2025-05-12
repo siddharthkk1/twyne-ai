@@ -137,7 +137,12 @@ export const WaitlistFollowUpForm = ({
                 <FormItem>
                   <FormLabel>Age</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="28" {...field} />
+                    <Input
+                        type="number"
+                        placeholder="24"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)} // keep value as string
+                      />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
