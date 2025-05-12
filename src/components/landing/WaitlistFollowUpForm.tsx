@@ -152,8 +152,6 @@ export const WaitlistFollowUpForm = ({
           </DialogDescription>
         </DialogHeader>
         
-        {/* Removed the "Filling out info for:" text */}
-        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Full Name */}
@@ -233,7 +231,7 @@ export const WaitlistFollowUpForm = ({
               )}
             />
             
-            <DialogFooter className="mt-6 flex-col space-y-2">
+            <DialogFooter className="mt-6 flex flex-col space-y-3 w-full">
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Complete Registration"}
               </Button>
@@ -243,7 +241,7 @@ export const WaitlistFollowUpForm = ({
                 onClick={handleSkip} 
                 className="w-full text-foreground bg-white border-muted-foreground/30"
               >
-                Skip for now
+                Skip
               </Button>
             </DialogFooter>
           </form>
