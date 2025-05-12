@@ -78,21 +78,32 @@ export const WaitlistFollowUpForm = ({
     setIsSubmitting(true);
     
     try {
-      // Update the existing record with additional information
-      const { error } = await supabase
+      // First, get the record we need to update
+      const { data: existingRecord, error: fetchError } = await supabase
         .from('waitlist')
         .select('*')
+        .eq('email', userData.email)
+        .single();
+      
+      if (fetchError) {
+        console.error("Error fetching waitlist record:", fetchError);
+        throw fetchError;
+      }
+      
+      // Now we update the record with the additional information
+      const { error: updateError } = await supabase
+        .from('waitlist')
         .update({
           full_name: data.fullName,
           age: data.age,
           interests: data.interests,
           motivation: data.motivation
         })
-        .eq('email', userData.email);
+        .eq('id', existingRecord.id);
       
-      if (error) {
-        console.error("Error updating waitlist information:", error);
-        throw error;
+      if (updateError) {
+        console.error("Error updating waitlist information:", updateError);
+        throw updateError;
       }
       
       // Generate a random count of people in the user's location (between 15-85)
