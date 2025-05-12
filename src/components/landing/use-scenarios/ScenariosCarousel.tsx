@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { ScenarioCard } from "./ScenarioCard";
 import type { ScenarioItemProps } from "./ScenarioItem";
@@ -15,22 +16,41 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(0);
   const isMobile = useIsMobile();
   const lastTouchMove = useRef<number>(0);
 
-  const scrollSpeed = 0.625;
+  const scrollSpeed = 0.5; // Slightly reduced speed for smoother animation
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  const animate = () => {
+  console.log("Starting sushi carousel animation with totalWidth:", totalWidth);
+
+  const animate = (timestamp: number) => {
+    if (!lastTimeRef.current) {
+      lastTimeRef.current = timestamp;
+    }
+
+    // Calculate delta time for smoother animation
+    const deltaTime = timestamp - lastTimeRef.current;
+    lastTimeRef.current = timestamp;
+    
     if (isPaused) {
       animationRef.current = requestAnimationFrame(animate);
       return;
     }
 
+    // Use delta time to create smoother animation
+    const pixelsPerFrame = (scrollSpeed * deltaTime) / 16.67; // Normalize to 60fps
+
     setTranslateX((prev) => {
-      const newPosition = prev - scrollSpeed;
-      return newPosition <= -totalWidth ? 0 : newPosition;
+      const newPosition = prev - pixelsPerFrame;
+      
+      // Ensure smooth looping
+      if (newPosition <= -totalWidth) {
+        return 0;
+      }
+      return newPosition;
     });
 
     animationRef.current = requestAnimationFrame(animate);
@@ -42,6 +62,26 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [isPaused, totalWidth]);
+
+  // Reset the animation when window size changes
+  useEffect(() => {
+    const handleResize = () => {
+      // Stop existing animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+
+      // Reset state
+      setTranslateX(0);
+      lastTimeRef.current = 0;
+
+      // Restart animation
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsPaused(true);
@@ -66,12 +106,16 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
 
+    // Throttle touch events for better performance on mobile
     const now = Date.now();
     if (now - lastTouchMove.current < 16) return; // ~60fps throttle
     lastTouchMove.current = now;
 
     const deltaX = e.touches[0].clientX - startX;
     setTranslateX(dragStartTranslate + deltaX);
+    
+    // Prevent default to stop page scrolling while dragging
+    e.preventDefault();
   };
 
   const handleDragEnd = () => {
@@ -93,6 +137,9 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
         style={{
           transform: `translate3d(${translateX}px, 0, 0)`,
           transition: isDragging ? "none" : "transform 0.1s linear",
+          WebkitBackfaceVisibility: "hidden", // Hardware acceleration for iOS
+          WebkitPerspective: 1000,
+          WebkitTransform: `translate3d(${translateX}px, 0, 0)`,
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
