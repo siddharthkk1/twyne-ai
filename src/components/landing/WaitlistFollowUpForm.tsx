@@ -81,6 +81,7 @@ export const WaitlistFollowUpForm = ({
       // Update the existing record with additional information
       const { error } = await supabase
         .from('waitlist')
+        .select('*')
         .update({
           full_name: data.fullName,
           age: data.age,
