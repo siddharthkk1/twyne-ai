@@ -68,7 +68,7 @@ export const WaitlistFollowUpForm = ({ open, onOpenChange, userData }: WaitlistF
         .from('waitlist')
         .update({
           full_name: data.fullName,
-          age: data.age,
+          age: data.age, // Now properly typed as number from the schema transformation
           interests: data.interests,
           motivation: data.motivation
         })

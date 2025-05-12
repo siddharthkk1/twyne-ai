@@ -94,13 +94,16 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
       }
       
       // Store the partial submission in Supabase
-      // Note: The full submission will be completed in the follow-up form
+      // Add default values for required fields that will be updated in follow-up
       const { error } = await supabase
         .from('waitlist')
         .insert({
           email: data.email,
           location: data.location,
-          phone_number: data.phoneNumber || null
+          phone_number: data.phoneNumber || null,
+          full_name: "To be updated", // Add placeholder for required fields
+          interests: "To be updated",
+          motivation: "To be updated"
         });
       
       if (error) {
