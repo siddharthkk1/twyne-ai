@@ -14,6 +14,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const [startX, setStartX] = useState(0);
   const [dragStartTranslate, setDragStartTranslate] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
@@ -24,7 +25,27 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
   const scenarioWidth = 350;
   const totalWidth = scenarios.length * scenarioWidth;
 
-  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile);
+  console.log("Starting carousel with totalWidth:", totalWidth, "isMobile:", isMobile, "isTouchDevice:", isTouchDevice);
+
+  // Detect touch devices on mount
+  useEffect(() => {
+    // More comprehensive check for touch devices, including iOS
+    const isTouch = 'ontouchstart' in window || 
+                   navigator.maxTouchPoints > 0 || 
+                   (navigator as any).msMaxTouchPoints > 0;
+    
+    setIsTouchDevice(isTouch);
+    console.log("Touch device detected:", isTouch);
+    
+    // For iOS detection
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (isIOS) {
+      console.log("iOS device detected");
+      setIsTouchDevice(true);
+    }
+  }, []);
 
   const animate = (timestamp: number) => {
     if (!lastTimeRef.current) {
@@ -35,7 +56,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
     
-    if (isPaused || isMobile) {
+    // Don't animate on mobile or touch devices or when paused
+    if (isPaused || isMobile || isTouchDevice) {
       animationRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -61,7 +83,7 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isPaused, totalWidth, isMobile]);
+  }, [isPaused, totalWidth, isMobile, isTouchDevice]);
 
   // Reset the animation when window size changes
   useEffect(() => {
@@ -120,8 +142,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
 
   const handleDragEnd = () => {
     setIsDragging(false);
-    // Only resume animation if not on mobile
-    if (!isMobile) {
+    // Only resume animation if not on mobile or touch device
+    if (!isMobile && !isTouchDevice) {
       setTimeout(() => setIsPaused(false), 2000);
     }
   };
@@ -132,8 +154,8 @@ export const ScenariosCarousel: React.FC<ScenariosCarouselProps> = ({ scenarios 
     <div
       className="relative w-full overflow-hidden py-4"
       ref={containerRef}
-      onMouseEnter={() => !isMobile && setIsPaused(true)}
-      onMouseLeave={() => !isMobile && setIsPaused(false)}
+      onMouseEnter={() => !isMobile && !isTouchDevice && setIsPaused(true)}
+      onMouseLeave={() => !isMobile && !isTouchDevice && setIsPaused(false)}
     >
       <div
         className="flex items-center transition-transform cursor-grab will-change-transform"
