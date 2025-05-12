@@ -117,7 +117,11 @@ export const WaitlistFollowUpForm = ({
             We'd love to learn a bit more about you to help find your perfect connections when Twyne launches.
           </DialogDescription>
         </DialogHeader>
-        
+        {userData?.email && (
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            Filling out info for: <span className="font-medium text-foreground">{userData.email}</span>
+          </p>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Full Name */}
