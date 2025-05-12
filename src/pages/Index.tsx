@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -86,8 +87,10 @@ const Index = () => {
         onScrollToHowItWorks={scrollToHowItWorks}
       />
 
-      {/* How It Works Section */}
-      <HowItWorksSection />
+      {/* How It Works Section - Added extra padding to compensate for moving up the carousel */}
+      <div className="pt-16">
+        <HowItWorksSection />
+      </div>
 
       {/* Chat With AI Section - with explicit white background */}
       <ChatWithAISection />

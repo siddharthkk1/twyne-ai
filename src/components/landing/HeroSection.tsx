@@ -66,8 +66,8 @@ export const HeroSection = ({
         </div>
       </div>
       
-      {/* Images container with responsive positioning */}
-      <div className="absolute bottom-0 w-full max-w-[1600px] mx-auto">
+      {/* Images container with responsive positioning - MOVED UP BY ADJUSTING BOTTOM VALUE */}
+      <div className="absolute bottom-20 w-full max-w-[1600px] mx-auto">
         {/* Coffee friends illustration - Center of left half */}
         <div 
           className={`absolute bottom-0 pointer-events-none z-0 hidden md:block
@@ -230,9 +230,9 @@ export const HeroSection = ({
         </div>
       </div>
 
-      {/* Rotating text with full-width carousel - Adjusted position */}
+      {/* Rotating text with full-width carousel - MOVED UP BY REDUCING MARGIN TOP */}
       <div 
-        className={`w-full transition-all duration-700 transform mt-16 sm:mt-24 md:mt-28 ${
+        className={`w-full transition-all duration-700 transform mt-8 sm:mt-16 md:mt-20 ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
         style={{ transitionDelay: '1200ms' }}
