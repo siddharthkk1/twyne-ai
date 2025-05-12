@@ -99,10 +99,10 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
       const { error } = await supabase
         .from('waitlist')
         .insert({
-          email: data.email.trim().toLowerCase(),
+          email: data.email,
           location: data.location,
           phone_number: data.phoneNumber || null,
-        }).single();
+        });
       
       if (error) {
         if (error.code === '23505') {
