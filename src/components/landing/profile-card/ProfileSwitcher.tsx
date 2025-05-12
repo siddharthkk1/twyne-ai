@@ -22,6 +22,10 @@ export const ProfileSwitcher: React.FC<ProfileSwitcherProps> = ({
             activeProfile === index ? 'bg-primary scale-125' : 'bg-muted'
           }`}
           aria-label={`View profile ${index + 1}`}
+          style={{
+            transform: `translateY(${activeProfile === index ? '0' : '35%'})`,
+            boxShadow: activeProfile === index ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+          }}
         />
       ))}
     </div>
