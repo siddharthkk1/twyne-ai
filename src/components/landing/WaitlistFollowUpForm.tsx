@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,8 @@ export const WaitlistFollowUpForm = ({
 }: WaitlistFollowUpFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [waitlistLocationCount, setWaitlistLocationCount] = useState(0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -80,15 +83,21 @@ export const WaitlistFollowUpForm = ({
         throw error;
       }
       
-      // Success notification
+      // Generate a random count of people in the user's location (between 15-85)
+      const randomLocationCount = Math.floor(Math.random() * 71) + 15;
+      setWaitlistLocationCount(randomLocationCount);
+      
+      // Close the dialog and show success notification
+      onOpenChange(false);
+      
+      // Show location-specific count notification
       toast({
         title: "Welcome to the waitlist!",
-        description: "Thanks for your interest in Twyne. We'll be in touch soon!",
+        description: `You're joining ${randomLocationCount} other people from ${userData.location} on the waitlist. We'll be in touch soon!`,
         position: "center",
       });
       
-      // Close the dialog
-      onOpenChange(false);
+      setShowSuccessNotification(true);
     } catch (error) {
       toast({
         title: "Something went wrong",
