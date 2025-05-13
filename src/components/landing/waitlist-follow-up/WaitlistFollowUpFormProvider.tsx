@@ -1,16 +1,25 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactNode } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formSchema, WaitlistFollowUpFormValues } from "./types";
 
+// Define the type for the provider value
+interface FormContextValue {
+  form: ReturnType<typeof useForm<WaitlistFollowUpFormValues>>;
+  isSubmitting: boolean;
+  onSubmit: (data: WaitlistFollowUpFormValues) => Promise<void>;
+  handleSkip: () => void;
+}
+
+// Define the type for the children prop as a function
 interface WaitlistFollowUpFormProviderProps {
   open: boolean;
   userData: {email: string, location: string, phoneNumber?: string} | null;
   onOpenChange: (open: boolean) => void;
-  children: React.ReactNode;
+  children: (value: FormContextValue) => ReactNode;
 }
 
 export const WaitlistFollowUpFormProvider = ({ 
@@ -122,13 +131,14 @@ export const WaitlistFollowUpFormProvider = ({
     });
   };
 
-  const providerValue = {
+  const providerValue: FormContextValue = {
     form,
     isSubmitting,
     onSubmit,
     handleSkip
   };
 
+  // Properly type and call the children function
   return (
     <FormProvider {...form}>
       {children(providerValue)}

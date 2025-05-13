@@ -29,11 +29,11 @@ export const WaitlistFollowUpForm = ({
         </DialogHeader>
         
         <WaitlistFollowUpFormProvider open={open} userData={userData} onOpenChange={onOpenChange}>
-          {({ form, isSubmitting, onSubmit, handleSkip }) => (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {(providerValue) => (
+            <Form {...providerValue.form}>
+              <form onSubmit={providerValue.form.handleSubmit(providerValue.onSubmit)} className="space-y-4">
                 <FormFields />
-                <FormButtons isSubmitting={isSubmitting} onSkip={handleSkip} />
+                <FormButtons isSubmitting={providerValue.isSubmitting} onSkip={providerValue.handleSkip} />
               </form>
             </Form>
           )}
