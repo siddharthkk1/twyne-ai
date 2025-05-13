@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
@@ -287,7 +286,7 @@ export const ChatWithAISection = () => {
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
 
-  // Hide gradient indicator when user has scrolled to bottom
+  // Handle scroll event to determine if at bottom
   const handleScroll = () => {
     if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
@@ -302,14 +301,14 @@ export const ChatWithAISection = () => {
   const handleNextProfile = () => {
     if (api && api.canScrollNext()) {
       api.scrollNext();
-      setCurrentSnapshotIndex((prev) => (prev + 1) % conversationSnapshots.length);
+      // Let the API's select event handle the index update
     }
   };
 
   const handlePrevProfile = () => {
     if (api && api.canScrollPrev()) {
       api.scrollPrev();
-      setCurrentSnapshotIndex((prev) => (prev - 1 + conversationSnapshots.length) % conversationSnapshots.length);
+      // Let the API's select event handle the index update
     }
   };
 
@@ -335,7 +334,7 @@ export const ChatWithAISection = () => {
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 items-center">
+        <div className="grid md:grid-cols-2 gap-0 md:gap-2 items-center">
           {/* Text content with improved organization - narrower and left-aligned */}
           <div className="space-y-5 max-w-sm">
             <p className="text-lg font-medium text-left">
@@ -383,7 +382,7 @@ export const ChatWithAISection = () => {
           </div>
           
           {/* Chat simulation with improved scrolling and carousel behavior */}
-          <div className="flex flex-col items-center w-full">
+          <div className="flex flex-col items-center w-full md:pl-0">
             <div className="relative w-full max-w-md mx-auto">
               <Carousel 
                 className="w-full"
@@ -485,8 +484,10 @@ export const ChatWithAISection = () => {
                     <button 
                       key={index}
                       onClick={() => {
-                        if (api) api.scrollTo(index);
-                        setCurrentSnapshotIndex(index);
+                        if (api) {
+                          api.scrollTo(index);
+                          setCurrentSnapshotIndex(index);
+                        }
                       }}
                       className={`h-3 w-3 rounded-full transition-all ${
                         currentSnapshotIndex === index ? 'bg-primary scale-125' : 'bg-muted'

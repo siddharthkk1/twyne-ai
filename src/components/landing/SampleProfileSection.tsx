@@ -15,23 +15,23 @@ export const SampleProfileSection = () => {
   const [api, setApi] = useState<any>(null);
 
   const handleProfileChange = (index: number) => {
-    setActiveProfile(index);
     if (api) {
       api.scrollTo(index);
+      setActiveProfile(index);
     }
   };
 
   const handleNextProfile = () => {
     if (api && api.canScrollNext()) {
       api.scrollNext();
-      setActiveProfile((prev) => (prev + 1) % connectionProfiles.length);
+      // Let the API's select event handle the index update
     }
   };
 
   const handlePrevProfile = () => {
     if (api && api.canScrollPrev()) {
       api.scrollPrev();
-      setActiveProfile((prev) => (prev - 1 + connectionProfiles.length) % connectionProfiles.length);
+      // Let the API's select event handle the index update
     }
   };
 

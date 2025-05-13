@@ -30,14 +30,14 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
   const handleNextPage = () => {
     if (api && api.canScrollNext()) {
       api.scrollNext();
-      setCurrentPage((prev) => (prev + 1) % totalPages);
+      // Let the API's select event handle the index update
     }
   };
 
   const handlePrevPage = () => {
     if (api && api.canScrollPrev()) {
       api.scrollPrev();
-      setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+      // Let the API's select event handle the index update
     }
   };
 
@@ -112,8 +112,10 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
             <button 
               key={idx}
               onClick={() => {
-                setCurrentPage(idx);
-                if (api) api.scrollTo(idx);
+                if (api) {
+                  api.scrollTo(idx);
+                  setCurrentPage(idx);
+                }
               }}
               className={`h-2 w-2 rounded-full transition-all ${
                 currentPage === idx ? 'bg-primary scale-125' : 'bg-muted'
