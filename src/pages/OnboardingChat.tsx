@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +26,10 @@ otherNotes?: string[];
 }
 
 const checkpointPrompts = {
-oneLiner: "What’s your one-liner lately? Who are you right now in a sentence or two?",
+oneLiner: "What's your one-liner lately? Who are you right now in a sentence or two?",
 lifePillars: "What are the 5 biggest things your life revolves around right now? Could be work, hobbies, anything.",
 lifestyle: "If I followed you for a week, what would I see you doing?",
-socialContext: "What’s your social world like these days?",
+socialContext: "What's your social world like these days?",
 };
 
 const OnboardingChat = () => {
@@ -57,99 +58,100 @@ const handleSend = () => {
 if (!input.trim()) return;
 
   const newUserMessage: Message = {
-  id: messages.length + 1,
-  text: input,
-  sender: "user",
+    id: messages.length + 1,
+    text: input,
+    sender: "user",
+  };
+  setMessages((prev) => [...prev, newUserMessage]);
+  setInput("");
+  setIsTyping(true);
+  setTimeout(() => {
+    processUserResponse(input);
+  }, 600);
 };
-setMessages((prev) => [...prev, newUserMessage]);
-setInput("");
-setIsTyping(true);
-setTimeout(() => {
-  processUserResponse(input);
-}, 600);
 
 const processUserResponse = (response: string) => {
-let updatedProfile = { ...userProfile };
-switch (currentStep) {
-case "oneLiner":
-updatedProfile.oneLiner = response;
-break;
-case "lifePillars":
-updatedProfile.lifePillars = response.split(/,|\n|\s-\s/).map((item) => item.trim()).filter(Boolean);
-break;
-case "lifestyle":
-updatedProfile.lifestyle = response;
-break;
-case "socialContext":
-updatedProfile.socialContext = response;
-break;
-default:
-updatedProfile.otherNotes = [...(updatedProfile.otherNotes || []), response];
-break;
-}
-setUserProfile(updatedProfile);
-continueConversation(updatedProfile);
+  let updatedProfile = { ...userProfile };
+  switch (currentStep) {
+    case "oneLiner":
+      updatedProfile.oneLiner = response;
+      break;
+    case "lifePillars":
+      updatedProfile.lifePillars = response.split(/,|\n|\s-\s/).map((item) => item.trim()).filter(Boolean);
+      break;
+    case "lifestyle":
+      updatedProfile.lifestyle = response;
+      break;
+    case "socialContext":
+      updatedProfile.socialContext = response;
+      break;
+    default:
+      updatedProfile.otherNotes = [...(updatedProfile.otherNotes || []), response];
+      break;
+  }
+  setUserProfile(updatedProfile);
+  continueConversation(updatedProfile);
 };
 
 const continueConversation = (profile: UserProfile) => {
-const remainingSteps = stepQueue.filter((step) => !profile[step as keyof UserProfile]);
-if (remainingSteps.length > 0) {
-const nextStep = remainingSteps[0];
-setCurrentStep(nextStep);
-sendAiMessage(checkpointPrompts[nextStep as keyof typeof checkpointPrompts]);
-} else {
-// All checkpoints covered – reflect summary
-const summary = generateSummary(profile);
-sendAiMessage(summary);
-markUserAsOnboarded(profile);
-}
+  const remainingSteps = stepQueue.filter((step) => !profile[step as keyof UserProfile]);
+  if (remainingSteps.length > 0) {
+    const nextStep = remainingSteps[0];
+    setCurrentStep(nextStep);
+    sendAiMessage(checkpointPrompts[nextStep as keyof typeof checkpointPrompts]);
+  } else {
+    // All checkpoints covered – reflect summary
+    const summary = generateSummary(profile);
+    sendAiMessage(summary);
+    markUserAsOnboarded(profile);
+  }
 };
 
 const sendAiMessage = (text: string) => {
-const aiMessage: Message = {
-id: messages.length + 1,
-text,
-sender: "ai",
-};
-setMessages((prev) => [...prev, aiMessage]);
-setIsTyping(false);
+  const aiMessage: Message = {
+    id: messages.length + 1,
+    text,
+    sender: "ai",
+  };
+  setMessages((prev) => [...prev, aiMessage]);
+  setIsTyping(false);
 };
 
 const generateSummary = (profile: UserProfile) => {
-let parts: string[] = [];
-if (profile.oneLiner) parts.push(You're someone who says: "${profile.oneLiner}");
-if (profile.lifePillars?.length)
-parts.push(Your life currently revolves around: ${profile.lifePillars.join(", ")});
-if (profile.lifestyle) parts.push(You spend your time like this: ${profile.lifestyle});
-if (profile.socialContext) parts.push(Socially, you describe your current world as: ${profile.socialContext});
-return ${parts.join(". ")}.
-I'll use what I’ve learned to match you with people you're likely to genuinely vibe with. 💫;
+  let parts: string[] = [];
+  if (profile.oneLiner) parts.push(`You're someone who says: "${profile.oneLiner}"`);
+  if (profile.lifePillars?.length)
+    parts.push(`Your life currently revolves around: ${profile.lifePillars.join(", ")}`);
+  if (profile.lifestyle) parts.push(`You spend your time like this: ${profile.lifestyle}`);
+  if (profile.socialContext) parts.push(`Socially, you describe your current world as: ${profile.socialContext}`);
+  return `${parts.join(". ")}.
+I'll use what I've learned to match you with people you're likely to genuinely vibe with. 💫`;
 };
 
 const markUserAsOnboarded = async (profile: UserProfile) => {
-if (user) {
-try {
-const { error } = await supabase.auth.updateUser({
-data: { has_onboarded: true, profile_data: profile },
-});
-if (error) {
-toast({
-title: "Error",
-description: "Failed to update your profile.",
-variant: "destructive",
-});
-}
-} catch (err) {
-console.error("Error updating onboarding status:", err);
-}
-}
+  if (user) {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { has_onboarded: true, profile_data: profile },
+      });
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update your profile.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Error updating onboarding status:", err);
+    }
+  }
 };
 
 const handleKeyPress = (e: React.KeyboardEvent) => {
-if (e.key === "Enter" && !e.shiftKey) {
-e.preventDefault();
-handleSend();
-}
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
 };
 
 return (
@@ -222,7 +224,7 @@ return (
     </div>
   </div>
 </div>
-  );
+);
 };
 
-  export default OnboardingChat;
+export default OnboardingChat;
