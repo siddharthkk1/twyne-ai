@@ -12,61 +12,45 @@ export const HowItWorksSection = () => {
           <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
         </div>
         
-        <div className="grid grid-cols-1 gap-8 md:gap-10 max-w-4xl mx-auto relative z-10">
-          <Card className="p-6 shadow-md">
-            <div className="text-left">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-                  <MessageCircle className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-medium">Chat with Twyne</h3>
-              </div>
-              <p className="text-muted-foreground pl-16">
-                Have natural conversations with our AI that learns your vibe, interests, and values.
-              </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mx-auto relative z-10">
+          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+              <MessageCircle className="h-7 w-7 text-purple-600" />
             </div>
+            <h3 className="text-xl font-medium mb-2">Chat with Twyne</h3>
+            <p className="text-muted-foreground">
+              Have natural conversations with our AI that learns your vibe, interests, and values.
+            </p>
           </Card>
           
-          <Card className="p-6 shadow-md">
-            <div className="text-left">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mr-4">
-                  <MapPin className="h-6 w-6 text-secondary" />
-                </div>
-                <h3 className="text-xl font-medium">Local Connections</h3>
-              </div>
-              <p className="text-muted-foreground pl-16">
-                Get introduced to people your age in your city who genuinely share your energy and interests.
-              </p>
+          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mb-4">
+              <MapPin className="h-7 w-7 text-cyan-600" />
             </div>
+            <h3 className="text-xl font-medium mb-2">Local Connections</h3>
+            <p className="text-muted-foreground">
+              Get introduced to people your age in your city who genuinely share your energy and interests.
+            </p>
           </Card>
           
-          <Card className="p-6 shadow-md">
-            <div className="text-left">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mr-4">
-                  <Users className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="text-xl font-medium">Connect Your Way</h3>
-              </div>
-              <p className="text-muted-foreground pl-16">
-                You decide how things unfold—from a chill convo to a real-world hang.
-              </p>
+          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-4">
+              <Users className="h-7 w-7 text-pink-600" />
             </div>
+            <h3 className="text-xl font-medium mb-2">Connect Your Way</h3>
+            <p className="text-muted-foreground">
+              You decide how things unfold—from a chill convo to a real-world hang.
+            </p>
           </Card>
           
-          <Card className="p-6 shadow-md">
-            <div className="text-left">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                  <Shield className="h-6 w-6 text-green-700" />
-                </div>
-                <h3 className="text-xl font-medium">Privacy & Safety</h3>
-              </div>
-              <p className="text-muted-foreground pl-16">
-                Your data is secure and you control what you share. We never sell your information.
-              </p>
+          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <Shield className="h-7 w-7 text-green-600" />
             </div>
+            <h3 className="text-xl font-medium mb-2">Privacy & Safety</h3>
+            <p className="text-muted-foreground">
+              Your data is secure and you control what you share. We never sell your information.
+            </p>
           </Card>
         </div>
       </div>
