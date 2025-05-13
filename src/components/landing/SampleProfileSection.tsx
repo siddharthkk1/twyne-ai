@@ -4,12 +4,25 @@ import { ProfileCard } from "./profile-card/ProfileCard";
 import { ProfileSwitcher } from "./profile-card/ProfileSwitcher";
 import { SectionDescription } from "./profile-card/SectionDescription";
 import { connectionProfiles } from "./profile-card/profile-data";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const SampleProfileSection = () => {
   const [activeProfile, setActiveProfile] = useState(0);
+  const isMobile = useIsMobile();
 
   const handleProfileChange = (index: number) => {
     setActiveProfile(index);
+  };
+
+  const handleNextProfile = () => {
+    setActiveProfile((prev) => (prev + 1) % connectionProfiles.length);
+  };
+
+  const handlePrevProfile = () => {
+    setActiveProfile((prev) => (prev - 1 + connectionProfiles.length) % connectionProfiles.length);
   };
 
   const profile = connectionProfiles[activeProfile];
@@ -28,8 +41,54 @@ export const SampleProfileSection = () => {
           {/* Left side - Section description */}
           <SectionDescription />
 
-          {/* Right side - Profile card */}
-          <ProfileCard profile={profile} />
+          {/* Right side - Profile card with carousel for swiping */}
+          <Carousel 
+            className="w-full"
+            setApi={undefined}
+            opts={{
+              align: "center",
+              loop: true,
+            }}
+            orientation="horizontal"
+          >
+            <CarouselContent>
+              <CarouselItem className="w-full">
+                <ProfileCard profile={profile} />
+                
+                {/* Swipe indicators for mobile */}
+                {isMobile && (
+                  <div className="flex justify-between mt-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-muted-foreground" 
+                      onClick={handlePrevProfile}
+                    >
+                      <ChevronLeft size={16} className="mr-1" />
+                      Prev
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-muted-foreground" 
+                      onClick={handleNextProfile}
+                    >
+                      Next
+                      <ChevronRight size={16} className="ml-1" />
+                    </Button>
+                  </div>
+                )}
+              </CarouselItem>
+            </CarouselContent>
+
+            {/* Only show carousel controls on desktop */}
+            {!isMobile && (
+              <>
+                <CarouselPrevious onClick={handlePrevProfile} />
+                <CarouselNext onClick={handleNextProfile} />
+              </>
+            )}
+          </Carousel>
 
           {/* Profile switcher dots - hidden on mobile */}
           <div className="hidden md:block">

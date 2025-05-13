@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +13,7 @@ import { CallToActionSection } from "@/components/landing/CallToActionSection";
 import { PrivacySection } from "@/components/landing/PrivacySection";
 import { SafetyTrustSection } from "@/components/landing/SafetyTrustSection";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { WaitlistFollowUpForm } from "@/components/landing/WaitlistFollowUpForm";
+import { WaitlistFollowUpForm } from "@/components/landing/waitlist-follow-up/WaitlistFollowUpForm";
 
 // The artificial boost we want to add to the waitlist count
 const WAITLIST_BOOST = 524;

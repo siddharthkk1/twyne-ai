@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ArrowDown } from "lucide-react";
+import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   id: number;
@@ -10,41 +13,51 @@ interface Message {
   sender: "ai" | "user";
 }
 
-// Define multiple conversation snapshots with proper typing
+// Define updated conversation snapshots with proper typing and more natural back-and-forth
 const conversationSnapshots: Message[][] = [
-  // Updated first conversation - More interesting personality/values conversation
+  // Updated first conversation - Values/personality with more back-and-forth
   [
     {
       id: 1,
-      text: "If you could have dinner with anyone, living or dead, who would it be and why?",
+      text: "If you could have dinner with anyone, living or dead, who would it be?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling, breaking down cultural barriers. I'd love to hear his unfiltered perspective on life.",
+      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling.",
       sender: "user"
     },
     {
       id: 3,
-      text: "That's a fascinating choice! Bourdain had such a unique ability to find common ground with people across cultures. What aspect of his approach to connecting with others resonates with you most?",
+      text: "That's interesting! What draws you to Bourdain specifically? Is it his approach to travel, storytelling, or something else?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "His genuine curiosity about people's lives and stories. He never approached cultures as a tourist, but as someone trying to understand the human experience through their perspective. That's something I try to bring to my own relationships.",
+      text: "His genuine curiosity about people's lives. He never approached cultures as a tourist, but as someone trying to understand the human experience.",
       sender: "user"
     },
     {
       id: 5,
-      text: "That reveals a lot about your values - prioritizing authentic connections and understanding others on a deeper level. It sounds like you approach relationships with thoughtfulness and empathy rather than staying on the surface. What other values guide how you connect with people in your life?",
+      text: "It sounds like authentic connections are important to you. Do you find yourself bringing that same curiosity to your own relationships?",
       sender: "ai"
     },
+    {
+      id: 6,
+      text: "I try to. I think that's what makes relationships meaningful - taking the time to really understand someone's perspective rather than just making small talk.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's a thoughtful approach. What other qualities do you think are essential for building meaningful connections with others?",
+      sender: "ai"
+    }
   ],
-  // Music conversation - Starting mid-conversation (Cultural interests)
+  // Updated Music conversation - Cultural interests with more questions
   [
     {
       id: 1,
-      text: "So what kind of music are you into these days?",
+      text: "What kind of music have you been enjoying lately?",
       sender: "ai"
     },
     {
@@ -54,7 +67,7 @@ const conversationSnapshots: Message[][] = [
     },
     {
       id: 3,
-      text: "Oh yes! Her production with FINNEAS is incredible. 'What Was I Made For' was such a powerful track from the Barbie soundtrack too. Do you prefer her more introspective ballads or her edgier electronic tracks?",
+      text: "Oh nice! Do you prefer her more introspective ballads or her more experimental tracks?",
       sender: "ai"
     },
     {
@@ -64,39 +77,59 @@ const conversationSnapshots: Message[][] = [
     },
     {
       id: 5,
-      text: "That track is a masterpiece! The way she uses silence and space in that song is brilliant. You appreciate emotional depth in music, which says a lot about how you connect with art. Do you play any instruments yourself or is your relationship with music purely as a listener?",
+      text: "That's a beautiful track. Do you play any instruments yourself or create music in any way?",
       sender: "ai"
     },
+    {
+      id: 6,
+      text: "I played piano for about 8 years growing up. I don't practice regularly anymore, but I still sit down and play occasionally when I'm feeling stressed.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's wonderful! What kind of music do you enjoy playing when you're at the piano?",
+      sender: "ai"
+    }
   ],
-  // Deep conversation about values and life goals (Meaningful interests)
+  // Updated deep conversation about values and life goals with more questions
   [
     {
       id: 1,
-      text: "When you think about your life five years from now, what would make you feel like you've succeeded?",
+      text: "When you think about your life five years from now, what would make you feel fulfilled?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities that bring me joy. I also want to have made progress on my goal to start a community garden project.",
+      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities I care about.",
       sender: "user"
     },
     {
       id: 3,
-      text: "That's really thoughtful. It sounds like your definition of success centers around holistic fulfillment rather than conventional metrics. What inspired your interest in community gardening? It seems to combine environmental values with community building.",
+      text: "That's a thoughtful perspective. What activities or hobbies would you want to have more time for?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "My grandmother was an avid gardener and taught me everything. When she passed, I realized how much her garden brought people together. Neighbors would stop by, chat, and leave with vegetables. I want to recreate that sense of connection in my urban neighborhood.",
+      text: "I've always wanted to start a community garden project. My grandmother was an avid gardener and taught me everything. When she passed, I realized how much her garden brought people together.",
       sender: "user"
     },
     {
       id: 5,
-      text: "What a beautiful way to honor your grandmother's legacy. That connection between growing food and growing community is profound. The way you speak about this reveals how deeply you value meaningful human connections and creating spaces that nurture both people and the planet. Have you taken any steps toward this garden project yet?",
+      text: "That sounds meaningful. Have you taken any steps toward this garden project yet?",
       sender: "ai"
     },
+    {
+      id: 6,
+      text: "I've started researching community plots in my area and joined a few local gardening groups. I'm also taking an urban agriculture workshop next month.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's exciting! What kinds of plants or foods would you want to grow in your community garden?",
+      sender: "ai"
+    }
   ],
-  // New travel conversation - Aspirational interests
+  // Updated travel conversation with more questions
   [
     {
       id: 1,
@@ -110,19 +143,29 @@ const conversationSnapshots: Message[][] = [
     },
     {
       id: 3,
-      text: "Japan during sakura season is magical! Have you been learning any Japanese or researching specific regions you want to visit? The contrast between Tokyo's energy and Kyoto's temples is incredible.",
+      text: "Japan would be amazing! What specific regions or experiences would be on your must-see list?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "I've been using Duolingo for basic phrases and watching travel documentaries. I definitely want to experience Tokyo, but I'm also drawn to less touristy places like the rural villages in Hokkaido and the art islands like Naoshima.",
+      text: "I definitely want to experience Tokyo, but I'm also drawn to less touristy places like the rural villages in Hokkaido and the art islands like Naoshima.",
       sender: "user"
     },
     {
       id: 5,
-      text: "Your approach to travel seems thoughtful and immersive - learning the language and seeking out authentic experiences beyond the typical tourist path. Naoshima is a hidden gem with those amazing Yayoi Kusama installations. This says a lot about how you approach new experiences - with curiosity and a desire for genuine cultural connection rather than just checking off famous landmarks.",
+      text: "That's a great mix of urban and rural experiences. Have you been learning any Japanese to prepare for your dream trip?",
       sender: "ai"
     },
+    {
+      id: 6,
+      text: "Yes! I've been using Duolingo for basic phrases and watching travel documentaries. I'm also taking a Japanese cooking class next month.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's wonderful preparation! What Japanese dishes have you enjoyed making or would like to learn?",
+      sender: "ai"
+    }
   ]
 ];
 
@@ -133,6 +176,7 @@ export const ChatWithAISection = () => {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [hasScrollContent, setHasScrollContent] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   // Animation effect for element appearance
   useEffect(() => {
@@ -172,6 +216,14 @@ export const ChatWithAISection = () => {
         setHasScrollContent(!isAtBottom);
       }
     }
+  };
+
+  const handleNextSnapshot = () => {
+    setCurrentSnapshotIndex((prev) => (prev + 1) % conversationSnapshots.length);
+  };
+
+  const handlePrevSnapshot = () => {
+    setCurrentSnapshotIndex((prev) => (prev - 1 + conversationSnapshots.length) % conversationSnapshots.length);
   };
 
   return (
@@ -228,71 +280,117 @@ export const ChatWithAISection = () => {
           
           {/* Chat simulation - Only this part fades when changing */}
           <div className="flex flex-col items-center">
-            <div 
-              className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
-                isVisible ? 'opacity-100' : 'opacity-0'
-              }`}
+            <Carousel 
+              className="w-full"
+              setApi={undefined}
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              orientation="horizontal"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <MessageCircle className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-medium">Chat with Twyne</h3>
-                </div>
-              </div>
-              
-              {/* Scroll container with gradient fade and scroll arrow at the bottom */}
-              <div className="relative">
-                <ScrollArea 
-                  ref={scrollAreaRef} 
-                  className="h-[300px] pr-2 overflow-visible"
-                  onScrollCapture={handleScroll}
-                >
-                  <div className="space-y-4 mb-4">
-                    {messages.map((message) => (
-                      <div
-                        key={`${currentSnapshotIndex}-${message.id}`}
-                        className={`animate-fade-in ${
-                          message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-                        }`}
-                      >
-                        {message.text}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                
-                {/* Combined arrow indicator and gradient fade overlay - moved closer to bottom with increased opacity */}
-                {hasScrollContent && (
-                  <>
-                    {/* Arrow indicator with circular background - positioned lower with increased opacity */}
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
-                      <div className="bg-primary/70 rounded-full p-2">
-                        <ArrowDown className="h-4 w-4 text-white" />
+              <CarouselContent>
+                <CarouselItem className="w-full">
+                  <div 
+                    className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
+                      isVisible ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                          <MessageCircle className="h-5 w-5 text-primary" />
+                        </div>
+                        <h3 className="font-medium">Chat with Twyne</h3>
                       </div>
                     </div>
-                    {/* Gradient fade */}
-                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-                  </>
-                )}
-              </div>
-              
-              <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
-                <input 
-                  type="text" 
-                  placeholder="Tell me more about yourself..."
-                  className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
-                  disabled
-                />
-                <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                    <path d="M22 2L11 13"></path>
-                    <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
+                    
+                    {/* Scroll container with gradient fade and scroll arrow at the bottom */}
+                    <div className="relative">
+                      <ScrollArea 
+                        ref={scrollAreaRef} 
+                        className="h-[320px] pr-2 overflow-visible"
+                        onScrollCapture={handleScroll}
+                      >
+                        <div className="space-y-4 mb-4">
+                          {messages.map((message) => (
+                            <div
+                              key={`${currentSnapshotIndex}-${message.id}`}
+                              className={`animate-fade-in ${
+                                message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+                              }`}
+                            >
+                              {message.text}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      
+                      {/* Combined arrow indicator and gradient fade overlay - moved closer to bottom with increased opacity */}
+                      {hasScrollContent && (
+                        <>
+                          {/* Arrow indicator with circular background - positioned lower with increased opacity */}
+                          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
+                            <div className="bg-primary/70 rounded-full p-2">
+                              <ArrowDown className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                          {/* Gradient fade */}
+                          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
+                      <input 
+                        type="text" 
+                        placeholder="Tell me more about yourself..."
+                        className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
+                        disabled
+                      />
+                      <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                          <path d="M22 2L11 13"></path>
+                          <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Add swipe indicators for mobile */}
+                    {isMobile && (
+                      <div className="flex justify-between mt-4">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-muted-foreground" 
+                          onClick={handlePrevSnapshot}
+                        >
+                          <ChevronLeft size={16} className="mr-1" />
+                          Prev
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-muted-foreground" 
+                          onClick={handleNextSnapshot}
+                        >
+                          Next
+                          <ChevronRight size={16} className="ml-1" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CarouselItem>
+              </CarouselContent>
+
+              {/* Only show carousel controls on desktop */}
+              {!isMobile && (
+                <>
+                  <CarouselPrevious onClick={handlePrevSnapshot} />
+                  <CarouselNext onClick={handleNextSnapshot} />
+                </>
+              )}
+            </Carousel>
             
             {/* Conversation switcher dots moved below the chat element */}
             <div className="flex justify-center mt-6 space-x-3">
