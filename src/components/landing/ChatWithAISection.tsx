@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
@@ -334,9 +335,9 @@ export const ChatWithAISection = () => {
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-0 md:gap-2 items-center">
+        <div className="grid md:grid-cols-2 gap-0 md:gap-0 items-center">
           {/* Text content with improved organization - narrower and left-aligned */}
-          <div className="space-y-5 max-w-sm">
+          <div className="space-y-5 max-w-sm pr-0">
             <p className="text-lg font-medium text-left">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
@@ -382,8 +383,8 @@ export const ChatWithAISection = () => {
           </div>
           
           {/* Chat simulation with improved scrolling and carousel behavior */}
-          <div className="flex flex-col items-center w-full md:pl-0">
-            <div className="relative w-full max-w-md mx-auto">
+          <div className="flex flex-col items-center w-full pl-0">
+            <div className="relative w-full max-w-[125%] mx-auto">
               <Carousel 
                 className="w-full"
                 setApi={setApi}
