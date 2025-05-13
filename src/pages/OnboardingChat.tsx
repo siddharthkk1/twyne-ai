@@ -2,16 +2,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
+import { Send, Smile, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Message {
   id: number;
   text: string;
   sender: "ai" | "user";
+  isThinking?: boolean;
 }
 
 interface UserProfile {
@@ -35,25 +38,85 @@ interface UserProfile {
   misunderstood?: string;
 }
 
+// Conversation flow with more natural, friendly messages
 const initialMessages: Message[] = [
   {
     id: 1,
-    text: "Hey there 👋 I'm Twyne, your friendly neighborhood connection finder.",
+    text: "Hey there! I'm Twyne, your friendly connection guide. 👋",
     sender: "ai",
   },
   {
     id: 2,
-    text: "Let's chat for a bit so I can understand your vibe and help you connect with people you'll actually click with. What's your first name or what you like to be called?",
+    text: "I'd love to get to know you a bit so I can help you connect with people you'll genuinely click with. What should I call you?",
     sender: "ai",
   },
 ];
+
+// More varied, conversational follow-up questions with personality
+const followUpQuestions = {
+  name: [
+    "Great to meet you, NAME! What city or area do you call home these days?",
+    "NAME! Love that. Where are you based right now?",
+    "NAME - that's awesome. Where are you located these days?"
+  ],
+  location: [
+    "LOCATION is such a cool place! How long have you been there? And where were you before that?",
+    "Ah, LOCATION! What brought you there, and how long have you been around?",
+    "LOCATION - nice! Are you a LOCATION native or did you move there from somewhere else?"
+  ],
+  background: [
+    "That's quite a journey! What do you find yourself doing most days? Work, study, creative pursuits...?",
+    "Interesting path! What fills most of your days lately - work, passion projects, other adventures?",
+    "Love hearing that! What keeps you busy these days?"
+  ],
+  dailyLife: [
+    "Outside of that, what do you like to do when you've got free time to yourself?",
+    "When you're not busy with that, what kind of activities help you recharge or have fun?",
+    "That sounds fulfilling! What do you enjoy doing when you have some downtime?"
+  ],
+  interests: [
+    "That sounds fascinating! Is there a particular interest or hobby you could talk about for hours?",
+    "I love that! What's something you're really passionate about that lights you up when you talk about it?",
+    "That's so cool! What's something you're currently curious about or learning more about?"
+  ],
+  socialStyle: [
+    "When it comes to hanging out with others, do you prefer intimate one-on-ones, group settings, or a mix of both?",
+    "Would you say you're more energized by deep conversations with one person, or the vibe of a group hangout?",
+    "In social situations, what feels most comfortable to you - smaller intimate gatherings or larger social events?"
+  ],
+  weekendPlans: [
+    "What does your ideal weekend look like when you have nothing planned?",
+    "If you had a free weekend with zero obligations, how would you spend it?",
+    "When a weekend opens up with no plans, what do you usually find yourself doing?"
+  ],
+  values: [
+    "What qualities do you really value in the people you're close with?",
+    "When you think about the relationships that matter most to you, what makes them special?",
+    "What traits or values do you appreciate most in your closest friends?"
+  ],
+  lookingFor: [
+    "What kind of connections are you hoping to find here? Close friendships, activity buddies, intellectual sparring partners...?",
+    "What are you looking for in new connections right now? Deep friendships, casual hangouts, specific shared interests?",
+    "What would make a new friendship really valuable to you at this point in your life?"
+  ],
+  finalThoughts: [
+    "Is there anything else you'd like to share that would help me understand what makes you, you?",
+    "Before we wrap up, is there anything else you think would be good for me to know about you?",
+    "Any final thoughts about what makes you unique or what you're looking for in connections?"
+  ]
+};
+
+// Helper to get a random item from an array
+const getRandomItem = (array: string[]) => {
+  return array[Math.floor(Math.random() * array.length)];
+};
 
 const OnboardingChat = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: "",
     location: "",
@@ -66,121 +129,70 @@ const OnboardingChat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Conversation logic - dynamic questions based on previous answers
+  const questionCategories = [
+    "name",
+    "location",
+    "background",
+    "dailyLife",
+    "interests",
+    "socialStyle",
+    "weekendPlans",
+    "values",
+    "lookingFor",
+    "finalThoughts"
+  ];
+
+  // Get the next question based on current category and user profile
   const getNextQuestion = () => {
-    const questions = [
-      // Follow-up based on name
-      `Nice to meet you, ${userProfile.name}! Where are you currently based?`,
-      
-      // Follow-up on location
-      (profile: UserProfile) => 
-        `How long have you been in ${profile.location}? And where did you grow up?`,
-      
-      // Social energy question
-      "I'd love to understand your social vibe better. How would you describe your energy in social situations? Are you more energized by deep one-on-ones or lively group settings?",
-      
-      // Interests/passion question
-      "What's something you could talk about for hours and never get bored? Or maybe something you're curious about lately?",
-      
-      // Weekend activities
-      "What's your ideal weekend look like when you have nothing planned?",
-      
-      // Media and culture
-      "Any books, shows, or music you've been into lately that you'd love to discuss with new friends?",
-      
-      // Connection preferences
-      "When it comes to making new connections, what kind of people do you tend to click with? Any green flags you look for?",
-      
-      // Values question
-      "What's something people often misunderstand about you, or that takes time for others to see?",
-      
-      // Looking for
-      "What kind of friendship are you hoping to find right now? One or two close people, a wider social circle, or something specific?",
-      
-      // Reflection and wrap-up
-      (profile: UserProfile) => {
-        const insights = [];
-        
-        if (profile.location) {
-          insights.push(`based in ${profile.location}`);
-        }
-        
-        if (profile.socialStyle) {
-          insights.push(profile.socialStyle.toLowerCase());
-        }
-        
-        if (profile.interests && profile.interests.length > 0) {
-          insights.push(`passionate about ${profile.interests.join(", ")}`);
-        }
-        
-        const insightText = insights.length > 0 
-          ? `You're ${insights.join(", ")}. `
-          : "";
-          
-        return `${insightText}Got it! I think I've got your vibe now. I'll use this to connect you with people nearby who you'll genuinely click with—not just random matches. I'll let you know when I find good connections!`;
-      }
-    ];
-
-    // If we're at the final question
-    if (currentStep >= questions.length) {
-      return null;
-    }
-
-    // For dynamic questions that need user profile data
-    if (typeof questions[currentStep] === 'function') {
-      return (questions[currentStep] as Function)(userProfile);
+    const currentCategory = questionCategories[currentQuestionIndex];
+    
+    if (currentCategory === "name" && userProfile.name) {
+      const question = getRandomItem(followUpQuestions.name);
+      return question.replace("NAME", userProfile.name);
     }
     
-    return questions[currentStep];
-  };
-
-  const processUserResponse = (response: string) => {
-    // Process the user's response based on current step
-    switch (currentStep) {
-      case 0: // Name
-        setUserProfile(prev => ({ ...prev, name: response.trim() }));
-        break;
-      case 1: // Location
-        setUserProfile(prev => ({ ...prev, location: response.trim() }));
-        break;
-      case 2: // Time in city + hometown
-        const locationInfo = response.trim();
-        setUserProfile(prev => ({ 
-          ...prev, 
-          timeInCurrentCity: locationInfo.split("?")[0]?.trim() || "",
-          hometown: locationInfo.split("?")[1]?.trim() || ""
-        }));
-        break;
-      case 3: // Social energy
-        setUserProfile(prev => ({ ...prev, socialStyle: response.trim(), socialEnergy: response.trim() }));
-        break;
-      case 4: // Interests/Passions
-        setUserProfile(prev => ({ 
-          ...prev, 
-          interests: [...(prev.interests || []), response.trim()],
-          talkingPoints: [...(prev.talkingPoints || []), response.trim()]
-        }));
-        break;
-      case 5: // Weekend activities
-        setUserProfile(prev => ({ ...prev, weekendActivities: response.trim() }));
-        break;
-      case 6: // Media tastes
-        setUserProfile(prev => ({ ...prev, mediaTastes: response.trim() }));
-        break;
-      case 7: // Connection preferences
-        setUserProfile(prev => ({ ...prev, connectionPreferences: response.trim() }));
-        break;
-      case 8: // Misunderstood
-        setUserProfile(prev => ({ 
-          ...prev, 
-          misunderstood: response.trim(),
-          personalInsights: [...(prev.personalInsights || []), response.trim()]
-        }));
-        break;
-      case 9: // Looking for
-        setUserProfile(prev => ({ ...prev, lookingFor: response.trim() }));
-        break;
+    if (currentCategory === "location" && userProfile.location) {
+      const question = getRandomItem(followUpQuestions.location);
+      return question.replace("LOCATION", userProfile.location);
     }
+    
+    // If we've reached the end of our questions
+    if (currentQuestionIndex >= questionCategories.length) {
+      return generateSummary();
+    }
+    
+    return getRandomItem(followUpQuestions[currentCategory as keyof typeof followUpQuestions] || ["Tell me more about yourself."]);
+  };
+  
+  // Generate a personalized summary based on what we've learned
+  const generateSummary = () => {
+    let insights = [];
+    
+    if (userProfile.name) {
+      insights.push(`${userProfile.name}`);
+    }
+    
+    if (userProfile.location) {
+      insights.push(`based in ${userProfile.location}`);
+    }
+    
+    if (userProfile.socialStyle) {
+      insights.push(`who tends to ${userProfile.socialStyle.toLowerCase()}`);
+    }
+    
+    if (userProfile.interests && userProfile.interests.length > 0) {
+      insights.push(`with interests in ${userProfile.interests.join(", ")}`);
+    }
+    
+    if (userProfile.weekendActivities) {
+      insights.push(`who enjoys ${userProfile.weekendActivities.toLowerCase()} on weekends`);
+    }
+    
+    const summary = insights.length > 0 
+      ? `From what I understand, you're ${insights.join(", ")}. `
+      : "Thanks for sharing about yourself. ";
+      
+    return `${summary}It's been great getting to know you! I'll use what I've learned to connect you with people you're likely to really click with. I'll let you know when I find great matches!`;
   };
 
   useEffect(() => {
@@ -189,6 +201,62 @@ const OnboardingChat = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Process user response based on the current question category
+  const processUserResponse = (response: string) => {
+    const currentCategory = questionCategories[currentQuestionIndex];
+    
+    switch (currentCategory) {
+      case "name":
+        setUserProfile(prev => ({ ...prev, name: response.trim() }));
+        break;
+      case "location":
+        setUserProfile(prev => ({ ...prev, location: response.trim() }));
+        break;
+      case "background":
+        setUserProfile(prev => ({ 
+          ...prev, 
+          timeInCurrentCity: response.trim(),
+          hometown: response.includes("from") ? response.split("from")[1]?.trim() : ""
+        }));
+        break;
+      case "dailyLife":
+        setUserProfile(prev => ({ 
+          ...prev,
+          occupation: response.trim()
+        }));
+        break;
+      case "interests":
+        setUserProfile(prev => ({ 
+          ...prev, 
+          interests: [...(prev.interests || []), response.trim()],
+          talkingPoints: [...(prev.talkingPoints || []), response.trim()]
+        }));
+        break;
+      case "socialStyle":
+        setUserProfile(prev => ({ ...prev, socialStyle: response.trim(), socialEnergy: response.trim() }));
+        break;
+      case "weekendPlans":
+        setUserProfile(prev => ({ ...prev, weekendActivities: response.trim() }));
+        break;
+      case "values":
+        setUserProfile(prev => ({ 
+          ...prev,
+          values: response.trim(),
+          personalInsights: [...(prev.personalInsights || []), response.trim()]
+        }));
+        break;
+      case "lookingFor":
+        setUserProfile(prev => ({ ...prev, lookingFor: response.trim() }));
+        break;
+      case "finalThoughts":
+        setUserProfile(prev => ({ 
+          ...prev,
+          personalInsights: [...(prev.personalInsights || []), response.trim()]
+        }));
+        break;
+    }
   };
 
   const handleSend = () => {
@@ -202,22 +270,24 @@ const OnboardingChat = () => {
 
     setMessages((prev) => [...prev, newUserMessage]);
     setInput("");
+    
+    // Add a "thinking" message
     setIsTyping(true);
-
+    
     // Process the user's response
     processUserResponse(input);
 
-    // After a delay, send the next question
+    // After a delay to simulate thinking, send the next question
     setTimeout(() => {
+      // Move to the next question category
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      
       const nextQuestion = getNextQuestion();
       
-      // If there's no next question, complete the onboarding
-      if (!nextQuestion) {
-        setIsTyping(false);
+      // If we've reached the end of our questions
+      if (currentQuestionIndex >= questionCategories.length) {
         setIsComplete(true);
-        // Save user profile to Supabase
         markUserAsOnboarded();
-        return;
       }
 
       const newAiMessage: Message = {
@@ -228,8 +298,7 @@ const OnboardingChat = () => {
       
       setMessages((prev) => [...prev, newAiMessage]);
       setIsTyping(false);
-      setCurrentStep(currentStep + 1);
-    }, 1500);
+    }, Math.random() * 1000 + 1000); // Random delay between 1-2 seconds for more natural feel
   };
 
   const markUserAsOnboarded = async () => {
@@ -264,65 +333,135 @@ const OnboardingChat = () => {
     }
   };
 
+  // Generate messages based on category context
+  const getMessageStyle = (message: Message) => {
+    if (message.sender === "user") {
+      return "bg-primary text-primary-foreground";
+    }
+    return "bg-muted";
+  };
+
   return (
-    <div className="min-h-screen flex flex-col gradient-bg">
-      <div className="p-4 border-b bg-background/80 backdrop-blur-sm">
-        <h1 className="text-xl font-medium text-center">Chat with Twyne</h1>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      {/* Header */}
+      <div className="p-4 border-b bg-background/95 backdrop-blur-md flex items-center justify-center relative z-10 shadow-sm">
+        <div className="absolute left-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/">
+              <ArrowRight className="h-5 w-5 rotate-180" />
+            </Link>
+          </Button>
+        </div>
+        <h1 className="text-xl font-medium bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-indigo-600">
+          Chat with Twyne
+        </h1>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-4 pb-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`animate-fade-in ${
-                message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-              }`}
-            >
-              {message.text}
-            </div>
-          ))}
+      {/* Chat Area */}
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+        <div className="max-w-2xl mx-auto space-y-4 pb-20">
+          <AnimatePresence>
+            {messages.map((message, index) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`flex items-start gap-3 ${
+                  message.sender === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                {message.sender === "ai" && (
+                  <Avatar className="h-8 w-8 mt-0.5 bg-purple-100 border border-purple-200">
+                    <AvatarImage src="/lovable-uploads/01b56105-88b1-40dc-b8f9-4ab2f5222a85.png" alt="Twyne" />
+                    <AvatarFallback className="bg-primary/20 text-primary-foreground text-xs">
+                      AI
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                
+                <div
+                  className={`px-4 py-3 rounded-2xl max-w-[80%] ${getMessageStyle(
+                    message
+                  )} ${message.sender === "ai" ? "rounded-tl-sm" : "rounded-tr-sm"}`}
+                >
+                  <p className="text-sm">{message.text}</p>
+                </div>
+
+                {message.sender === "user" && (
+                  <Avatar className="h-8 w-8 mt-0.5 bg-primary/20">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                      You
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
           {isTyping && (
-            <div className="chat-bubble-ai animate-pulse flex space-x-1">
-              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-start gap-3"
+            >
+              <Avatar className="h-8 w-8 mt-0.5 bg-purple-100 border border-purple-200">
+                <AvatarImage src="/lovable-uploads/01b56105-88b1-40dc-b8f9-4ab2f5222a85.png" alt="Twyne" />
+                <AvatarFallback className="bg-primary/20 text-primary-foreground text-xs">
+                  AI
+                </AvatarFallback>
+              </Avatar>
+              <div className="px-4 py-3 rounded-2xl rounded-tl-sm max-w-[80%] bg-muted">
+                <div className="flex space-x-2">
+                  <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                  <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                  <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                </div>
+              </div>
+            </motion.div>
           )}
+          
           <div ref={messagesEndRef}></div>
         </div>
       </div>
 
+      {/* Footer with Input or Completion Message */}
       {isComplete ? (
-        <div className="p-4 bg-background/80 backdrop-blur-sm border-t">
-          <div className="text-center mb-4">
-            <h2 className="text-lg font-medium">Profile Created!</h2>
-            <p className="text-muted-foreground">
-              I'll notify you when I find people you might click with.
-            </p>
+        <div className="p-4 bg-background/95 backdrop-blur-md border-t">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-4 space-y-2">
+              <div className="inline-flex items-center justify-center p-2 bg-primary/10 rounded-full mb-2">
+                <Smile className="h-6 w-6 text-primary" />
+              </div>
+              <h2 className="text-lg font-medium">Profile Created!</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Thanks for chatting with me! I'll use what I've learned to connect you with people you'll genuinely click with.
+              </p>
+            </div>
+            <Button asChild className="w-full rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+              <Link to="/connections">See Your Connections</Link>
+            </Button>
           </div>
-          <Button asChild className="w-full rounded-full">
-            <Link to="/connections">See Your Connections</Link>
-          </Button>
         </div>
       ) : (
-        <div className="p-4 bg-background/80 backdrop-blur-sm border-t">
-          <div className="flex items-center space-x-2">
+        <div className="p-4 bg-background/95 backdrop-blur-md border-t">
+          <div className="max-w-2xl mx-auto relative">
             <Input
               placeholder="Type a message..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isTyping}
-              className="rounded-full"
+              className="pr-12 pl-4 py-6 rounded-full border-muted bg-background shadow-sm"
             />
             <Button
               size="icon"
               onClick={handleSend}
               disabled={isTyping || !input.trim()}
-              className="rounded-full"
+              className="absolute right-1 top-1 h-10 w-10 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
-              <Send size={18} />
+              <Send className="h-5 w-5" />
             </Button>
           </div>
         </div>
