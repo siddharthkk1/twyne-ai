@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Smile, MapPin, Sparkles, BookOpen, Users, Heart, Coffee, Calendar, Music, Star, Shield } from "lucide-react";
+import { Send } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,6 @@ interface Message {
   id: number;
   text: string;
   sender: "ai" | "user";
-  icon?: React.ReactNode;
 }
 
 interface UserProfile {
@@ -39,15 +38,13 @@ interface UserProfile {
 const initialMessages: Message[] = [
   {
     id: 1,
-    text: "Hey there! I'm Twyne, your friendly neighborhood connection finder. 👋",
+    text: "Hey there 👋 I'm Twyne, your friendly neighborhood connection finder.",
     sender: "ai",
-    icon: <Smile className="h-5 w-5 text-yellow-500" />
   },
   {
     id: 2,
-    text: "I'd love to get to know you so I can help you connect with people who match your vibe. What's your name or what do you like to be called?",
+    text: "Let's chat for a bit so I can understand your vibe and help you connect with people you'll actually click with. What's your first name or what you like to be called?",
     sender: "ai",
-    icon: <Sparkles className="h-5 w-5 text-purple-500" />
   },
 ];
 
@@ -69,59 +66,38 @@ const OnboardingChat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Icon mapping for different question topics
-  const getIconForStep = (step: number) => {
-    const icons = [
-      <Sparkles className="h-5 w-5 text-purple-500" />, // Name
-      <MapPin className="h-5 w-5 text-indigo-500" />,   // Location
-      <MapPin className="h-5 w-5 text-blue-500" />,     // Time in city
-      <Users className="h-5 w-5 text-violet-500" />,    // Social energy
-      <BookOpen className="h-5 w-5 text-emerald-500" />, // Interests
-      <Calendar className="h-5 w-5 text-amber-500" />,  // Weekend
-      <Music className="h-5 w-5 text-pink-500" />,      // Media
-      <Heart className="h-5 w-5 text-rose-500" />,      // Connection preferences
-      <Star className="h-5 w-5 text-yellow-500" />,     // Values
-      <Coffee className="h-5 w-5 text-orange-500" />,   // Looking for
-      <Shield className="h-5 w-5 text-green-500" />,    // Wrap up
-    ];
-    return icons[step] || icons[0];
-  };
-
   // Conversation logic - dynamic questions based on previous answers
   const getNextQuestion = () => {
     const questions = [
-      // Follow-up based on name - use a warm, friendly tone
-      (profile: UserProfile) => {
-        const name = profile.name || "there";
-        return `${name}! That's a great name. I'm already getting good vibes from you! ✨ Where are you based these days?`;
-      },
+      // Follow-up based on name
+      `Nice to meet you, ${userProfile.name}! Where are you currently based?`,
       
-      // Follow-up on location - conversational and curious
+      // Follow-up on location
       (profile: UserProfile) => 
-        `${profile.location}! Nice! How long have you been living there? And where did you grow up?`,
+        `How long have you been in ${profile.location}? And where did you grow up?`,
       
-      // Social energy question - casual and reflective
-      "OK, let's talk about you a bit. I'm curious - in social situations, are you more energized by deep one-on-ones, lively group settings, or a mix of both? What's your social vibe like?",
+      // Social energy question
+      "I'd love to understand your social vibe better. How would you describe your energy in social situations? Are you more energized by deep one-on-ones or lively group settings?",
       
-      // Interests/passion question - enthusiastic
-      "What's something that lights you up when you talk about it? Could be anything - a hobby, interest, or just something you're curious about lately...",
+      // Interests/passion question
+      "What's something you could talk about for hours and never get bored? Or maybe something you're curious about lately?",
       
-      // Weekend activities - relaxed tone
-      "Imagine you have a free weekend with nothing planned - what does your ideal day look like? What would make you feel most like yourself?",
+      // Weekend activities
+      "What's your ideal weekend look like when you have nothing planned?",
       
-      // Media and culture - conversational
-      "I love getting entertainment recommendations from friends! Any books, shows, music or podcasts you've been into lately that you'd want to share with new friends?",
+      // Media and culture
+      "Any books, shows, or music you've been into lately that you'd love to discuss with new friends?",
       
-      // Connection preferences - thoughtful
-      "When it comes to new friendships, what kind of people do you naturally click with? Any qualities that you really value in friends?",
+      // Connection preferences
+      "When it comes to making new connections, what kind of people do you tend to click with? Any green flags you look for?",
       
-      // Values question - introspective
-      "This might be a bit deep, but I'm curious - what's something about you that people might misunderstand at first, or that takes time for others to see?",
+      // Values question
+      "What's something people often misunderstand about you, or that takes time for others to see?",
       
-      // Looking for - direct but warm
-      "What kind of connections are you hoping to find right now? Looking for one or two close friends, a wider social circle, or something specific?",
+      // Looking for
+      "What kind of friendship are you hoping to find right now? One or two close people, a wider social circle, or something specific?",
       
-      // Reflection and wrap-up - enthusiastic and affirming
+      // Reflection and wrap-up
       (profile: UserProfile) => {
         const insights = [];
         
@@ -130,10 +106,7 @@ const OnboardingChat = () => {
         }
         
         if (profile.socialStyle) {
-          const socialStyle = profile.socialStyle.toLowerCase();
-          insights.push(socialStyle.includes("one") || socialStyle.includes("deep") ? 
-            "someone who values meaningful connections" : 
-            "someone with great social energy");
+          insights.push(profile.socialStyle.toLowerCase());
         }
         
         if (profile.interests && profile.interests.length > 0) {
@@ -144,7 +117,7 @@ const OnboardingChat = () => {
           ? `You're ${insights.join(", ")}. `
           : "";
           
-        return `${insightText}I feel like I'm getting to know the real you! 🙌 Thanks for sharing all this with me. I'll use what I've learned to connect you with people nearby who share your vibe and interests. I'll let you know when I find some great potential connections!`;
+        return `${insightText}Got it! I think I've got your vibe now. I'll use this to connect you with people nearby who you'll genuinely click with—not just random matches. I'll let you know when I find good connections!`;
       }
     ];
 
@@ -251,7 +224,6 @@ const OnboardingChat = () => {
         id: messages.length + 2,
         text: nextQuestion,
         sender: "ai",
-        icon: getIconForStep(currentStep + 1)
       };
       
       setMessages((prev) => [...prev, newAiMessage]);
@@ -293,45 +265,28 @@ const OnboardingChat = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50 via-slate-50 to-blue-50">
-      <div className="p-4 border-b bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen flex flex-col gradient-bg">
+      <div className="p-4 border-b bg-background/80 backdrop-blur-sm">
         <h1 className="text-xl font-medium text-center">Chat with Twyne</h1>
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-4 pb-4 max-w-2xl mx-auto">
+        <div className="space-y-4 pb-4">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`animate-fade-in flex ${
-                message.sender === "user" ? "justify-end" : "justify-start"
+              className={`animate-fade-in ${
+                message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
               }`}
             >
-              <div
-                className={`relative max-w-[80%] p-4 rounded-2xl ${
-                  message.sender === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-none"
-                    : "bg-white shadow-sm border border-slate-100 rounded-bl-none"
-                }`}
-              >
-                {message.sender === "ai" && message.icon && (
-                  <div className="absolute -left-3 -top-3 bg-white rounded-full p-1 shadow-sm border border-slate-100">
-                    {message.icon}
-                  </div>
-                )}
-                <p className={message.sender === "ai" ? "pl-2" : ""}>{message.text}</p>
-              </div>
+              {message.text}
             </div>
           ))}
           {isTyping && (
-            <div className="flex justify-start">
-              <div className="bg-white shadow-sm border border-slate-100 rounded-2xl rounded-bl-none p-4 max-w-[80%]">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-primary/40 rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse delay-75"></div>
-                  <div className="w-2 h-2 bg-primary/80 rounded-full animate-pulse delay-150"></div>
-                </div>
-              </div>
+            <div className="chat-bubble-ai animate-pulse flex space-x-1">
+              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
             </div>
           )}
           <div ref={messagesEndRef}></div>
@@ -339,39 +294,33 @@ const OnboardingChat = () => {
       </div>
 
       {isComplete ? (
-        <div className="p-6 bg-white/80 backdrop-blur-sm border-t">
-          <div className="text-center mb-6 max-w-md mx-auto">
-            <div className="flex justify-center mb-3">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-            </div>
-            <h2 className="text-xl font-medium mb-1">Profile Created!</h2>
+        <div className="p-4 bg-background/80 backdrop-blur-sm border-t">
+          <div className="text-center mb-4">
+            <h2 className="text-lg font-medium">Profile Created!</h2>
             <p className="text-muted-foreground">
-              I'll notify you when I find people who match your vibe. This usually takes 1-2 days.
+              I'll notify you when I find people you might click with.
             </p>
           </div>
-          <Button asChild className="w-full max-w-md mx-auto rounded-full py-6 bg-gradient-to-r from-primary to-secondary">
+          <Button asChild className="w-full rounded-full">
             <Link to="/connections">See Your Connections</Link>
           </Button>
         </div>
       ) : (
-        <div className="p-4 bg-white/80 backdrop-blur-sm border-t">
-          <div className="flex items-center gap-2 max-w-2xl mx-auto">
+        <div className="p-4 bg-background/80 backdrop-blur-sm border-t">
+          <div className="flex items-center space-x-2">
             <Input
               placeholder="Type a message..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isTyping}
-              className="rounded-full border-slate-200 focus-visible:ring-primary/50 shadow-sm"
-              autoFocus
+              className="rounded-full"
             />
             <Button
               size="icon"
               onClick={handleSend}
               disabled={isTyping || !input.trim()}
-              className="rounded-full h-10 w-10 bg-primary hover:bg-primary/90 shadow-sm"
+              className="rounded-full"
             >
               <Send size={18} />
             </Button>

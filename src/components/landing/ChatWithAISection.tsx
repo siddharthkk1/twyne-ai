@@ -60,16 +60,6 @@ const conversationSnapshots: Message[][] = [
       id: 9,
       text: "I couldn't agree more. Has there been a time when being vulnerable with someone strengthened your connection with them?",
       sender: "ai"
-    },
-    {
-      id: 10,
-      text: "After my dad got sick, I opened up to a colleague about it. Turned out they went through something similar. We've been close friends ever since. That vulnerability created a bond stronger than years of small talk could.",
-      sender: "user"
-    },
-    {
-      id: 11,
-      text: "Thank you for sharing that. Those moments of connection through shared experiences can be transformative. What would you say you learned from that experience?",
-      sender: "ai"
     }
   ],
   // Updated Music conversation - Cultural interests with more questions and interaction
@@ -117,16 +107,6 @@ const conversationSnapshots: Message[][] = [
     {
       id: 9,
       text: "Music as meditation is powerful. Does this meditative quality affect how you connect with people who share your musical interests?",
-      sender: "ai"
-    },
-    {
-      id: 10,
-      text: "Absolutely. When I meet someone who also plays piano or appreciates classical music, we instantly have this common language. But it goes deeper than just having the same hobby - it's about understanding why we're drawn to it.",
-      sender: "user"
-    },
-    {
-      id: 11,
-      text: "That's a beautiful perspective. How do you think your relationship with music has evolved over time?",
       sender: "ai"
     }
   ],
@@ -176,16 +156,6 @@ const conversationSnapshots: Message[][] = [
       id: 9,
       text: "That's a wonderful vision. It sounds like creating spaces that foster both community and connection to nature is important to you. What other community-focused values do you hold?",
       sender: "ai"
-    },
-    {
-      id: 10,
-      text: "I believe in creating spaces where people can genuinely connect across different backgrounds and generations. My grandmother's garden did that naturally - neighbors who might never talk otherwise would stop by and chat while she worked.",
-      sender: "user"
-    },
-    {
-      id: 11,
-      text: "That's a beautiful example of how shared spaces can bridge divides. What do you think made your grandmother's garden so successful as a community connector?",
-      sender: "ai"
     }
   ],
   // Updated travel conversation with more questions and dialogue
@@ -234,16 +204,6 @@ const conversationSnapshots: Message[][] = [
       id: 9,
       text: "Those are fantastic dishes to learn! Do you find that exploring cultures through their food helps you connect more deeply when you travel?",
       sender: "ai"
-    },
-    {
-      id: 10,
-      text: "Absolutely. Food is such a universal language. I've had some amazing conversations with locals just by showing interest in their cuisine. It's often the quickest way past the tourist-local barrier.",
-      sender: "user"
-    },
-    {
-      id: 11,
-      text: "That's so true. What's been your most meaningful travel experience so far, where food helped create a connection?",
-      sender: "ai"
     }
   ]
 ];
@@ -286,30 +246,30 @@ export const ChatWithAISection = () => {
     return () => clearTimeout(timeout);
   }, [currentSnapshotIndex]);
 
-  // Handle scroll event to determine if at bottom
+  // Hide gradient indicator when user has scrolled to bottom
   const handleScroll = () => {
     if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
       if (viewport) {
         // Check if scrolled to bottom (or nearly)
-        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 5;
+        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 20;
         setHasScrollContent(!isAtBottom);
       }
     }
   };
 
-  const handleNextProfile = () => {
-    if (api && api.canScrollNext()) {
+  const handleNextSnapshot = () => {
+    if (api) {
       api.scrollNext();
-      // Let the API's select event handle the index update
     }
+    setCurrentSnapshotIndex((prev) => (prev + 1) % conversationSnapshots.length);
   };
 
-  const handlePrevProfile = () => {
-    if (api && api.canScrollPrev()) {
+  const handlePrevSnapshot = () => {
+    if (api) {
       api.scrollPrev();
-      // Let the API's select event handle the index update
     }
+    setCurrentSnapshotIndex((prev) => (prev - 1 + conversationSnapshots.length) % conversationSnapshots.length);
   };
 
   // Update current snapshot index when carousel changes
@@ -334,43 +294,43 @@ export const ChatWithAISection = () => {
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-0 md:gap-0 items-center">
-          {/* Text content with improved organization - narrower and centered with padding */}
-          <div className="space-y-5 max-w-sm mx-auto md:mx-0 md:pl-8">
-            <p className="text-lg font-medium text-left">
+        <div className="grid md:grid-cols-2 gap-10 items-center">
+          {/* Text content with improved organization */}
+          <div className="space-y-6">
+            <p className="text-lg font-medium">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
             </p>
-            
-            <h3 className="font-medium text-primary text-left">How it works:</h3>
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                  <span className="text-primary text-xs font-medium leading-none">1</span>
+            <div className="space-y-4 bg-background rounded-lg p-6 shadow-sm border border-border/30">
+              <h3 className="font-medium text-primary">How it works:</h3>
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                    <span className="text-primary text-xs font-medium leading-none">1</span>
+                  </div>
+                  <p className="text-sm">Share your interests, values, and what you're looking for in connections</p>
                 </div>
-                <p className="text-sm">Share your interests, values, and what you're looking for in connections</p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                  <span className="text-primary text-xs font-medium leading-none">2</span>
+                <div className="flex items-start">
+                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                    <span className="text-primary text-xs font-medium leading-none">2</span>
+                  </div>
+                  <p className="text-sm">Our AI builds a deeper understanding of your vibe than profiles ever could</p>
                 </div>
-                <p className="text-sm">Our AI builds a deeper understanding of your vibe than profiles ever could</p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                  <span className="text-primary text-xs font-medium leading-none">3</span>
+                <div className="flex items-start">
+                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                    <span className="text-primary text-xs font-medium leading-none">3</span>
+                  </div>
+                  <p className="text-sm">No awkward bios or curated photos—just authentic conversations</p>
                 </div>
-                <p className="text-sm">No awkward bios or curated photos—just authentic conversations</p>
-              </div>
-              <div className="flex items-start">
-                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                  <span className="text-primary text-xs font-medium leading-none">4</span>
+                <div className="flex items-start">
+                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                    <span className="text-primary text-xs font-medium leading-none">4</span>
+                  </div>
+                  <p className="text-sm">You choose what information can be shared with others during warm intros and connections</p>
                 </div>
-                <p className="text-sm">You choose what information can be shared with others during warm intros and connections</p>
               </div>
             </div>
-            
-            <div className="pt-2">
+            <div>
               <Button 
                 className="rounded-full px-8 hover-scale"
                 onClick={() => setIsWaitlistOpen(true)}
@@ -381,15 +341,15 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation with improved scrolling and carousel behavior */}
-          <div className="flex flex-col items-center w-full pl-0">
-            <div className="relative w-full max-w-[125%] mx-auto">
+          {/* Chat simulation - Only this part fades when changing */}
+          <div className="flex flex-col items-center w-full">
+            <div className="relative w-full max-w-md mx-auto">
               <Carousel 
                 className="w-full"
                 setApi={setApi}
                 opts={{
                   align: "center",
-                  loop: false,
+                  loop: true,
                 }}
                 orientation="horizontal"
               >
@@ -410,14 +370,14 @@ export const ChatWithAISection = () => {
                           </div>
                         </div>
                         
-                        {/* Scroll container with improved scrolling behavior */}
+                        {/* Scroll container with gradient fade and scroll arrow at the bottom */}
                         <div className="relative">
                           <ScrollArea 
                             ref={scrollAreaRef} 
-                            className="h-[320px] pr-2 overflow-visible w-full"
+                            className="h-[320px] pr-2 overflow-visible"
                             onScrollCapture={handleScroll}
                           >
-                            <div className="space-y-4 mb-4 w-full">
+                            <div className="space-y-4 mb-4">
                               {conversationSnapshots[currentSnapshotIndex].map((message) => (
                                 <div
                                   key={`${currentSnapshotIndex}-${message.id}`}
@@ -472,8 +432,8 @@ export const ChatWithAISection = () => {
                   variant="outline" 
                   size="icon" 
                   className="rounded-full" 
-                  onClick={handlePrevProfile}
-                  disabled={!api?.canScrollPrev()}
+                  onClick={handlePrevSnapshot}
+                  disabled={currentSnapshotIndex === 0 && !api?.canScrollPrev()}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="sr-only">Previous conversation</span>
@@ -484,10 +444,8 @@ export const ChatWithAISection = () => {
                     <button 
                       key={index}
                       onClick={() => {
-                        if (api) {
-                          api.scrollTo(index);
-                          setCurrentSnapshotIndex(index);
-                        }
+                        setCurrentSnapshotIndex(index);
+                        if (api) api.scrollTo(index);
                       }}
                       className={`h-3 w-3 rounded-full transition-all ${
                         currentSnapshotIndex === index ? 'bg-primary scale-125' : 'bg-muted'
@@ -501,8 +459,8 @@ export const ChatWithAISection = () => {
                   variant="outline" 
                   size="icon" 
                   className="rounded-full" 
-                  onClick={handleNextProfile}
-                  disabled={!api?.canScrollNext()}
+                  onClick={handleNextSnapshot}
+                  disabled={currentSnapshotIndex === conversationSnapshots.length - 1 && !api?.canScrollNext()}
                 >
                   <ChevronRight className="h-4 w-4" />
                   <span className="sr-only">Next conversation</span>

@@ -4,7 +4,7 @@ import { ProfileCard } from "./profile-card/ProfileCard";
 import { ProfileSwitcher } from "./profile-card/ProfileSwitcher";
 import { SectionDescription } from "./profile-card/SectionDescription";
 import { connectionProfiles } from "./profile-card/profile-data";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,24 +15,24 @@ export const SampleProfileSection = () => {
   const [api, setApi] = useState<any>(null);
 
   const handleProfileChange = (index: number) => {
+    setActiveProfile(index);
     if (api) {
       api.scrollTo(index);
-      setActiveProfile(index);
     }
   };
 
   const handleNextProfile = () => {
-    if (api && api.canScrollNext()) {
+    if (api) {
       api.scrollNext();
-      // Let the API's select event handle the index update
     }
+    setActiveProfile((prev) => (prev + 1) % connectionProfiles.length);
   };
 
   const handlePrevProfile = () => {
-    if (api && api.canScrollPrev()) {
+    if (api) {
       api.scrollPrev();
-      // Let the API's select event handle the index update
     }
+    setActiveProfile((prev) => (prev - 1 + connectionProfiles.length) % connectionProfiles.length);
   };
 
   // Update active profile when carousel changes
@@ -59,20 +59,18 @@ export const SampleProfileSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 items-start">
-          {/* Left side - Section description - Fixed width */}
-          <div className="w-full max-w-md">
-            <SectionDescription />
-          </div>
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          {/* Left side - Section description */}
+          <SectionDescription />
 
-          {/* Right side - Profile card with carousel for swiping - Fixed width */}
-          <div className="relative w-full max-w-md mx-auto">
+          {/* Right side - Profile card with carousel for swiping */}
+          <div className="relative">
             <Carousel 
               className="w-full"
               setApi={setApi}
               opts={{
                 align: "center",
-                loop: false,
+                loop: true,
               }}
               orientation="horizontal"
             >
@@ -92,7 +90,7 @@ export const SampleProfileSection = () => {
                 size="icon" 
                 className="rounded-full" 
                 onClick={handlePrevProfile}
-                disabled={!api?.canScrollPrev()}
+                disabled={activeProfile === 0 && !api?.canScrollPrev()}
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Previous profile</span>
@@ -109,7 +107,7 @@ export const SampleProfileSection = () => {
                 size="icon" 
                 className="rounded-full" 
                 onClick={handleNextProfile}
-                disabled={!api?.canScrollNext()}
+                disabled={activeProfile === connectionProfiles.length - 1 && !api?.canScrollNext()}
               >
                 <ChevronRight className="h-4 w-4" />
                 <span className="sr-only">Next profile</span>

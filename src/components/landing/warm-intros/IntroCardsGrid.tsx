@@ -28,17 +28,17 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
   const totalPages = Math.ceil(visibleIntros.length / itemsPerPage);
   
   const handleNextPage = () => {
-    if (api && api.canScrollNext()) {
+    if (api) {
       api.scrollNext();
-      // Let the API's select event handle the index update
     }
+    setCurrentPage((prev) => (prev + 1) % totalPages);
   };
 
   const handlePrevPage = () => {
-    if (api && api.canScrollPrev()) {
+    if (api) {
       api.scrollPrev();
-      // Let the API's select event handle the index update
     }
+    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
 
   // Update current page when carousel changes
@@ -78,7 +78,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
         setApi={setApi}
         opts={{
           align: "center",
-          loop: false,
+          loop: true,
         }}
         orientation="horizontal"
       >
@@ -101,7 +101,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
           size="icon" 
           className="rounded-full" 
           onClick={handlePrevPage}
-          disabled={!api?.canScrollPrev()}
+          disabled={currentPage === 0 && !api?.canScrollPrev()}
         >
           <ChevronLeft className="h-4 w-4" />
           <span className="sr-only">Previous intro</span>
@@ -112,10 +112,8 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
             <button 
               key={idx}
               onClick={() => {
-                if (api) {
-                  api.scrollTo(idx);
-                  setCurrentPage(idx);
-                }
+                setCurrentPage(idx);
+                if (api) api.scrollTo(idx);
               }}
               className={`h-2 w-2 rounded-full transition-all ${
                 currentPage === idx ? 'bg-primary scale-125' : 'bg-muted'
@@ -130,7 +128,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
           size="icon" 
           className="rounded-full" 
           onClick={handleNextPage}
-          disabled={!api?.canScrollNext()}
+          disabled={currentPage === totalPages - 1 && !api?.canScrollNext()}
         >
           <ChevronRight className="h-4 w-4" />
           <span className="sr-only">Next intro</span>
