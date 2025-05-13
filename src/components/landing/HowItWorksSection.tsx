@@ -12,8 +12,8 @@ export const HowItWorksSection = () => {
           <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
         </div>
         
-        <div className="grid grid-cols-1 gap-8 md:gap-10 max-w-4xl mx-auto relative z-10">
-          <Card className="p-6 shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 relative z-10">
+          <Card className="p-6 shadow-sm hover:shadow-md transition-all border border-border/20 bg-background">
             <div className="text-left">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
@@ -27,7 +27,7 @@ export const HowItWorksSection = () => {
             </div>
           </Card>
           
-          <Card className="p-6 shadow-md">
+          <Card className="p-6 shadow-sm hover:shadow-md transition-all border border-border/20 bg-background">
             <div className="text-left">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mr-4">
@@ -41,7 +41,7 @@ export const HowItWorksSection = () => {
             </div>
           </Card>
           
-          <Card className="p-6 shadow-md">
+          <Card className="p-6 shadow-sm hover:shadow-md transition-all border border-border/20 bg-background">
             <div className="text-left">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mr-4">
@@ -55,7 +55,7 @@ export const HowItWorksSection = () => {
             </div>
           </Card>
           
-          <Card className="p-6 shadow-md">
+          <Card className="p-6 shadow-sm hover:shadow-md transition-all border border-border/20 bg-background">
             <div className="text-left">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">

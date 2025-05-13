@@ -59,12 +59,14 @@ export const SampleProfileSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 items-center">
-          {/* Left side - Section description */}
-          <SectionDescription />
+        <div className="grid md:grid-cols-2 gap-8 items-start">
+          {/* Left side - Section description - Fixed width */}
+          <div className="w-full max-w-md">
+            <SectionDescription />
+          </div>
 
-          {/* Right side - Profile card with carousel for swiping */}
-          <div className="relative">
+          {/* Right side - Profile card with carousel for swiping - Fixed width */}
+          <div className="relative w-full max-w-md mx-auto">
             <Carousel 
               className="w-full"
               setApi={setApi}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
@@ -336,8 +335,8 @@ export const ChatWithAISection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-0 md:gap-0 items-center">
-          {/* Text content with improved organization - narrower and left-aligned */}
-          <div className="space-y-5 max-w-sm pr-0">
+          {/* Text content with improved organization - narrower and centered with padding */}
+          <div className="space-y-5 max-w-sm mx-auto md:mx-0 md:pl-8">
             <p className="text-lg font-medium text-left">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
