@@ -78,7 +78,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
         setApi={setApi}
         opts={{
           align: "center",
-          loop: true,
+          loop: false,
         }}
         orientation="horizontal"
       >

@@ -70,7 +70,7 @@ export const SampleProfileSection = () => {
               setApi={setApi}
               opts={{
                 align: "center",
-                loop: true,
+                loop: false,
               }}
               orientation="horizontal"
             >

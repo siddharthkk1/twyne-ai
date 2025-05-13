@@ -299,14 +299,14 @@ export const ChatWithAISection = () => {
     }
   };
 
-  const handleNextSnapshot = () => {
+  const handleNextProfile = () => {
     if (api && api.canScrollNext()) {
       api.scrollNext();
       setCurrentSnapshotIndex((prev) => (prev + 1) % conversationSnapshots.length);
     }
   };
 
-  const handlePrevSnapshot = () => {
+  const handlePrevProfile = () => {
     if (api && api.canScrollPrev()) {
       api.scrollPrev();
       setCurrentSnapshotIndex((prev) => (prev - 1 + conversationSnapshots.length) % conversationSnapshots.length);
@@ -335,43 +335,43 @@ export const ChatWithAISection = () => {
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-10 items-center">
+        <div className="grid md:grid-cols-2 gap-6 items-center">
           {/* Text content with improved organization - narrower and left-aligned */}
-          <div className="space-y-6 max-w-md">
+          <div className="space-y-5 max-w-sm">
             <p className="text-lg font-medium text-left">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
             </p>
-            <div className="space-y-4 bg-background rounded-lg p-6 shadow-sm border border-border/30 text-left">
-              <h3 className="font-medium text-primary text-left">How it works:</h3>
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                    <span className="text-primary text-xs font-medium leading-none">1</span>
-                  </div>
-                  <p className="text-sm">Share your interests, values, and what you're looking for in connections</p>
+            
+            <h3 className="font-medium text-primary text-left">How it works:</h3>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                  <span className="text-primary text-xs font-medium leading-none">1</span>
                 </div>
-                <div className="flex items-start">
-                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                    <span className="text-primary text-xs font-medium leading-none">2</span>
-                  </div>
-                  <p className="text-sm">Our AI builds a deeper understanding of your vibe than profiles ever could</p>
+                <p className="text-sm">Share your interests, values, and what you're looking for in connections</p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                  <span className="text-primary text-xs font-medium leading-none">2</span>
                 </div>
-                <div className="flex items-start">
-                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                    <span className="text-primary text-xs font-medium leading-none">3</span>
-                  </div>
-                  <p className="text-sm">No awkward bios or curated photos—just authentic conversations</p>
+                <p className="text-sm">Our AI builds a deeper understanding of your vibe than profiles ever could</p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                  <span className="text-primary text-xs font-medium leading-none">3</span>
                 </div>
-                <div className="flex items-start">
-                  <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
-                    <span className="text-primary text-xs font-medium leading-none">4</span>
-                  </div>
-                  <p className="text-sm">You choose what information can be shared with others during warm intros and connections</p>
+                <p className="text-sm">No awkward bios or curated photos—just authentic conversations</p>
+              </div>
+              <div className="flex items-start">
+                <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
+                  <span className="text-primary text-xs font-medium leading-none">4</span>
                 </div>
+                <p className="text-sm">You choose what information can be shared with others during warm intros and connections</p>
               </div>
             </div>
-            <div>
+            
+            <div className="pt-2">
               <Button 
                 className="rounded-full px-8 hover-scale"
                 onClick={() => setIsWaitlistOpen(true)}
@@ -390,7 +390,7 @@ export const ChatWithAISection = () => {
                 setApi={setApi}
                 opts={{
                   align: "center",
-                  loop: true,
+                  loop: false,
                 }}
                 orientation="horizontal"
               >
@@ -473,7 +473,7 @@ export const ChatWithAISection = () => {
                   variant="outline" 
                   size="icon" 
                   className="rounded-full" 
-                  onClick={handlePrevSnapshot}
+                  onClick={handlePrevProfile}
                   disabled={!api?.canScrollPrev()}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -500,7 +500,7 @@ export const ChatWithAISection = () => {
                   variant="outline" 
                   size="icon" 
                   className="rounded-full" 
-                  onClick={handleNextSnapshot}
+                  onClick={handleNextProfile}
                   disabled={!api?.canScrollNext()}
                 >
                   <ChevronRight className="h-4 w-4" />
