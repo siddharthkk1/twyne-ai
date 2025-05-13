@@ -22,22 +22,19 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
     .filter(intro => intro.visible)
     .sort((a, b) => (a.position || 0) - (b.position || 0));
   
-  // For mobile, show cards in a carousel, 1 at a time
+  // For mobile, show cards in a carousel, all items at once
   // For tablet and desktop, show all cards in the grid (2x3 or 3x2)
-  const itemsPerPage = isMobile ? 1 : visibleIntros.length;
-  const totalPages = Math.ceil(visibleIntros.length / itemsPerPage);
+  const totalPages = isMobile ? visibleIntros.length : 1;
   
   const handleNextPage = () => {
     if (api && api.canScrollNext()) {
       api.scrollNext();
-      // Let the API's select event handle the index update
     }
   };
 
   const handlePrevPage = () => {
     if (api && api.canScrollPrev()) {
       api.scrollPrev();
-      // Let the API's select event handle the index update
     }
   };
 
@@ -78,13 +75,13 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
         setApi={setApi}
         opts={{
           align: "center",
-          loop: false,
+          loop: true,
         }}
         orientation="horizontal"
       >
         <CarouselContent>
-          {visibleIntros.map((intro, index) => (
-            <CarouselItem key={intro.id} className="w-full">
+          {visibleIntros.map((intro) => (
+            <CarouselItem key={intro.id} className="w-full pl-0">
               <IntroCard 
                 intro={intro}
                 onOpenWaitlist={onOpenWaitlist}

@@ -13,7 +13,7 @@ export const HowItWorksSection = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mx-auto relative z-10">
-          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+          <Card className="p-6 shadow-md flex flex-col items-center text-center bg-background">
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
               <MessageCircle className="h-7 w-7 text-purple-600" />
             </div>
@@ -23,7 +23,7 @@ export const HowItWorksSection = () => {
             </p>
           </Card>
           
-          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+          <Card className="p-6 shadow-md flex flex-col items-center text-center bg-background">
             <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mb-4">
               <MapPin className="h-7 w-7 text-cyan-600" />
             </div>
@@ -33,7 +33,7 @@ export const HowItWorksSection = () => {
             </p>
           </Card>
           
-          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+          <Card className="p-6 shadow-md flex flex-col items-center text-center bg-background">
             <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-4">
               <Users className="h-7 w-7 text-pink-600" />
             </div>
@@ -43,7 +43,7 @@ export const HowItWorksSection = () => {
             </p>
           </Card>
           
-          <Card className="p-6 shadow-md flex flex-col items-center text-center">
+          <Card className="p-6 shadow-md flex flex-col items-center text-center bg-background">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-7 w-7 text-green-600" />
             </div>
