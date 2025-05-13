@@ -22,9 +22,8 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
     .sort((a, b) => (a.position || 0) - (b.position || 0));
   
   // For mobile, show cards in a carousel, 1 at a time
-  // For tablet, show 2 at a time
-  // For desktop, show all cards in the grid
-  const itemsPerPage = isMobile ? 1 : (window.innerWidth < 1024 ? 2 : visibleIntros.length);
+  // For tablet and desktop, show all cards in the grid (2x3 or 3x2)
+  const itemsPerPage = isMobile ? 1 : visibleIntros.length;
   const totalPages = Math.ceil(visibleIntros.length / itemsPerPage);
   
   const handleNextPage = () => {
@@ -35,8 +34,8 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
     setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
 
-  // If we're on desktop, show all cards in the grid
-  if (!isMobile && window.innerWidth >= 1024) {
+  // If we're on tablet or desktop, show all cards in the grid
+  if (!isMobile) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10">
         {visibleIntros.map(intro => (
@@ -50,7 +49,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
     );
   }
 
-  // For mobile and tablet, show cards in a carousel
+  // For mobile only, show cards in a carousel
   const startIdx = currentPage * itemsPerPage;
   const displayedIntros = visibleIntros.slice(startIdx, startIdx + itemsPerPage);
   
@@ -67,7 +66,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
       >
         <CarouselContent>
           <CarouselItem className="w-full">
-            <div className={`grid ${itemsPerPage === 2 ? 'sm:grid-cols-2' : 'grid-cols-1'} gap-4 md:gap-6`}>
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
               {displayedIntros.map(intro => (
                 <IntroCard 
                   key={intro.id}
@@ -77,7 +76,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
               ))}
             </div>
             
-            {/* Navigation controls for mobile/tablet */}
+            {/* Navigation controls for mobile */}
             <div className="flex justify-between mt-6">
               <Button 
                 variant="ghost" 

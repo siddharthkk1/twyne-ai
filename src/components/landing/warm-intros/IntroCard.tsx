@@ -60,7 +60,7 @@ export const IntroCard: React.FC<IntroCardProps> = ({ intro, onOpenWaitlist }) =
           <span className="text-xs font-medium">Group</span>
         </div>
       )}
-      <p className="text-lg mb-2">
+      <p className="text-lg mb-2 break-words">
         {formatText(firstPart)}
         {secondPart}
       </p>

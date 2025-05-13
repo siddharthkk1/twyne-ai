@@ -51,9 +51,19 @@ const conversationSnapshots: Message[][] = [
       id: 7,
       text: "That's a thoughtful approach. What other qualities do you think are essential for building meaningful connections with others?",
       sender: "ai"
+    },
+    {
+      id: 8,
+      text: "Empathy is crucial. And being willing to be a bit vulnerable yourself - that's how you build trust and depth in relationships.",
+      sender: "user"
+    },
+    {
+      id: 9,
+      text: "I couldn't agree more. Has there been a time when being vulnerable with someone strengthened your connection with them?",
+      sender: "ai"
     }
   ],
-  // Updated Music conversation - Cultural interests with more questions
+  // Updated Music conversation - Cultural interests with more questions and interaction
   [
     {
       id: 1,
@@ -88,6 +98,16 @@ const conversationSnapshots: Message[][] = [
     {
       id: 7,
       text: "That's wonderful! What kind of music do you enjoy playing when you're at the piano?",
+      sender: "ai"
+    },
+    {
+      id: 8,
+      text: "Mostly classical pieces I learned years ago - some Chopin nocturnes and a few Bach preludes. I find them meditative and they help clear my mind.",
+      sender: "user"
+    },
+    {
+      id: 9,
+      text: "Music as meditation is powerful. Does this meditative quality affect how you connect with people who share your musical interests?",
       sender: "ai"
     }
   ],
@@ -127,9 +147,19 @@ const conversationSnapshots: Message[][] = [
       id: 7,
       text: "That's exciting! What kinds of plants or foods would you want to grow in your community garden?",
       sender: "ai"
+    },
+    {
+      id: 8,
+      text: "A mix of vegetables and native flowering plants. I want it to be both productive and beautiful, while supporting local pollinators. And accessible to people of all gardening experience levels.",
+      sender: "user"
+    },
+    {
+      id: 9,
+      text: "That's a wonderful vision. It sounds like creating spaces that foster both community and connection to nature is important to you. What other community-focused values do you hold?",
+      sender: "ai"
     }
   ],
-  // Updated travel conversation with more questions
+  // Updated travel conversation with more questions and dialogue
   [
     {
       id: 1,
@@ -165,6 +195,16 @@ const conversationSnapshots: Message[][] = [
       id: 7,
       text: "That's wonderful preparation! What Japanese dishes have you enjoyed making or would like to learn?",
       sender: "ai"
+    },
+    {
+      id: 8,
+      text: "I've gotten pretty good at making ramen from scratch, and I'm working on perfecting tamago kake gohan. Next up is learning to make proper dashi for miso soup.",
+      sender: "user"
+    },
+    {
+      id: 9,
+      text: "Those are fantastic dishes to learn! Do you find that exploring cultures through their food helps you connect more deeply when you travel?",
+      sender: "ai"
     }
   ]
 ];
@@ -177,6 +217,7 @@ export const ChatWithAISection = () => {
   const [hasScrollContent, setHasScrollContent] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const [api, setApi] = useState<any>(null);
   
   // Animation effect for element appearance
   useEffect(() => {
@@ -219,10 +260,16 @@ export const ChatWithAISection = () => {
   };
 
   const handleNextSnapshot = () => {
+    if (api) {
+      api.scrollNext();
+    }
     setCurrentSnapshotIndex((prev) => (prev + 1) % conversationSnapshots.length);
   };
 
   const handlePrevSnapshot = () => {
+    if (api) {
+      api.scrollPrev();
+    }
     setCurrentSnapshotIndex((prev) => (prev - 1 + conversationSnapshots.length) % conversationSnapshots.length);
   };
 
@@ -282,7 +329,7 @@ export const ChatWithAISection = () => {
           <div className="flex flex-col items-center">
             <Carousel 
               className="w-full"
-              setApi={undefined}
+              setApi={setApi}
               opts={{
                 align: "start",
                 loop: true,
@@ -290,97 +337,99 @@ export const ChatWithAISection = () => {
               orientation="horizontal"
             >
               <CarouselContent>
-                <CarouselItem className="w-full">
-                  <div 
-                    className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
-                      isVisible ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-2">
-                        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <MessageCircle className="h-5 w-5 text-primary" />
-                        </div>
-                        <h3 className="font-medium">Chat with Twyne</h3>
-                      </div>
-                    </div>
-                    
-                    {/* Scroll container with gradient fade and scroll arrow at the bottom */}
-                    <div className="relative">
-                      <ScrollArea 
-                        ref={scrollAreaRef} 
-                        className="h-[320px] pr-2 overflow-visible"
-                        onScrollCapture={handleScroll}
-                      >
-                        <div className="space-y-4 mb-4">
-                          {messages.map((message) => (
-                            <div
-                              key={`${currentSnapshotIndex}-${message.id}`}
-                              className={`animate-fade-in ${
-                                message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-                              }`}
-                            >
-                              {message.text}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                      
-                      {/* Combined arrow indicator and gradient fade overlay - moved closer to bottom with increased opacity */}
-                      {hasScrollContent && (
-                        <>
-                          {/* Arrow indicator with circular background - positioned lower with increased opacity */}
-                          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
-                            <div className="bg-primary/70 rounded-full p-2">
-                              <ArrowDown className="h-4 w-4 text-white" />
-                            </div>
+                {conversationSnapshots.map((snapshot, index) => (
+                  <CarouselItem key={index} className="w-full" onMouseEnter={() => setCurrentSnapshotIndex(index)}>
+                    <div 
+                      className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
+                        isVisible && currentSnapshotIndex === index ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <MessageCircle className="h-5 w-5 text-primary" />
                           </div>
-                          {/* Gradient fade */}
-                          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-                        </>
+                          <h3 className="font-medium">Chat with Twyne</h3>
+                        </div>
+                      </div>
+                      
+                      {/* Scroll container with gradient fade and scroll arrow at the bottom */}
+                      <div className="relative">
+                        <ScrollArea 
+                          ref={scrollAreaRef} 
+                          className="h-[320px] pr-2 overflow-visible"
+                          onScrollCapture={handleScroll}
+                        >
+                          <div className="space-y-4 mb-4">
+                            {conversationSnapshots[currentSnapshotIndex].map((message) => (
+                              <div
+                                key={`${currentSnapshotIndex}-${message.id}`}
+                                className={`animate-fade-in ${
+                                  message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+                                }`}
+                              >
+                                {message.text}
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                        
+                        {/* Combined arrow indicator and gradient fade overlay */}
+                        {hasScrollContent && (
+                          <>
+                            {/* Arrow indicator with circular background */}
+                            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
+                              <div className="bg-primary/70 rounded-full p-2">
+                                <ArrowDown className="h-4 w-4 text-white" />
+                              </div>
+                            </div>
+                            {/* Gradient fade */}
+                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                          </>
+                        )}
+                      </div>
+                      
+                      <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
+                        <input 
+                          type="text" 
+                          placeholder="Tell me more about yourself..."
+                          className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
+                          disabled
+                        />
+                        <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <path d="M22 2L11 13"></path>
+                            <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Add swipe indicators for mobile */}
+                      {isMobile && (
+                        <div className="flex justify-between mt-4">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-muted-foreground" 
+                            onClick={handlePrevSnapshot}
+                          >
+                            <ChevronLeft size={16} className="mr-1" />
+                            Prev
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-muted-foreground" 
+                            onClick={handleNextSnapshot}
+                          >
+                            Next
+                            <ChevronRight size={16} className="ml-1" />
+                          </Button>
+                        </div>
                       )}
                     </div>
-                    
-                    <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
-                      <input 
-                        type="text" 
-                        placeholder="Tell me more about yourself..."
-                        className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
-                        disabled
-                      />
-                      <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                          <path d="M22 2L11 13"></path>
-                          <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* Add swipe indicators for mobile */}
-                    {isMobile && (
-                      <div className="flex justify-between mt-4">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-muted-foreground" 
-                          onClick={handlePrevSnapshot}
-                        >
-                          <ChevronLeft size={16} className="mr-1" />
-                          Prev
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-muted-foreground" 
-                          onClick={handleNextSnapshot}
-                        >
-                          Next
-                          <ChevronRight size={16} className="ml-1" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CarouselItem>
+                  </CarouselItem>
+                ))}
               </CarouselContent>
 
               {/* Only show carousel controls on desktop */}

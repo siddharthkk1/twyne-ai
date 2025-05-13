@@ -12,16 +12,23 @@ import { Button } from "@/components/ui/button";
 export const SampleProfileSection = () => {
   const [activeProfile, setActiveProfile] = useState(0);
   const isMobile = useIsMobile();
+  const [api, setApi] = useState<any>(null);
 
   const handleProfileChange = (index: number) => {
     setActiveProfile(index);
   };
 
   const handleNextProfile = () => {
+    if (api) {
+      api.scrollNext();
+    }
     setActiveProfile((prev) => (prev + 1) % connectionProfiles.length);
   };
 
   const handlePrevProfile = () => {
+    if (api) {
+      api.scrollPrev();
+    }
     setActiveProfile((prev) => (prev - 1 + connectionProfiles.length) % connectionProfiles.length);
   };
 
@@ -44,7 +51,7 @@ export const SampleProfileSection = () => {
           {/* Right side - Profile card with carousel for swiping */}
           <Carousel 
             className="w-full"
-            setApi={undefined}
+            setApi={setApi}
             opts={{
               align: "center",
               loop: true,
@@ -52,33 +59,35 @@ export const SampleProfileSection = () => {
             orientation="horizontal"
           >
             <CarouselContent>
-              <CarouselItem className="w-full">
-                <ProfileCard profile={profile} />
-                
-                {/* Swipe indicators for mobile */}
-                {isMobile && (
-                  <div className="flex justify-between mt-4">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-muted-foreground" 
-                      onClick={handlePrevProfile}
-                    >
-                      <ChevronLeft size={16} className="mr-1" />
-                      Prev
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-muted-foreground" 
-                      onClick={handleNextProfile}
-                    >
-                      Next
-                      <ChevronRight size={16} className="ml-1" />
-                    </Button>
-                  </div>
-                )}
-              </CarouselItem>
+              {connectionProfiles.map((profile, index) => (
+                <CarouselItem key={index} className="w-full" onMouseEnter={() => setActiveProfile(index)}>
+                  <ProfileCard profile={profile} />
+                  
+                  {/* Swipe indicators for mobile */}
+                  {isMobile && (
+                    <div className="flex justify-between mt-4">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-muted-foreground" 
+                        onClick={handlePrevProfile}
+                      >
+                        <ChevronLeft size={16} className="mr-1" />
+                        Prev
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-muted-foreground" 
+                        onClick={handleNextProfile}
+                      >
+                        Next
+                        <ChevronRight size={16} className="ml-1" />
+                      </Button>
+                    </div>
+                  )}
+                </CarouselItem>
+              ))}
             </CarouselContent>
 
             {/* Only show carousel controls on desktop */}
