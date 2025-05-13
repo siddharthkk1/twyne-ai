@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
@@ -60,6 +61,16 @@ const conversationSnapshots: Message[][] = [
       id: 9,
       text: "I couldn't agree more. Has there been a time when being vulnerable with someone strengthened your connection with them?",
       sender: "ai"
+    },
+    {
+      id: 10,
+      text: "After my dad got sick, I opened up to a colleague about it. Turned out they went through something similar. We've been close friends ever since. That vulnerability created a bond stronger than years of small talk could.",
+      sender: "user"
+    },
+    {
+      id: 11,
+      text: "Thank you for sharing that. Those moments of connection through shared experiences can be transformative. What would you say you learned from that experience?",
+      sender: "ai"
     }
   ],
   // Updated Music conversation - Cultural interests with more questions and interaction
@@ -107,6 +118,16 @@ const conversationSnapshots: Message[][] = [
     {
       id: 9,
       text: "Music as meditation is powerful. Does this meditative quality affect how you connect with people who share your musical interests?",
+      sender: "ai"
+    },
+    {
+      id: 10,
+      text: "Absolutely. When I meet someone who also plays piano or appreciates classical music, we instantly have this common language. But it goes deeper than just having the same hobby - it's about understanding why we're drawn to it.",
+      sender: "user"
+    },
+    {
+      id: 11,
+      text: "That's a beautiful perspective. How do you think your relationship with music has evolved over time?",
       sender: "ai"
     }
   ],
@@ -156,6 +177,16 @@ const conversationSnapshots: Message[][] = [
       id: 9,
       text: "That's a wonderful vision. It sounds like creating spaces that foster both community and connection to nature is important to you. What other community-focused values do you hold?",
       sender: "ai"
+    },
+    {
+      id: 10,
+      text: "I believe in creating spaces where people can genuinely connect across different backgrounds and generations. My grandmother's garden did that naturally - neighbors who might never talk otherwise would stop by and chat while she worked.",
+      sender: "user"
+    },
+    {
+      id: 11,
+      text: "That's a beautiful example of how shared spaces can bridge divides. What do you think made your grandmother's garden so successful as a community connector?",
+      sender: "ai"
     }
   ],
   // Updated travel conversation with more questions and dialogue
@@ -203,6 +234,16 @@ const conversationSnapshots: Message[][] = [
     {
       id: 9,
       text: "Those are fantastic dishes to learn! Do you find that exploring cultures through their food helps you connect more deeply when you travel?",
+      sender: "ai"
+    },
+    {
+      id: 10,
+      text: "Absolutely. Food is such a universal language. I've had some amazing conversations with locals just by showing interest in their cuisine. It's often the quickest way past the tourist-local barrier.",
+      sender: "user"
+    },
+    {
+      id: 11,
+      text: "That's so true. What's been your most meaningful travel experience so far, where food helped create a connection?",
       sender: "ai"
     }
   ]
@@ -252,24 +293,24 @@ export const ChatWithAISection = () => {
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
       if (viewport) {
         // Check if scrolled to bottom (or nearly)
-        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 20;
+        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 5;
         setHasScrollContent(!isAtBottom);
       }
     }
   };
 
   const handleNextSnapshot = () => {
-    if (api) {
+    if (api && api.canScrollNext()) {
       api.scrollNext();
+      setCurrentSnapshotIndex((prev) => (prev + 1) % conversationSnapshots.length);
     }
-    setCurrentSnapshotIndex((prev) => (prev + 1) % conversationSnapshots.length);
   };
 
   const handlePrevSnapshot = () => {
-    if (api) {
+    if (api && api.canScrollPrev()) {
       api.scrollPrev();
+      setCurrentSnapshotIndex((prev) => (prev - 1 + conversationSnapshots.length) % conversationSnapshots.length);
     }
-    setCurrentSnapshotIndex((prev) => (prev - 1 + conversationSnapshots.length) % conversationSnapshots.length);
   };
 
   // Update current snapshot index when carousel changes
@@ -295,14 +336,14 @@ export const ChatWithAISection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center">
-          {/* Text content with improved organization */}
-          <div className="space-y-6">
-            <p className="text-lg font-medium">
+          {/* Text content with improved organization - narrower and left-aligned */}
+          <div className="space-y-6 max-w-md">
+            <p className="text-lg font-medium text-left">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
             </p>
-            <div className="space-y-4 bg-background rounded-lg p-6 shadow-sm border border-border/30">
-              <h3 className="font-medium text-primary">How it works:</h3>
+            <div className="space-y-4 bg-background rounded-lg p-6 shadow-sm border border-border/30 text-left">
+              <h3 className="font-medium text-primary text-left">How it works:</h3>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="flex items-center justify-center mr-3 h-7 w-7 rounded-full bg-primary/20 flex-shrink-0">
@@ -341,7 +382,7 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation - Only this part fades when changing */}
+          {/* Chat simulation with improved scrolling and carousel behavior */}
           <div className="flex flex-col items-center w-full">
             <div className="relative w-full max-w-md mx-auto">
               <Carousel 
@@ -370,14 +411,14 @@ export const ChatWithAISection = () => {
                           </div>
                         </div>
                         
-                        {/* Scroll container with gradient fade and scroll arrow at the bottom */}
+                        {/* Scroll container with improved scrolling behavior */}
                         <div className="relative">
                           <ScrollArea 
                             ref={scrollAreaRef} 
-                            className="h-[320px] pr-2 overflow-visible"
+                            className="h-[320px] pr-2 overflow-visible w-full"
                             onScrollCapture={handleScroll}
                           >
-                            <div className="space-y-4 mb-4">
+                            <div className="space-y-4 mb-4 w-full">
                               {conversationSnapshots[currentSnapshotIndex].map((message) => (
                                 <div
                                   key={`${currentSnapshotIndex}-${message.id}`}
@@ -433,7 +474,7 @@ export const ChatWithAISection = () => {
                   size="icon" 
                   className="rounded-full" 
                   onClick={handlePrevSnapshot}
-                  disabled={currentSnapshotIndex === 0 && !api?.canScrollPrev()}
+                  disabled={!api?.canScrollPrev()}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="sr-only">Previous conversation</span>
@@ -444,8 +485,8 @@ export const ChatWithAISection = () => {
                     <button 
                       key={index}
                       onClick={() => {
-                        setCurrentSnapshotIndex(index);
                         if (api) api.scrollTo(index);
+                        setCurrentSnapshotIndex(index);
                       }}
                       className={`h-3 w-3 rounded-full transition-all ${
                         currentSnapshotIndex === index ? 'bg-primary scale-125' : 'bg-muted'
@@ -460,7 +501,7 @@ export const ChatWithAISection = () => {
                   size="icon" 
                   className="rounded-full" 
                   onClick={handleNextSnapshot}
-                  disabled={currentSnapshotIndex === conversationSnapshots.length - 1 && !api?.canScrollNext()}
+                  disabled={!api?.canScrollNext()}
                 >
                   <ChevronRight className="h-4 w-4" />
                   <span className="sr-only">Next conversation</span>

@@ -4,7 +4,7 @@ import { ProfileCard } from "./profile-card/ProfileCard";
 import { ProfileSwitcher } from "./profile-card/ProfileSwitcher";
 import { SectionDescription } from "./profile-card/SectionDescription";
 import { connectionProfiles } from "./profile-card/profile-data";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,17 +22,17 @@ export const SampleProfileSection = () => {
   };
 
   const handleNextProfile = () => {
-    if (api) {
+    if (api && api.canScrollNext()) {
       api.scrollNext();
+      setActiveProfile((prev) => (prev + 1) % connectionProfiles.length);
     }
-    setActiveProfile((prev) => (prev + 1) % connectionProfiles.length);
   };
 
   const handlePrevProfile = () => {
-    if (api) {
+    if (api && api.canScrollPrev()) {
       api.scrollPrev();
+      setActiveProfile((prev) => (prev - 1 + connectionProfiles.length) % connectionProfiles.length);
     }
-    setActiveProfile((prev) => (prev - 1 + connectionProfiles.length) % connectionProfiles.length);
   };
 
   // Update active profile when carousel changes
@@ -90,7 +90,7 @@ export const SampleProfileSection = () => {
                 size="icon" 
                 className="rounded-full" 
                 onClick={handlePrevProfile}
-                disabled={activeProfile === 0 && !api?.canScrollPrev()}
+                disabled={!api?.canScrollPrev()}
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Previous profile</span>
@@ -107,7 +107,7 @@ export const SampleProfileSection = () => {
                 size="icon" 
                 className="rounded-full" 
                 onClick={handleNextProfile}
-                disabled={activeProfile === connectionProfiles.length - 1 && !api?.canScrollNext()}
+                disabled={!api?.canScrollNext()}
               >
                 <ChevronRight className="h-4 w-4" />
                 <span className="sr-only">Next profile</span>

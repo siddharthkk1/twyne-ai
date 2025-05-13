@@ -28,17 +28,17 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
   const totalPages = Math.ceil(visibleIntros.length / itemsPerPage);
   
   const handleNextPage = () => {
-    if (api) {
+    if (api && api.canScrollNext()) {
       api.scrollNext();
+      setCurrentPage((prev) => (prev + 1) % totalPages);
     }
-    setCurrentPage((prev) => (prev + 1) % totalPages);
   };
 
   const handlePrevPage = () => {
-    if (api) {
+    if (api && api.canScrollPrev()) {
       api.scrollPrev();
+      setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
     }
-    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
 
   // Update current page when carousel changes
@@ -101,7 +101,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
           size="icon" 
           className="rounded-full" 
           onClick={handlePrevPage}
-          disabled={currentPage === 0 && !api?.canScrollPrev()}
+          disabled={!api?.canScrollPrev()}
         >
           <ChevronLeft className="h-4 w-4" />
           <span className="sr-only">Previous intro</span>
@@ -128,7 +128,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
           size="icon" 
           className="rounded-full" 
           onClick={handleNextPage}
-          disabled={currentPage === totalPages - 1 && !api?.canScrollNext()}
+          disabled={!api?.canScrollNext()}
         >
           <ChevronRight className="h-4 w-4" />
           <span className="sr-only">Next intro</span>
