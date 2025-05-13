@@ -16,6 +16,9 @@ export const SampleProfileSection = () => {
 
   const handleProfileChange = (index: number) => {
     setActiveProfile(index);
+    if (api) {
+      api.scrollTo(index);
+    }
   };
 
   const handleNextProfile = () => {
@@ -32,7 +35,19 @@ export const SampleProfileSection = () => {
     setActiveProfile((prev) => (prev - 1 + connectionProfiles.length) % connectionProfiles.length);
   };
 
-  const profile = connectionProfiles[activeProfile];
+  // Update active profile when carousel changes
+  React.useEffect(() => {
+    if (!api) return;
+    
+    const onSelect = () => {
+      setActiveProfile(api.selectedScrollSnap());
+    };
+    
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
 
   return (
     <section className="py-16 bg-white">
@@ -49,65 +64,56 @@ export const SampleProfileSection = () => {
           <SectionDescription />
 
           {/* Right side - Profile card with carousel for swiping */}
-          <Carousel 
-            className="w-full"
-            setApi={setApi}
-            opts={{
-              align: "center",
-              loop: true,
-            }}
-            orientation="horizontal"
-          >
-            <CarouselContent>
-              {connectionProfiles.map((profile, index) => (
-                <CarouselItem key={index} className="w-full" onMouseEnter={() => setActiveProfile(index)}>
-                  <ProfileCard profile={profile} />
-                  
-                  {/* Swipe indicators for mobile */}
-                  {isMobile && (
-                    <div className="flex justify-between mt-4">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-muted-foreground" 
-                        onClick={handlePrevProfile}
-                      >
-                        <ChevronLeft size={16} className="mr-1" />
-                        Prev
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-muted-foreground" 
-                        onClick={handleNextProfile}
-                      >
-                        Next
-                        <ChevronRight size={16} className="ml-1" />
-                      </Button>
-                    </div>
-                  )}
-                </CarouselItem>
-              ))}
-            </CarouselContent>
+          <div className="relative">
+            <Carousel 
+              className="w-full"
+              setApi={setApi}
+              opts={{
+                align: "center",
+                loop: true,
+              }}
+              orientation="horizontal"
+            >
+              <CarouselContent>
+                {connectionProfiles.map((profile, index) => (
+                  <CarouselItem key={index} className="w-full">
+                    <ProfileCard profile={profile} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
 
-            {/* Only show carousel controls on desktop */}
-            {!isMobile && (
-              <>
-                <CarouselPrevious onClick={handlePrevProfile} />
-                <CarouselNext onClick={handleNextProfile} />
-              </>
-            )}
-          </Carousel>
+            {/* Custom navigation controls - arrows and dots */}
+            <div className="flex items-center justify-between mt-6">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="rounded-full" 
+                onClick={handlePrevProfile}
+                disabled={activeProfile === 0 && !api?.canScrollPrev()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Previous profile</span>
+              </Button>
 
-          {/* Profile switcher dots - hidden on mobile */}
-          <div className="hidden md:block">
-            {/* Empty placeholder to maintain grid layout */}
+              <ProfileSwitcher 
+                activeProfile={activeProfile}
+                totalProfiles={connectionProfiles.length}
+                onProfileChange={handleProfileChange}
+              />
+
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="rounded-full" 
+                onClick={handleNextProfile}
+                disabled={activeProfile === connectionProfiles.length - 1 && !api?.canScrollNext()}
+              >
+                <ChevronRight className="h-4 w-4" />
+                <span className="sr-only">Next profile</span>
+              </Button>
+            </div>
           </div>
-          <ProfileSwitcher 
-            activeProfile={activeProfile}
-            totalProfiles={connectionProfiles.length}
-            onProfileChange={handleProfileChange}
-          />
         </div>
       </div>
     </section>
