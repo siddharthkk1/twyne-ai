@@ -15,9 +15,9 @@ export const SampleProfileSection = () => {
   const profile = connectionProfiles[activeProfile];
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-8 md:py-16 bg-white">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
-        <div className="text-center mb-12">
+        <div className="text-center mb-6 md:mb-12">
           <h2 className="text-3xl font-bold">How You View Others</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
             Twyne creates personalized connection cards that highlight what you share with each new acquaintance

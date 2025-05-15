@@ -9,7 +9,7 @@ interface CallToActionSectionProps {
 
 export const CallToActionSection = ({ onOpenWaitlist }: CallToActionSectionProps) => {
   return (
-    <section className="py-16">
+    <section className="py-8 md:py-16">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         <div className="rounded-xl bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 p-8 md:p-12 border border-white/20 shadow-sm">
           <div className="flex flex-col items-center text-center gap-4">

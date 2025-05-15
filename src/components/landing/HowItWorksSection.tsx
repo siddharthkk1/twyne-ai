@@ -4,9 +4,9 @@ import { MessageCircle, MapPin, Users, Shield } from "lucide-react";
 
 export const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-20 bg-white relative">
+    <section id="how-it-works" className="py-10 md:py-20 bg-white relative">
       <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="text-3xl font-bold">How It Works</h2>
           <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
         </div>

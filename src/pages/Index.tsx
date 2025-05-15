@@ -97,8 +97,8 @@ const Index = () => {
         onScrollToHowItWorks={scrollToHowItWorks}
       />
 
-      {/* How It Works Section - Adjusted padding to be consistent with bottom padding */}
-      <div className="pt-24 pb-0">
+      {/* How It Works Section - Adjusted padding to be consistent */}
+      <div className="pt-6 md:pt-24 pb-0">
         <HowItWorksSection />
       </div>
 

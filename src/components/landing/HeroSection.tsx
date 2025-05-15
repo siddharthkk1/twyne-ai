@@ -56,7 +56,7 @@ export const HeroSection = ({
   }, []);
   
   return (
-    <section className="relative py-20 md:py-24 mt-16 md:mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
+    <section className="relative py-10 md:py-24 mt-16 md:mt-24 overflow-hidden bg-white min-h-[85vh] flex flex-col items-center">
       {/* Background gradient effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
@@ -232,7 +232,7 @@ export const HeroSection = ({
 
       {/* Rotating text with full-width carousel - ADJUSTED TO APPEAR LOWER */}
       <div 
-        className={`w-full transition-all duration-700 transform mt-20 sm:mt-32 md:mt-36 ${
+        className={`w-full transition-all duration-700 transform mt-10 sm:mt-16 md:mt-36 ${
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}
         style={{ transitionDelay: '1200ms' }}
