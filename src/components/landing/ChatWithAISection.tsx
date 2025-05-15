@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  IoCheckMark
+} from "react-icons/io5";
 
 interface Message {
   id: number;
@@ -193,25 +196,25 @@ export const ChatWithAISection = () => {
             <div className="space-y-3">
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">1</span>
+                  <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>Share your interests, values, life story, and what you're looking for</p>
               </div>
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">2</span>
+                <<div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                  <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>Our AI builds a deeper understanding of your vibe than profiles ever could</p>
               </div>
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">3</span>
+                  <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>No awkward bios or curated photos—just authentic conversations</p>
               </div>
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
-                  <span className="text-primary text-sm font-medium">4</span>
+                  <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>You choose what information can be shared with others</p>
               </div>
