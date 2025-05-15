@@ -74,80 +74,70 @@ export const SampleProfileSection = () => {
           {/* Left side - Section description */}
           <SectionDescription />
 
-          {/* Right side - Profile card with carousel for mobile swipe */}
-          {isMobile ? (
-            <div className="relative">
-              <Carousel
-                setApi={setApi}
-                opts={{
-                  align: "center",
-                  loop: true,
-                  dragFree: false,
-                }}
-              >
-                <CarouselContent>
-                  {connectionProfiles.map((profile, index) => (
-                    <CarouselItem key={index} className="flex justify-center">
+          {/* Right side - Profile card with carousel for all screen sizes */}
+          <div className="relative">
+            <Carousel
+              setApi={setApi}
+              opts={{
+                align: "center",
+                loop: true,
+                dragFree: false,
+              }}
+            >
+              <CarouselContent>
+                {connectionProfiles.map((profile, index) => (
+                  <CarouselItem key={index} className="flex justify-center">
+                    <div className={isMobile ? "w-[calc(100vw-48px)]" : "w-full"}>
                       <ProfileCard profile={profile} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
-            </div>
-          ) : (
-            <ProfileCard profile={profile} />
-          )}
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
 
           {/* Profile switcher dots */}
           <div className="hidden md:block">
             {/* Empty placeholder to maintain grid layout */}
           </div>
           <div className="flex justify-center">
-            {isMobile ? (
-              <div className="flex items-center justify-center mt-4 space-x-4">
-                {/* Left arrow button */}
-                <Button 
-                  onClick={handlePrev} 
-                  size="icon"
-                  variant="outline"
-                  className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="sr-only">Previous profile</span>
-                </Button>
-                
-                {/* Dots navigation */}
-                <div className="flex justify-center space-x-2">
-                  {connectionProfiles.map((_, index) => (
-                    <button 
-                      key={index}
-                      onClick={() => handleProfileChange(index)}
-                      className={`h-2 w-2 rounded-full transition-all ${
-                        activeProfile === index ? 'bg-primary scale-125' : 'bg-muted'
-                      }`}
-                      aria-label={`Go to profile ${index + 1}`}
-                    />
-                  ))}
-                </div>
-                
-                {/* Right arrow button */}
-                <Button 
-                  onClick={handleNext}
-                  size="icon"
-                  variant="outline"
-                  className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                  <span className="sr-only">Next profile</span>
-                </Button>
+            <div className="flex items-center justify-center mt-4 space-x-4">
+              {/* Left arrow button */}
+              <Button 
+                onClick={handlePrev} 
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Previous profile</span>
+              </Button>
+              
+              {/* Dots navigation */}
+              <div className="flex justify-center space-x-2">
+                {connectionProfiles.map((_, index) => (
+                  <button 
+                    key={index}
+                    onClick={() => handleProfileChange(index)}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      activeProfile === index ? 'bg-primary scale-125' : 'bg-muted'
+                    }`}
+                    aria-label={`Go to profile ${index + 1}`}
+                  />
+                ))}
               </div>
-            ) : (
-              <ProfileSwitcher 
-                activeProfile={activeProfile}
-                totalProfiles={connectionProfiles.length}
-                onProfileChange={handleProfileChange}
-              />
-            )}
+              
+              {/* Right arrow button */}
+              <Button 
+                onClick={handleNext}
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+              >
+                <ArrowRight className="h-4 w-4" />
+                <span className="sr-only">Next profile</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

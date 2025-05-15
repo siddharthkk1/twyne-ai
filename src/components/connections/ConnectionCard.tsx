@@ -16,7 +16,7 @@ interface ConnectionProps {
 
 const ConnectionCard = ({ id, name, description, matchReason, imageUrl, isNew }: ConnectionProps) => {
   return (
-    <div className="bg-background rounded-2xl p-4 shadow-sm animate-fade-in border border-border/30">
+    <div className="bg-background rounded-2xl p-4 shadow-sm animate-fade-in border border-border/30 w-full">
       {isNew && (
         <Badge variant="secondary" className="mb-3">
           New Introduction

@@ -49,11 +49,8 @@ export const IntroCard: React.FC<IntroCardProps> = ({ intro, onOpenWaitlist }) =
 
   return (
     <div 
-      className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
-      style={{ 
-        height: "240px",
-        width: isMobile ? "calc(100vw - 48px)" : "100%" 
-      }}
+      className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in w-full"
+      style={{ height: "240px" }}
     >
       {/* Group indicator for group intros */}
       {intro.isGroup && (

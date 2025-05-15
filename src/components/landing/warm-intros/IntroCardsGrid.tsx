@@ -90,10 +90,12 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
         <CarouselContent>
           {visibleIntros.map(intro => (
             <CarouselItem key={intro.id} className="flex justify-center">
-              <IntroCard 
-                intro={intro}
-                onOpenWaitlist={onOpenWaitlist}
-              />
+              <div className="w-[calc(100vw-48px)]">
+                <IntroCard 
+                  intro={intro}
+                  onOpenWaitlist={onOpenWaitlist}
+                />
+              </div>
             </CarouselItem>
           ))}
         </CarouselContent>
