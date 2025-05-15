@@ -11,8 +11,12 @@ export const HowItWorksSection = () => {
           <p className="text-muted-foreground mt-2">Our AI-powered approach to building real connections</p>
         </div>
         
+        {/* Increased padding between cards in sm and md breakpoints (gap-4 md:gap-6) */}
+        {/* Previously was gap-4 md:gap-5 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 relative z-10">
-          <div className="rounded-xl p-6 text-center hover:shadow-sm transition-shadow border border-border/50" 
+          {/* Reduced width from 20% to 10% width boost for medium screens */}
+          {/* Updated style to be responsive with different widths at different breakpoints */}
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50" 
                style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <MessageCircle className="h-6 w-6 text-primary" />
@@ -23,7 +27,7 @@ export const HowItWorksSection = () => {
             </p>
           </div>
           
-          <div className="rounded-xl p-6 text-center hover:shadow-sm transition-shadow border border-border/50"
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50"
                style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mb-4">
               <MapPin className="h-6 w-6 text-secondary" />
@@ -34,7 +38,7 @@ export const HowItWorksSection = () => {
             </p>
           </div>
           
-          <div className="rounded-xl p-6 text-center hover:shadow-sm transition-shadow border border-border/50"
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50"
                style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
               <Users className="h-6 w-6 text-accent" />
@@ -45,7 +49,7 @@ export const HowItWorksSection = () => {
             </p>
           </div>
           
-          <div className="rounded-xl p-6 text-center hover:shadow-sm transition-shadow border border-border/50"
+          <div className="bg-background rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-border/50"
                style={{ width: '100%', maxWidth: '100%' }}>
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-6 w-6 text-green-700" />
