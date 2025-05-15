@@ -155,7 +155,7 @@ export const HeroSection = ({
             </span>
           </h1>
           
-          {/* Updated subtitle - single line with nowrap to prevent wrapping */}
+          {/* Updated subtitle - MODIFIED: removed nowrap to allow proper wrapping on mobile */}
           <div 
             className={`max-w-[700px] text-base sm:text-lg md:text-xl text-foreground/80 transition-all duration-700 transform ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
@@ -163,15 +163,15 @@ export const HeroSection = ({
             style={{ transitionDelay: '600ms', lineHeight: '1.6' }}
           >
             <h2 
-              className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform whitespace-nowrap ${
+              className={`text-xl md:text-2xl font-medium tracking-tight text-foreground/80 mb-0 pb-0 transition-all duration-700 transform ${
                 isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
               }`}
               style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
             >
               The AI platform for making connections and building relationships
             </h2>
-            {/* Updated description - shortened with em dash instead of hyphen */}
-            <p className="block mt-1">
+            {/* Updated description - ensure it wraps properly on all screen sizes */}
+            <p className="block mt-1 px-4 sm:px-0">
               Twyne gets to know your energy, interests, personality, and life context—then introduces you to people nearby who actually click.
             </p>
           </div>
