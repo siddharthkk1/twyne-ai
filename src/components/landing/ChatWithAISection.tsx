@@ -186,7 +186,7 @@ export const ChatWithAISection = () => {
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 items-center">
+        <div className="grid md:grid-cols-2 gap-2 items-center">
           {/* Text content - Width reduced by 15% */}
           <div className="space-y-6 md:pr-8 lg:w-[85%]">
             <p className="text-lg">
@@ -198,25 +198,25 @@ export const ChatWithAISection = () => {
                 <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
-                <p>Share your interests, values, life story, and what you're looking for</p>
+                <p className="ml-3">Share your interests, values, life story, and what you're looking for</p>
               </div>
               <div className="flex items-start">
                 <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
-                <p>Our AI builds a deeper understanding of your vibe than profiles ever could</p>
+                <p className="ml-3">Our AI builds a deeper understanding of your vibe than profiles ever could</p>
               </div>
               <div className="flex items-start">
                 <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
-                <p>No awkward bios or curated photos—just authentic conversations</p>
+                <p className="ml-3">No awkward bios or curated photos—just authentic conversations</p>
               </div>
               <div className="flex items-start">
                 <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
-                <p>You choose what information can be shared with others</p>
+                <p className="ml-3">You choose what information can be shared with others</p>
               </div>
             </div>
             <div>
