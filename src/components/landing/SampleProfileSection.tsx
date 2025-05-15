@@ -4,12 +4,58 @@ import { ProfileCard } from "./profile-card/ProfileCard";
 import { ProfileSwitcher } from "./profile-card/ProfileSwitcher";
 import { SectionDescription } from "./profile-card/SectionDescription";
 import { connectionProfiles } from "./profile-card/profile-data";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselApi,
+} from "@/components/ui/carousel";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const SampleProfileSection = () => {
   const [activeProfile, setActiveProfile] = useState(0);
+  const [api, setApi] = useState<CarouselApi>();
+  const isMobile = useIsMobile();
+
+  // Set up the API
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+ 
+    const onSelect = () => {
+      setActiveProfile(api.selectedScrollSnap());
+    };
+ 
+    api.on("select", onSelect);
+    // Call once to set initial position
+    onSelect();
+ 
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
 
   const handleProfileChange = (index: number) => {
-    setActiveProfile(index);
+    if (api) {
+      api.scrollTo(index);
+    } else {
+      setActiveProfile(index);
+    }
+  };
+
+  const handleNext = () => {
+    if (api) {
+      api.scrollNext();
+    }
+  };
+
+  const handlePrev = () => {
+    if (api) {
+      api.scrollPrev();
+    }
   };
 
   const profile = connectionProfiles[activeProfile];
@@ -28,18 +74,81 @@ export const SampleProfileSection = () => {
           {/* Left side - Section description */}
           <SectionDescription />
 
-          {/* Right side - Profile card */}
-          <ProfileCard profile={profile} />
+          {/* Right side - Profile card with carousel for mobile swipe */}
+          {isMobile ? (
+            <div className="relative">
+              <Carousel
+                setApi={setApi}
+                opts={{
+                  align: "center",
+                  loop: true,
+                  dragFree: false,
+                }}
+              >
+                <CarouselContent>
+                  {connectionProfiles.map((profile, index) => (
+                    <CarouselItem key={index} className="flex justify-center">
+                      <ProfileCard profile={profile} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            </div>
+          ) : (
+            <ProfileCard profile={profile} />
+          )}
 
-          {/* Profile switcher dots - hidden on mobile */}
+          {/* Profile switcher dots */}
           <div className="hidden md:block">
             {/* Empty placeholder to maintain grid layout */}
           </div>
-          <ProfileSwitcher 
-            activeProfile={activeProfile}
-            totalProfiles={connectionProfiles.length}
-            onProfileChange={handleProfileChange}
-          />
+          <div className="flex justify-center">
+            {isMobile ? (
+              <div className="flex items-center justify-center mt-4 space-x-4">
+                {/* Left arrow button */}
+                <Button 
+                  onClick={handlePrev} 
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Previous profile</span>
+                </Button>
+                
+                {/* Dots navigation */}
+                <div className="flex justify-center space-x-2">
+                  {connectionProfiles.map((_, index) => (
+                    <button 
+                      key={index}
+                      onClick={() => handleProfileChange(index)}
+                      className={`h-2 w-2 rounded-full transition-all ${
+                        activeProfile === index ? 'bg-primary scale-125' : 'bg-muted'
+                      }`}
+                      aria-label={`Go to profile ${index + 1}`}
+                    />
+                  ))}
+                </div>
+                
+                {/* Right arrow button */}
+                <Button 
+                  onClick={handleNext}
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  <span className="sr-only">Next profile</span>
+                </Button>
+              </div>
+            ) : (
+              <ProfileSwitcher 
+                activeProfile={activeProfile}
+                totalProfiles={connectionProfiles.length}
+                onProfileChange={handleProfileChange}
+              />
+            )}
+          </div>
         </div>
       </div>
     </section>
