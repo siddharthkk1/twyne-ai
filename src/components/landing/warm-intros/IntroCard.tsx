@@ -4,6 +4,7 @@ import { MessageCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IntroCard as IntroCardType } from "./types";
 import { splitIntroText } from "./intro-utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface IntroCardProps {
   intro: IntroCardType;
@@ -12,6 +13,7 @@ interface IntroCardProps {
 
 export const IntroCard: React.FC<IntroCardProps> = ({ intro, onOpenWaitlist }) => {
   const { firstPart, secondPart } = splitIntroText(intro.text, intro.isGroup);
+  const isMobile = useIsMobile();
 
   // Function to highlight "You and [name]" or "You, [name], and [name]" patterns
   const formatText = (text: string) => {
@@ -50,7 +52,7 @@ export const IntroCard: React.FC<IntroCardProps> = ({ intro, onOpenWaitlist }) =
       className="bg-background rounded-xl p-6 pb-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border border-border/20 hover:border-primary/20 animate-fade-in"
       style={{ 
         height: "240px",
-        width: "100%"
+        width: isMobile ? "calc(100vw - 48px)" : "100%" 
       }}
     >
       {/* Group indicator for group intros */}

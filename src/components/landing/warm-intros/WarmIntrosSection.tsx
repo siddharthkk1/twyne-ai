@@ -15,22 +15,25 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   const [intros, setIntros] = useState<IntroCard[]>([...initialIntros, ...additionalIntros]);
   const [nextHiddenCardIndex, setNextHiddenCardIndex] = useState(0);
   const isMobile = useIsMobile();
-  const visibleCount = isMobile ? 4 : 6;
+  const visibleCount = isMobile ? 1 : 6;
   
   // Initialize positions on first render
   useEffect(() => {
     setIntros(current => {
       return current.map((card, index) => {
-        if (card.visible) {
-          return { ...card, position: index };
+        if (index < visibleCount) {
+          return { ...card, visible: true, position: index };
         }
-        return card;
+        return { ...card, visible: false };
       });
     });
-  }, []);
+  }, [visibleCount]);
   
-  // Rotate one card every 5 seconds
+  // Only apply card rotation for desktop view
   useEffect(() => {
+    // Skip the rotation effect if we're on mobile
+    if (isMobile) return;
+    
     const rotateOneCard = () => {
       setIntros(currentIntros => {
         // Get visible and hidden intros
@@ -62,18 +65,18 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       });
     };
     
-    // Set interval to rotate one card every 5 seconds
+    // Set interval to rotate one card every 5 seconds (only on desktop)
     const interval = setInterval(rotateOneCard, 5000);
     
     return () => clearInterval(interval);
-  }, [nextHiddenCardIndex]);
+  }, [nextHiddenCardIndex, isMobile]);
   
   // Ensure correct number of visible cards based on screen size
   useEffect(() => {
     setIntros(current => {
       const visibleIntros = current.filter(intro => intro.visible);
       const hiddenIntros = current.filter(intro => !intro.visible);
-      const targetVisibleCount = isMobile ? 4 : 6;
+      const targetVisibleCount = isMobile ? 1 : 6;
       
       // If we already have the correct number, no change needed
       if (visibleIntros.length === targetVisibleCount) return current;
@@ -99,7 +102,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           if (cardsToShow.some(c => c.id === card.id)) {
             // Find the next available position
             const usedPositions = visibleIntros.map(v => v.position);
-            const availablePositions = Array.from(Array(targetVisibleCount).keys())
+            const availablePositions = Array.from({ length: targetVisibleCount }, (_, i) => i)
               .filter(pos => !usedPositions.includes(pos));
             
             return { 
