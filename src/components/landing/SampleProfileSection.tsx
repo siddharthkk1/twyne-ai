@@ -101,7 +101,7 @@ export const SampleProfileSection = () => {
             {/* Empty placeholder to maintain grid layout */}
           </div>
           <div className="flex justify-center">
-            <div className="flex items-center justify-center mt-4 space-x-4">
+            <div className="flex items-center justify-center space-x-4">
               {/* Left arrow button */}
               <Button 
                 onClick={handlePrev} 
