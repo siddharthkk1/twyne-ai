@@ -186,7 +186,7 @@ export const ChatWithAISection = () => {
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-10 items-center">
+        <div className="grid md:grid-cols-2 gap-6 items-center">
           {/* Text content - Width reduced by 15% */}
           <div className="space-y-6 md:pr-8 lg:w-[85%]">
             <p className="text-lg">
