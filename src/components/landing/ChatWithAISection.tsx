@@ -294,14 +294,14 @@ export const ChatWithAISection = () => {
           <p className="text-muted-foreground mt-2">Through conversations that feel refreshingly human</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5 items-center">
-          {/* Text content with improved organization - width reduced by 15% */}
-          <div className="space-y-6 md:pr-2 md:max-w-[85%]">
+        <div className="grid md:grid-cols-2 gap-4 items-center">
+          {/* Text content with improved organization - width reduced by 15% and removing white card background */}
+          <div className="space-y-6 md:pr-1.5 md:max-w-[85%]">
             <p className="text-lg font-medium">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
             </p>
-            <div className="space-y-4 bg-background rounded-lg p-6 shadow-sm border border-border/30">
+            <div className="space-y-4">
               <h3 className="font-medium text-primary">How it works:</h3>
               <div className="space-y-4">
                 <div className="flex items-start">
@@ -341,9 +341,9 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation - Width increased by 20% */}
+          {/* Chat simulation - Width reduced by 15% */}
           <div className="flex flex-col items-center w-full">
-            <div className="relative w-full md:w-[120%]">
+            <div className="relative w-full md:w-[105%]">
               <Carousel 
                 className="w-full"
                 setApi={setApi}
