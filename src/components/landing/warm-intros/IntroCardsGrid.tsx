@@ -7,9 +7,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
+  CarouselApi,
 } from "@/components/ui/carousel";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -65,7 +63,14 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
   // For mobile, we use the carousel layout with arrow navigation
   return (
     <div className="relative z-10">
-      <Carousel setApi={setApi} className="w-full">
+      <Carousel 
+        setApi={setApi} 
+        className="w-full"
+        opts={{
+          align: "center",
+          loop: true
+        }}
+      >
         <CarouselContent>
           {visibleIntros.map(intro => (
             <CarouselItem key={intro.id} className="flex justify-center">
