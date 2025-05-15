@@ -45,6 +45,19 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
     };
   }, [api]);
 
+  // Handler functions to manually navigate the carousel
+  const handleNext = () => {
+    if (api) {
+      api.scrollNext();
+    }
+  };
+
+  const handlePrev = () => {
+    if (api) {
+      api.scrollPrev();
+    }
+  };
+
   // For desktop, we use the grid layout
   if (!isMobile) {
     return (
@@ -86,7 +99,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
         <div className="flex items-center justify-center mt-4 space-x-4">
           {/* Left arrow button */}
           <Button 
-            onClick={() => api?.scrollPrev()} 
+            onClick={handlePrev} 
             size="icon"
             variant="outline"
             className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
@@ -111,7 +124,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
           
           {/* Right arrow button */}
           <Button 
-            onClick={() => api?.scrollNext()}
+            onClick={handleNext}
             size="icon"
             variant="outline"
             className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
