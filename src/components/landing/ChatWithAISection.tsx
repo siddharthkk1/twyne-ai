@@ -188,7 +188,7 @@ export const ChatWithAISection = () => {
 
         <div className="grid md:grid-cols-2 gap-2 items-center justify-items-center">
           {/* Text content - Width reduced by 15% */}
-          <div className="space-y-6 w-full max-w-[500px] mb-8 md:mb-0">
+          <div className="space-y-6 w-full max-w-[450px] mb-8 md:mb-0">
             <p className="text-lg">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
