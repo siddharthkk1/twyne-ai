@@ -75,7 +75,7 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
     );
   }
   
-  // For mobile, we use the carousel layout with arrow navigation
+  // For mobile, we use the carousel layout with arrow navigation and swipe support
   return (
     <div className="relative z-10">
       <Carousel 
@@ -83,7 +83,9 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
         className="w-full"
         opts={{
           align: "center",
-          loop: true
+          loop: true,
+          dragFree: false,     // Enable precise dragging
+          draggable: true,     // Enable drag-based navigation
         }}
       >
         <CarouselContent>
