@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown } from "lucide-react";
@@ -194,7 +195,7 @@ export const ChatWithAISection = () => {
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <span className="text-primary text-sm font-medium">1</span>
                 </div>
-                <p>Share your values, life story, and what you're looking for in connections</p>
+                <p>Share your interests, values, life story, and what you're looking for in connections</p>
               </div>
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
@@ -226,8 +227,8 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation - Keeping original width */}
-          <div className="flex flex-col items-center">
+          {/* Chat simulation - With reduced width */}
+          <div className="flex flex-col items-center lg:w-[85%] lg:ml-auto">
             <div 
               className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
                 isVisible ? 'opacity-100' : 'opacity-0'
