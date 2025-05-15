@@ -195,25 +195,25 @@ export const ChatWithAISection = () => {
             </p>
             <div className="space-y-3">
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>Share your interests, values, life story, and what you're looking for</p>
               </div>
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>Our AI builds a deeper understanding of your vibe than profiles ever could</p>
               </div>
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>No awkward bios or curated photos—just authentic conversations</p>
               </div>
               <div className="flex items-start">
-                <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                <div className="h-6 w-6 flex-shrink-0 aspect-square rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <IoCheckmark className="text-primary text-[14px]" />
                 </div>
                 <p>You choose what information can be shared with others</p>
