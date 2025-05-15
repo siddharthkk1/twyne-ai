@@ -231,7 +231,7 @@ export const ChatWithAISection = () => {
           </div>
           
           {/* Chat simulation - With original width */}
-          <div className="flex flex-col items-center lg:w-full lg:ml-auto">
+          <div className="flex flex-col items-center w-full max-w-[600px]">
             <div 
               className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
                 isVisible ? 'opacity-100' : 'opacity-0'
