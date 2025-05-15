@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown } from "lucide-react";
@@ -183,8 +184,8 @@ export const ChatWithAISection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center">
-          {/* Text content - No animation when chat changes */}
-          <div className="space-y-6">
+          {/* Text content - Width reduced by 15% */}
+          <div className="space-y-6 md:pr-8 lg:w-[85%]">
             <p className="text-lg">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
               a nuanced picture of who you are.
@@ -194,7 +195,7 @@ export const ChatWithAISection = () => {
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <span className="text-primary text-sm font-medium">1</span>
                 </div>
-                <p>Share your interests, values, and what you're looking for in connections</p>
+                <p>Share your values, life story, and what you're looking for in connections</p>
               </div>
               <div className="flex items-start">
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
@@ -212,7 +213,7 @@ export const ChatWithAISection = () => {
                 <div className="mr-3 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
                   <span className="text-primary text-sm font-medium">4</span>
                 </div>
-                <p>You choose what information can be shared with others during warm intros and connections</p>
+                <p>You choose what information can be shared with others</p>
               </div>
             </div>
             <div>
@@ -226,8 +227,8 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation - Only this part fades when changing */}
-          <div className="flex flex-col items-center">
+          {/* Chat simulation - With reduced width */}
+          <div className="flex flex-col items-center lg:w-[85%] lg:ml-auto">
             <div 
               className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
                 isVisible ? 'opacity-100' : 'opacity-0'
