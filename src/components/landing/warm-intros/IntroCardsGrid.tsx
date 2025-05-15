@@ -85,7 +85,6 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
           align: "center",
           loop: true,
           dragFree: false,     // Enable precise dragging
-          draggable: true,     // Enable drag-based navigation
         }}
       >
         <CarouselContent>
