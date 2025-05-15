@@ -22,10 +22,12 @@ export const IntroCardsGrid: React.FC<IntroCardsGridProps> = ({ intros, onOpenWa
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   
-  // Filter out only visible intros and sort by position
-  const visibleIntros = intros
-    .filter(intro => intro.visible)
-    .sort((a, b) => (a.position || 0) - (b.position || 0));
+  // For mobile, use all intros; for desktop, filter only visible ones and sort by position
+  const visibleIntros = isMobile
+    ? intros
+    : intros
+        .filter(intro => intro.visible)
+        .sort((a, b) => (a.position || 0) - (b.position || 0));
     
   useEffect(() => {
     if (!api) {

@@ -17,8 +17,11 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   const isMobile = useIsMobile();
   const visibleCount = isMobile ? 1 : 6;
   
-  // Initialize positions on first render
+  // Initialize positions on first render - only affects desktop view
   useEffect(() => {
+    // Skip initialization for mobile as we'll show all cards there
+    if (isMobile) return;
+    
     setIntros(current => {
       return current.map((card, index) => {
         if (index < visibleCount) {
@@ -27,7 +30,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         return { ...card, visible: false };
       });
     });
-  }, [visibleCount]);
+  }, [visibleCount, isMobile]);
   
   // Only apply card rotation for desktop view
   useEffect(() => {
@@ -73,10 +76,13 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   
   // Ensure correct number of visible cards based on screen size
   useEffect(() => {
+    // Skip this effect on mobile
+    if (isMobile) return;
+    
     setIntros(current => {
       const visibleIntros = current.filter(intro => intro.visible);
       const hiddenIntros = current.filter(intro => !intro.visible);
-      const targetVisibleCount = isMobile ? 1 : 6;
+      const targetVisibleCount = 6; // Fixed to desktop count since we skip for mobile
       
       // If we already have the correct number, no change needed
       if (visibleIntros.length === targetVisibleCount) return current;
@@ -133,6 +139,21 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       return updatedIntros;
     });
   }, [isMobile, nextHiddenCardIndex]);
+  
+  // Ensure all intro cards have an initial state for mobile view
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    // For mobile view, ensure all cards have basic properties set
+    // This avoids any undefined properties when using all cards in the carousel
+    setIntros(current => 
+      current.map((card, index) => ({
+        ...card,
+        // Set default values to avoid any undefined issues in mobile carousel
+        position: index,
+      }))
+    );
+  }, [isMobile]);
   
   return (
     <section className="py-16 bg-white relative">
