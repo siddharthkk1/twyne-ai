@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ArrowDown } from "lucide-react";
+import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -183,6 +182,7 @@ export const ChatWithAISection = () => {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [hasScrollContent, setHasScrollContent] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   
   // Animation effect for element appearance
   useEffect(() => {
@@ -203,6 +203,14 @@ export const ChatWithAISection = () => {
 
   // Handle carousel slide change
   const handleSlideChange = (index: number) => {
+    if (index < 0) {
+      index = conversationSnapshots.length - 1;
+    } else if (index >= conversationSnapshots.length) {
+      index = 0;
+    }
+    
+    setActiveIndex(index);
+    
     // Fade out the chat element
     setIsVisible(false);
     
@@ -276,7 +284,16 @@ export const ChatWithAISection = () => {
           
           {/* Chat simulation with carousel */}
           <div className="flex flex-col items-center w-full max-w-[600px]">
-            <Carousel className="w-full">
+            <Carousel 
+              className="w-full" 
+              onSelect={(api) => {
+                if (api) {
+                  const selectedIndex = api.selectedScrollSnap();
+                  setActiveIndex(selectedIndex);
+                  handleSlideChange(selectedIndex);
+                }
+              }}
+            >
               <CarouselContent>
                 {conversationSnapshots.map((snapshot, index) => (
                   <CarouselItem key={index} className="flex justify-center">
@@ -284,7 +301,6 @@ export const ChatWithAISection = () => {
                       className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
                         isVisible ? 'opacity-100' : 'opacity-0'
                       }`}
-                      onClick={() => handleSlideChange(index)}
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-2">
@@ -299,7 +315,7 @@ export const ChatWithAISection = () => {
                       <div className="relative">
                         <ScrollArea 
                           ref={scrollAreaRef} 
-                          className="h-[300px] pr-2 overflow-visible"
+                          className={`pr-2 overflow-visible ${isMobile ? "h-[375px]" : "h-[300px]"}`}
                           onScrollCapture={handleScroll}
                         >
                           <div className="space-y-4 mb-4">
@@ -349,22 +365,43 @@ export const ChatWithAISection = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="left-2 md:left-4 lg:left-6" />
-              <CarouselNext className="right-2 md:right-4 lg:right-6" />
             </Carousel>
             
-            {/* Conversation switcher dots below the chat element */}
-            <div className="flex justify-center mt-6 space-x-3">
-              {conversationSnapshots.map((_, index) => (
-                <button 
-                  key={index}
-                  onClick={() => handleSlideChange(index)}
-                  className={`h-3 w-3 rounded-full transition-all ${
-                    messages === conversationSnapshots[index] ? 'bg-primary scale-125' : 'bg-muted'
-                  }`}
-                  aria-label={`View conversation ${index + 1}`}
-                />
-              ))}
+            {/* Conversation navigation controls (dots and arrows) */}
+            <div className="flex justify-center items-center mt-6 space-x-8">
+              {/* Left arrow button */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full hover:bg-primary/10"
+                onClick={() => handleSlideChange(activeIndex - 1)}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+
+              {/* Dots */}
+              <div className="flex space-x-3">
+                {conversationSnapshots.map((_, index) => (
+                  <button 
+                    key={index}
+                    onClick={() => handleSlideChange(index)}
+                    className={`h-3 w-3 rounded-full transition-all ${
+                      activeIndex === index ? 'bg-primary scale-125' : 'bg-muted'
+                    }`}
+                    aria-label={`View conversation ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              {/* Right arrow button */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full hover:bg-primary/10"
+                onClick={() => handleSlideChange(activeIndex + 1)}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
             </div>
           </div>
         </div>

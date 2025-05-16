@@ -19,6 +19,11 @@ import { WaitlistFollowUpForm } from "@/components/landing/WaitlistFollowUpForm"
 // The artificial boost we want to add to the waitlist count
 const WAITLIST_BOOST = 524;
 
+// Export isMobile for use in other components
+export const isMobile = () => {
+  return window.innerWidth < 768;
+};
+
 const Index = () => {
   const { user } = useAuth();
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
