@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown } from "lucide-react";
@@ -16,39 +15,39 @@ interface Message {
 
 // Define multiple conversation snapshots with proper typing
 const conversationSnapshots: Message[][] = [
-  // Updated first conversation - More interesting personality/values conversation
+  // Updated first conversation - More genuine getting-to-know-you conversation
   [
     {
       id: 1,
-      text: "If you could have dinner with anyone, living or dead, who would it be and why?",
+      text: "If you could have dinner with anyone, living or dead, who would it be?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling, breaking down cultural barriers. I'd love to hear his unfiltered perspective on life.",
+      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling.",
       sender: "user"
     },
     {
       id: 3,
-      text: "That's a fascinating choice! Bourdain had such a unique ability to find common ground with people across cultures. What aspect of his approach to connecting with others resonates with you most?",
+      text: "That's interesting! What about him or his approach to connecting with others resonates with you?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "His genuine curiosity about people's lives and stories. He never approached cultures as a tourist, but as someone trying to understand the human experience through their perspective. That's something I try to bring to my own relationships.",
+      text: "His genuine curiosity about people's lives and stories. He never approached cultures as a tourist, but as someone trying to understand the human experience.",
       sender: "user"
     },
     {
       id: 5,
-      text: "That reveals a lot about your values - prioritizing authentic connections and understanding others on a deeper level. It sounds like you approach relationships with thoughtfulness and empathy rather than staying on the surface. What other values guide how you connect with people in your life?",
+      text: "Thanks for sharing that. It sounds like authenticity and genuine connections matter to you. What other qualities do you value in your relationships?",
       sender: "ai"
     },
   ],
-  // Music conversation - Starting mid-conversation (Cultural interests)
+  // Updated music conversation - More back-and-forth
   [
     {
       id: 1,
-      text: "So what kind of music are you into these days?",
+      text: "What kind of music do you enjoy listening to these days?",
       sender: "ai"
     },
     {
@@ -58,73 +57,73 @@ const conversationSnapshots: Message[][] = [
     },
     {
       id: 3,
-      text: "Oh yes! Her production with FINNEAS is incredible. 'What Was I Made For' was such a powerful track from the Barbie soundtrack too. Do you prefer her more introspective ballads or her edgier electronic tracks?",
+      text: "I've heard her music has changed quite a bit! What do you appreciate most about her evolution as an artist?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "Definitely her ballads. The vulnerability in her voice on the slower tracks just hits differently. 'When The Party's Over' is still one of my all-time favorites.",
+      text: "I love how she's gotten more vulnerable in her lyrics while experimenting with new sounds. 'When The Party's Over' is still one of my all-time favorites.",
       sender: "user"
     },
     {
       id: 5,
-      text: "That track is a masterpiece! The way she uses silence and space in that song is brilliant. You appreciate emotional depth in music, which says a lot about how you connect with art. Do you play any instruments yourself or is your relationship with music purely as a listener?",
+      text: "That's a beautiful track. Do you generally connect more with lyrics or with the musical composition when you listen to songs?",
       sender: "ai"
     },
   ],
-  // Deep conversation about values and life goals (Meaningful interests)
+  // Updated values conversation - More curious, less assumptive
   [
     {
       id: 1,
-      text: "When you think about your life five years from now, what would make you feel like you've succeeded?",
+      text: "When you think about your life five years from now, what would make you feel fulfilled?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities that bring me joy. I also want to have made progress on my goal to start a community garden project.",
+      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities that bring me joy.",
       sender: "user"
     },
     {
       id: 3,
-      text: "That's really thoughtful. It sounds like your definition of success centers around holistic fulfillment rather than conventional metrics. What inspired your interest in community gardening? It seems to combine environmental values with community building.",
+      text: "That's a thoughtful perspective. What kinds of activities or relationships do you find most meaningful outside of work?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "My grandmother was an avid gardener and taught me everything. When she passed, I realized how much her garden brought people together. Neighbors would stop by, chat, and leave with vegetables. I want to recreate that sense of connection in my urban neighborhood.",
+      text: "I've been thinking about starting a community garden project. My grandmother was an avid gardener and taught me everything. It brought people together in a really special way.",
       sender: "user"
     },
     {
       id: 5,
-      text: "What a beautiful way to honor your grandmother's legacy. That connection between growing food and growing community is profound. The way you speak about this reveals how deeply you value meaningful human connections and creating spaces that nurture both people and the planet. Have you taken any steps toward this garden project yet?",
+      text: "That sounds like a meaningful project. What aspects of community gardening appeal to you most - is it the gardening itself, the community building, or something else?",
       sender: "ai"
     },
   ],
-  // New travel conversation - Aspirational interests
+  // Updated travel conversation - More curious questions
   [
     {
       id: 1,
-      text: "If you could travel anywhere in the world tomorrow, where would you go?",
+      text: "If you could travel anywhere tomorrow, where would you go?",
       sender: "ai"
     },
     {
       id: 2,
-      text: "I've always dreamed of visiting Japan, especially during cherry blossom season. I'm fascinated by the blend of ancient traditions and cutting-edge technology there.",
+      text: "I've always wanted to visit Japan, especially during cherry blossom season. I'm fascinated by the blend of ancient traditions and modern technology there.",
       sender: "user"
     },
     {
       id: 3,
-      text: "Japan during sakura season is magical! Have you been learning any Japanese or researching specific regions you want to visit? The contrast between Tokyo's energy and Kyoto's temples is incredible.",
+      text: "Japan sounds wonderful! What aspects of Japanese culture are you most interested in experiencing?",
       sender: "ai"
     },
     {
       id: 4,
-      text: "I've been using Duolingo for basic phrases and watching travel documentaries. I definitely want to experience Tokyo, but I'm also drawn to less touristy places like the rural villages in Hokkaido and the art islands like Naoshima.",
+      text: "I'm really drawn to the food culture and the concept of wabi-sabi - finding beauty in imperfection. I'd love to explore rural villages in Hokkaido and art islands like Naoshima.",
       sender: "user"
     },
     {
       id: 5,
-      text: "Your approach to travel seems thoughtful and immersive - learning the language and seeking out authentic experiences beyond the typical tourist path. Naoshima is a hidden gem with those amazing Yayoi Kusama installations. This says a lot about how you approach new experiences - with curiosity and a desire for genuine cultural connection rather than just checking off famous landmarks.",
+      text: "That's fascinating. How do you usually approach visiting new places - do you prefer planning everything or leaving room for spontaneous discoveries?",
       sender: "ai"
     },
   ]
