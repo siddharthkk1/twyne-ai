@@ -198,10 +198,9 @@ export const ChatWithAISection = () => {
     if (viewportRef.current) {
       const viewport = viewportRef.current;
       
-      // Calculate if we're at the bottom with a small threshold (10px)
-      const isAtBottom = Math.abs(
-        (viewport.scrollHeight - viewport.scrollTop) - viewport.clientHeight
-      ) < 10;
+      // Use a buffer for better detection of bottom scroll position
+      const buffer = 32; // ~padding + wiggle room
+      const isAtBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - buffer;
       
       setHasScrollContent(!isAtBottom);
     }
@@ -363,7 +362,7 @@ export const ChatWithAISection = () => {
                           className={`pr-2 overflow-visible ${isMobileView ? "h-[375px]" : "h-[300px]"}`}
                           onScrollCapture={handleScroll}
                         >
-                          <div className="space-y-4 pb-8">
+                          <div className="space-y-4 pb-4">
                             {messages.map((message) => (
                               <div
                                 key={`${index}-${message.id}`}
@@ -417,7 +416,7 @@ export const ChatWithAISection = () => {
             
             {/* Conversation navigation controls (dots and arrows) */}
             <div className="flex justify-center items-center mt-6 space-x-8">
-              {/* Left arrow button - Updated to match ProfileCard style */}
+              {/* Left arrow button - Uses ProfileCard style */}
               <Button 
                 onClick={() => handleSlideChange(activeIndex - 1)}
                 size="icon"
@@ -445,7 +444,7 @@ export const ChatWithAISection = () => {
                 ))}
               </div>
 
-              {/* Right arrow button - Updated to match ProfileCard style */}
+              {/* Right arrow button - Uses ProfileCard style */}
               <Button 
                 onClick={() => handleSlideChange(activeIndex + 1)}
                 size="icon"
@@ -465,3 +464,4 @@ export const ChatWithAISection = () => {
     </section>
   );
 };
+
