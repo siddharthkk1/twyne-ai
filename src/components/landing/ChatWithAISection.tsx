@@ -192,36 +192,33 @@ export const ChatWithAISection = () => {
     setIsVisible(true);
   }, []);
 
-  // Handle scroll to control the gradient indicator visibility
-  const handleScroll = () => {
-    if (viewportRef.current) {
-      const viewport = viewportRef.current;
-      
-      // Use a buffer for better detection of bottom scroll position
+  // More reliable scroll event handler using useEffect
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const handleViewportScroll = () => {
       const buffer = 32; // ~padding + wiggle room
       const isAtBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - buffer;
-      
       setHasScrollContent(!isAtBottom);
-    }
-  };
-
-  // Observe content changes to check scroll position
-  useEffect(() => {
-    // Check scroll position after a slight delay to ensure content is rendered
-    const checkScrollPosition = () => {
-      setTimeout(() => {
-        handleScroll();
-      }, 100);
     };
-    
-    checkScrollPosition();
-    
-    // Re-check when messages change
-    if (messages.length > 0) {
-      checkScrollPosition();
-    }
-  }, [messages]);
 
+    viewport.addEventListener("scroll", handleViewportScroll);
+
+    // Initial check
+    handleViewportScroll();
+
+    // Check again after content might have changed
+    const checkScrollPosition = () => {
+      setTimeout(handleViewportScroll, 100);
+    };
+    checkScrollPosition();
+
+    return () => {
+      viewport.removeEventListener("scroll", handleViewportScroll);
+    };
+  }, [messages]);
+  
   // Handle carousel slide change
   const handleSlideChange = (index: number) => {
     if (index < 0) {
@@ -359,7 +356,6 @@ export const ChatWithAISection = () => {
                           ref={scrollAreaRef} 
                           viewportRef={viewportRef}
                           className={`pr-2 overflow-visible ${isMobileView ? "h-[375px]" : "h-[300px]"}`}
-                          onViewportScroll={handleScroll}
                         >
                           <div className="space-y-4 pb-4">
                             {messages.map((message) => (
