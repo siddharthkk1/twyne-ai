@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageCircle, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -11,9 +11,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
+  CarouselApi,
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -387,14 +385,15 @@ export const ChatWithAISection = () => {
             
             {/* Conversation navigation controls (dots and arrows) */}
             <div className="flex justify-center items-center mt-6 space-x-8">
-              {/* Left arrow button */}
+              {/* Left arrow button - Updated to match ProfileCard style */}
               <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full hover:bg-primary/10"
                 onClick={() => handleSlideChange(activeIndex - 1)}
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Previous slide</span>
               </Button>
 
               {/* Dots */}
@@ -406,7 +405,7 @@ export const ChatWithAISection = () => {
                       handleSlideChange(index);
                       api?.scrollTo(index);
                     }}
-                    className={`h-3 w-3 rounded-full transition-all ${
+                    className={`h-2 w-2 rounded-full transition-all ${
                       activeIndex === index ? 'bg-primary scale-125' : 'bg-muted'
                     }`}
                     aria-label={`View conversation ${index + 1}`}
@@ -414,14 +413,15 @@ export const ChatWithAISection = () => {
                 ))}
               </div>
 
-              {/* Right arrow button */}
+              {/* Right arrow button - Updated to match ProfileCard style */}
               <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full hover:bg-primary/10"
                 onClick={() => handleSlideChange(activeIndex + 1)}
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ArrowRight className="h-4 w-4" />
+                <span className="sr-only">Next slide</span>
               </Button>
             </div>
           </div>
