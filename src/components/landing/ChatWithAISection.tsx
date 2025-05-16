@@ -262,7 +262,7 @@ export const ChatWithAISection = () => {
   }, [api]);
   
   // Function to scroll to bottom
- const scrollToBottom = () => {
+const scrollToBottom = () => {
   const scrollable = viewportRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
   if (scrollable) {
     scrollable.scrollTo({
@@ -271,6 +271,7 @@ export const ChatWithAISection = () => {
     });
   }
 };
+
 
 
   return (
