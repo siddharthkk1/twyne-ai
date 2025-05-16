@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,6 +14,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   id: number;
@@ -183,6 +185,7 @@ export const ChatWithAISection = () => {
   const [hasScrollContent, setHasScrollContent] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const isMobileView = useIsMobile();
   
   // Animation effect for element appearance
   useEffect(() => {
@@ -288,9 +291,7 @@ export const ChatWithAISection = () => {
               className="w-full" 
               onSelect={(api) => {
                 if (api) {
-                  const selectedIndex = api.selectedScrollSnap();
-                  setActiveIndex(selectedIndex);
-                  handleSlideChange(selectedIndex);
+                  handleSlideChange(api.selectedScrollSnap());
                 }
               }}
             >
@@ -315,7 +316,7 @@ export const ChatWithAISection = () => {
                       <div className="relative">
                         <ScrollArea 
                           ref={scrollAreaRef} 
-                          className={`pr-2 overflow-visible ${isMobile ? "h-[375px]" : "h-[300px]"}`}
+                          className={`pr-2 overflow-visible ${isMobileView ? "h-[375px]" : "h-[300px]"}`}
                           onScrollCapture={handleScroll}
                         >
                           <div className="space-y-4 mb-4">
@@ -412,3 +413,4 @@ export const ChatWithAISection = () => {
     </section>
   );
 };
+
