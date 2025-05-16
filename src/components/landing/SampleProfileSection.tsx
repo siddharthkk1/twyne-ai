@@ -70,7 +70,7 @@ export const SampleProfileSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="grid md:grid-cols-2 gap-8 items-center max-w-[500px]">
           {/* Left side - Section description */}
           <SectionDescription />
 
