@@ -15,91 +15,7 @@ interface Message {
 
 // Define multiple conversation snapshots with proper typing
 const conversationSnapshots: Message[][] = [
-  // Updated first conversation - More genuine getting-to-know-you conversation
-  [
-    {
-      id: 1,
-      text: "If you could have dinner with anyone, living or dead, who would it be?",
-      sender: "ai"
-    },
-    {
-      id: 2,
-      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling.",
-      sender: "user"
-    },
-    {
-      id: 3,
-      text: "That's interesting! What about him or his approach to connecting with others resonates with you?",
-      sender: "ai"
-    },
-    {
-      id: 4,
-      text: "His genuine curiosity about people's lives and stories. He never approached cultures as a tourist, but as someone trying to understand the human experience.",
-      sender: "user"
-    },
-    {
-      id: 5,
-      text: "Thanks for sharing that. It sounds like authenticity and genuine connections matter to you. What other qualities do you value in your relationships?",
-      sender: "ai"
-    },
-  ],
-  // Updated music conversation - More back-and-forth
-  [
-    {
-      id: 1,
-      text: "What kind of music do you enjoy listening to these days?",
-      sender: "ai"
-    },
-    {
-      id: 2,
-      text: "Lately I've been obsessed with Billie Eilish's new album. Her sound has really evolved since her early work.",
-      sender: "user"
-    },
-    {
-      id: 3,
-      text: "I've heard her music has changed quite a bit! What do you appreciate most about her evolution as an artist?",
-      sender: "ai"
-    },
-    {
-      id: 4,
-      text: "I love how she's gotten more vulnerable in her lyrics while experimenting with new sounds. 'When The Party's Over' is still one of my all-time favorites.",
-      sender: "user"
-    },
-    {
-      id: 5,
-      text: "That's a beautiful track. Do you generally connect more with lyrics or with the musical composition when you listen to songs?",
-      sender: "ai"
-    },
-  ],
-  // Updated values conversation - More curious, less assumptive
-  [
-    {
-      id: 1,
-      text: "When you think about your life five years from now, what would make you feel fulfilled?",
-      sender: "ai"
-    },
-    {
-      id: 2,
-      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities that bring me joy.",
-      sender: "user"
-    },
-    {
-      id: 3,
-      text: "That's a thoughtful perspective. What kinds of activities or relationships do you find most meaningful outside of work?",
-      sender: "ai"
-    },
-    {
-      id: 4,
-      text: "I've been thinking about starting a community garden project. My grandmother was an avid gardener and taught me everything. It brought people together in a really special way.",
-      sender: "user"
-    },
-    {
-      id: 5,
-      text: "That sounds like a meaningful project. What aspects of community gardening appeal to you most - is it the gardening itself, the community building, or something else?",
-      sender: "ai"
-    },
-  ],
-  // Updated travel conversation - More curious questions
+  // Travel conversation - Japan - Higher to deeper level
   [
     {
       id: 1,
@@ -126,6 +42,130 @@ const conversationSnapshots: Message[][] = [
       text: "That's fascinating. How do you usually approach visiting new places - do you prefer planning everything or leaving room for spontaneous discoveries?",
       sender: "ai"
     },
+    {
+      id: 6,
+      text: "I like having a loose framework but leaving plenty of room for wandering. Some of my best travel memories are from getting lost and stumbling upon unexpected places.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's a beautiful approach. What would you hope to learn about yourself through immersing in a culture so different from your own?",
+      sender: "ai"
+    }
+  ],
+  // Values conversation - Garden project - Medium level depth
+  [
+    {
+      id: 1,
+      text: "When you think about your life five years from now, what would make you feel fulfilled?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities that bring me joy.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "That's a thoughtful perspective. What kinds of activities or relationships do you find most meaningful outside of work?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I've been thinking about starting a community garden project. My grandmother was an avid gardener and taught me everything. It brought people together in a really special way.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "That sounds like a meaningful project. What aspects of community gardening appeal to you most - is it the gardening itself, the community building, or something else?",
+      sender: "ai"
+    },
+    {
+      id: 6,
+      text: "It's definitely a blend of both. There's something therapeutic about working with your hands in the soil, but watching neighbors become friends over shared harvests is the real magic.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "I love how you see that connection between nature and human relationships. What's one challenge you anticipate in starting this project, and how might you approach it?",
+      sender: "ai"
+    }
+  ],
+  // Music conversation - Moving from casual to deeper insights
+  [
+    {
+      id: 1,
+      text: "What kind of music do you enjoy listening to these days?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "Lately I've been obsessed with Billie Eilish's new album. Her sound has really evolved since her early work.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "I've heard her music has changed quite a bit! What do you appreciate most about her evolution as an artist?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I love how she's gotten more vulnerable in her lyrics while experimenting with new sounds. 'When The Party's Over' is still one of my all-time favorites.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "That's a beautiful track. Do you generally connect more with lyrics or with the musical composition when you listen to songs?",
+      sender: "ai"
+    },
+    {
+      id: 6,
+      text: "It's the lyrics first, definitely. I need to feel like the artist is telling a truth that resonates with me. But the right melody can make those lyrics hit so much harder.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That makes sense. Has a particular song ever changed your perspective or helped you through a difficult time? What was it about that music that reached you?",
+      sender: "ai"
+    }
+  ],
+  // Dinner conversation - Deep, personal exploration
+  [
+    {
+      id: 1,
+      text: "If you could have dinner with anyone, living or dead, who would it be?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "That's interesting! What about him or his approach to connecting with others resonates with you?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "His genuine curiosity about people's lives and stories. He never approached cultures as a tourist, but as someone trying to understand the human experience.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "Thanks for sharing that. It sounds like authenticity and genuine connections matter to you. What other qualities do you value in your relationships?",
+      sender: "ai"
+    },
+    {
+      id: 6,
+      text: "I think it's about presence - really listening rather than just waiting to speak. And vulnerability - being willing to share the messy parts of yourself, not just the highlights reel.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's profound. When was the last time you felt truly understood by someone? What made that interaction different from others?",
+      sender: "ai"
+    }
   ]
 ];
 
