@@ -15,7 +15,7 @@ interface ProfileCardProps {
 
 export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
   return (
-    <Card className="shadow-md border border-border/50 overflow-hidden pb-0">
+    <Card className="shadow-md border border-border/50 overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 py-3">
         <div className="flex items-center">
           {/* Left: Avatar */}
