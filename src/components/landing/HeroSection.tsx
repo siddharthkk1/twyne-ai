@@ -168,7 +168,7 @@ export const HeroSection = ({
               }`}
               style={{ transitionDelay: '200ms', letterSpacing: '-0.01em' }}
             >
-              The AI platform for making connections and building relationships
+              The emotionally intelligent AI for your social life
             </h2>
             {/* Updated description - ensure it wraps properly on all screen sizes */}
             <p className="block mt-1 px-4 sm:px-0">
