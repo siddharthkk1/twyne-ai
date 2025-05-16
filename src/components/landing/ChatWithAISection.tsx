@@ -183,6 +183,7 @@ export const ChatWithAISection = () => {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [hasScrollContent, setHasScrollContent] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const isMobileView = useIsMobile();
   const [api, setApi] = useState<CarouselApi | null>(null);
@@ -194,15 +195,34 @@ export const ChatWithAISection = () => {
 
   // Handle scroll to control the gradient indicator visibility
   const handleScroll = () => {
-    if (scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
-      if (viewport) {
-        // Check if scrolled to bottom (or nearly)
-        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 20;
-        setHasScrollContent(!isAtBottom);
-      }
+    if (viewportRef.current) {
+      const viewport = viewportRef.current;
+      
+      // Calculate if we're at the bottom with a small threshold (10px)
+      const isAtBottom = Math.abs(
+        (viewport.scrollHeight - viewport.scrollTop) - viewport.clientHeight
+      ) < 10;
+      
+      setHasScrollContent(!isAtBottom);
     }
   };
+
+  // Observe content changes to check scroll position
+  useEffect(() => {
+    // Check scroll position after a slight delay to ensure content is rendered
+    const checkScrollPosition = () => {
+      setTimeout(() => {
+        handleScroll();
+      }, 100);
+    };
+    
+    checkScrollPosition();
+    
+    // Re-check when messages change
+    if (messages.length > 0) {
+      checkScrollPosition();
+    }
+  }, [messages]);
 
   // Handle carousel slide change
   const handleSlideChange = (index: number) => {
@@ -224,11 +244,8 @@ export const ChatWithAISection = () => {
       setHasScrollContent(true);
       
       // Reset scroll position to top when changing conversations
-      if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-        if (viewport) {
-          viewport.scrollTop = 0;
-        }
+      if (viewportRef.current) {
+        viewportRef.current.scrollTop = 0;
       }
     }, 150); // Short transition time
   };
@@ -238,8 +255,9 @@ export const ChatWithAISection = () => {
     if (!api) return;
     
     const handleSelect = () => {
-      setActiveIndex(api.selectedScrollSnap());
-      handleSlideChange(api.selectedScrollSnap());
+      const currentIndex = api.selectedScrollSnap();
+      setActiveIndex(currentIndex);
+      handleSlideChange(currentIndex);
     };
     
     api.on("select", handleSelect);
@@ -247,6 +265,16 @@ export const ChatWithAISection = () => {
       api.off("select", handleSelect);
     };
   }, [api]);
+  
+  // Function to scroll to bottom
+  const scrollToBottom = () => {
+    if (viewportRef.current) {
+      viewportRef.current.scrollTo({
+        top: viewportRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  };
 
   return (
     <section className="py-16 bg-white relative overflow-hidden">
@@ -331,10 +359,11 @@ export const ChatWithAISection = () => {
                       <div className="relative">
                         <ScrollArea 
                           ref={scrollAreaRef} 
+                          viewportRef={viewportRef}
                           className={`pr-2 overflow-visible ${isMobileView ? "h-[375px]" : "h-[300px]"}`}
                           onScrollCapture={handleScroll}
                         >
-                          <div className="space-y-4 mb-4">
+                          <div className="space-y-4 pb-8">
                             {messages.map((message) => (
                               <div
                                 key={`${index}-${message.id}`}
@@ -352,8 +381,11 @@ export const ChatWithAISection = () => {
                         {hasScrollContent && (
                           <>
                             {/* Arrow indicator with circular background */}
-                            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
-                              <div className="bg-primary/70 rounded-full p-2">
+                            <div 
+                              className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10 cursor-pointer"
+                              onClick={scrollToBottom}
+                            >
+                              <div className="bg-primary/70 rounded-full p-2 hover:bg-primary/90 transition-colors">
                                 <ArrowDown className="h-4 w-4 text-white" />
                               </div>
                             </div>
@@ -433,4 +465,3 @@ export const ChatWithAISection = () => {
     </section>
   );
 };
-
