@@ -87,7 +87,7 @@ export const SampleProfileSection = () => {
               <CarouselContent>
                 {connectionProfiles.map((profile, index) => (
                   <CarouselItem key={index} className="flex justify-center">
-                    <div className="w-full max-w-md mx-auto px-2">
+                    <div className="w-full max-w-[600px] mx-auto px-2">
                       <ProfileCard profile={profile} />
                     </div>
                   </CarouselItem>
