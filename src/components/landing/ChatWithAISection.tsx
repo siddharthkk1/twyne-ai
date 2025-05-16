@@ -262,17 +262,14 @@ export const ChatWithAISection = () => {
   }, [api]);
   
   // Function to scroll to bottom
-const scrollToBottom = () => {
-  const scrollable = viewportRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
-  if (scrollable) {
-    scrollable.scrollTo({
-      top: scrollable.scrollHeight,
-      behavior: "smooth"
-    });
-  }
-};
-
-
+  const scrollToBottom = () => {
+    if (viewportRef.current) {
+      viewportRef.current.scrollTo({
+        top: viewportRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  };
 
   return (
     <section className="py-16 bg-white relative overflow-hidden">
