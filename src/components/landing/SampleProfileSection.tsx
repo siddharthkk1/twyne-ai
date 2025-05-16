@@ -70,10 +70,11 @@ export const SampleProfileSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 items-center max-w-[500px]">
+        <div className="grid md:grid-cols-2 gap-8 items-center">
           {/* Left side - Section description */}
-          <SectionDescription />
-
+          <div className = "max-w-[500px]"></div>
+            <SectionDescription />
+          </div>
           {/* Right side - Profile card with carousel for all screen sizes */}
           <div className="relative">
             <Carousel
