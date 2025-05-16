@@ -1,11 +1,18 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ArrowDown } from "lucide-react";
+import { MessageCircle, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   IoCheckmark
 } from "react-icons/io5";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselApi,
+} from "@/components/ui/carousel";
 
 interface Message {
   id: number;
@@ -176,21 +183,18 @@ export const ChatWithAISection = () => {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [hasScrollContent, setHasScrollContent] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [api, setApi] = useState<CarouselApi>();
   
-  // Animation effect for element appearance
+  // Set up the API for carousel
   useEffect(() => {
-    setIsVisible(true);
-  }, []);
-  
-  // Effect to update messages when snapshot index changes manually
-  useEffect(() => {
-    // Only fade out the chat element
-    setIsVisible(false);
-    
-    // After a short delay, change the messages and fade them back in
-    const timeout = setTimeout(() => {
-      setMessages(conversationSnapshots[currentSnapshotIndex]);
-      setIsVisible(true);
+    if (!api) {
+      return;
+    }
+ 
+    const onSelect = () => {
+      const selectedIndex = api.selectedScrollSnap();
+      setCurrentSnapshotIndex(selectedIndex);
+      setMessages(conversationSnapshots[selectedIndex]);
       setHasScrollContent(true);
       
       // Reset scroll position to top when changing conversations
@@ -200,10 +204,32 @@ export const ChatWithAISection = () => {
           viewport.scrollTop = 0;
         }
       }
-    }, 150); // Short transition time
+    };
+ 
+    api.on("select", onSelect);
     
-    return () => clearTimeout(timeout);
-  }, [currentSnapshotIndex]);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
+  
+  // Animation effect for element appearance
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+  
+  // Handle manual navigation
+  const handlePrev = () => {
+    if (api) {
+      api.scrollPrev();
+    }
+  };
+
+  const handleNext = () => {
+    if (api) {
+      api.scrollNext();
+    }
+  };
 
   // Hide gradient indicator when user has scrolled to bottom
   const handleScroll = () => {
@@ -226,7 +252,7 @@ export const ChatWithAISection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 items-center justify-items-center">
-          {/* Text content - Width reduced by 15% */}
+          {/* Text content */}
           <div className="space-y-6 w-full max-w-[450px] mb-8 md:mb-0">
             <p className="text-lg">
               Twyne's AI learns your personality, interests, and what matters to you—creating 
@@ -269,86 +295,126 @@ export const ChatWithAISection = () => {
             </div>
           </div>
           
-          {/* Chat simulation - With original width */}
+          {/* Chat simulation - With carousel for swiping */}
           <div className="flex flex-col items-center w-full max-w-[600px]">
-            <div 
-              className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
-                isVisible ? 'opacity-100' : 'opacity-0'
-              }`}
+            <Carousel
+              setApi={setApi}
+              className="w-full"
+              opts={{
+                align: "center",
+                loop: true,
+              }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <MessageCircle className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-medium">Chat with Twyne</h3>
-                </div>
-              </div>
-              
-              {/* Scroll container with gradient fade and scroll arrow at the bottom */}
-              <div className="relative">
-                <ScrollArea 
-                  ref={scrollAreaRef} 
-                  className="h-[300px] pr-2 overflow-visible"
-                  onScrollCapture={handleScroll}
-                >
-                  <div className="space-y-4 mb-4">
-                    {messages.map((message) => (
-                      <div
-                        key={`${currentSnapshotIndex}-${message.id}`}
-                        className={`animate-fade-in ${
-                          message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-                        }`}
-                      >
-                        {message.text}
+              <CarouselContent>
+                {conversationSnapshots.map((snapshot, idx) => (
+                  <CarouselItem key={idx} className="flex justify-center">
+                    <div 
+                      className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
+                        isVisible ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <MessageCircle className="h-5 w-5 text-primary" />
+                          </div>
+                          <h3 className="font-medium">Chat with Twyne</h3>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                
-                {/* Combined arrow indicator and gradient fade overlay - moved closer to bottom with increased opacity */}
-                {hasScrollContent && (
-                  <>
-                    {/* Arrow indicator with circular background - positioned lower with increased opacity */}
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
-                      <div className="bg-primary/70 rounded-full p-2">
-                        <ArrowDown className="h-4 w-4 text-white" />
+                      
+                      {/* Scroll container with gradient fade and scroll arrow at the bottom */}
+                      <div className="relative">
+                        <ScrollArea 
+                          ref={scrollAreaRef} 
+                          className="h-[300px] pr-2 overflow-visible"
+                          onScrollCapture={handleScroll}
+                        >
+                          <div className="space-y-4 mb-4">
+                            {messages.map((message) => (
+                              <div
+                                key={`${currentSnapshotIndex}-${message.id}`}
+                                className={`animate-fade-in ${
+                                  message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+                                }`}
+                              >
+                                {message.text}
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                        
+                        {/* Combined arrow indicator and gradient fade overlay */}
+                        {hasScrollContent && (
+                          <>
+                            {/* Arrow indicator with circular background */}
+                            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
+                              <div className="bg-primary/70 rounded-full p-2">
+                                <ArrowDown className="h-4 w-4 text-white" />
+                              </div>
+                            </div>
+                            {/* Gradient fade */}
+                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                          </>
+                        )}
+                      </div>
+                      
+                      <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
+                        <input 
+                          type="text" 
+                          placeholder="Tell me more about yourself..."
+                          className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
+                          disabled
+                        />
+                        <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <path d="M22 2L11 13"></path>
+                            <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                    {/* Gradient fade */}
-                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-                  </>
-                )}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+            
+            {/* Navigation controls */}
+            <div className="flex items-center justify-center mt-6 space-x-4">
+              {/* Left arrow button */}
+              <Button 
+                onClick={handlePrev} 
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Previous conversation</span>
+              </Button>
+              
+              {/* Dots navigation */}
+              <div className="flex justify-center space-x-2">
+                {conversationSnapshots.map((_, index) => (
+                  <button 
+                    key={index}
+                    onClick={() => api?.scrollTo(index)}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      currentSnapshotIndex === index ? 'bg-primary scale-125' : 'bg-muted'
+                    }`}
+                    aria-label={`Go to conversation ${index + 1}`}
+                  />
+                ))}
               </div>
               
-              <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
-                <input 
-                  type="text" 
-                  placeholder="Tell me more about yourself..."
-                  className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
-                  disabled
-                />
-                <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                    <path d="M22 2L11 13"></path>
-                    <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
-            
-            {/* Conversation switcher dots moved below the chat element */}
-            <div className="flex justify-center mt-6 space-x-3">
-              {conversationSnapshots.map((_, index) => (
-                <button 
-                  key={index}
-                  onClick={() => setCurrentSnapshotIndex(index)}
-                  className={`h-3 w-3 rounded-full transition-all ${
-                    currentSnapshotIndex === index ? 'bg-primary scale-125' : 'bg-muted'
-                  }`}
-                  aria-label={`View conversation ${index + 1}`}
-                />
-              ))}
+              {/* Right arrow button */}
+              <Button 
+                onClick={handleNext}
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+              >
+                <ArrowRight className="h-4 w-4" />
+                <span className="sr-only">Next conversation</span>
+              </Button>
             </div>
           </div>
         </div>
