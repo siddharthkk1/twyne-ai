@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
@@ -360,7 +359,7 @@ export const ChatWithAISection = () => {
                           ref={scrollAreaRef} 
                           viewportRef={viewportRef}
                           className={`pr-2 overflow-visible ${isMobileView ? "h-[375px]" : "h-[300px]"}`}
-                          onScrollCapture={handleScroll}
+                          onViewportScroll={handleScroll}
                         >
                           <div className="space-y-4 pb-4">
                             {messages.map((message) => (
@@ -394,6 +393,7 @@ export const ChatWithAISection = () => {
                         )}
                       </div>
                       
+                      {/* Input field at bottom of chat */}
                       <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
                         <input 
                           type="text" 
@@ -464,4 +464,3 @@ export const ChatWithAISection = () => {
     </section>
   );
 };
-
