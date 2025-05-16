@@ -13,6 +13,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -186,6 +187,7 @@ export const ChatWithAISection = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const isMobileView = useIsMobile();
+  const [api, setApi] = useState<CarouselApi | null>(null);
   
   // Animation effect for element appearance
   useEffect(() => {
@@ -232,6 +234,21 @@ export const ChatWithAISection = () => {
       }
     }, 150); // Short transition time
   };
+
+  // Handle carousel API changes
+  useEffect(() => {
+    if (!api) return;
+    
+    const handleSelect = () => {
+      setActiveIndex(api.selectedScrollSnap());
+      handleSlideChange(api.selectedScrollSnap());
+    };
+    
+    api.on("select", handleSelect);
+    return () => {
+      api.off("select", handleSelect);
+    };
+  }, [api]);
 
   return (
     <section className="py-16 bg-white relative overflow-hidden">
@@ -289,10 +306,10 @@ export const ChatWithAISection = () => {
           <div className="flex flex-col items-center w-full max-w-[600px]">
             <Carousel 
               className="w-full" 
-              onSelect={(api) => {
-                if (api) {
-                  handleSlideChange(api.selectedScrollSnap());
-                }
+              setApi={setApi}
+              opts={{
+                align: "center",
+                loop: true,
               }}
             >
               <CarouselContent>
@@ -385,7 +402,10 @@ export const ChatWithAISection = () => {
                 {conversationSnapshots.map((_, index) => (
                   <button 
                     key={index}
-                    onClick={() => handleSlideChange(index)}
+                    onClick={() => {
+                      handleSlideChange(index);
+                      api?.scrollTo(index);
+                    }}
                     className={`h-3 w-3 rounded-full transition-all ${
                       activeIndex === index ? 'bg-primary scale-125' : 'bg-muted'
                     }`}
