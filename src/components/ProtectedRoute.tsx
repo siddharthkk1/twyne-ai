@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isNewUser } = useAuth();
   const location = useLocation();
   const isOnboardingPath = location.pathname === "/onboarding";
 
@@ -20,10 +20,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
+  // If user isn't logged in, redirect to auth
   if (!user) {
     return <Navigate to="/auth" />;
   }
 
+  // If this is a new user and they're not at onboarding, RedirectNewUser will handle it
+  // If they're already at onboarding, let them stay there
   return <>{children}</>;
 };
 

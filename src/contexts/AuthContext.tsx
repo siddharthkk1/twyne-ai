@@ -30,11 +30,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Mark as new user if this is a sign up event
-        if (event === 'SIGNED_IN' && !session?.user.user_metadata?.has_onboarded) {
+        // Mark as new user if this is a sign up event or if user hasn't onboarded
+        if (session?.user && 
+            (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && 
+            session.user.user_metadata?.has_onboarded === false) {
+          console.log("Setting user as new");
           setIsNewUser(true);
         }
         
@@ -54,7 +58,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
+      // Check if this is a new user based on metadata
       if (session?.user) {
+        const hasOnboarded = session.user.user_metadata?.has_onboarded;
+        if (hasOnboarded === false) {
+          console.log("User hasn't completed onboarding");
+          setIsNewUser(true);
+        }
         fetchProfile(session.user.id);
       }
       setIsLoading(false);
@@ -120,6 +130,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const clearNewUserFlag = () => {
+    console.log("Clearing new user flag");
     setIsNewUser(false);
   };
 

@@ -33,6 +33,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            {/* Put the onboarding route first to give it priority */}
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <OnboardingChat />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +72,7 @@ const OnboardingChat = () => {
     personalInsights: [],
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
+  const { user, clearNewUserFlag } = useAuth();
   const navigate = useNavigate();
 
   // Enhanced conversation logic - dynamic questions based on previous answers
@@ -296,6 +295,10 @@ const OnboardingChat = () => {
             description: "Failed to update your profile. Please try again.",
             variant: "destructive",
           });
+        } else {
+          // Clear the new user flag after successful onboarding
+          clearNewUserFlag();
+          console.log("User has been marked as onboarded");
         }
       } catch (error) {
         console.error("Error marking user as onboarded:", error);
