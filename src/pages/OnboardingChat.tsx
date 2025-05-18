@@ -64,7 +64,12 @@ const OPENAI_API_KEY = "sk-proj-iiNFTpA-KXexD2wdItpsWj_hPQoaZgSt2ytEPOrfYmKAqT0V
 const initialMessages: Message[] = [
   {
     id: 1,
-    text: "Hey there 👋 I'm Twyne — here to get to know you a bit and help you connect with people you'll actually vibe with. This usually takes around 5–10 minutes, and you can share whatever feels natural. Let's start light — what's your name or what do you like to be called?",
+    text: "Hey there 👋 I'm Twyne — here to get to know you a bit and help you connect with people you'll actually vibe with. This usually takes around 5–10 minutes, and you can share whatever feels natural.",
+    sender: "ai",
+  },
+  {
+    id: 1,
+    text: "Let's start light — what's your name or what do you like to be called?",
     sender: "ai",
   },
 ];
