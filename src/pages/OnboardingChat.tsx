@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 
 interface Message {
   id: number;
@@ -33,6 +34,15 @@ interface UserProfile {
   lookingFor?: string;
   values?: string;
   misunderstood?: string;
+  lifeStory?: string;
+  background?: string;
+  careerOrEducation?: string;
+  creativePursuits?: string;
+  meaningfulAchievements?: string;
+  lifePhilosophy?: string;
+  challengesOvercome?: string;
+  growthJourney?: string;
+  emotionalIntelligence?: string;
 }
 
 const initialMessages: Message[] = [
@@ -66,58 +76,67 @@ const OnboardingChat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Conversation logic - dynamic questions based on previous answers
+  // Enhanced conversation logic - dynamic questions based on previous answers
   const getNextQuestion = () => {
     const questions = [
       // Follow-up based on name
-      `Nice to meet you, ${userProfile.name}! Where are you currently based?`,
+      `Nice to meet you, ${userProfile.name || "there"}! Where are you currently based?`,
       
       // Follow-up on location
       (profile: UserProfile) => 
-        `How long have you been in ${profile.location}? And where did you grow up?`,
+        `How long have you been in ${profile.location || "your area"}? And where did you grow up?`,
+      
+      // Age question
+      "If you're comfortable sharing, how old are you?",
+      
+      // Background/Life story
+      "I'd love to know a bit about your background or life story. What are some key experiences that have shaped who you are today?",
+      
+      // Career or education
+      "What do you do in terms of work, studies, or other pursuits that occupy your time?",
       
       // Social energy question
       "I'd love to understand your social vibe better. How would you describe your energy in social situations? Are you more energized by deep one-on-ones or lively group settings?",
       
       // Interests/passion question
-      "What's something you could talk about for hours and never get bored? Or maybe something you're curious about lately?",
+      "What are some things you're passionate about or could talk about for hours? I'd love to hear about your interests.",
+      
+      // Creative pursuits
+      "Do you have any creative outlets or hobbies you enjoy? What do they mean to you?",
       
       // Weekend activities
       "What's your ideal weekend look like when you have nothing planned?",
       
       // Media and culture
-      "Any books, shows, or music you've been into lately that you'd love to discuss with new friends?",
-      
-      // Connection preferences
-      "When it comes to making new connections, what kind of people do you tend to click with? Any green flags you look for?",
+      "Any books, shows, music, or cultural interests that have influenced you or that you've been into lately?",
       
       // Values question
-      "What's something people often misunderstand about you, or that takes time for others to see?",
+      "What values or principles are most important to you in life or in relationships?",
+      
+      // Connection preferences
+      "When it comes to making connections, what kind of people do you tend to click with? Any green flags you look for?",
+      
+      // Meaningful achievements
+      "What's something you've done or created that you're particularly proud of?",
+      
+      // Life philosophy
+      "Do you have any personal philosophy or approach to life that guides your decisions?",
+      
+      // Challenges overcome
+      "Without getting too personal, what's a challenge you've faced that has helped you grow?",
       
       // Looking for
-      "What kind of friendship are you hoping to find right now? One or two close people, a wider social circle, or something specific?",
+      "What kind of friendship or connection experience are you hoping to find right now?",
+      
+      // Misunderstood aspects
+      "What's something about you that people often misunderstand or that takes time for others to see?",
+      
+      // Friendship pace/style
+      "How would you describe your approach to friendships? Are you someone who prefers to go deep quickly or take time to build trust?",
       
       // Reflection and wrap-up
       (profile: UserProfile) => {
-        const insights = [];
-        
-        if (profile.location) {
-          insights.push(`based in ${profile.location}`);
-        }
-        
-        if (profile.socialStyle) {
-          insights.push(profile.socialStyle.toLowerCase());
-        }
-        
-        if (profile.interests && profile.interests.length > 0) {
-          insights.push(`passionate about ${profile.interests.join(", ")}`);
-        }
-        
-        const insightText = insights.length > 0 
-          ? `You're ${insights.join(", ")}. `
-          : "";
-          
-        return `${insightText}Got it! I think I've got your vibe now. I'll use this to connect you with people nearby who you'll genuinely click with—not just random matches. I'll let you know when I find good connections!`;
+        return "Thank you for sharing all this with me. I've learned a lot about who you are and what matters to you. I'm going to put together a profile based on our conversation. This will help me connect you with people who truly match your vibe and values.";
       }
     ];
 
@@ -147,38 +166,65 @@ const OnboardingChat = () => {
         const locationInfo = response.trim();
         setUserProfile(prev => ({ 
           ...prev, 
-          timeInCurrentCity: locationInfo.split("?")[0]?.trim() || "",
+          timeInCurrentCity: locationInfo.split("?")[0]?.trim() || locationInfo,
           hometown: locationInfo.split("?")[1]?.trim() || ""
         }));
         break;
-      case 3: // Social energy
+      case 3: // Age
+        setUserProfile(prev => ({ ...prev, age: response.trim() }));
+        break;
+      case 4: // Background/Life story
+        setUserProfile(prev => ({ ...prev, lifeStory: response.trim(), background: response.trim() }));
+        break;
+      case 5: // Career or education
+        setUserProfile(prev => ({ ...prev, careerOrEducation: response.trim() }));
+        break;
+      case 6: // Social energy
         setUserProfile(prev => ({ ...prev, socialStyle: response.trim(), socialEnergy: response.trim() }));
         break;
-      case 4: // Interests/Passions
+      case 7: // Interests/Passions
         setUserProfile(prev => ({ 
           ...prev, 
-          interests: [...(prev.interests || []), response.trim()],
+          interests: [...(prev.interests || []), ...response.split(",").map(item => item.trim())],
           talkingPoints: [...(prev.talkingPoints || []), response.trim()]
         }));
         break;
-      case 5: // Weekend activities
+      case 8: // Creative pursuits
+        setUserProfile(prev => ({ ...prev, creativePursuits: response.trim() }));
+        break;
+      case 9: // Weekend activities
         setUserProfile(prev => ({ ...prev, weekendActivities: response.trim() }));
         break;
-      case 6: // Media tastes
+      case 10: // Media tastes
         setUserProfile(prev => ({ ...prev, mediaTastes: response.trim() }));
         break;
-      case 7: // Connection preferences
+      case 11: // Values
+        setUserProfile(prev => ({ ...prev, values: response.trim() }));
+        break;
+      case 12: // Connection preferences
         setUserProfile(prev => ({ ...prev, connectionPreferences: response.trim() }));
         break;
-      case 8: // Misunderstood
+      case 13: // Meaningful achievements
+        setUserProfile(prev => ({ ...prev, meaningfulAchievements: response.trim() }));
+        break;
+      case 14: // Life philosophy
+        setUserProfile(prev => ({ ...prev, lifePhilosophy: response.trim() }));
+        break;
+      case 15: // Challenges overcome
+        setUserProfile(prev => ({ ...prev, challengesOvercome: response.trim() }));
+        break;
+      case 16: // Looking for
+        setUserProfile(prev => ({ ...prev, lookingFor: response.trim() }));
+        break;
+      case 17: // Misunderstood
         setUserProfile(prev => ({ 
           ...prev, 
           misunderstood: response.trim(),
           personalInsights: [...(prev.personalInsights || []), response.trim()]
         }));
         break;
-      case 9: // Looking for
-        setUserProfile(prev => ({ ...prev, lookingFor: response.trim() }));
+      case 18: // Friendship pace/style
+        setUserProfile(prev => ({ ...prev, friendshipPace: response.trim() }));
         break;
     }
   };
@@ -265,67 +311,63 @@ const OnboardingChat = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col gradient-bg">
-      <div className="p-4 border-b bg-background/80 backdrop-blur-sm">
-        <h1 className="text-xl font-medium text-center">Chat with Twyne</h1>
-      </div>
-
-      <div className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-4 pb-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`animate-fade-in ${
-                message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
-              }`}
-            >
-              {message.text}
-            </div>
-          ))}
-          {isTyping && (
-            <div className="chat-bubble-ai animate-pulse flex space-x-1">
-              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-            </div>
-          )}
-          <div ref={messagesEndRef}></div>
-        </div>
-      </div>
-
-      {isComplete ? (
-        <div className="p-4 bg-background/80 backdrop-blur-sm border-t">
-          <div className="text-center mb-4">
-            <h2 className="text-lg font-medium">Profile Created!</h2>
-            <p className="text-muted-foreground">
-              I'll notify you when I find people you might click with.
-            </p>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      {!isComplete ? (
+        <>
+          <div className="p-4 border-b backdrop-blur-sm bg-background/80 flex items-center justify-center">
+            <h1 className="text-xl font-medium">Getting to Know You</h1>
           </div>
-          <Button asChild className="w-full rounded-full">
-            <Link to="/connections">See Your Connections</Link>
-          </Button>
-        </div>
+
+          <div className="flex-1 p-4 overflow-y-auto">
+            <div className="space-y-4 pb-4 max-w-3xl mx-auto">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`animate-fade-in ${
+                    message.sender === "user" 
+                      ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto" 
+                      : "chat-bubble-ai bg-background border border-border/50 shadow-sm"
+                  } rounded-2xl p-4 max-w-[85%] md:max-w-[70%]`}
+                >
+                  {message.text}
+                </div>
+              ))}
+              {isTyping && (
+                <div className="chat-bubble-ai bg-background border border-border/50 shadow-sm rounded-2xl p-4 animate-pulse flex space-x-1 w-16">
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                </div>
+              )}
+              <div ref={messagesEndRef}></div>
+            </div>
+          </div>
+
+          <div className="p-4 backdrop-blur-sm bg-background/80 border-t">
+            <div className="flex items-center space-x-2 max-w-3xl mx-auto">
+              <Input
+                placeholder="Type a message..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                disabled={isTyping}
+                className="rounded-full"
+              />
+              <Button
+                size="icon"
+                onClick={handleSend}
+                disabled={isTyping || !input.trim()}
+                className="rounded-full"
+              >
+                <Send size={18} />
+              </Button>
+            </div>
+          </div>
+        </>
       ) : (
-        <div className="p-4 bg-background/80 backdrop-blur-sm border-t">
-          <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Type a message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={isTyping}
-              className="rounded-full"
-            />
-            <Button
-              size="icon"
-              onClick={handleSend}
-              disabled={isTyping || !input.trim()}
-              className="rounded-full"
-            >
-              <Send size={18} />
-            </Button>
-          </div>
-        </div>
+        <ProfileCompletionDashboard 
+          userProfile={userProfile}
+        />
       )}
     </div>
   );
