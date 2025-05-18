@@ -39,6 +39,11 @@ interface UserProfile {
   challengesOvercome?: string;
   growthJourney?: string;
   emotionalIntelligence?: string;
+  twyneTags?: string[];
+  vibeSummary?: string;
+  socialNeeds?: string;
+  coreValues?: string;
+  lifeContext?: string;
 }
 
 export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> = ({ userProfile }) => {
@@ -57,7 +62,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
     return name ? name.charAt(0).toUpperCase() : "?";
   };
 
-  // Helper function to extract key values
+  // Helper function to extract key values from text
   const extractKeyValues = (text?: string): string[] => {
     if (!text) return [];
     // Split by periods, commas, or natural language indicators
@@ -115,11 +120,6 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                 </CardDescription>
               </div>
             </div>
-            <Button asChild className="rounded-full">
-              <Link to="/connections">
-                Continue to Connections
-              </Link>
-            </Button>
           </CardHeader>
         </Card>
 
@@ -152,87 +152,60 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
 
             {/* Overview Tab Content */}
             <TabsContent value="overview" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
-              {/* Profile Summary */}
+              {/* AI-Generated Vibe Summary */}
               <Card className="col-span-1 md:col-span-8 bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Profile Summary</CardTitle>
+                  <CardTitle>Vibe Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {userProfile.background && (
+                    {userProfile.vibeSummary && (
                       <div>
-                        <h3 className="font-medium text-primary mb-1">Background</h3>
-                        <p>{userProfile.background}</p>
+                        <p>{userProfile.vibeSummary}</p>
                       </div>
                     )}
                     
-                    {userProfile.careerOrEducation && (
+                    {userProfile.socialNeeds && (
                       <div>
-                        <h3 className="font-medium text-primary mb-1">Career/Education</h3>
-                        <p>{userProfile.careerOrEducation}</p>
+                        <h3 className="font-medium text-primary mb-1">Social Needs</h3>
+                        <p>{userProfile.socialNeeds}</p>
                       </div>
                     )}
 
-                    {userProfile.lookingFor && (
+                    {userProfile.coreValues && (
                       <div>
-                        <h3 className="font-medium text-primary mb-1">Looking For</h3>
-                        <p>{userProfile.lookingFor}</p>
+                        <h3 className="font-medium text-primary mb-1">Core Values</h3>
+                        <p>{userProfile.coreValues}</p>
                       </div>
                     )}
 
-                    {userProfile.socialStyle && (
+                    {userProfile.lifeContext && (
                       <div>
-                        <h3 className="font-medium text-primary mb-1">Social Style</h3>
-                        <p>{userProfile.socialStyle}</p>
+                        <h3 className="font-medium text-primary mb-1">Life Context</h3>
+                        <p>{userProfile.lifeContext}</p>
                       </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Key Facts */}
+              {/* Twyne Tags */}
               <Card className="col-span-1 md:col-span-4 bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Key Facts</CardTitle>
+                  <CardTitle>Twyne Tags</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {userProfile.timeInCurrentCity && (
-                    <div className="flex items-start">
-                      <Calendar className="h-5 w-5 mr-2 text-primary" />
-                      <div>
-                        <div className="font-medium">Time in {location}</div>
-                        <div className="text-sm text-muted-foreground">{userProfile.timeInCurrentCity}</div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {userProfile.weekendActivities && (
-                    <div className="flex items-start">
-                      <Calendar className="h-5 w-5 mr-2 text-primary" />
-                      <div>
-                        <div className="font-medium">Weekend Activities</div>
-                        <div className="text-sm text-muted-foreground">
-                          {userProfile.weekendActivities.length > 100 
-                            ? userProfile.weekendActivities.substring(0, 100) + '...' 
-                            : userProfile.weekendActivities}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {userProfile.friendshipPace && (
-                    <div className="flex items-start">
-                      <Heart className="h-5 w-5 mr-2 text-primary" />
-                      <div>
-                        <div className="font-medium">Friendship Style</div>
-                        <div className="text-sm text-muted-foreground">
-                          {userProfile.friendshipPace.length > 100 
-                            ? userProfile.friendshipPace.substring(0, 100) + '...' 
-                            : userProfile.friendshipPace}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile.twyneTags && userProfile.twyneTags.map((tag, index) => (
+                      <Badge 
+                        key={index}
+                        variant="outline"
+                        className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1 text-sm"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
