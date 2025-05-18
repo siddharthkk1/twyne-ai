@@ -2,7 +2,7 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { MapPin, CircleUser } from "lucide-react";
+import { MapPin, CircleUser, Lock } from "lucide-react";
 import { ConnectionProfile } from "./types";
 import { MutualConnections } from "./MutualConnections";
 import { SharedInterests } from "./SharedInterests";
@@ -30,10 +30,16 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
             <h3 className="text-2xl font-semibold">{profile.name}</h3>
           </div>
           
-          {/* Right: Location vertically aligned with name */}
-          <div className="flex items-center text-sm text-muted-foreground self-center">
-            <MapPin className="h-3.5 w-3.5 mr-1" />
-            <span>{profile.location}</span>
+          {/* Right: Location and Privacy indicator */}
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center text-sm text-muted-foreground self-center">
+              <MapPin className="h-3.5 w-3.5 mr-1" />
+              <span>{profile.location}</span>
+            </div>
+            <div className="flex items-center text-xs text-primary/80">
+              <Lock className="h-3 w-3 mr-1" />
+              <span>Private connection</span>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -49,6 +55,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
 
         {/* COMPATIBILITY HIGHLIGHTS section */}
         <CompatibilityHighlights highlights={profile.compatibilityHighlights} name={profile.name} />
+        
+        {/* Privacy Notice */}
+        <div className="mt-4 text-xs text-muted-foreground italic border-t border-border/30 pt-2">
+          This profile is private and only visible to you and {profile.name}. Twyne only shares information both users have agreed to share.
+        </div>
       </CardContent>
     </Card>
   );
