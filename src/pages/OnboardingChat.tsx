@@ -55,6 +55,10 @@ interface UserProfile {
   lifeContext?: string;
 }
 
+// OpenAI API key - in a real app, this would be stored securely in environment variables or backend
+// For this demo, we're using it directly (not recommended for production)
+const OPENAI_API_KEY = "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";
+
 const initialMessages: Message[] = [
   {
     id: 1,
@@ -68,12 +72,27 @@ const initialMessages: Message[] = [
   },
 ];
 
+// System prompt for the AI to guide its responses
+const SYSTEM_PROMPT = `
+You are Twyne, a friendly, warm AI assistant helping users find meaningful connections. 
+You're having a conversation to understand the user's personality, interests, and social preferences.
+Be conversational, friendly, and genuinely interested. Ask follow-up questions based on their responses.
+Your goal is to gather information about:
+- Their name, location, and basic demographics
+- Their interests and passions
+- Social style and energy (introverted, extroverted, etc.)
+- What they look for in connections
+- Their background and values
+
+Use this information to build a profile that will help match them with compatible connections.
+Keep your responses concise (1-3 sentences), conversational, and engaging.
+`;
+
 const OnboardingChat = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
   const [conversation, setConversation] = useState<Conversation>({
     questions: ["What's your first name or what you like to be called?"],
     answers: []
@@ -89,121 +108,7 @@ const OnboardingChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, clearNewUserFlag } = useAuth();
   const navigate = useNavigate();
-
-  // Enhanced conversation logic - dynamic questions based on previous answers
-  const getNextQuestion = () => {
-    const questions = [
-      // Follow-up based on name
-      `Nice to meet you, ${userProfile.name || "there"}! Where are you currently based?`,
-      
-      // Follow-up on location
-      (profile: UserProfile) => 
-        `How long have you been in ${profile.location || "your area"}? And where did you grow up?`,
-      
-      // Age question
-      "If you're comfortable sharing, how old are you?",
-      
-      // Background/Life story
-      "I'd love to know a bit about your background or life story. What are some key experiences that have shaped who you are today?",
-      
-      // Career or education
-      "What do you do in terms of work, studies, or other pursuits that occupy your time?",
-      
-      // Social energy question
-      "I'd love to understand your social vibe better. How would you describe your energy in social situations? Are you more energized by deep one-on-ones or lively group settings?",
-      
-      // Interests/passion question
-      "What are some things you're passionate about or could talk about for hours? I'd love to hear about your interests.",
-      
-      // Creative pursuits
-      "Do you have any creative outlets or hobbies you enjoy? What do they mean to you?",
-      
-      // Weekend activities
-      "What's your ideal weekend look like when you have nothing planned?",
-      
-      // Media and culture
-      "Any books, shows, music, or cultural interests that have influenced you or that you've been into lately?",
-      
-      // Values question
-      "What values or principles are most important to you in life or in relationships?",
-      
-      // Connection preferences
-      "When it comes to making connections, what kind of people do you tend to click with? Any green flags you look for?",
-      
-      // Meaningful achievements
-      "What's something you've done or created that you're particularly proud of?",
-      
-      // Life philosophy
-      "Do you have any personal philosophy or approach to life that guides your decisions?",
-      
-      // Challenges overcome
-      "Without getting too personal, what's a challenge you've faced that has helped you grow?",
-      
-      // Looking for
-      "What kind of friendship or connection experience are you hoping to find right now?",
-      
-      // Misunderstood aspects
-      "What's something about you that people often misunderstand or that takes time for others to see?",
-      
-      // Friendship pace/style
-      "How would you describe your approach to friendships? Are you someone who prefers to go deep quickly or take time to build trust?",
-      
-      // Reflection and wrap-up
-      (profile: UserProfile) => {
-        return "Thank you for sharing all this with me. I've learned a lot about who you are and what matters to you. I'm going to put together a profile based on our conversation. This will help me connect you with people who truly match your vibe and values.";
-      }
-    ];
-
-    // If we're at the final question
-    if (currentStep >= questions.length) {
-      return null;
-    }
-
-    // For dynamic questions that need user profile data
-    if (typeof questions[currentStep] === 'function') {
-      const nextQuestion = (questions[currentStep] as Function)(userProfile);
-      setConversation(prev => ({
-        ...prev,
-        questions: [...prev.questions, nextQuestion]
-      }));
-      return nextQuestion;
-    }
-    
-    // For static questions
-    if (currentStep > 0) { // Skip first question as it's already in the initial state
-      setConversation(prev => ({
-        ...prev,
-        questions: [...prev.questions, questions[currentStep] as string]
-      }));
-    }
-    
-    return questions[currentStep];
-  };
-
-  // This function saves the user's response to the conversation
-  const saveUserResponse = (response: string) => {
-    setConversation(prev => ({
-      ...prev,
-      answers: [...prev.answers, response]
-    }));
-  };
-
-  // Simplified function to store temporary data about user from responses
-  // This will be used for dynamic questioning but later replaced with AI-generated profile
-  const processUserResponse = (response: string) => {
-    // Basic processing to extract key information for dynamic questioning
-    switch (currentStep) {
-      case 0: // Name
-        setUserProfile(prev => ({ ...prev, name: response.trim() }));
-        break;
-      case 1: // Location
-        setUserProfile(prev => ({ ...prev, location: response.trim() }));
-        break;
-      default:
-        // For other responses, we'll just collect them in the conversation object
-        break;
-    }
-  };
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   useEffect(() => {
     scrollToBottom();
@@ -213,106 +118,177 @@ const OnboardingChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Generate a comprehensive profile using chat completion
-  const generateAIProfile = async () => {
-    // Create a formatted conversation for the AI prompt
-    const formattedAnswers = conversation.questions.map((question, index) => {
-      const answer = conversation.answers[index] || "N/A";
-      return `Q: ${question}\nA: ${answer}`;
-    }).join("\n\n");
-    
+  // Function to get AI response using OpenAI API
+  const getAIResponse = async (userMessage: string, conversationHistory: Conversation): Promise<string> => {
     try {
-      // In a real app, this would be a call to an AI service
-      // For this demo, we'll simulate an AI response
-      console.log("Generating AI profile based on conversation...");
-      console.log("Formatted conversation:", formattedAnswers);
+      // Create messages array for OpenAI API
+      const messagesForAPI = [
+        { role: "system", content: SYSTEM_PROMPT },
+      ];
+
+      // Add conversation history
+      for (let i = 0; i < conversationHistory.questions.length && i < conversationHistory.answers.length; i++) {
+        messagesForAPI.push({ role: "assistant", content: conversationHistory.questions[i] });
+        messagesForAPI.push({ role: "user", content: conversationHistory.answers[i] });
+      }
+
+      // Add current user message
+      messagesForAPI.push({ role: "user", content: userMessage });
+
+      console.log("Sending to OpenAI:", messagesForAPI);
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: messagesForAPI,
+          temperature: 0.7,
+          max_tokens: 150
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("OpenAI API error:", errorData);
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0].message.content;
       
-      // Simulate AI processing time
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Save AI's question to conversation history
+      setConversation(prev => ({
+        questions: [...prev.questions, aiResponse],
+        answers: [...prev.answers]
+      }));
       
-      // Extract basic profile information from the conversation
-      const name = userProfile.name;
-      const location = userProfile.location;
+      return aiResponse;
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      return "I'm having trouble processing that right now. Could you tell me more about yourself?";
+    }
+  };
+
+  // Generate user profile using OpenAI
+  const generateAIProfile = async (): Promise<UserProfile> => {
+    try {
+      // Create a formatted conversation for the AI prompt
+      const formattedConversation = conversation.questions.map((question, index) => {
+        const answer = conversation.answers[index] || "N/A";
+        return `Q: ${question}\nA: ${answer}`;
+      }).join("\n\n");
       
-      // Create a simulated AI-generated profile
-      // In a real app, this would come from the AI service
-      const aiGeneratedProfile: UserProfile = {
-        name: name,
-        location: location,
-        interests: extractInterests(formattedAnswers),
-        socialStyle: extractSocialStyle(formattedAnswers),
-        connectionPreferences: extractConnectionPreferences(formattedAnswers),
-        personalInsights: extractPersonalInsights(formattedAnswers),
-        vibeSummary: "Based on our conversation, you come across as thoughtful and reflective. You value authentic connections and have a balanced approach to social interactions.",
-        socialNeeds: "You seem to thrive in deeper one-on-one conversations where you can really get to know someone, though you also enjoy group settings when the vibe is right.",
-        coreValues: "Authenticity, growth, and meaningful connections appear to be important to you. You value people who are genuine and willing to engage in substantive conversation.",
-        lifeContext: "Your background has shaped your perspective in meaningful ways. You're at a point in life where you're seeking connections that align with your values and interests.",
-        twyneTags: ["#Authentic", "#Thoughtful", "#GrowthMinded", "#Balanced"]
-      };
+      // Create prompt for profile generation
+      const prompt = `
+You are Twyne, a warm, thoughtful, socially intelligent AI. Given the following conversation with a user, summarize what you learned about them in a way that feels reflective, intuitive, and human. Focus on who they are, what matters to them, their social vibe, and how they come across.
+
+Generate a structured "Persona Summary" with the sections below. Each should have a short paragraph.
+
+Raw Conversation:
+${formattedConversation}
+
+Output strictly as valid JSON with this structure:
+{
+  "name": "Extract their name",
+  "location": "Extract their location",
+  "age": "Extract their age if mentioned",
+  "hometown": "Extract their hometown if mentioned",
+  "vibeSummary": "A warm, insightful paragraph about their overall vibe and personality",
+  "socialNeeds": "How they approach social connections, what they need in relationships",
+  "coreValues": "What matters most to them based on the conversation",
+  "lifeContext": "Current life situation, background, or journey",
+  "interests": ["Interest 1", "Interest 2", "Interest 3"],
+  "socialStyle": "Their social interaction style",
+  "connectionPreferences": "What they look for in connections",
+  "personalInsights": ["Insight 1", "Insight 2"],
+  "twyneTags": ["#Tag1", "#Tag2", "#Tag3", "#Tag4"]
+}
+
+Make sure ALL the JSON fields are included and properly formatted.
+`;
+
+      console.log("Sending profile generation prompt to OpenAI");
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: "You analyze conversations and create personality profiles." },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("OpenAI profile generation error:", errorData);
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const profileText = data.choices[0].message.content;
       
-      setUserProfile(aiGeneratedProfile);
+      console.log("Raw profile from OpenAI:", profileText);
       
-      return aiGeneratedProfile;
+      // Extract the JSON part from the response
+      const jsonMatch = profileText.match(/(\{[\s\S]*\})/);
+      const jsonString = jsonMatch ? jsonMatch[0] : profileText;
+      
+      try {
+        const profile = JSON.parse(jsonString);
+        console.log("Parsed profile:", profile);
+        
+        // Ensure all required fields are present
+        return {
+          name: profile.name || userProfile.name || "",
+          location: profile.location || userProfile.location || "",
+          interests: Array.isArray(profile.interests) ? profile.interests : [],
+          socialStyle: profile.socialStyle || "",
+          connectionPreferences: profile.connectionPreferences || "",
+          personalInsights: Array.isArray(profile.personalInsights) ? profile.personalInsights : [],
+          vibeSummary: profile.vibeSummary || "",
+          socialNeeds: profile.socialNeeds || "",
+          coreValues: profile.coreValues || "",
+          lifeContext: profile.lifeContext || "",
+          twyneTags: Array.isArray(profile.twyneTags) ? profile.twyneTags : [],
+          age: profile.age || "",
+          hometown: profile.hometown || "",
+          // Include any other fields returned by the AI
+          ...profile
+        };
+      } catch (error) {
+        console.error("Error parsing AI profile:", error, profileText);
+        throw new Error("Failed to parse AI-generated profile");
+      }
     } catch (error) {
       console.error("Error generating AI profile:", error);
-      // Fallback to basic profile if AI generation fails
-      return userProfile;
+      // Fallback to basic profile
+      return {
+        ...userProfile,
+        vibeSummary: "Based on our conversation, you seem like an interesting person with unique perspectives.",
+        socialNeeds: "You appear to value meaningful connections.",
+        coreValues: "Authenticity and understanding seem important to you.",
+        lifeContext: "You're on a personal journey of connection and growth.",
+        twyneTags: ["#Authentic", "#Thoughtful"]
+      };
     }
   };
-  
-  // Helper functions to extract profile information from the conversation
-  const extractInterests = (conversation: string): string[] => {
-    // In a real app, this would be done by the AI
-    // For now, we'll do simple extraction based on keywords
-    const interestsText = conversation.toLowerCase();
-    const potentialInterests = [
-      "reading", "music", "art", "sports", "technology", "cooking", 
-      "travel", "movies", "nature", "gaming", "fitness", "writing", 
-      "photography", "hiking", "dancing", "meditation"
-    ];
-    
-    return potentialInterests.filter(interest => 
-      interestsText.includes(interest)
-    );
-  };
-  
-  const extractSocialStyle = (conversation: string): string => {
-    if (conversation.toLowerCase().includes("one-on-one") || 
-        conversation.toLowerCase().includes("intimate")) {
-      return "Prefers deep one-on-one connections";
-    } else if (conversation.toLowerCase().includes("group") || 
-               conversation.toLowerCase().includes("party")) {
-      return "Enjoys lively group settings";
-    }
-    return "Balanced social approach";
-  };
-  
-  const extractConnectionPreferences = (conversation: string): string => {
-    if (conversation.toLowerCase().includes("authentic") || 
-        conversation.toLowerCase().includes("genuine")) {
-      return "Values authenticity and genuine connections";
-    } else if (conversation.toLowerCase().includes("similar") || 
-               conversation.toLowerCase().includes("common")) {
-      return "Seeks people with similar interests";
-    }
-    return "Open to diverse connections";
-  };
-  
-  const extractPersonalInsights = (conversation: string): string[] => {
-    // In a real app, this would be done by the AI
-    const insights = [];
-    
-    if (conversation.toLowerCase().includes("growth") || 
-        conversation.toLowerCase().includes("learn")) {
-      insights.push("Growth-oriented mindset");
-    }
-    
-    if (conversation.toLowerCase().includes("listen") || 
-        conversation.toLowerCase().includes("understand")) {
-      insights.push("Values being understood and listening to others");
-    }
-    
-    return insights.length > 0 ? insights : ["Reflective and thoughtful"];
+
+  // Function to decide whether to continue the conversation or complete onboarding
+  const shouldCompleteOnboarding = () => {
+    // Complete onboarding after a minimum number of exchanges (8 questions)
+    return currentQuestionIndex >= 8;
   };
 
   const handleSend = () => {
@@ -329,44 +305,49 @@ const OnboardingChat = () => {
     setIsTyping(true);
 
     // Save the user's response to the conversation
-    saveUserResponse(input);
-    
-    // Process the user's response for dynamic questioning
-    processUserResponse(input);
+    setConversation(prev => ({
+      ...prev,
+      answers: [...prev.answers, input]
+    }));
 
-    // After a delay, send the next question
-    setTimeout(() => {
-      const nextQuestion = getNextQuestion();
-      
-      // If there's no next question, complete the onboarding
-      if (!nextQuestion) {
+    // Process basic user info from first responses
+    if (currentQuestionIndex === 0) {
+      setUserProfile(prev => ({ ...prev, name: input.trim() }));
+    } else if (currentQuestionIndex === 1) {
+      setUserProfile(prev => ({ ...prev, location: input.trim() }));
+    }
+
+    // Increment the question index
+    setCurrentQuestionIndex(currentQuestionIndex + 1);
+
+    // Check if we should complete the onboarding process
+    if (shouldCompleteOnboarding()) {
+      // Generate AI profile and complete onboarding
+      generateAIProfile().then(profile => {
+        setUserProfile(profile);
         setIsTyping(false);
+        setIsComplete(true);
         
-        // Generate AI profile based on the conversation
-        generateAIProfile().then(profile => {
-          setIsComplete(true);
+        // If user is logged in, save the profile
+        if (user) {
+          markUserAsOnboarded(profile);
+        }
+      });
+    } else {
+      // Get next AI response
+      setTimeout(() => {
+        getAIResponse(input, conversation).then(aiResponse => {
+          const newAiMessage: Message = {
+            id: messages.length + 2,
+            text: aiResponse,
+            sender: "ai",
+          };
           
-          // If user is logged in, save the profile to Supabase
-          if (user) {
-            markUserAsOnboarded(profile);
-          } else {
-            console.log("User not logged in, skipping profile save");
-          }
+          setMessages((prev) => [...prev, newAiMessage]);
+          setIsTyping(false);
         });
-        
-        return;
-      }
-
-      const newAiMessage: Message = {
-        id: messages.length + 2,
-        text: nextQuestion,
-        sender: "ai",
-      };
-      
-      setMessages((prev) => [...prev, newAiMessage]);
-      setIsTyping(false);
-      setCurrentStep(currentStep + 1);
-    }, 1500);
+      }, 1000);
+    }
   };
 
   const markUserAsOnboarded = async (profile: UserProfile) => {
