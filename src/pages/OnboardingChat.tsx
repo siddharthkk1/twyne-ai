@@ -170,7 +170,7 @@ const OnboardingChat = () => {
       // Add user message to conversation history
       const updatedMessages = [
         ...conversation.messages,
-        { role: "user", content: userMessage }
+        { role: "user" as const, content: userMessage }
       ];
 
       console.log("Sending to OpenAI:", updatedMessages);
@@ -202,7 +202,7 @@ const OnboardingChat = () => {
       setConversation(prev => ({
         messages: [
           ...updatedMessages,
-          { role: "assistant", content: aiResponse }
+          { role: "assistant" as const, content: aiResponse }
         ],
         userAnswers: [...prev.userAnswers, userMessage]
       }));
@@ -237,8 +237,8 @@ const OnboardingChat = () => {
         body: JSON.stringify({
           model: "gpt-4o",
           messages: [
-            { role: "system", content: "You analyze conversations and create personality profiles." },
-            { role: "user", content: prompt }
+            { role: "system" as const, content: "You analyze conversations and create personality profiles." },
+            { role: "user" as const, content: prompt }
           ],
           temperature: 0.7,
           max_tokens: 1000
