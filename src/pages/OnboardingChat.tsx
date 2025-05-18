@@ -68,7 +68,7 @@ const initialMessages: Message[] = [
     sender: "ai",
   },
   {
-    id: 1,
+    id: 2,
     text: "Let's start light — what's your name or what do you like to be called?",
     sender: "ai",
   },
@@ -238,6 +238,69 @@ const OnboardingChat = () => {
       return "I'm having trouble processing that right now. Could you tell me more about yourself?";
     }
   };
+  const COVERAGE_EVAL_PROMPT = `
+  You are reviewing a conversation between Twyne (a warm, curious AI) and a user. Twyne’s job is to learn about the user across these 6 categories:
+  
+  1. Overview – name, location, general vibe
+  2. Life Story – where they grew up, key events, current life season
+  3. Interests & Identity – hobbies, passions, cultural tastes, self-expression
+  4. Vibe & Personality – traits, social energy, how they’re perceived
+  5. Inner World – values, beliefs, personal philosophy, goals
+  6. Connection Needs – what helps them feel safe, who they click with, what they’re looking for
+  
+  For each category:
+  - Say if it’s **Complete**, **Partial**, or **Missing** — and why.
+  - Then say whether we have enough info to stop and build a profile.
+  
+  Return your output in **valid JSON**:
+  
+  {
+    "overview": "",
+    "lifeStory": "",
+    "interestsIdentity": "",
+    "vibePersonality": "",
+    "innerWorld": "",
+    "connectionNeeds": "",
+    "enoughToStop": false
+  }
+  
+  Here is the conversation so far:
+  [CONVERSATION]
+  `;
+
+  const checkConversationCoverage = async (conversation: Conversation): Promise<{ enoughToStop: boolean }> => {
+  const formattedConversation = conversation.messages
+    .filter(m => m.role !== "system")
+    .map(m => `${m.role.toUpperCase()}: ${m.content}`)
+    .join("\n\n");
+
+  const prompt = COVERAGE_EVAL_PROMPT.replace("[CONVERSATION]", formattedConversation);
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You evaluate conversation coverage for Twyne onboarding." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 800
+    })
+  });
+
+  const data = await response.json();
+  const resultText = data.choices?.[0]?.message?.content || "";
+  const jsonMatch = resultText.match(/\{[\s\S]*?\}/);
+  const json = jsonMatch ? JSON.parse(jsonMatch[0]) : { enoughToStop: false };
+
+  console.log("Coverage check result:", json);
+  return json;
+};
 
   // Generate user profile using OpenAI
   const generateAIProfile = async (): Promise<UserProfile> => {
@@ -336,64 +399,65 @@ const OnboardingChat = () => {
     }
   };
 
-  // Function to decide whether to continue the conversation or complete onboarding
-  const shouldCompleteOnboarding = () => {
-    // Complete onboarding after a minimum number of exchanges (8 questions)
-    return currentQuestionIndex >= 8;
-  };
-
   const handleSend = () => {
-    if (!input.trim()) return;
+  if (!input.trim()) return;
 
-    const newUserMessage: Message = {
-      id: messages.length + 1,
-      text: input,
-      sender: "user",
-    };
-
-    setMessages((prev) => [...prev, newUserMessage]);
-    setInput("");
-    setIsTyping(true);
-
-    // Process basic user info from first responses
-    if (currentQuestionIndex === 0) {
-      setUserProfile(prev => ({ ...prev, name: input.trim() }));
-    } else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, location: input.trim() }));
-    }
-
-    // Increment the question index
-    setCurrentQuestionIndex(currentQuestionIndex + 1);
-
-    // Check if we should complete the onboarding process
-    if (shouldCompleteOnboarding()) {
-      // Generate AI profile and complete onboarding
-      generateAIProfile().then(profile => {
-        setUserProfile(profile);
-        setIsTyping(false);
-        setIsComplete(true);
-        
-        // If user is logged in, save the profile
-        if (user) {
-          markUserAsOnboarded(profile);
-        }
-      });
-    } else {
-      // Get next AI response
-      setTimeout(() => {
-        getAIResponse(input).then(aiResponse => {
-          const newAiMessage: Message = {
-            id: messages.length + 2,
-            text: aiResponse,
-            sender: "ai",
-          };
-          
-          setMessages((prev) => [...prev, newAiMessage]);
-          setIsTyping(false);
-        });
-      }, 1000);
-    }
+  const newUserMessage: Message = {
+    id: messages.length + 1,
+    text: input,
+    sender: "user",
   };
+
+  setMessages((prev) => [...prev, newUserMessage]);
+  setInput("");
+  setIsTyping(true);
+
+  // Update profile if it's one of the first questions
+  if (currentQuestionIndex === 0) {
+    setUserProfile(prev => ({ ...prev, name: input.trim() }));
+  } else if (currentQuestionIndex === 1) {
+    setUserProfile(prev => ({ ...prev, location: input.trim() }));
+  }
+
+  const newIndex = currentQuestionIndex + 1;
+  setCurrentQuestionIndex(newIndex);
+
+  const continueConversation = () => {
+    setTimeout(() => {
+      getAIResponse(input).then(aiResponse => {
+        const newAiMessage: Message = {
+          id: messages.length + 2,
+          text: aiResponse,
+          sender: "ai",
+        };
+        setMessages((prev) => [...prev, newAiMessage]);
+        setIsTyping(false);
+      });
+    }, 1000);
+  };
+
+  // Check GPT coverage every 5 user messages
+  if (newIndex % 5 === 0) {
+    checkConversationCoverage(conversation).then(result => {
+      if (result.enoughToStop) {
+        generateAIProfile().then(profile => {
+          setUserProfile(profile);
+          setIsTyping(false);
+          setIsComplete(true);
+
+          if (user) {
+            markUserAsOnboarded(profile);
+          }
+        });
+      } else {
+        continueConversation();
+      }
+    });
+  } else {
+    continueConversation();
+  }
+};
+
 
   const markUserAsOnboarded = async (profile: UserProfile) => {
     if (user) {
