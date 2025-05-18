@@ -16,8 +16,11 @@ interface Message {
 }
 
 interface Conversation {
-  questions: string[];
-  answers: string[];
+  messages: {
+    role: "system" | "user" | "assistant";
+    content: string;
+  }[];
+  userAnswers: string[];
 }
 
 interface UserProfile {
@@ -72,20 +75,63 @@ const initialMessages: Message[] = [
   },
 ];
 
-// System prompt for the AI to guide its responses
+// Improved system prompt for the AI to guide its responses
 const SYSTEM_PROMPT = `
-You are Twyne, a friendly, warm AI assistant helping users find meaningful connections. 
-You're having a conversation to understand the user's personality, interests, and social preferences.
-Be conversational, friendly, and genuinely interested. Ask follow-up questions based on their responses.
-Your goal is to gather information about:
-- Their name, location, and basic demographics
-- Their interests and passions
-- Social style and energy (introverted, extroverted, etc.)
-- What they look for in connections
-- Their background and values
+You are Twyne, a warm, intuitive AI helping people reflect and connect. You're here to learn about the user in order to build a connection blueprint: their vibe, values, story, social energy, and what they need from others.
 
-Use this information to build a profile that will help match them with compatible connections.
-Keep your responses concise (1-3 sentences), conversational, and engaging.
+Your tone is conversational, curious, and emotionally intelligent.
+
+With each reply:
+- Ask just **one** follow-up question.
+- Keep it short (1–2 sentences).
+- Be *genuinely interested*, not robotic.
+- Don't summarize — keep learning.
+
+Example:
+User: "I moved to Seattle last year."
+Twyne: "Nice! What inspired the move?"
+
+Now stay in this mode and keep going until prompted to stop.
+`;
+
+// Profile generation prompt
+const PROFILE_GENERATION_PROMPT = `
+You are Twyne, a warm, thoughtful, socially intelligent AI. Given the following conversation with a user, summarize what you learned about them in a way that feels reflective, intuitive, and human. Focus on who they are, what matters to them, their social vibe, and how they come across.
+
+Generate a structured "Persona Summary" with the sections below. Each should have a short paragraph.
+
+Raw Conversation:
+[CONVERSATION]
+
+Output strictly as valid JSON with this structure:
+{
+  "name": "Extract their name",
+  "location": "Extract their location",
+  "age": "Extract their age if mentioned",
+  "hometown": "Extract their hometown if mentioned",
+  "vibeSummary": "A warm, insightful paragraph about their overall vibe and personality",
+  "socialNeeds": "How they approach social connections, what they need in relationships",
+  "coreValues": "What matters most to them based on the conversation",
+  "lifeContext": "Current life situation, background, or journey",
+  "interests": ["Interest 1", "Interest 2", "Interest 3"],
+  "socialStyle": "Their social interaction style",
+  "connectionPreferences": "What they look for in connections",
+  "personalInsights": ["Insight 1", "Insight 2"],
+  "twyneTags": ["#Tag1", "#Tag2", "#Tag3", "#Tag4"],
+  "talkingPoints": ["Topic 1", "Topic 2", "Topic 3"],
+  "creativePursuits": "Their creative outlets and expressions",
+  "mediaTastes": "Books, music, shows they enjoy",
+  "lifeStory": "Brief background narrative",
+  "careerOrEducation": "Work or study information if shared",
+  "meaningfulAchievements": "What they're proud of",
+  "lifePhilosophy": "Their worldview or personal philosophy",
+  "challengesOvercome": "Significant challenges they've faced",
+  "growthJourney": "How they've evolved",
+  "friendshipPace": "How quickly they open up",
+  "emotionalIntelligence": "How they relate to feelings"
+}
+
+Make sure ALL the JSON fields are included and properly formatted.
 `;
 
 const OnboardingChat = () => {
@@ -94,8 +140,8 @@ const OnboardingChat = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
-    questions: ["What's your first name or what you like to be called?"],
-    answers: []
+    messages: [{ role: "system", content: SYSTEM_PROMPT }],
+    userAnswers: []
   });
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: "",
@@ -119,23 +165,15 @@ const OnboardingChat = () => {
   };
 
   // Function to get AI response using OpenAI API
-  const getAIResponse = async (userMessage: string, conversationHistory: Conversation): Promise<string> => {
+  const getAIResponse = async (userMessage: string): Promise<string> => {
     try {
-      // Create messages array for OpenAI API
-      const messagesForAPI = [
-        { role: "system", content: SYSTEM_PROMPT },
+      // Add user message to conversation history
+      const updatedMessages = [
+        ...conversation.messages,
+        { role: "user", content: userMessage }
       ];
 
-      // Add conversation history
-      for (let i = 0; i < conversationHistory.questions.length && i < conversationHistory.answers.length; i++) {
-        messagesForAPI.push({ role: "assistant", content: conversationHistory.questions[i] });
-        messagesForAPI.push({ role: "user", content: conversationHistory.answers[i] });
-      }
-
-      // Add current user message
-      messagesForAPI.push({ role: "user", content: userMessage });
-
-      console.log("Sending to OpenAI:", messagesForAPI);
+      console.log("Sending to OpenAI:", updatedMessages);
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -145,7 +183,7 @@ const OnboardingChat = () => {
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          messages: messagesForAPI,
+          messages: updatedMessages,
           temperature: 0.7,
           max_tokens: 150
         })
@@ -160,10 +198,13 @@ const OnboardingChat = () => {
       const data = await response.json();
       const aiResponse = data.choices[0].message.content;
       
-      // Save AI's question to conversation history
+      // Save AI's response to conversation history
       setConversation(prev => ({
-        questions: [...prev.questions, aiResponse],
-        answers: [...prev.answers]
+        messages: [
+          ...updatedMessages,
+          { role: "assistant", content: aiResponse }
+        ],
+        userAnswers: [...prev.userAnswers, userMessage]
       }));
       
       return aiResponse;
@@ -176,40 +217,14 @@ const OnboardingChat = () => {
   // Generate user profile using OpenAI
   const generateAIProfile = async (): Promise<UserProfile> => {
     try {
-      // Create a formatted conversation for the AI prompt
-      const formattedConversation = conversation.questions.map((question, index) => {
-        const answer = conversation.answers[index] || "N/A";
-        return `Q: ${question}\nA: ${answer}`;
-      }).join("\n\n");
+      // Format conversation for the profile generation prompt
+      const formattedConversation = conversation.messages
+        .filter(msg => msg.role !== "system")
+        .map(msg => `${msg.role.toUpperCase()}: ${msg.content}`)
+        .join("\n\n");
       
       // Create prompt for profile generation
-      const prompt = `
-You are Twyne, a warm, thoughtful, socially intelligent AI. Given the following conversation with a user, summarize what you learned about them in a way that feels reflective, intuitive, and human. Focus on who they are, what matters to them, their social vibe, and how they come across.
-
-Generate a structured "Persona Summary" with the sections below. Each should have a short paragraph.
-
-Raw Conversation:
-${formattedConversation}
-
-Output strictly as valid JSON with this structure:
-{
-  "name": "Extract their name",
-  "location": "Extract their location",
-  "age": "Extract their age if mentioned",
-  "hometown": "Extract their hometown if mentioned",
-  "vibeSummary": "A warm, insightful paragraph about their overall vibe and personality",
-  "socialNeeds": "How they approach social connections, what they need in relationships",
-  "coreValues": "What matters most to them based on the conversation",
-  "lifeContext": "Current life situation, background, or journey",
-  "interests": ["Interest 1", "Interest 2", "Interest 3"],
-  "socialStyle": "Their social interaction style",
-  "connectionPreferences": "What they look for in connections",
-  "personalInsights": ["Insight 1", "Insight 2"],
-  "twyneTags": ["#Tag1", "#Tag2", "#Tag3", "#Tag4"]
-}
-
-Make sure ALL the JSON fields are included and properly formatted.
-`;
+      const prompt = PROFILE_GENERATION_PROMPT.replace("[CONVERSATION]", formattedConversation);
 
       console.log("Sending profile generation prompt to OpenAI");
 
@@ -264,6 +279,17 @@ Make sure ALL the JSON fields are included and properly formatted.
           twyneTags: Array.isArray(profile.twyneTags) ? profile.twyneTags : [],
           age: profile.age || "",
           hometown: profile.hometown || "",
+          talkingPoints: Array.isArray(profile.talkingPoints) ? profile.talkingPoints : [],
+          creativePursuits: profile.creativePursuits || "",
+          mediaTastes: profile.mediaTastes || "",
+          lifeStory: profile.lifeStory || "",
+          careerOrEducation: profile.careerOrEducation || "",
+          meaningfulAchievements: profile.meaningfulAchievements || "",
+          lifePhilosophy: profile.lifePhilosophy || "",
+          challengesOvercome: profile.challengesOvercome || "",
+          growthJourney: profile.growthJourney || "",
+          friendshipPace: profile.friendshipPace || "",
+          emotionalIntelligence: profile.emotionalIntelligence || "",
           // Include any other fields returned by the AI
           ...profile
         };
@@ -304,12 +330,6 @@ Make sure ALL the JSON fields are included and properly formatted.
     setInput("");
     setIsTyping(true);
 
-    // Save the user's response to the conversation
-    setConversation(prev => ({
-      ...prev,
-      answers: [...prev.answers, input]
-    }));
-
     // Process basic user info from first responses
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, name: input.trim() }));
@@ -336,7 +356,7 @@ Make sure ALL the JSON fields are included and properly formatted.
     } else {
       // Get next AI response
       setTimeout(() => {
-        getAIResponse(input, conversation).then(aiResponse => {
+        getAIResponse(input).then(aiResponse => {
           const newAiMessage: Message = {
             id: messages.length + 2,
             text: aiResponse,
