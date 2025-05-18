@@ -14,7 +14,7 @@ import { InsightCard } from "./InsightCard";
 interface UserProfile {
   name: string;
   location: string;
-  interests: string[];
+  interests: string[] | string; // Updated to accept both string and array
   socialStyle: string;
   connectionPreferences: string;
   personalInsights: string[];
@@ -45,10 +45,12 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
   const { name, location, age } = userProfile;
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Extract interests as array
+  // Extract interests as array - Fixed by handling both string and array types
   const interests = Array.isArray(userProfile.interests) 
     ? userProfile.interests 
-    : userProfile.interests?.split(',').map(i => i.trim()) || [];
+    : typeof userProfile.interests === 'string' 
+      ? userProfile.interests.split(',').map(i => i.trim()) 
+      : [];
 
   // Helper function to get the first letter of the name
   const getNameInitial = () => {
