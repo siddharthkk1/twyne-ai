@@ -260,8 +260,13 @@ const OnboardingChat = () => {
       if (!nextQuestion) {
         setIsTyping(false);
         setIsComplete(true);
-        // Save user profile to Supabase
-        markUserAsOnboarded();
+        // Only save user profile to Supabase if the user is logged in
+        if (user) {
+          markUserAsOnboarded();
+        } else {
+          // If user is not logged in, we can show a login prompt after onboarding
+          console.log("User not logged in, skipping profile save");
+        }
         return;
       }
 
@@ -310,6 +315,17 @@ const OnboardingChat = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  // Create a function to handle the end of onboarding
+  const handleCompleteOnboarding = () => {
+    // If user is logged in, take them to the connections page
+    if (user) {
+      navigate("/connections");
+    } else {
+      // If user is not logged in, prompt them to sign up or log in
+      navigate("/auth");
     }
   };
 
@@ -368,9 +384,17 @@ const OnboardingChat = () => {
           </div>
         </>
       ) : (
-        <ProfileCompletionDashboard 
-          userProfile={userProfile}
-        />
+        <>
+          <ProfileCompletionDashboard 
+            userProfile={userProfile}
+          />
+          {/* Add a finish button that directs users appropriately based on auth state */}
+          <div className="p-4 flex justify-center">
+            <Button onClick={handleCompleteOnboarding} className="px-8 py-2">
+              {user ? "Go to Connections" : "Sign Up or Log In"}
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );

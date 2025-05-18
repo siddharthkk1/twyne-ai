@@ -11,7 +11,7 @@ const RedirectNewUser = () => {
   const isAuthPath = location.pathname === "/auth";
 
   useEffect(() => {
-    // Only redirect new users to onboarding if:
+    // Only redirect authenticated new users to onboarding if:
     // 1. They are logged in (user exists)
     // 2. They are marked as new users
     // 3. They are not already at the onboarding page
