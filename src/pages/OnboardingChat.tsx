@@ -130,6 +130,9 @@ Return valid JSON in the following structure. All fields are required, even if e
   "location": "",
   "age": "",
   "hometown": "",
+  "job": "",
+  "ethnicity": "",
+  "religion": "",
   "currentSeason": "",             // Current life context — stage, city move, career phase, etc.
   "vibeSummary": "",               // Overall vibe and energy — a warm personality overview
   "lifeStory": "",                 // Short narrative about their past, upbringing, turning points

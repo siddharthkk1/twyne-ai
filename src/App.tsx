@@ -12,7 +12,7 @@ import NotFound from "./pages/NotFound";
 import OnboardingChat from "./pages/OnboardingChat";
 import Connections from "./pages/Connections";
 import Chat from "./pages/Chat";
-import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -42,7 +42,7 @@ const App = () => (
             }>
               <Route path="/connections" element={<Connections />} />
               <Route path="/chat/:id" element={<Chat />} />
-              <Route path="/dashboard" element={<Profile />} />
+              <Route path="/dashboard" element={<Dashboard />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

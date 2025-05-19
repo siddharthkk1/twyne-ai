@@ -43,6 +43,9 @@ interface UserProfile {
   socialNeeds?: string;
   coreValues?: string;
   lifeContext?: string;
+  job?: string;
+  ethnicity?: string;
+  religion?: string;
 }
 
 export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> = ({ userProfile }) => {
@@ -64,7 +67,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
   // Helper function to extract key values from text
   const extractKeyValues = (text?: string): string[] => {
     if (!text) return [];
-    // Split by periods, commas, or natural language indicators - fixed to be on one line
+    // Fixed regex to be on one line
     const segments = text.split(/[.,]|\s(?:and|but|or)\s/).filter(Boolean);
     return segments.map(s => s.trim()).filter(s => s.length > 5 && s.length < 100);
   };
@@ -89,7 +92,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
     <div className="flex flex-col bg-gradient-to-br from-primary/10 via-background to-background min-h-screen p-6">
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold mb-2">
-          <span className="text-primary">Your</span> Dashboard
+          {name}'s Dashboard
         </h1>
         <p className="text-muted-foreground">
           This is private and just between you and Twyne — a reflection of who you are, based on our chat 💬
@@ -97,32 +100,8 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-6xl mx-auto">
-        {/* Main column - Header card */}
-        <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md animate-fade-in">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16 bg-primary/20">
-                <AvatarFallback className="text-xl font-medium text-primary">
-                  {getNameInitial()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-2xl">
-                  {name}'s Dashboard
-                  <Badge variant="outline" className="ml-2 bg-primary/10 text-primary">
-                    <Check className="mr-1 h-3 w-3" /> Complete
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  {location}{age ? `, ${age}` : ''}
-                  {userProfile.hometown && ` • Originally from ${userProfile.hometown}`}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {/* Tab navigation */}
+        {/* Main column - We're removing the header card with avatar, etc */}
+        
         <div className="col-span-1 md:col-span-12">
           <Tabs
             defaultValue="overview"
@@ -210,12 +189,26 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                           <div className="col-span-2 text-sm">{location}</div>
                         </div>
                       )}
-                      {age && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="text-sm font-medium text-muted-foreground">Age</div>
-                          <div className="col-span-2 text-sm">{age}</div>
-                        </div>
-                      )}
+                      {/* Added job section */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-sm font-medium text-muted-foreground">Job</div>
+                        <div className="col-span-2 text-sm">{userProfile.job || userProfile.careerOrEducation || "Not specified"}</div>
+                      </div>
+                      {/* Added age section */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-sm font-medium text-muted-foreground">Age</div>
+                        <div className="col-span-2 text-sm">{age || "Not specified"}</div>
+                      </div>
+                      {/* Added ethnicity section */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-sm font-medium text-muted-foreground">Ethnicity</div>
+                        <div className="col-span-2 text-sm">{userProfile.ethnicity || "Not specified"}</div>
+                      </div>
+                      {/* Added religion section */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-sm font-medium text-muted-foreground">Religion</div>
+                        <div className="col-span-2 text-sm">{userProfile.religion || "Not specified"}</div>
+                      </div>
                       {userProfile.hometown && (
                         <div className="grid grid-cols-3 gap-2">
                           <div className="text-sm font-medium text-muted-foreground">Hometown</div>

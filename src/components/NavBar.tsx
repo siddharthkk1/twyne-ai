@@ -29,7 +29,7 @@ export const NavBar = () => {
           <span className="text-xs mt-1">Chat</span>
         </NavLink>
         <NavLink
-          to="/profile"
+          to="/dashboard"
           className={({ isActive }) =>
             `flex flex-col items-center p-2 rounded-lg ${
               isActive ? "text-primary" : "text-muted-foreground"
@@ -37,7 +37,7 @@ export const NavBar = () => {
           }
         >
           <User size={22} />
-          <span className="text-xs mt-1">Profile</span>
+          <span className="text-xs mt-1">Dashboard</span>
         </NavLink>
       </div>
     </nav>
