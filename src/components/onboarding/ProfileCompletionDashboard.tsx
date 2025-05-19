@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserRound, Heart, Star, BookOpen, ThumbsUp, Users, Smile } from "lucide-react";
+import { UserRound, Heart, Star, ThumbsUp, Users, Smile, BookOpen, Activity, Gift, Compass } from "lucide-react";
 import { PersonalityChart } from "./PersonalityChart";
 import { ValueCard } from "./ValueCard";
 import { InsightCard } from "./InsightCard";
@@ -117,17 +116,20 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               <TabsTrigger value="overview">
                 <UserRound className="h-4 w-4 mr-2" /> Overview
               </TabsTrigger>
+              <TabsTrigger value="vibes">
+                <Smile className="h-4 w-4 mr-2" /> Vibes & Personality
+              </TabsTrigger>
               <TabsTrigger value="interests">
-                <Heart className="h-4 w-4 mr-2" /> Interests
+                <Activity className="h-4 w-4 mr-2" /> Interests & Activities
               </TabsTrigger>
-              <TabsTrigger value="personality">
-                <Smile className="h-4 w-4 mr-2" /> Personality
+              <TabsTrigger value="inner">
+                <Compass className="h-4 w-4 mr-2" /> Inner World
               </TabsTrigger>
-              <TabsTrigger value="connection">
-                <Users className="h-4 w-4 mr-2" /> Connection
+              <TabsTrigger value="connections">
+                <Users className="h-4 w-4 mr-2" /> Connections
               </TabsTrigger>
-              <TabsTrigger value="inner-world">
-                <ThumbsUp className="h-4 w-4 mr-2" /> Inner World
+              <TabsTrigger value="growth">
+                <Gift className="h-4 w-4 mr-2" /> Growth & Journey
               </TabsTrigger>
             </TabsList>
 
@@ -180,14 +182,6 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                       <h4 className="text-sm font-medium text-muted-foreground">Hometown</h4>
                       <p>{userProfile.hometown || "Not specified"}</p>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground">Ethnicity</h4>
-                      <p>{userProfile.ethnicity || "Not specified"}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground">Religion</h4>
-                      <p>{userProfile.religion || "Not specified"}</p>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -214,7 +208,55 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               </Card>
             </TabsContent>
             
-            {/* Interests Tab Content */}
+            {/* Vibes & Personality Tab Content */}
+            <TabsContent value="vibes" className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Personality Insights</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-center mb-6">
+                    <PersonalityChart traits={personalityTraits} />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-medium">Social Energy</h3>
+                      <p className="text-muted-foreground">{userProfile.socialEnergy || "Not yet identified"}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Social Style</h3>
+                      <p className="text-muted-foreground">{userProfile.socialStyle || "Not yet identified"}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Emotional Intelligence</h3>
+                      <p className="text-muted-foreground">{userProfile.emotionalIntelligence || "Not yet identified"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Vibe Words</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.isArray(userProfile.vibeWords) && userProfile.vibeWords.length ? (
+                      userProfile.vibeWords.map((word, i) => (
+                        <Badge key={i} variant="outline" className="bg-primary/5 text-primary">
+                          {word}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">No vibe words identified yet</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* Interests & Activities Tab Content */}
             <TabsContent value="interests" className="space-y-6">
               <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
@@ -237,6 +279,15 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               
               <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
+                  <CardTitle>Weekend Activities</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.weekendActivities || "No weekend activities identified yet"}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
                   <CardTitle>Cultural Tastes</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -252,103 +303,10 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                   <p>{userProfile.creativePursuits || "No creative outlets identified yet"}</p>
                 </CardContent>
               </Card>
-              
-              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Talking Points</CardTitle>
-                  <CardDescription>Topics that might spark conversation</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {userProfile.talkingPoints?.length ? (
-                      userProfile.talkingPoints.map((point, i) => (
-                        <li key={i}>{point}</li>
-                      ))
-                    ) : (
-                      <li className="text-muted-foreground">No talking points identified yet</li>
-                    )}
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Personality Tab Content */}
-            <TabsContent value="personality" className="space-y-6">
-              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Personality Insights</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-center mb-6">
-                    <PersonalityChart traits={personalityTraits} />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium">Social Energy</h3>
-                      <p className="text-muted-foreground">{userProfile.socialEnergy || "Not yet identified"}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Weekend Activities</h3>
-                      <p className="text-muted-foreground">{userProfile.weekendActivities || "Not yet identified"}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Emotional Intelligence</h3>
-                      <p className="text-muted-foreground">{userProfile.emotionalIntelligence || "Not yet identified"}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Connection Tab Content */}
-            <TabsContent value="connection" className="space-y-6">
-              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Social Preferences</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h3 className="font-medium">Social Style</h3>
-                    <p className="text-muted-foreground">{userProfile.socialStyle || "Not yet identified"}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Friendship Pace</h3>
-                    <p className="text-muted-foreground">{userProfile.friendshipPace || "Not yet identified"}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Emotional Needs</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.socialNeeds || "Not yet identified"}</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Connection Type</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.connectionPreferences || "Not yet identified"}</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Deal Breakers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.dealBreakers || "Not yet identified"}</p>
-                </CardContent>
-              </Card>
             </TabsContent>
             
             {/* Inner World Tab Content */}
-            <TabsContent value="inner-world" className="space-y-6">
+            <TabsContent value="inner" className="space-y-6">
               <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Core Values</CardTitle>
@@ -379,6 +337,73 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               
               <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
+                  <CardTitle>Beliefs & Worldview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.values || "Not yet identified"}</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* Connections & Relationships Tab Content */}
+            <TabsContent value="connections" className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Connection Preferences</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h3 className="font-medium">Who You Click With</h3>
+                    <p className="text-muted-foreground">{userProfile.connectionPreferences || "Not yet identified"}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Friendship Pace</h3>
+                    <p className="text-muted-foreground">{userProfile.friendshipPace || "Not yet identified"}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Social Needs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.socialNeeds || "Not yet identified"}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Deal Breakers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.dealBreakers || "Not yet identified"}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Looking For</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lookingFor || "Not yet identified"}</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* Growth & Journey Tab Content */}
+            <TabsContent value="growth" className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Life Story</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lifeStory || "Not yet identified"}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
                   <CardTitle>Personal Growth</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -398,10 +423,19 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               
               <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Life Story</CardTitle>
+                  <CardTitle>Challenges Overcome</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.lifeStory || "Not yet identified"}</p>
+                  <p>{userProfile.challengesOvercome || "Not yet identified"}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Future Goals</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.goals || "Not yet identified"}</p>
                 </CardContent>
               </Card>
             </TabsContent>

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Send, SkipForward, MessageCircle, Loader } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -91,29 +90,32 @@ Pay attention to what the user speaks about with emotion, detail, or repetition 
 ---
 
 A. Conversation Goals — What to Learn  
-Aim to build a well-rounded understanding of the person. Don’t rush, but don’t get stuck — gently explore all of these:
+Aim to build a well-rounded understanding of the person. Don't rush, but don't get stuck — gently explore all of these:
 
-1. **Overview**
-   - Name, city, age/life stage (if shared), current job or role
-   - Current season of life, emotional tone, or standout facts shaping their world
-   - Where they grew up, major life events or transitions
+1. **Vibes & Personality**
+   - How you carry yourself in the world
+   - Your social energy and interpersonal style
+   - What makes you you (the essence of your personality)
 
-2. **Interests**
+2. **Interests & Activities**
    - Hobbies, passions, creative pursuits
-   - Projects, cultural tastes, forms of self-expression
+   - Weekend activities, cultural tastes, forms of self-expression
+   - What lights you up and makes time fly
 
 3. **Inner World**
-   - Personality traits, emotional patterns, misunderstood traits
    - Values, beliefs, mindset, worldview
+   - What matters deeply to you
+   - How you see the world and your place in it
 
-4. **Connection**
-   - How they vibe socially
-   - What helps them feel safe or seen
-   - What they’re seeking in connection and friendship
+4. **Connections & Relationships**
+   - How you vibe socially
+   - What helps you feel safe or seen
+   - What you're seeking in connection and friendship
 
-5. **Future**
-   - Aspirations, goals, things they’re working toward
-   - Questions they’re exploring, next chapter of life
+5. **Growth & Journey**
+   - Your life story, major transitions, and meaningful experiences
+   - Aspirations, goals, things you're working toward
+   - Questions you're exploring, next chapter of life
 
 ---
 
@@ -121,9 +123,9 @@ B. Flow & Coverage Guidance
 Be conversational and warm, but stay intentional. Your goal is to understand the full person — not just one side.
 
 - If the user shares a lot about one topic (e.g. work or a passion), explore it meaningfully — then gently transition:  
-  > “That’s really cool — I’m curious, outside of that, what kind of people or energy bring out your best?”
+  > "That's really cool — I'm curious, outside of that, what kind of people or energy bring out your best?"
 
-- Track what’s already been covered. If one area is missing, pivot with a soft touch.
+- Track what's already been covered. If one area is missing, pivot with a soft touch.
 
 ---
 
@@ -153,16 +155,15 @@ D. Important
 ---
 
 E. At the End  
-You’ll use what you’ve learned to generate a warm, structured “Twyne Dashboard” — a high-level summary of their story, vibe, values, and connection style.
+You'll use what you've learned to generate a warm, structured "Twyne Dashboard" — a high-level summary of their story, vibe, values, and connection style.
 
 Until then, just stay curious, stay human, and get to know them — one thoughtful question at a time.
 `;
 
-
 // Profile generation prompt - updated to match new dashboard model
 const PROFILE_GENERATION_PROMPT = `
 You are Twyne, a warm, emotionally intelligent AI helping people feel seen, understood, and meaningfully connected.
-Below is a conversation between you and a user. Based on what you learned, generate a structured Twyne Dashboard that captures who they are — including their story, vibe, values, personality, and connection style.
+Below is a conversation between you and a user. Based on what you learned, generate a structured Twyne Dashboard that captures who they are — including their vibes & personality, interests & activities, inner world, connections & relationships, and growth & journey.
 This is not a cold profile. It's a reflection of their essence — how they show up in the world and what they need from others. Write with warmth, clarity, and care. Every section should feel specific, human, and true to the conversation.
 Raw Conversation:
 [CONVERSATION]
@@ -613,7 +614,7 @@ const OnboardingChat = () => {
       
       {!isComplete ? (
         <>
-          <div className="flex-1 p-4 overflow-y-auto">
+          <div className="flex-1 p-4 pt-8 overflow-y-auto"> {/* Added padding-top here */}
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
               {messages.map((message) => (
                 <div
@@ -640,8 +641,8 @@ const OnboardingChat = () => {
           </div>
 
           <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0">
-            <div className="max-w-3xl mx-auto">             
-              {/* Quick Action Buttons */}
+            <div className="max-w-3xl mx-auto">
+              {/* Quick Action Buttons moved above the input */}
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Button
                   variant="outline" 
@@ -665,15 +666,25 @@ const OnboardingChat = () => {
                 </Button>
               </div>
               
-              {/* Input Field and Send Button */}
-              <div className="flex items-center space-x-2">
-                <Input
+              {/* Input Field and Send Button - Changed Input to Textarea */}
+              <div className="flex items-end space-x-2">
+                <Textarea
                   placeholder="Type a message..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
                   disabled={isTyping || isGeneratingProfile}
-                  className="rounded-full shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                  className="rounded-2xl shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 min-h-[44px]"
+                  style={{ 
+                    maxHeight: '150px',
+                    lineHeight: '1.5',
+                    padding: '10px 14px'
+                  }}
                 />
                 <Button
                   size="icon"
