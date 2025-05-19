@@ -357,7 +357,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {values.length ? (
                       values.map((value, i) => (
-                        <ValueCard key={i} value={value} />
+                        <ValueCard key={i} value={value} index={i} />
                       ))
                     ) : (
                       <div className="col-span-1 sm:col-span-2">
@@ -385,7 +385,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {insights.length ? (
                       insights.slice(0, 4).map((insight, i) => (
-                        <InsightCard key={i} insight={insight} />
+                        <InsightCard key={i} insight={insight} index={i} />
                       ))
                     ) : (
                       <div className="col-span-1 sm:col-span-2">
