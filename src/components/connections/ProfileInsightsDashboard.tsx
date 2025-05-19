@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Lock } from "lucide-react";
 
@@ -68,16 +67,10 @@ const ProfileInsightsDashboard = ({ profileData, nameInitial }: ProfileInsightsD
   const tags = getTags();
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in w-full">
       <CardHeader className="pb-3">
-        <div className="flex items-center space-x-4">
-          <Avatar className="h-12 w-12">
-            <AvatarFallback>{nameInitial}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <h2 className="font-medium">{profileData.name || "Your"} Profile</h2>
-            <p className="text-sm text-muted-foreground">Here's what we know about you so far</p>
-          </div>
+        <div className="flex items-center justify-between">
+          <h2 className="font-medium text-xl">Your Dashboard</h2>
           <div className="flex items-center text-sm text-muted-foreground">
             <Lock className="h-4 w-4 mr-1 text-primary/70" />
             <span>Private</span>
@@ -88,8 +81,8 @@ const ProfileInsightsDashboard = ({ profileData, nameInitial }: ProfileInsightsD
         <div className="space-y-5">
           <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10">
             <p className="text-muted-foreground">
-              <span className="font-medium text-primary">Privacy note:</span> This information is private and will not be shared with others. 
-              It's only used by Twyne AI to help you make meaningful connections.
+              <span className="font-medium text-primary">Privacy note:</span> This information is private and not shared with other users. 
+              It's only used by Twyne AI to help you make meaningful connections and is not visible as a public profile.
             </p>
           </div>
           

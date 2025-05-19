@@ -35,10 +35,12 @@ const Connections = () => {
         // Show welcome message for newly onboarded users
         <div className="space-y-6">
           <OnboardingWelcome />
-          <ProfileInsightsDashboard 
-            profileData={profileData}
-            nameInitial={nameInitial}
-          />
+          <div className="w-full">
+            <ProfileInsightsDashboard 
+              profileData={profileData}
+              nameInitial={nameInitial}
+            />
+          </div>
         </div>
       ) : (
         <>

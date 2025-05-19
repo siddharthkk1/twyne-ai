@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -541,21 +540,6 @@ const OnboardingChat = () => {
         <>
           <div className="p-4 border-b backdrop-blur-lg bg-background/80 flex items-center justify-between sticky top-0 z-10">
             <h1 className="text-xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Getting to Know You</h1>
-            
-            {/* Profile Insights Sheet */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="glassmorphism" size="sm" className="ml-auto">
-                  See Your Profile
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="overflow-y-auto">
-                <ProfileInsightsDashboard 
-                  profileData={userProfile} 
-                  nameInitial={getNameInitial()} 
-                />
-              </SheetContent>
-            </Sheet>
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto">
