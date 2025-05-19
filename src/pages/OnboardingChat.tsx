@@ -441,7 +441,7 @@ const OnboardingChat = () => {
     };
   
     checkConversationCoverage(draftConversation).then(result => {
-      if (result.enoughToStop) {
+      if (result.enoughToStop && currentQuestionIndex >= 8) {
         const closingMessage: Message = {
           id: messages.length + 2,
           text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
