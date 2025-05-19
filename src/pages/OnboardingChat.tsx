@@ -9,6 +9,7 @@ import { toast } from "@/components/ui/use-toast";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 
 interface Message {
   id: number;
@@ -74,6 +75,14 @@ const initialMessages: Message[] = [
     text: "Let's start light — what's your name or what do you like to be called?",
     sender: "ai",
   },
+];
+
+// Conversation starter options to display after the user provides their name
+const conversationStarters = [
+  "What would you say are the 5 biggest pillars in your life right now—like the things that hold the most weight for you? Could be people, passions, projects, beliefs—whatever comes to mind.",
+  "If someone followed you around for a week, what do you think they'd say your life is about?",
+  "If you had to write a one-sentence bio for your current season of life, what would it say?",
+  "If I had just 2 minutes to get a sense of who you are, what would you want me to know?"
 ];
 
 // Improved system prompt for the AI to guide its responses
@@ -216,6 +225,8 @@ const OnboardingChat = () => {
   const { user, clearNewUserFlag } = useAuth();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showConversationStarters, setShowConversationStarters] = useState(false);
+  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
 
   useEffect(() => {
     scrollToBottom();
@@ -428,6 +439,7 @@ const OnboardingChat = () => {
   
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
+      setShowConversationStarters(true);
     } else if (currentQuestionIndex === 1) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
     }
@@ -472,6 +484,7 @@ const OnboardingChat = () => {
           if (user) markUserAsOnboarded(profile);
         });
       } else {
+        setShowConversationStarters(false);
         // Not enough — proceed to get the AI's next question
         setTimeout(() => {
           getAIResponse(textToSend).then(aiResponse => {
@@ -497,6 +510,11 @@ const OnboardingChat = () => {
         }, 1000);
       }
     });
+  };
+
+  // Handle conversation starter selection
+  const handleStarterSelect = (starter: string) => {
+    handleSend(starter);
   };
 
   const handleQuickAction = (action: "skip" | "change-topic") => {
@@ -578,6 +596,8 @@ const OnboardingChat = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
+      <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
+      
       {!isComplete ? (
         <>
           <div className="p-4 border-b backdrop-blur-lg bg-background/80 flex items-center justify-between sticky top-0 z-10">
@@ -612,6 +632,24 @@ const OnboardingChat = () => {
 
           <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0">
             <div className="max-w-3xl mx-auto">
+              {/* Conversation Starter Options */}
+              {showConversationStarters && (
+                <div className="mb-4 space-y-2">
+                  <p className="text-sm text-muted-foreground mb-2">Choose a conversation starter:</p>
+                  {conversationStarters.map((starter, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStarterSelect(starter)}
+                      className="w-full text-left justify-start h-auto py-3 mb-2 bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-lg shadow-sm"
+                    >
+                      <span className="line-clamp-2">{starter}</span>
+                    </Button>
+                  ))}
+                </div>
+              )}
+              
               {/* Quick Action Buttons */}
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Button
@@ -668,14 +706,7 @@ const OnboardingChat = () => {
             <ProfileCompletionDashboard userProfile={userProfile} />
           </div>
 
-          <div className="p-4 flex justify-center">
-            <Button 
-              onClick={handleCompleteOnboarding} 
-              className="px-8 py-2 rounded-full bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200 shadow-md"
-            >
-              {user ? "Go to Connections" : "Sign Up or Log In"}
-            </Button>
-          </div>
+          {/* We've removed the "Go to Connections" button as requested */}
         </>
       )}
     </div>

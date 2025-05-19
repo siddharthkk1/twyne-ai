@@ -1,19 +1,20 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Check, UserRound, Heart, Star, BookOpen, ThumbsUp, Users, Smile } from "lucide-react";
+import { UserRound, Heart, Star, BookOpen, ThumbsUp, Users, Smile } from "lucide-react";
 import { PersonalityChart } from "./PersonalityChart";
 import { ValueCard } from "./ValueCard";
 import { InsightCard } from "./InsightCard";
+import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 
 interface UserProfile {
   name: string;
   location: string;
-  interests: string[] | string; // Updated to accept both string and array
+  interests: string[] | string;
   socialStyle: string;
   connectionPreferences: string;
   personalInsights: string[];
@@ -51,23 +52,27 @@ interface UserProfile {
 export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> = ({ userProfile }) => {
   const { name, location, age } = userProfile;
   const [activeTab, setActiveTab] = useState("overview");
+  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
 
-  // Extract interests as array - Fixed by handling both string and array types
+  // Show create account prompt when the dashboard is first displayed
+  useEffect(() => {
+    // Small delay to allow the dashboard to render
+    const timer = setTimeout(() => {
+      setShowCreateAccountPrompt(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   const interests = Array.isArray(userProfile.interests) 
     ? userProfile.interests 
     : typeof userProfile.interests === 'string' 
       ? userProfile.interests.split(',').map(i => i.trim()) 
       : [];
 
-  // Helper function to get the first letter of the name
-  const getNameInitial = () => {
-    return name ? name.charAt(0).toUpperCase() : "?";
-  };
-
-  // Helper function to extract key values from text
+  // Fix: update the regex to be on a single line
   const extractKeyValues = (text?: string): string[] => {
     if (!text) return [];
-    // Fixed regex to be on one line
     const segments = text.split(/[.,]|\s(?:and|but|or)\s/).filter(Boolean);
     return segments.map(s => s.trim()).filter(s => s.length > 5 && s.length < 100);
   };
@@ -77,7 +82,6 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
     .concat(extractKeyValues(userProfile.meaningfulAchievements))
     .concat(extractKeyValues(userProfile.challengesOvercome));
 
-  // Personality traits based on social style descriptions
   const personalityTraits = {
     extroversion: userProfile.socialEnergy?.toLowerCase().includes('group') ? 80 : 
                  userProfile.socialEnergy?.toLowerCase().includes('one') ? 40 : 60,
@@ -90,9 +94,11 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
 
   return (
     <div className="flex flex-col bg-gradient-to-br from-primary/10 via-background to-background min-h-screen p-6">
+      <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
+      
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold mb-2">
-          {name}'s Dashboard
+          {name}'s <span className="text-primary">Dashboard</span>
         </h1>
         <p className="text-muted-foreground">
           This is private and just between you and Twyne — a reflection of who you are, based on our chat 💬
@@ -100,8 +106,6 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-6xl mx-auto">
-        {/* Main column - We're removing the header card with avatar, etc */}
-        
         <div className="col-span-1 md:col-span-12">
           <Tabs
             defaultValue="overview"
@@ -116,6 +120,9 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               <TabsTrigger value="interests">
                 <Heart className="h-4 w-4 mr-2" /> Interests
               </TabsTrigger>
+              <TabsTrigger value="personality">
+                <Smile className="h-4 w-4 mr-2" /> Personality
+              </TabsTrigger>
               <TabsTrigger value="connection">
                 <Users className="h-4 w-4 mr-2" /> Connection
               </TabsTrigger>
@@ -124,316 +131,277 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               </TabsTrigger>
             </TabsList>
 
-            {/* 1. Overview Tab Content */}
-            <TabsContent value="overview" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
-              {/* AI-Generated Vibe Summary */}
-              <Card className="col-span-1 md:col-span-8 bg-white/80 backdrop-blur-sm shadow-md">
+            {/* Overview Tab Content */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* Vibe Summary Card */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Quick Summary</CardTitle>
+                  <CardTitle>Vibe Summary</CardTitle>
+                  <CardDescription>How you come across</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {userProfile.vibeSummary && (
-                      <div>
-                        <p>{userProfile.vibeSummary}</p>
-                      </div>
+                  <p>{userProfile.vibeSummary || "Your vibe profile is still developing..."}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {userProfile.twyneTags?.length ? (
+                      userProfile.twyneTags.map((tag, i) => (
+                        <Badge key={i} variant="secondary" className="bg-primary/10 hover:bg-primary/20">
+                          {tag}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Tags will appear as we learn more about you</span>
                     )}
-                    <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10">
-                      <p className="text-muted-foreground">
-                        <span className="font-medium text-primary">Privacy note:</span> This dashboard is private and not visible to other users.
-                        It's only used by Twyne AI to help you make meaningful connections.
-                      </p>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Twyne Tags */}
-              <Card className="col-span-1 md:col-span-4 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              {/* Basic Info Card */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Twyne Tags</CardTitle>
+                  <CardTitle>Basic Info</CardTitle>
+                  <CardDescription>Quick facts about you</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {userProfile.twyneTags && userProfile.twyneTags.map((tag, index) => (
-                      <Badge 
-                        key={index}
-                        variant="outline"
-                        className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1 text-sm"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Location</h4>
+                      <p>{location || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Age</h4>
+                      <p>{age || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Job</h4>
+                      <p>{userProfile.job || userProfile.careerOrEducation || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Hometown</h4>
+                      <p>{userProfile.hometown || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Ethnicity</h4>
+                      <p>{userProfile.ethnicity || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Religion</h4>
+                      <p>{userProfile.religion || "Not specified"}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Basic Info & Top Interests */}
-              <div className="col-span-1 md:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Basic Info */}
-                <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                  <CardHeader>
-                    <CardTitle>Basic Info</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {name && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="text-sm font-medium text-muted-foreground">Name</div>
-                          <div className="col-span-2 text-sm">{name}</div>
-                        </div>
-                      )}
-                      {location && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="text-sm font-medium text-muted-foreground">Location</div>
-                          <div className="col-span-2 text-sm">{location}</div>
-                        </div>
-                      )}
-                      {/* Added job section */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="text-sm font-medium text-muted-foreground">Job</div>
-                        <div className="col-span-2 text-sm">{userProfile.job || userProfile.careerOrEducation || "Not specified"}</div>
-                      </div>
-                      {/* Added age section */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="text-sm font-medium text-muted-foreground">Age</div>
-                        <div className="col-span-2 text-sm">{age || "Not specified"}</div>
-                      </div>
-                      {/* Added ethnicity section */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="text-sm font-medium text-muted-foreground">Ethnicity</div>
-                        <div className="col-span-2 text-sm">{userProfile.ethnicity || "Not specified"}</div>
-                      </div>
-                      {/* Added religion section */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="text-sm font-medium text-muted-foreground">Religion</div>
-                        <div className="col-span-2 text-sm">{userProfile.religion || "Not specified"}</div>
-                      </div>
-                      {userProfile.hometown && (
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="text-sm font-medium text-muted-foreground">Hometown</div>
-                          <div className="col-span-2 text-sm">{userProfile.hometown}</div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Top Interests */}
-                <Card className="bg-white/80 backdrop-blur-sm shadow-md">
-                  <CardHeader>
-                    <CardTitle>Top Interests</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {interests.slice(0, 8).map((interest, index) => (
-                        <Badge 
-                          key={index}
-                          className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1 text-sm"
-                        >
+              
+              {/* Top Interests */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Top Interests</CardTitle>
+                  <CardDescription>What matters to you</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {interests.length ? (
+                      interests.slice(0, 5).map((interest, i) => (
+                        <Badge key={i} className="bg-secondary/10 hover:bg-secondary/20">
                           {interest}
                         </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Interests will appear as we learn more about you</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
-
-            {/* 2. Interests Tab Content */}
-            <TabsContent value="interests" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
-              {/* Interests */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+            
+            {/* Interests Tab Content */}
+            <TabsContent value="interests" className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Passions & Hobbies</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="flex flex-wrap gap-2">
-                    {interests.map((interest, index) => (
-                      <Badge 
-                        key={index}
-                        className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1 text-sm"
-                      >
-                        {interest}
-                      </Badge>
-                    ))}
+                    {interests.length ? (
+                      interests.map((interest, i) => (
+                        <Badge key={i} className="bg-secondary/10 hover:bg-secondary/20">
+                          {interest}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-sm">No passions or hobbies identified yet</span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Cultural Tastes */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Cultural Tastes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.mediaTastes || "No media tastes specified."}</p>
+                  <p>{userProfile.mediaTastes || "No preferences identified yet"}</p>
                 </CardContent>
               </Card>
-
-              {/* Creative Outlets */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Creative Outlets</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.creativePursuits || "No creative pursuits specified."}</p>
+                  <p>{userProfile.creativePursuits || "No creative outlets identified yet"}</p>
                 </CardContent>
               </Card>
-
-              {/* Talking Points */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Talking Points</CardTitle>
+                  <CardDescription>Topics that might spark conversation</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {userProfile.talkingPoints && userProfile.talkingPoints.length > 0 ? (
-                    <ul className="list-disc pl-5 space-y-1">
-                      {userProfile.talkingPoints.map((point, index) => (
-                        <li key={index}>{point}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No talking points specified.</p>
-                  )}
+                  <ul className="list-disc pl-5 space-y-1">
+                    {userProfile.talkingPoints?.length ? (
+                      userProfile.talkingPoints.map((point, i) => (
+                        <li key={i}>{point}</li>
+                      ))
+                    ) : (
+                      <li className="text-muted-foreground">No talking points identified yet</li>
+                    )}
+                  </ul>
                 </CardContent>
               </Card>
             </TabsContent>
-
-            {/* 3. Connection Tab Content */}
-            <TabsContent value="connection" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
-              {/* Social Preferences */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+            
+            {/* Personality Tab Content */}
+            <TabsContent value="personality" className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Personality Insights</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-center mb-6">
+                    <PersonalityChart traits={personalityTraits} />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-medium">Social Energy</h3>
+                      <p className="text-muted-foreground">{userProfile.socialEnergy || "Not yet identified"}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Weekend Activities</h3>
+                      <p className="text-muted-foreground">{userProfile.weekendActivities || "Not yet identified"}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Emotional Intelligence</h3>
+                      <p className="text-muted-foreground">{userProfile.emotionalIntelligence || "Not yet identified"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* Connection Tab Content */}
+            <TabsContent value="connection" className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Social Preferences</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h3 className="font-medium mb-1">Social Style</h3>
-                    <p>{userProfile.socialStyle || "No social style specified."}</p>
+                    <h3 className="font-medium">Social Style</h3>
+                    <p className="text-muted-foreground">{userProfile.socialStyle || "Not yet identified"}</p>
                   </div>
-                  
                   <div>
-                    <h3 className="font-medium mb-1">Connection Preferences</h3>
-                    <p>{userProfile.connectionPreferences || "No connection preferences specified."}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium mb-1">Friendship Pace</h3>
-                    <p>{userProfile.friendshipPace || "No friendship pace specified."}</p>
+                    <h3 className="font-medium">Friendship Pace</h3>
+                    <p className="text-muted-foreground">{userProfile.friendshipPace || "Not yet identified"}</p>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Social Needs */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Social Needs</CardTitle>
+                  <CardTitle>Emotional Needs</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.socialNeeds || "No social needs specified."}</p>
+                  <p>{userProfile.socialNeeds || "Not yet identified"}</p>
                 </CardContent>
               </Card>
-
-              {/* Deal Breakers */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Connection Type</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.connectionPreferences || "Not yet identified"}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Deal Breakers</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.dealBreakers || "No deal breakers specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Misunderstood Aspects */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Misunderstood Aspects</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.misunderstood || "No misunderstood aspects specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Personality Visualization */}
-              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Personality Traits</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <PersonalityChart traits={personalityTraits} />
+                  <p>{userProfile.dealBreakers || "Not yet identified"}</p>
                 </CardContent>
               </Card>
             </TabsContent>
-
-            {/* 4. Inner World Tab Content */}
-            <TabsContent value="inner-world" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
-              {/* Core Values */}
-              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
+            
+            {/* Inner World Tab Content */}
+            <TabsContent value="inner-world" className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Core Values</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.coreValues || "No core values specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Personal Philosophy */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Personal Philosophy</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.lifePhilosophy || "No life philosophy specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Meaningful Achievements */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Meaningful Achievements</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.meaningfulAchievements || "No achievements specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Challenges & Growth */}
-              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Challenges & Growth Journey</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-medium mb-1">Challenges Overcome</h3>
-                      <p>{userProfile.challengesOvercome || "No challenges specified."}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium mb-1">Growth Journey</h3>
-                      <p>{userProfile.growthJourney || "No growth journey specified."}</p>
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {values.length ? (
+                      values.map((value, i) => (
+                        <ValueCard key={i} value={value} />
+                      ))
+                    ) : (
+                      <div className="col-span-1 sm:col-span-2">
+                        <p className="text-muted-foreground">Values will appear as we learn more about you</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Life Story */}
-              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Life Story & Background</CardTitle>
+                  <CardTitle>Life Philosophy</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.lifeStory || userProfile.background || "No life story specified."}</p>
+                  <p>{userProfile.lifePhilosophy || "Not yet identified"}</p>
                 </CardContent>
               </Card>
-
-              {/* Emotional Intelligence */}
-              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Emotional Intelligence</CardTitle>
+                  <CardTitle>Personal Growth</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {insights.length ? (
+                      insights.slice(0, 4).map((insight, i) => (
+                        <InsightCard key={i} insight={insight} />
+                      ))
+                    ) : (
+                      <div className="col-span-1 sm:col-span-2">
+                        <p className="text-muted-foreground">Insights will appear as we learn more about you</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Life Story</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.emotionalIntelligence || "No emotional intelligence insights specified."}</p>
+                  <p>{userProfile.lifeStory || "Not yet identified"}</p>
                 </CardContent>
               </Card>
             </TabsContent>
