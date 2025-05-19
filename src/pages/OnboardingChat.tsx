@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
+import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface Message {
   id: number;
@@ -524,12 +525,32 @@ const OnboardingChat = () => {
     }
   };
 
+  // Function to get the first letter of the user's name for avatar
+  const getNameInitial = () => {
+    return userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?";
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       {!isComplete ? (
         <>
-          <div className="p-4 border-b backdrop-blur-lg bg-background/80 flex items-center justify-center sticky top-0 z-10">
+          <div className="p-4 border-b backdrop-blur-lg bg-background/80 flex items-center justify-between sticky top-0 z-10">
             <h1 className="text-xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Getting to Know You</h1>
+            
+            {/* Profile Insights Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="glassmorphism" size="sm" className="ml-auto">
+                  See Your Profile
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="overflow-y-auto">
+                <ProfileInsightsDashboard 
+                  profileData={userProfile} 
+                  nameInitial={getNameInitial()} 
+                />
+              </SheetContent>
+            </Sheet>
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto">
@@ -607,9 +628,22 @@ const OnboardingChat = () => {
         </>
       ) : (
         <>
-          <ProfileCompletionDashboard 
-            userProfile={userProfile}
-          />
+          <div className="p-4 border-b backdrop-blur-lg bg-background/80 flex items-center justify-between sticky top-0 z-10">
+            <h1 className="text-xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Your Profile Summary</h1>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-6 p-6">
+            <div className="w-full md:w-1/2">
+              <ProfileCompletionDashboard userProfile={userProfile} />
+            </div>
+            <div className="w-full md:w-1/2">
+              <ProfileInsightsDashboard 
+                profileData={userProfile} 
+                nameInitial={getNameInitial()} 
+              />
+            </div>
+          </div>
+
           <div className="p-4 flex justify-center">
             <Button 
               onClick={handleCompleteOnboarding} 
