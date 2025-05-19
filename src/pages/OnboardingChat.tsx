@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, SkipForward, MessageCircle } from "lucide-react";
+import { Send, SkipForward, MessageCircle, Loader } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,7 +116,7 @@ You'll use everything you've learned to generate a structured "Twyne Dashboard" 
 Until then, just stay present, stay curious, and keep learning who they are — one thoughtful question at a time.
 `;
 
-// Profile generation prompt
+// Profile generation prompt - updated to match new dashboard model
 const PROFILE_GENERATION_PROMPT = `
 You are Twyne, a warm, emotionally intelligent AI helping people feel seen, understood, and meaningfully connected.
 Below is a conversation between you and a user. Based on what you learned, generate a structured Twyne Dashboard that captures who they are — including their story, vibe, values, personality, and connection style.
@@ -139,7 +139,7 @@ Return valid JSON in the following structure. All fields are required, even if e
   "careerOrEducation": "",         // What they do for work or school, if shared
   "meaningfulAchievements": "",    // What they're proud of
   "lifePhilosophy": "",            // Worldview or personal beliefs that guide them
-  "coreValues": [],                // Values that seem to matter most to them
+  "coreValues": "",                // Values that seem to matter most to them
   "goals": "",                     // Personal or life goals they shared
   "growthJourney": "",             // How they've changed or what they're working on
   "challengesOvercome": "",        // Any life struggles or obstacles mentioned
@@ -196,6 +196,7 @@ const OnboardingChat = () => {
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
     messages: [{ role: "system", content: SYSTEM_PROMPT }],
     userAnswers: []
@@ -450,10 +451,12 @@ const OnboardingChat = () => {
   
         setMessages(prev => [...prev, closingMessage]);
         setIsTyping(false);
+        setIsGeneratingProfile(true); // Show loading screen while generating profile
   
         generateAIProfile().then(profile => {
           setUserProfile(profile);
           setIsTyping(false);
+          setIsGeneratingProfile(false); // Hide loading screen
           setIsComplete(true);
           setConversation({
             messages: [
@@ -492,7 +495,6 @@ const OnboardingChat = () => {
       }
     });
   };
-
 
   const handleQuickAction = (action: "skip" | "change-topic") => {
     const message = action === "skip" 
@@ -555,6 +557,22 @@ const OnboardingChat = () => {
     return userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?";
   };
 
+  // Loading screen component
+  const LoadingScreen = () => (
+    <div className="flex flex-col items-center justify-center space-y-4 py-12">
+      <div className="relative">
+        <Loader className="h-12 w-12 text-primary animate-spin" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <span className="h-4 w-4 bg-background rounded-full block"></span>
+        </div>
+      </div>
+      <h2 className="text-xl font-medium">Creating Your Dashboard</h2>
+      <p className="text-muted-foreground text-center max-w-md">
+        Building your personal insights based on our conversation. This helps Twyne match you with meaningful connections.
+      </p>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       {!isComplete ? (
@@ -584,6 +602,7 @@ const OnboardingChat = () => {
                   <div className="w-2 h-2 bg-muted-foreground rounded-full animation-delay-500"></div>
                 </div>
               )}
+              {isGeneratingProfile && <LoadingScreen />}
               <div ref={messagesEndRef}></div>
             </div>
           </div>
@@ -596,7 +615,7 @@ const OnboardingChat = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => handleQuickAction("skip")}
-                  disabled={isTyping}
+                  disabled={isTyping || isGeneratingProfile}
                   className="bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-full text-sm shadow-sm"
                 >
                   <SkipForward className="h-3 w-3 mr-1" /> 
@@ -606,7 +625,7 @@ const OnboardingChat = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => handleQuickAction("change-topic")}
-                  disabled={isTyping}
+                  disabled={isTyping || isGeneratingProfile}
                   className="bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-full text-sm shadow-sm"
                 >
                   <MessageCircle className="h-3 w-3 mr-1" /> 
@@ -621,13 +640,13 @@ const OnboardingChat = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  disabled={isTyping}
+                  disabled={isTyping || isGeneratingProfile}
                   className="rounded-full shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
                 />
                 <Button
                   size="icon"
                   onClick={() => handleSend()}
-                  disabled={isTyping || !input.trim()}
+                  disabled={isTyping || isGeneratingProfile || !input.trim()}
                   className="rounded-full shadow-md bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200"
                 >
                   <Send size={18} />
@@ -639,10 +658,12 @@ const OnboardingChat = () => {
       ) : (
         <>
           <div className="p-4 border-b backdrop-blur-lg bg-background/80 flex items-center justify-between sticky top-0 z-10">
-            <h1 className="text-xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Your Profile Summary</h1>
+            <h1 className="text-xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Your Dashboard</h1>
           </div>
           
-          <ProfileCompletionDashboard userProfile={userProfile} />
+          <div className="flex-1">
+            <ProfileCompletionDashboard userProfile={userProfile} />
+          </div>
 
           <div className="p-4 flex justify-center">
             <Button 

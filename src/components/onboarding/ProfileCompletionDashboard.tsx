@@ -1,12 +1,11 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Check, UserRound, Heart, Star, BookOpen, Calendar, ThumbsUp } from "lucide-react";
+import { Check, UserRound, Heart, Star, BookOpen, ThumbsUp, Users, Smile } from "lucide-react";
 import { PersonalityChart } from "./PersonalityChart";
 import { ValueCard } from "./ValueCard";
 import { InsightCard } from "./InsightCard";
@@ -65,7 +64,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
   // Helper function to extract key values from text
   const extractKeyValues = (text?: string): string[] => {
     if (!text) return [];
-    // Split by periods, commas, or natural language indicators
+    // Split by periods, commas, or natural language indicators - fixed to be on one line
     const segments = text.split(/[.,]|\s(?:and|but|or)\s/).filter(Boolean);
     return segments.map(s => s.trim()).filter(s => s.length > 5 && s.length < 100);
   };
@@ -90,10 +89,10 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
     <div className="flex flex-col bg-gradient-to-br from-primary/10 via-background to-background min-h-screen p-6">
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold mb-2">
-          <span className="text-primary">Your</span> Persona Profile
+          <span className="text-primary">Your</span> Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Based on our conversation, here's what I've learned about you
+          This is private and just between you and Twyne — a reflection of who you are, based on our chat 💬
         </p>
       </div>
 
@@ -109,7 +108,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               </Avatar>
               <div>
                 <CardTitle className="text-2xl">
-                  {name}'s Profile
+                  {name}'s Dashboard
                   <Badge variant="outline" className="ml-2 bg-primary/10 text-primary">
                     <Check className="mr-1 h-3 w-3" /> Complete
                   </Badge>
@@ -132,25 +131,17 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
             className="w-full animate-fade-in"
           >
             <TabsList className="mb-4 w-full md:w-auto bg-white/80 backdrop-blur-sm p-1 rounded-lg">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <UserRound className="h-4 w-4 mr-2" />
-                Overview
+              <TabsTrigger value="overview">
+                <UserRound className="h-4 w-4 mr-2" /> Overview
               </TabsTrigger>
-              <TabsTrigger value="interests" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Heart className="h-4 w-4 mr-2" />
-                Interests & Identity
+              <TabsTrigger value="interests">
+                <Heart className="h-4 w-4 mr-2" /> Interests
               </TabsTrigger>
-              <TabsTrigger value="vibe" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Star className="h-4 w-4 mr-2" />
-                Vibe
+              <TabsTrigger value="connection">
+                <Users className="h-4 w-4 mr-2" /> Connection
               </TabsTrigger>
-              <TabsTrigger value="story" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Story
-              </TabsTrigger>
-              <TabsTrigger value="values" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <ThumbsUp className="h-4 w-4 mr-2" />
-                Values
+              <TabsTrigger value="inner-world">
+                <ThumbsUp className="h-4 w-4 mr-2" /> Inner World
               </TabsTrigger>
             </TabsList>
 
@@ -168,6 +159,12 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                         <p>{userProfile.vibeSummary}</p>
                       </div>
                     )}
+                    <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10">
+                      <p className="text-muted-foreground">
+                        <span className="font-medium text-primary">Privacy note:</span> This dashboard is private and not visible to other users.
+                        It's only used by Twyne AI to help you make meaningful connections.
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -250,7 +247,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               </div>
             </TabsContent>
 
-            {/* 2. Interests & Identity Tab Content */}
+            {/* 2. Interests Tab Content */}
             <TabsContent value="interests" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
               {/* Interests */}
               <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
@@ -310,18 +307,8 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
               </Card>
             </TabsContent>
 
-            {/* 3. Vibe Tab Content */}
-            <TabsContent value="vibe" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
-              {/* Personality Visualization */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Personality</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <PersonalityChart traits={personalityTraits} />
-                </CardContent>
-              </Card>
-
+            {/* 3. Connection Tab Content */}
+            <TabsContent value="connection" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
               {/* Social Preferences */}
               <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
@@ -355,6 +342,16 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                 </CardContent>
               </Card>
 
+              {/* Deal Breakers */}
+              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Deal Breakers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.dealBreakers || "No deal breakers specified."}</p>
+                </CardContent>
+              </Card>
+
               {/* Misunderstood Aspects */}
               <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
@@ -364,78 +361,20 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                   <p>{userProfile.misunderstood || "No misunderstood aspects specified."}</p>
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            {/* 4. Story Tab Content */}
-            <TabsContent value="story" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
-              {/* Life Story */}
+              {/* Personality Visualization */}
               <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
-                  <CardTitle>Life Story & Background</CardTitle>
+                  <CardTitle>Personality Traits</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p>{userProfile.lifeStory || userProfile.background || "No life story specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Hometown & Moves */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Hometown & Moves</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {userProfile.hometown && (
-                      <div>
-                        <h3 className="font-medium mb-1">Hometown</h3>
-                        <p>{userProfile.hometown}</p>
-                      </div>
-                    )}
-                    {userProfile.timeInCurrentCity && (
-                      <div>
-                        <h3 className="font-medium mb-1">Time in Current City</h3>
-                        <p>{userProfile.timeInCurrentCity}</p>
-                      </div>
-                    )}
-                  </div>
-                  {!userProfile.hometown && !userProfile.timeInCurrentCity && (
-                    <p>No hometown or move information specified.</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Career or Studies */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Career or Studies</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.careerOrEducation || "No career or education information specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Challenges & Growth */}
-              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Challenges & Growth Journey</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-medium mb-1">Challenges Overcome</h3>
-                      <p>{userProfile.challengesOvercome || "No challenges specified."}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium mb-1">Growth Journey</h3>
-                      <p>{userProfile.growthJourney || "No growth journey specified."}</p>
-                    </div>
-                  </div>
+                <CardContent className="pt-4">
+                  <PersonalityChart traits={personalityTraits} />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* 5. Values & Inner World Tab Content */}
-            <TabsContent value="values" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
+            {/* 4. Inner World Tab Content */}
+            <TabsContent value="inner-world" className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-0">
               {/* Core Values */}
               <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
@@ -466,23 +405,42 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                 </CardContent>
               </Card>
 
+              {/* Challenges & Growth */}
+              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Challenges & Growth Journey</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-medium mb-1">Challenges Overcome</h3>
+                      <p>{userProfile.challengesOvercome || "No challenges specified."}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium mb-1">Growth Journey</h3>
+                      <p>{userProfile.growthJourney || "No growth journey specified."}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Life Story */}
+              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Life Story & Background</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lifeStory || userProfile.background || "No life story specified."}</p>
+                </CardContent>
+              </Card>
+
               {/* Emotional Intelligence */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
+              <Card className="col-span-1 md:col-span-12 bg-white/80 backdrop-blur-sm shadow-md">
                 <CardHeader>
                   <CardTitle>Emotional Intelligence</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.emotionalIntelligence || "No emotional intelligence insights specified."}</p>
-                </CardContent>
-              </Card>
-
-              {/* Deal Breakers */}
-              <Card className="col-span-1 md:col-span-6 bg-white/80 backdrop-blur-sm shadow-md">
-                <CardHeader>
-                  <CardTitle>Deal Breakers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.dealBreakers || "No deal breakers specified."}</p>
                 </CardContent>
               </Card>
             </TabsContent>

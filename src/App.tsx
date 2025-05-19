@@ -42,7 +42,7 @@ const App = () => (
             }>
               <Route path="/connections" element={<Connections />} />
               <Route path="/chat/:id" element={<Chat />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/dashboard" element={<Profile />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { Lock } from "lucide-react";
 
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
@@ -58,8 +59,8 @@ const Profile = () => {
         });
       } else {
         toast({
-          title: "Profile updated",
-          description: "Your profile has been updated successfully",
+          title: "Dashboard updated",
+          description: "Your information has been updated successfully",
         });
         setIsEditing(false);
       }
@@ -83,9 +84,22 @@ const Profile = () => {
 
   return (
     <div className="py-4 space-y-6">
-      <h1 className="text-2xl font-semibold">Your Profile</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Your Dashboard</h1>
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Lock className="h-4 w-4 mr-1 text-primary/70" />
+          <span>Private</span>
+        </div>
+      </div>
 
       <div className="bg-background rounded-2xl p-6 shadow-sm">
+        <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10 mb-6">
+          <p className="text-muted-foreground">
+            <span className="font-medium text-primary">Privacy note:</span> This information is private and used by Twyne AI to help you make meaningful connections.
+            It's not visible as a public profile to other users.
+          </p>
+        </div>
+        
         {isEditing ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col items-center mb-6">
@@ -195,7 +209,7 @@ const Profile = () => {
           onClick={() => setIsEditing(true)}
           disabled={isEditing}
         >
-          Edit Profile
+          Edit Dashboard
         </Button>
         <Button variant="outline" className="w-full rounded-full text-muted-foreground" onClick={handleSignOut}>
           Sign Out
