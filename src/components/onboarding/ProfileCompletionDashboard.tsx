@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -61,8 +62,8 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
 
   const extractKeyValues = (text?: string): string[] => {
     if (!text) return [];
-    const segments = text.split(/[.,]|
-\s(?:and|but|or)\s/).filter(Boolean);
+    // Fix: Put the entire regex on one line to prevent the "Unterminated regexp literal" error
+    const segments = text.split(/[.,]|\s(?:and|but|or)\s/).filter(Boolean);
     return segments.map(s => s.trim()).filter(s => s.length > 5 && s.length < 100);
   };
 
