@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -440,82 +441,92 @@ const OnboardingChat = () => {
     setIsTyping(true);
   
     if (currentQuestionIndex === 0) {
+      // After the user provides their name, save it and show conversation starters
       setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
       setShowConversationStarters(true);
-    } else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
-    }
-  
-    const newIndex = currentQuestionIndex + 1;
-    setCurrentQuestionIndex(newIndex);
-  
-    // Check if we have enough coverage to stop before getting next AI response
-    const draftConversation: Conversation = {
-      messages: [
-        ...conversation.messages,
-        { role: "user", content: textToSend }
-      ],
-      userAnswers: [...conversation.userAnswers, textToSend]
-    };
-  
-    checkConversationCoverage(draftConversation).then(result => {
-      if (result.enoughToStop && currentQuestionIndex >= 8) {
-        const closingMessage: Message = {
-          id: messages.length + 2,
-          text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
-          sender: "ai",
-        };
-  
-        setMessages(prev => [...prev, closingMessage]);
-        setIsTyping(false);
-        setIsGeneratingProfile(true); // Show loading screen while generating profile
-  
-        generateAIProfile().then(profile => {
-          setUserProfile(profile);
-          setIsTyping(false);
-          setIsGeneratingProfile(false); // Hide loading screen
-          setIsComplete(true);
-          setConversation({
-            messages: [
-              ...draftConversation.messages,
-              { role: "assistant", content: closingMessage.text }
-            ],
-            userAnswers: draftConversation.userAnswers
-          });
-  
-          if (user) markUserAsOnboarded(profile);
-        });
-      } else {
-        setShowConversationStarters(false);
-        // Not enough — proceed to get the AI's next question
-        setTimeout(() => {
-          getAIResponse(textToSend).then(aiResponse => {
-            const newAiMessage: Message = {
-              id: messages.length + 2,
-              text: aiResponse,
-              sender: "ai",
-            };
-  
-            const updatedConversation: Conversation = {
-              messages: [
-                ...conversation.messages,
-                { role: "user", content: textToSend },
-                { role: "assistant", content: aiResponse }
-              ],
-              userAnswers: [...conversation.userAnswers, textToSend]
-            };
-  
-            setMessages((prev) => [...prev, newAiMessage]);
-            setConversation(updatedConversation);
-            setIsTyping(false);
-          });
-        }, 1000);
+      setIsTyping(false); // Don't proceed to AI response yet
+    } else {
+      // For all other messages, proceed with the normal flow
+      if (currentQuestionIndex === 1) {
+        setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
       }
-    });
+    
+      const newIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(newIndex);
+    
+      // Check if we have enough coverage to stop before getting next AI response
+      const draftConversation: Conversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user", content: textToSend }
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
+      };
+    
+      checkConversationCoverage(draftConversation).then(result => {
+        if (result.enoughToStop && currentQuestionIndex >= 8) {
+          const closingMessage: Message = {
+            id: messages.length + 2,
+            text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
+            sender: "ai",
+          };
+    
+          setMessages(prev => [...prev, closingMessage]);
+          setIsTyping(false);
+          setIsGeneratingProfile(true); // Show loading screen while generating profile
+    
+          generateAIProfile().then(profile => {
+            setUserProfile(profile);
+            setIsTyping(false);
+            setIsGeneratingProfile(false); // Hide loading screen
+            setIsComplete(true);
+            setConversation({
+              messages: [
+                ...draftConversation.messages,
+                { role: "assistant", content: closingMessage.text }
+              ],
+              userAnswers: draftConversation.userAnswers
+            });
+    
+            if (user) markUserAsOnboarded(profile);
+          });
+        } else {
+          setShowConversationStarters(false);
+          // Not enough — proceed to get the AI's next question
+          setTimeout(() => {
+            getAIResponse(textToSend).then(aiResponse => {
+              const newAiMessage: Message = {
+                id: messages.length + 2,
+                text: aiResponse,
+                sender: "ai",
+              };
+    
+              const updatedConversation: Conversation = {
+                messages: [
+                  ...conversation.messages,
+                  { role: "user", content: textToSend },
+                  { role: "assistant", content: aiResponse }
+                ],
+                userAnswers: [...conversation.userAnswers, textToSend]
+              };
+    
+              setMessages((prev) => [...prev, newAiMessage]);
+              setConversation(updatedConversation);
+              setIsTyping(false);
+            });
+          }, 1000);
+        }
+      });
+    }
   };
 
   // Handle conversation starter selection
   const handleStarterSelect = (starter: string) => {
+    // Increment the question index to move past the name question
+    setCurrentQuestionIndex(1);
+    // Hide the conversation starters
+    setShowConversationStarters(false);
+    // Send the selected conversation starter
     handleSend(starter);
   };
 
@@ -683,13 +694,13 @@ const OnboardingChat = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  disabled={isTyping || isGeneratingProfile}
+                  disabled={isTyping || isGeneratingProfile || showConversationStarters}
                   className="rounded-full shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
                 />
                 <Button
                   size="icon"
                   onClick={() => handleSend()}
-                  disabled={isTyping || isGeneratingProfile || !input.trim()}
+                  disabled={isTyping || isGeneratingProfile || !input.trim() || showConversationStarters}
                   className="rounded-full shadow-md bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200"
                 >
                   <Send size={18} />
@@ -707,8 +718,6 @@ const OnboardingChat = () => {
           <div className="flex-1">
             <ProfileCompletionDashboard userProfile={userProfile} />
           </div>
-
-          {/* We've removed the "Go to Connections" button as requested */}
         </>
       )}
     </div>
