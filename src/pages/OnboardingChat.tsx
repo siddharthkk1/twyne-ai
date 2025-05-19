@@ -409,69 +409,89 @@ const OnboardingChat = () => {
   };
 
   const handleSend = (message?: string) => {
-    const textToSend = message || input;
-    if (!textToSend.trim()) return;
-  
-    const newUserMessage: Message = {
-      id: messages.length + 1,
-      text: textToSend,
-      sender: "user",
-    };
-  
-    setMessages((prev) => [...prev, newUserMessage]);
-    setInput("");
-    setIsTyping(true);
-  
-    if (currentQuestionIndex === 0) {
-      setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
-    } else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
-    }
-  
-    const newIndex = currentQuestionIndex + 1;
-    setCurrentQuestionIndex(newIndex);
-  
-    setTimeout(() => {
-      getAIResponse(textToSend).then(aiResponse => {
-        const newAiMessage: Message = {
-          id: messages.length + 2,
-          text: aiResponse,
-          sender: "ai",
-        };
-  
-        const updatedConversation: Conversation = {
+  const textToSend = message || input;
+  if (!textToSend.trim()) return;
+
+  const newUserMessage: Message = {
+    id: messages.length + 1,
+    text: textToSend,
+    sender: "user",
+  };
+
+  setMessages((prev) => [...prev, newUserMessage]);
+  setInput("");
+  setIsTyping(true);
+
+  if (currentQuestionIndex === 0) {
+    setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
+  } else if (currentQuestionIndex === 1) {
+    setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
+  }
+
+  const newIndex = currentQuestionIndex + 1;
+  setCurrentQuestionIndex(newIndex);
+
+  // Check if we have enough coverage to stop before getting next AI response
+  const draftConversation: Conversation = {
+    messages: [
+      ...conversation.messages,
+      { role: "user", content: textToSend }
+    ],
+    userAnswers: [...conversation.userAnswers, textToSend]
+  };
+
+  checkConversationCoverage(draftConversation).then(result => {
+    if (result.enoughToStop) {
+      const closingMessage: Message = {
+        id: messages.length + 2,
+        text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
+        sender: "ai",
+      };
+
+      setMessages(prev => [...prev, closingMessage]);
+
+      generateAIProfile().then(profile => {
+        setUserProfile(profile);
+        setIsTyping(false);
+        setIsComplete(true);
+        setConversation({
           messages: [
-            ...conversation.messages,
-            { role: "user", content: textToSend },
-            { role: "assistant", content: aiResponse },
+            ...draftConversation.messages,
+            { role: "assistant", content: closingMessage.text }
           ],
-          userAnswers: [...conversation.userAnswers, textToSend],
-        };
-  
-        setMessages((prev) => [...prev, newAiMessage]);
-  
-        if (shouldCompleteOnboarding() && newIndex % 2 === 0) {
-          checkConversationCoverage(updatedConversation).then(result => {
-            if (result.enoughToStop) {
-              generateAIProfile().then(profile => {
-                setUserProfile(profile);
-                setIsTyping(false);
-                setIsComplete(true);
-                setConversation(updatedConversation);
-                if (user) markUserAsOnboarded(profile);
-              });
-            } else {
-              setConversation(updatedConversation);
-              setIsTyping(false);
-            }
-          });
-        } else {
+          userAnswers: draftConversation.userAnswers
+        });
+
+        if (user) markUserAsOnboarded(profile);
+      });
+    } else {
+      // Not enough — proceed to get the AI's next question
+      setTimeout(() => {
+        getAIResponse(textToSend).then(aiResponse => {
+          const newAiMessage: Message = {
+            id: messages.length + 2,
+            text: aiResponse,
+            sender: "ai",
+          };
+
+          const updatedConversation: Conversation = {
+            messages: [
+              ...conversation.messages,
+              { role: "user", content: textToSend },
+              { role: "assistant", content: aiResponse }
+            ],
+            userAnswers: [...conversation.userAnswers, textToSend]
+          };
+
+          setMessages((prev) => [...prev, newAiMessage]);
           setConversation(updatedConversation);
           setIsTyping(false);
-        }
-      });
-    }, 1000);
-  };
+        });
+      }, 1000);
+    }
+  });
+};
+
 
   const handleQuickAction = (action: "skip" | "change-topic") => {
     const message = action === "skip" 
