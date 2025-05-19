@@ -449,6 +449,7 @@ const OnboardingChat = () => {
         };
   
         setMessages(prev => [...prev, closingMessage]);
+        setIsTyping(false);
   
         generateAIProfile().then(profile => {
           setUserProfile(profile);
