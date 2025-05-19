@@ -621,9 +621,10 @@ const OnboardingChat = () => {
             <h1 className="text-xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">Your Profile Summary</h1>
           </div>
           
-            <div className="w-full md:w-1/2">
-              <ProfileCompletionDashboard userProfile={userProfile} />
-            </div>
+
+          <div className="w-full md:w-1/2">
+            <ProfileCompletionDashboard userProfile={userProfile} />
+          </div>
 
           <div className="p-4 flex justify-center">
             <Button 
