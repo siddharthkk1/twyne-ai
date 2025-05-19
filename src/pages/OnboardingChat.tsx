@@ -78,17 +78,24 @@ const initialMessages: Message[] = [
   },
 ];
 
+// Conversation starter options to display after the user provides their name
+const conversationStarters = [
+  "What would you say are the 5 biggest pillars in your life right now—like the things that hold the most weight for you? Could be people, passions, projects, beliefs—whatever comes to mind.",
+  "If someone followed you around for a week, what do you think they'd say your life is about?",
+  "If you had to write a one-sentence bio for your current season of life, what would it say?",
+  "If I had just 2 minutes to get a sense of who you are, what would you want me to know?"
+];
+
 // Improved system prompt for the AI to guide its responses
 const SYSTEM_PROMPT = `
-You are Twyne — a warm, emotionally intelligent AI helping people feel seen and understood so you can connect them with others who truly match their vibe.
+"You are Twyne — a warm, emotionally intelligent friend designed to deeply understand people so you can connect them with others who truly match their vibe. Your purpose is to help people feel seen, reflected, and understood."
 Your goal is to learn about the real person behind the screen — their life story, personality, social energy, values, goals, and what they need from connection — through a thoughtful, open-ended conversation.
 You're not just collecting data. You're listening closely, following threads, and helping them reflect on who they are. Avoid asking users to define abstract traits like their 'vibe,' 'values,' or 'story' directly. Instead, ask emotionally intelligent, grounded questions that let you infer those traits from what they share.
 
 Pay attention to what the user speaks about with emotion, detail, or repetition — not just what they mention. Prioritize areas that seem to matter more to them, even if mentioned briefly but with depth or passion. Skip or deprioritize passing mentions.
 A: Conversation Goals (What to Learn)
 Over the course of the conversation, aim to understand these core areas. Don't rush, but don't get stuck — your job is to gently explore across all of them:
-1. Overview
-Name, location, general vibe, and key facts
+1. Overview - Name, city, age/life stage (if shared), current job, current season or vibe in life, and any standout facts that shape their world
 2. Life Story
 - Where they grew up, major life shifts or events
 - Current life context or season of life
@@ -106,8 +113,11 @@ If the user shares a lot about one topic (e.g. work or a project), explore it br
 "That's really cool — I'm curious, outside of that, what kind of people or energy bring out your best?"
 Track what's already been covered and prioritize what's still missing.
 C. Conversation Style
-Ask one open-ended question at a time
-Responses should be short (1–2 sentences) and feel warm, intuitive, and curious
+**Thread Smart, Not Flat**: After each user message, lightly acknowledge all major parts, but choose to go deeper on only the most emotionally or personally meaningful one.
+   - Prioritize topics that show passion, change, desire, struggle, identity, or values.
+   - Avoid going deep into low-signal topics like location, unless the user shows emotional investment.
+**Phase Gently Into Depth**: Early on, start light and relatable. Gradually invite vulnerability based on trust and tone. Never force depth—invite it.
+Your messages should be 1–2 sentences and feel warm, intuitive, and curious
 If the user shares something vulnerable, respond with empathy before moving forward
 Your goal is to build a full picture — across all six areas — in a natural flow. Don't rush, but don't linger too long in one area either. If something goes deep, explore briefly, then gently pivot.
 It's okay to loop back to important topics later
@@ -220,6 +230,7 @@ const OnboardingChat = () => {
   const { user, clearNewUserFlag } = useAuth();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showConversationStarters, setShowConversationStarters] = useState(false);
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
 
   useEffect(() => {
@@ -431,80 +442,94 @@ const OnboardingChat = () => {
     setInput("");
     setIsTyping(true);
   
-    // After the first message (name), save it
     if (currentQuestionIndex === 0) {
+      // After the user provides their name, save it and show conversation starters
       setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
-    }
-    // After the second message (possibly location)
-    else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
-    }
-    
-    const newIndex = currentQuestionIndex + 1;
-    setCurrentQuestionIndex(newIndex);
-    
-    // Check if we have enough coverage to stop before getting next AI response
-    const draftConversation: Conversation = {
-      messages: [
-        ...conversation.messages,
-        { role: "user", content: textToSend }
-      ],
-      userAnswers: [...conversation.userAnswers, textToSend]
-    };
-    
-    checkConversationCoverage(draftConversation).then(result => {
-      if (result.enoughToStop && currentQuestionIndex >= 8) {
-        const closingMessage: Message = {
-          id: messages.length + 2,
-          text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
-          sender: "ai",
-        };
-    
-        setMessages(prev => [...prev, closingMessage]);
-        setIsTyping(false);
-        setIsGeneratingProfile(true); // Show loading screen while generating profile
-    
-        generateAIProfile().then(profile => {
-          setUserProfile(profile);
-          setIsTyping(false);
-          setIsGeneratingProfile(false); // Hide loading screen
-          setIsComplete(true);
-          setConversation({
-            messages: [
-              ...draftConversation.messages,
-              { role: "assistant", content: closingMessage.text }
-            ],
-            userAnswers: draftConversation.userAnswers
-          });
-    
-          if (user) markUserAsOnboarded(profile);
-        });
-      } else {
-        // Not enough — proceed to get the AI's next question
-        setTimeout(() => {
-          getAIResponse(textToSend).then(aiResponse => {
-            const newAiMessage: Message = {
-              id: messages.length + 2,
-              text: aiResponse,
-              sender: "ai",
-            };
-    
-            const updatedConversation: Conversation = {
-              messages: [
-                ...conversation.messages,
-                { role: "user", content: textToSend },
-                { role: "assistant", content: aiResponse }
-              ],
-              userAnswers: [...conversation.userAnswers, textToSend]
-            };
-    
-            setMessages((prev) => [...prev, newAiMessage]);
-            setConversation(updatedConversation);
-            setIsTyping(false);
-          });
-        }, 1000);
+      setShowConversationStarters(true);
+      setIsTyping(false); // Don't proceed to AI response yet
+    } else {
+      // For all other messages, proceed with the normal flow
+      if (currentQuestionIndex === 1) {
+        setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
       }
-    });
+    
+      const newIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(newIndex);
+    
+      // Check if we have enough coverage to stop before getting next AI response
+      const draftConversation: Conversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user", content: textToSend }
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
+      };
+    
+      checkConversationCoverage(draftConversation).then(result => {
+        if (result.enoughToStop && currentQuestionIndex >= 8) {
+          const closingMessage: Message = {
+            id: messages.length + 2,
+            text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
+            sender: "ai",
+          };
+    
+          setMessages(prev => [...prev, closingMessage]);
+          setIsTyping(false);
+          setIsGeneratingProfile(true); // Show loading screen while generating profile
+    
+          generateAIProfile().then(profile => {
+            setUserProfile(profile);
+            setIsTyping(false);
+            setIsGeneratingProfile(false); // Hide loading screen
+            setIsComplete(true);
+            setConversation({
+              messages: [
+                ...draftConversation.messages,
+                { role: "assistant", content: closingMessage.text }
+              ],
+              userAnswers: draftConversation.userAnswers
+            });
+    
+            if (user) markUserAsOnboarded(profile);
+          });
+        } else {
+          setShowConversationStarters(false);
+          // Not enough — proceed to get the AI's next question
+          setTimeout(() => {
+            getAIResponse(textToSend).then(aiResponse => {
+              const newAiMessage: Message = {
+                id: messages.length + 2,
+                text: aiResponse,
+                sender: "ai",
+              };
+    
+              const updatedConversation: Conversation = {
+                messages: [
+                  ...conversation.messages,
+                  { role: "user", content: textToSend },
+                  { role: "assistant", content: aiResponse }
+                ],
+                userAnswers: [...conversation.userAnswers, textToSend]
+              };
+    
+              setMessages((prev) => [...prev, newAiMessage]);
+              setConversation(updatedConversation);
+              setIsTyping(false);
+            });
+          }, 1000);
+        }
+      });
+    }
+  };
+
+  // Handle conversation starter selection
+  const handleStarterSelect = (starter: string) => {
+    // Increment the question index to move past the name question
+    setCurrentQuestionIndex(1);
+    // Hide the conversation starters
+    setShowConversationStarters(false);
+    // Send the selected conversation starter
+    handleSend(starter);
   };
 
   const handleQuickAction = (action: "skip" | "change-topic") => {
@@ -622,6 +647,24 @@ const OnboardingChat = () => {
 
           <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0">
             <div className="max-w-3xl mx-auto">
+              {/* Conversation Starter Options */}
+              {showConversationStarters && (
+                <div className="mb-4 space-y-2">
+                  <p className="text-sm text-muted-foreground mb-2">Choose a conversation starter:</p>
+                  {conversationStarters.map((starter, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStarterSelect(starter)}
+                      className="w-full text-left justify-start h-auto py-3 mb-2 bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-lg shadow-sm"
+                    >
+                      <span className="line-clamp-2">{starter}</span>
+                    </Button>
+                  ))}
+                </div>
+              )}
+              
               {/* Quick Action Buttons */}
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Button
@@ -653,13 +696,13 @@ const OnboardingChat = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  disabled={isTyping || isGeneratingProfile}
+                  disabled={isTyping || isGeneratingProfile || showConversationStarters}
                   className="rounded-full shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
                 />
                 <Button
                   size="icon"
                   onClick={() => handleSend()}
-                  disabled={isTyping || isGeneratingProfile || !input.trim()}
+                  disabled={isTyping || isGeneratingProfile || !input.trim() || showConversationStarters}
                   className="rounded-full shadow-md bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200"
                 >
                   <Send size={18} />
