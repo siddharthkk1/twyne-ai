@@ -410,75 +410,73 @@ const OnboardingChat = () => {
 
   const handleSend = (message?: string) => {
     const textToSend = message || input;
-    
     if (!textToSend.trim()) return;
-
+  
     const newUserMessage: Message = {
       id: messages.length + 1,
       text: textToSend,
       sender: "user",
     };
-
+  
     setMessages((prev) => [...prev, newUserMessage]);
     setInput("");
     setIsTyping(true);
-
-    // Update profile if it's one of the first questions
+  
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
     }
-
+  
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
-
-    const continueConversation = () => {
-      setTimeout(() => {
-        getAIResponse(textToSend).then(aiResponse => {
-          const newAiMessage: Message = {
-            id: messages.length + 2,
-            text: aiResponse,
-            sender: "ai",
-          };
-          setMessages((prev) => [...prev, newAiMessage]);
-          setIsTyping(false);
-        });
-      }, 1000);
-    };
-
-    // Check if we should complete onboarding based on conversation length
-    if (shouldCompleteOnboarding() && newIndex % 2 === 0) {
-      const updatedConversation: Conversation = {
-      messages: [
-        ...conversation.messages,
-        { role: "user", content: textToSend },
-        { role: "assistant", content: aiResponse },
-      ],
-      userAnswers: [...conversation.userAnswers, textToSend]
-      };
-
-      setConversation(updatedConversation);
-      
-      checkConversationCoverage(updatedConversation).then(result => {
-        if (result.enoughToStop) {
-          generateAIProfile().then(profile => {
-            setUserProfile(profile);
-            setIsTyping(false);
-            setIsComplete(true);
-
-            if (user) {
-              markUserAsOnboarded(profile);
+  
+    // always run this
+    setTimeout(() => {
+      getAIResponse(textToSend).then(aiResponse => {
+        const newAiMessage: Message = {
+          id: messages.length + 2,
+          text: aiResponse,
+          sender: "ai",
+        };
+  
+        const updatedConversation: Conversation = {
+          messages: [
+            ...conversation.messages,
+            { role: "user", content: textToSend },
+            { role: "assistant", content: aiResponse },
+          ],
+          userAnswers: [...conversation.userAnswers, textToSend],
+        };
+  
+        setMessages((prev) => [...prev, newAiMessage]);
+  
+        // ✅ Only run coverage check *after* getting assistant response
+        if (shouldCompleteOnboarding() && newIndex % 2 === 0) {
+          checkConversationCoverage(updatedConversation).then(result => {
+            if (result.enoughToStop) {
+              generateAIProfile().then(profile => {
+                setUserProfile(profile);
+                setIsTyping(false);
+                setIsComplete(true);
+                setConversation(updatedConversation);
+                if (user) markUserAsOnboarded(profile);
+              });
+            } else {
+              setConversation(updatedConversation);
+              setIsTyping(false);
             }
           });
         } else {
-          continueConversation();
+          setConversation(updatedConversation);
+          setIsTyping(false);
         }
       });
-    } else {
-      continueConversation();
-    }
-  };
+    }, 1000);
+};
+
+
+    };
 
   const handleQuickAction = (action: "skip" | "change-topic") => {
     const message = action === "skip" 
