@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ interface Conversation {
 interface UserProfile {
   name: string;
   location: string;
-  interests: string[];
+  interests: string[] | string; // Updated to accept both string and array
   socialStyle: string;
   connectionPreferences: string;
   personalInsights: string[];
@@ -431,7 +432,6 @@ const OnboardingChat = () => {
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
   
-    // always run this
     setTimeout(() => {
       getAIResponse(textToSend).then(aiResponse => {
         const newAiMessage: Message = {
@@ -451,7 +451,6 @@ const OnboardingChat = () => {
   
         setMessages((prev) => [...prev, newAiMessage]);
   
-        // ✅ Only run coverage check *after* getting assistant response
         if (shouldCompleteOnboarding() && newIndex % 2 === 0) {
           checkConversationCoverage(updatedConversation).then(result => {
             if (result.enoughToStop) {
@@ -473,10 +472,7 @@ const OnboardingChat = () => {
         }
       });
     }, 1000);
-};
-
-
-    };
+  };
 
   const handleQuickAction = (action: "skip" | "change-topic") => {
     const message = action === "skip" 
