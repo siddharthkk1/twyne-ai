@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,8 @@ interface UserProfile {
   job?: string;
   ethnicity?: string;
   religion?: string;
+  vibeWords?: string[];  // Added missing property
+  goals?: string;        // Added missing property
 }
 
 export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> = ({ userProfile }) => {
@@ -242,7 +245,7 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {Array.isArray(userProfile.vibeWords) && userProfile.vibeWords.length ? (
+                    {Array.isArray(userProfile.vibeWords) && userProfile.vibeWords?.length ? (
                       userProfile.vibeWords.map((word, i) => (
                         <Badge key={i} variant="outline" className="bg-primary/5 text-primary">
                           {word}
