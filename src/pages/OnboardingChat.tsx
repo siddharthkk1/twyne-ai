@@ -449,7 +449,18 @@ const OnboardingChat = () => {
 
     // Check if we should complete onboarding based on conversation length
     if (shouldCompleteOnboarding() && newIndex % 2 === 0) {
-      checkConversationCoverage(conversation).then(result => {
+      const updatedConversation: Conversation = {
+      messages: [
+        ...conversation.messages,
+        { role: "user", content: textToSend },
+        { role: "assistant", content: aiResponse },
+      ],
+      userAnswers: [...conversation.userAnswers, textToSend]
+      };
+
+      setConversation(updatedConversation);
+      
+      checkConversationCoverage(updatedConversation).then(result => {
         if (result.enoughToStop) {
           generateAIProfile().then(profile => {
             setUserProfile(profile);
