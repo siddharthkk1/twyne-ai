@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,6 +67,17 @@ interface UserProfile {
   socialNeeds?: string;
   coreValues?: string;
   lifeContext?: string;
+}
+
+// Interface for conversation coverage result
+interface CoverageResult {
+  overview: string;
+  lifeStory: string;
+  interestsIdentity: string;
+  vibePersonality: string;
+  innerWorld: string;
+  connectionNeeds: string;
+  enoughToStop: boolean;
 }
 
 // OpenAI API key - in a real app, this would be stored securely in environment variables or backend
@@ -284,6 +296,84 @@ const OnboardingChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Function to check conversation coverage using OpenAI
+  const checkConversationCoverage = async (conversation: Conversation): Promise<CoverageResult> => {
+    try {
+      // Format conversation for the coverage evaluation prompt
+      const formattedConversation = conversation.messages
+        .filter(msg => msg.role !== "system")
+        .map(msg => `${msg.role.toUpperCase()}: ${msg.content}`)
+        .join("\n\n");
+      
+      // Create prompt for coverage evaluation
+      const prompt = COVERAGE_EVAL_PROMPT.replace("[CONVERSATION]", formattedConversation);
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system" as const, content: "You are evaluating conversation coverage." },
+            { role: "user" as const, content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const resultText = data.choices[0].message.content;
+      
+      try {
+        // Extract JSON from response
+        const jsonMatch = resultText.match(/(\{[\s\S]*\})/);
+        const jsonString = jsonMatch ? jsonMatch[0] : "{}";
+        const result = JSON.parse(jsonString);
+        
+        // Return result with default values if any fields are missing
+        return {
+          overview: result.overview || "Missing",
+          lifeStory: result.lifeStory || "Missing",
+          interestsIdentity: result.interestsIdentity || "Missing",
+          vibePersonality: result.vibePersonality || "Missing",
+          innerWorld: result.innerWorld || "Missing",
+          connectionNeeds: result.connectionNeeds || "Missing",
+          enoughToStop: !!result.enoughToStop
+        };
+      } catch (error) {
+        console.error("Error parsing coverage evaluation:", error);
+        return {
+          overview: "Error",
+          lifeStory: "Error",
+          interestsIdentity: "Error",
+          vibePersonality: "Error",
+          innerWorld: "Error",
+          connectionNeeds: "Error",
+          enoughToStop: false
+        };
+      }
+    } catch (error) {
+      console.error("Error evaluating conversation coverage:", error);
+      return {
+        overview: "Error",
+        lifeStory: "Error",
+        interestsIdentity: "Error",
+        vibePersonality: "Error",
+        innerWorld: "Error",
+        connectionNeeds: "Error",
+        enoughToStop: false
+      };
+    }
+  };
+
   // Function to get AI response using OpenAI API
   const getAIResponse = async (userMessage: string, extraMessages: Conversation["messages"] = []): Promise<string> => {
     try {
@@ -317,10 +407,10 @@ const OnboardingChat = () => {
         }
       }
 
-      const finalMessages = [
+      const finalMessages: Conversation["messages"] = [
         ...updatedMessages,
         ...(assistantGuidance
-          ? [{ role: "system" as const, content: assistantGuidance }]
+          ? [{ role: "system", content: assistantGuidance }]
           : [])
       ];
 
@@ -545,10 +635,10 @@ const OnboardingChat = () => {
             assistantGuidance = `After responding to the user's last message, if the topic feels complete or winds down, gently pivot the conversation toward these areas: ${missingCategories.join(", ")}. Be subtle and natural — don't make it obvious.`;
           }
 
-          const updatedMessages = [
+          const updatedMessages: Conversation["messages"] = [
             ...draftConversation.messages,
             ...(assistantGuidance
-              ? [{ role: "system" as const, content: assistantGuidance }]
+              ? [{ role: "system", content: assistantGuidance }]
               : [])
           ];
 
