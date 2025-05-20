@@ -753,10 +753,6 @@ const OnboardingChat = () => {
             formData.append('file', audioBlob, 'audio.webm');
             formData.append('model', 'whisper-1');
             
-            toast({
-              title: "Processing your voice...",
-            });
-            
             // Call OpenAI's Whisper API
             const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
               method: "POST",
@@ -776,25 +772,11 @@ const OnboardingChat = () => {
             
             if (transcribedText && transcribedText.trim()) {
               handleSend(transcribedText);
-              
-              toast({
-                title: "Voice processed",
-                description: `"${transcribedText.substring(0, 30)}${transcribedText.length > 30 ? '...' : ''}"`
-              });
             } else {
-              toast({
-                title: "No speech detected",
-                description: "Please try speaking more clearly",
-                variant: "destructive",
-              });
+              console.error("No speech detected");
             }
           } catch (error) {
             console.error("Error processing speech:", error);
-            toast({
-              title: "Error processing speech",
-              description: "Please try again or switch to text input",
-              variant: "destructive",
-            });
           }
           
           // Clean up
@@ -804,18 +786,8 @@ const OnboardingChat = () => {
         // Start recording
         recorder.start();
         setIsListening(true);
-        
-        toast({
-          title: "Listening...",
-          description: "Speak clearly into your microphone",
-        });
       } catch (error) {
         console.error("Error accessing microphone:", error);
-        toast({
-          title: "Microphone access denied",
-          description: "Please allow microphone access to use voice input",
-          variant: "destructive",
-        });
       }
     }
   };
@@ -935,22 +907,32 @@ const OnboardingChat = () => {
                 <Button
                   variant="outline" 
                   size="sm"
-                  onClick={() => handleSend("I'm not sure / I'd prefer to skip this question")}
+                  onClick={() => handleSend("Not really")}
                   disabled={isTyping || isGeneratingProfile}
                   className="bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-full text-sm shadow-sm"
                 >
                   <SkipForward className="h-3 w-3 mr-1" /> 
-                  I'm not sure / skip
+                  Not really
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleSend("Let's talk about something else")}
+                  onClick={() => handleSend("I'm not sure")}
                   disabled={isTyping || isGeneratingProfile}
                   className="bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-full text-sm shadow-sm"
                 >
                   <MessageCircle className="h-3 w-3 mr-1" /> 
-                  Let's talk about something else
+                  I'm not sure
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSend("This isn't really that important to me tbh, can we talk about something else?")}
+                  disabled={isTyping || isGeneratingProfile}
+                  className="bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-full text-sm shadow-sm whitespace-normal"
+                >
+                  <MessageCircle className="h-3 w-3 mr-1" /> 
+                  This isn't really that important to me tbh, can we talk about something else?
                 </Button>
               </div>
               
