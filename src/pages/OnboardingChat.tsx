@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,9 +25,12 @@ interface Message {
   sender: "ai" | "user";
 }
 
+// Define a literal type for the chat roles
+type ChatRole = "system" | "user" | "assistant";
+
 interface Conversation {
   messages: {
-    role: "system" | "user" | "assistant";
+    role: ChatRole;
     content: string;
   }[];
   userAnswers: string[];
@@ -265,7 +267,7 @@ const OnboardingChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
-    messages: [{ role: "system", content: SYSTEM_PROMPT }],
+    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT }],
     userAnswers: []
   });
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -317,8 +319,8 @@ const OnboardingChat = () => {
         body: JSON.stringify({
           model: "gpt-4o-mini",
           messages: [
-            { role: "system" as const, content: "You are evaluating conversation coverage." },
-            { role: "user" as const, content: prompt }
+            { role: "system" as ChatRole, content: "You are evaluating conversation coverage." },
+            { role: "user" as ChatRole, content: prompt }
           ],
           temperature: 0.7,
           max_tokens: 500
@@ -380,7 +382,7 @@ const OnboardingChat = () => {
       // Add user message to conversation history
       const updatedMessages = extraMessages.length > 0
         ? extraMessages
-        : [...conversation.messages, { role: "user", content: userMessage }];
+        : [...conversation.messages, { role: "user" as ChatRole, content: userMessage }];
 
       // Use the length of userAnswers for accurate and fast counting
       const userMessageCount = conversation.userAnswers.length + 1;
@@ -410,7 +412,7 @@ const OnboardingChat = () => {
       const finalMessages: Conversation["messages"] = [
         ...updatedMessages,
         ...(assistantGuidance
-          ? [{ role: "system", content: assistantGuidance }]
+          ? [{ role: "system" as ChatRole, content: assistantGuidance }]
           : [])
       ];
 
@@ -438,7 +440,7 @@ const OnboardingChat = () => {
       const aiResponse = data.choices[0].message.content;
 
       setConversation(prev => ({
-        messages: [...finalMessages, { role: "assistant", content: aiResponse }],
+        messages: [...finalMessages, { role: "assistant" as ChatRole, content: aiResponse }],
         userAnswers: [...prev.userAnswers, userMessage]
       }));
 
@@ -569,7 +571,7 @@ const OnboardingChat = () => {
     setCurrentQuestionIndex(newIndex);
 
     const draftConversation: Conversation = {
-      messages: [...conversation.messages, { role: "user", content: textToSend }],
+      messages: [...conversation.messages, { role: "user" as ChatRole, content: textToSend }],
       userAnswers: [...conversation.userAnswers, textToSend]
     };
 
@@ -638,7 +640,7 @@ const OnboardingChat = () => {
           const updatedMessages: Conversation["messages"] = [
             ...draftConversation.messages,
             ...(assistantGuidance
-              ? [{ role: "system", content: assistantGuidance }]
+              ? [{ role: "system" as ChatRole, content: assistantGuidance }]
               : [])
           ];
 
