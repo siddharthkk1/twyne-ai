@@ -26,7 +26,7 @@ const ConversationModeSelector: React.FC<ConversationModeSelectorProps> = ({ han
         </Button>
       </div>
       
-      {/* Centered content */}
+      {/* Centered content - using flex-1 and flex items-center to center vertically */}
       <div className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-lg px-4">
           <div className="text-center mb-8">

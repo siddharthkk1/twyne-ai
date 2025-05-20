@@ -282,12 +282,12 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       return data.content;
     } catch (error: any) {
       console.error("Error getting AI response:", error);
-      // This is the error message the user is seeing - let's make it more specific
-      return "I'm having trouble connecting to my services right now. Let me try again shortly.";
+      // More specific error message with action suggestions
+      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?";
     }
   } catch (error: any) {
     console.error("Error in getAIResponse:", error);
-    return "Sorry, I encountered an issue. Please give me a moment to reconnect.";
+    return "Sorry for the interruption. We're experiencing a technical issue. Let's try one more time or refresh the page if the problem continues.";
   }
 };
 
