@@ -13,6 +13,7 @@ import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface Message {
   id: number;
@@ -675,59 +676,88 @@ const OnboardingChat = () => {
       
       {!isComplete ? (
         <>
-          {/* Header with back button and progress indicator */}
-          <div className="container mx-auto px-4 pt-6 flex justify-between items-center">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate("/onboarding")}
-              className="text-sm flex items-center gap-1"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              Back to options
-            </Button>
-            
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs bg-background/50">
-                {isGeneratingProfile ? "Creating profile..." : "Getting to know you"}
-              </Badge>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => setShowGuidanceInfo(!showGuidanceInfo)}
+          {/* Fixed header with back button and progress indicator */}
+          <div className="fixed top-0 left-0 right-0 z-10 backdrop-blur-lg bg-background/80 border-b">
+            <div className="container mx-auto px-4 pt-6 flex justify-between items-center">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate("/onboarding")}
+                className="text-sm flex items-center gap-1"
               >
-                <HelpCircle className="h-3 w-3 mr-1" />
-                Help
+                <ArrowLeft className="h-3 w-3" />
+                Back to options
               </Button>
+              
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs bg-background/50">
+                  {isGeneratingProfile ? "Creating profile..." : "Getting to know you"}
+                </Badge>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => setShowGuidanceInfo(!showGuidanceInfo)}
+                >
+                  <HelpCircle className="h-3 w-3 mr-1" />
+                  Help
+                </Button>
+              </div>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="container mx-auto px-4 mt-2 pb-2">
+              <Progress value={getProgress()} className="h-1" />
             </div>
           </div>
           
-          {/* Progress bar */}
-          <div className="container mx-auto px-4 mt-2">
-            <Progress value={getProgress()} className="h-1" />
-          </div>
-          
-          {/* Chat content */}
-          <div className="flex-1 p-4 pt-4 overflow-y-auto">
+          {/* Chat content - added padding-top to avoid overlap with fixed header */}
+          <div className="flex-1 p-4 pt-24 overflow-y-auto">
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`animate-fade-in ${
-                    message.sender === "user" 
-                      ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto shadow-lg" 
-                      : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
-                  } rounded-2xl p-4 max-w-[85%] md:max-w-[70%] transition-all duration-200`}
+                  className={`animate-fade-in flex ${
+                    message.sender === "user" ? "justify-end" : "justify-start"
+                  }`}
                 >
-                  {message.text}
+                  {message.sender === "ai" && (
+                    <div className="mr-2 mt-1 flex-shrink-0">
+                      <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary">
+                        <AvatarFallback className="text-primary text-xs font-medium">TW</AvatarFallback>
+                      </Avatar>
+                    </div>
+                  )}
+                  <div
+                    className={`${
+                      message.sender === "user" 
+                        ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto shadow-lg" 
+                        : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
+                    } rounded-2xl p-4 max-w-[85%] md:max-w-[70%] transition-all duration-200`}
+                  >
+                    {message.text}
+                  </div>
+                  {message.sender === "user" && (
+                    <div className="ml-2 mt-1 flex-shrink-0">
+                      <Avatar className="h-8 w-8 bg-muted">
+                        <AvatarFallback>{getNameInitial()}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                  )}
                 </div>
               ))}
               {isTyping && (
-                <div className="chat-bubble-ai bg-background border border-border/50 shadow-sm backdrop-blur-sm rounded-2xl p-4 animate-pulse flex space-x-1 w-16">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animation-delay-200"></div>
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animation-delay-500"></div>
+                <div className="flex">
+                  <div className="mr-2 mt-1 flex-shrink-0">
+                    <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary">
+                      <AvatarFallback className="text-primary text-xs font-medium">TW</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="chat-bubble-ai bg-background border border-border/50 shadow-sm backdrop-blur-sm rounded-2xl p-4 animate-pulse flex space-x-1 w-16">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animation-delay-200"></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animation-delay-500"></div>
+                  </div>
                 </div>
               )}
               {isGeneratingProfile && <LoadingScreen />}
