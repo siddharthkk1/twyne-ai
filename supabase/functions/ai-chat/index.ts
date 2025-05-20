@@ -65,7 +65,7 @@ async function handleChatRequest(data) {
     console.log("Last message role:", messages[messages.length-1].role);
   }
   
-  // Fixed: Do not add userMessage again as it's already included in messages from frontend
+  // Fixed: Only use messages as provided from the frontend and optionally append assistantGuidance
   const finalMessages = [
     ...messages,
     ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])

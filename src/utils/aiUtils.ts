@@ -273,19 +273,21 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
         throw new Error(`Edge function error: ${error.message}`);
       }
 
-      if (!data?.content) {
-        console.error("Missing content in AI response:", data);
-        return "Sorry, something went wrong with my response. Let's continue our conversation.";
+      // This is the specific error we're seeing - let's improve the null/undefined check
+      if (!data || !data.content) {
+        console.error("Missing or invalid content in AI response:", data);
+        return "I seem to be having trouble responding right now. Let's continue our conversation in a moment.";
       }
 
       return data.content;
     } catch (error: any) {
       console.error("Error getting AI response:", error);
-      return "Sorry, something went wrong with our connection. Could you please share your thoughts again?";
+      // This is the error message the user is seeing - let's make it more specific
+      return "I'm having trouble connecting to my services right now. Let me try again shortly.";
     }
   } catch (error: any) {
-    console.error("Error getting AI response:", error);
-    return "Sorry, something went wrong. Can we try that again?";
+    console.error("Error in getAIResponse:", error);
+    return "Sorry, I encountered an issue. Please give me a moment to reconnect.";
   }
 };
 
