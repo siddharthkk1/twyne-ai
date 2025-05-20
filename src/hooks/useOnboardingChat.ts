@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,6 +59,7 @@ export const useOnboardingChat = () => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
 
+    // Add user message to UI
     const newUserMessage: Message = {
       id: messages.length + 1,
       text: textToSend,
@@ -70,6 +70,7 @@ export const useOnboardingChat = () => {
     setInput("");
     setIsTyping(true);
 
+    // Update basic profile info for first two questions
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
@@ -79,6 +80,7 @@ export const useOnboardingChat = () => {
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
 
+    // Prepare conversation data for API request
     const draftConversation: Conversation = {
       messages: [...conversation.messages, { role: "user" as ChatRole, content: textToSend }],
       userAnswers: [...conversation.userAnswers, textToSend]
@@ -88,7 +90,20 @@ export const useOnboardingChat = () => {
     const shouldRunCheck = userMessageCount >= 8;
     const isCompletionTurn = userMessageCount % 3 === 0;
 
+    // Function to handle AI response and update UI
     const handleContinue = (aiResponse: string) => {
+      // Add error checking for empty or invalid responses
+      if (!aiResponse || aiResponse.trim() === "") {
+        console.error("Empty AI response received");
+        setIsTyping(false);
+        toast({
+          title: "Connection issue",
+          description: "We're having trouble connecting to our AI. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const newAiMessage: Message = {
         id: messages.length + 2,
         text: aiResponse,
@@ -109,76 +124,101 @@ export const useOnboardingChat = () => {
       setIsTyping(false);
     };
 
+    // Evaluate conversation completeness if enough messages exchanged
     if (shouldRunCheck) {
-      checkConversationCoverage(draftConversation).then(async (result) => {
-        // Added null safety check with optional chaining
-        if (result?.enoughToStop && isCompletionTurn) {
-          const closingMessage: Message = {
-            id: messages.length + 2,
-            text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
-            sender: "ai",
-          };
+      checkConversationCoverage(draftConversation)
+        .then(async (result) => {
+          // Added null safety check with optional chaining
+          if (result?.enoughToStop && isCompletionTurn) {
+            // Handle conversation completion
+            const closingMessage: Message = {
+              id: messages.length + 2,
+              text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
+              sender: "ai",
+            };
 
-          setMessages(prev => [...prev, closingMessage]);
-          setIsTyping(false);
-          setIsGeneratingProfile(true);
+            setMessages(prev => [...prev, closingMessage]);
+            setIsTyping(false);
+            setIsGeneratingProfile(true);
 
-          try {
-            const profile = await generateAIProfile(draftConversation);
-            
-            // Profile is now guaranteed to have all fields with default values from the edge function
-            setUserProfile(profile);
-            setIsGeneratingProfile(false);
-            setIsComplete(true);
-            setConversation({
-              messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
-              userAnswers: draftConversation.userAnswers
-            });
+            try {
+              const profile = await generateAIProfile(draftConversation);
+              
+              // Profile is now guaranteed to have all fields with default values from the edge function
+              setUserProfile(profile);
+              setIsGeneratingProfile(false);
+              setIsComplete(true);
+              setConversation({
+                messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
+                userAnswers: draftConversation.userAnswers
+              });
 
-            if (user) markUserAsOnboarded(profile);
-          } catch (error) {
-            console.error("Error in profile generation:", error);
-            // Handle error with fallback
-            setIsGeneratingProfile(false);
-            toast({
-              title: "Error generating profile",
-              description: "We encountered an issue creating your profile. Let's continue our conversation.",
-              variant: "destructive",
-            });
-            // Continue conversation instead
-            getAIResponse(conversation, textToSend).then(handleContinue);
+              if (user) markUserAsOnboarded(profile);
+            } catch (error) {
+              console.error("Error in profile generation:", error);
+              // Handle error with fallback
+              setIsGeneratingProfile(false);
+              toast({
+                title: "Error generating profile",
+                description: "We encountered an issue creating your profile. Let's continue our conversation.",
+                variant: "destructive",
+              });
+              // Continue conversation instead
+              getAIResponse(conversation, textToSend)
+                .then(handleContinue)
+                .catch(error => {
+                  console.error("Failed to get AI response after profile error:", error);
+                  setIsTyping(false);
+                });
+            }
+          } else {
+            // Continue normal conversation with guidance based on missing fields
+            const missingCategories = result ? Object.entries(result)
+              .filter(([key, val]) =>
+                ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
+                val === "Missing"
+              )
+              .map(([key]) => key) : [];
+
+            let assistantGuidance = "";
+            if (missingCategories.length > 0) {
+              assistantGuidance = `After responding to the user's last message, if the topic feels complete or winds down, gently pivot the conversation toward these areas: ${missingCategories.join(", ")}. Be subtle and natural — don't make it obvious.`;
+            }
+
+            const updatedMessages: { role: ChatRole; content: string; }[] = [
+              ...draftConversation.messages,
+              ...(assistantGuidance
+                ? [{ role: "system" as ChatRole, content: assistantGuidance }]
+                : [])
+            ];
+
+            getAIResponse(conversation, textToSend, updatedMessages)
+              .then(handleContinue)
+              .catch(error => {
+                console.error("Failed to get AI response:", error);
+                setIsTyping(false);
+                handleContinue("I'm having a moment. Could you share that thought again?");
+              });
           }
-        } else {
-          // Redirect guidance using missing fields
-          // Added null safety check for result
-          const missingCategories = result ? Object.entries(result)
-            .filter(([key, val]) =>
-              ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
-              val === "Missing"
-            )
-            .map(([key]) => key) : [];
-
-          let assistantGuidance = "";
-          if (missingCategories.length > 0) {
-            assistantGuidance = `After responding to the user's last message, if the topic feels complete or winds down, gently pivot the conversation toward these areas: ${missingCategories.join(", ")}. Be subtle and natural — don't make it obvious.`;
-          }
-
-          const updatedMessages: { role: ChatRole; content: string; }[] = [
-            ...draftConversation.messages,
-            ...(assistantGuidance
-              ? [{ role: "system" as ChatRole, content: assistantGuidance }]
-              : [])
-          ];
-
-          getAIResponse(conversation, textToSend, updatedMessages).then(handleContinue);
-        }
-      }).catch(error => {
-        console.error("Error checking conversation coverage:", error);
-        // Fallback to continuing the conversation
-        getAIResponse(conversation, textToSend).then(handleContinue);
-      });
+        }).catch(error => {
+          console.error("Error checking conversation coverage:", error);
+          // Fallback to continuing the conversation
+          getAIResponse(conversation, textToSend)
+            .then(handleContinue)
+            .catch(error => {
+              console.error("Failed to get AI response after coverage check error:", error);
+              setIsTyping(false);
+              handleContinue("I seem to be having connection issues. Let's keep going though - what else would you like to share?");
+            });
+        });
     } else {
-      getAIResponse(conversation, textToSend).then(handleContinue);
+      getAIResponse(conversation, textToSend)
+        .then(handleContinue)
+        .catch(error => {
+          console.error("Failed to get AI response:", error);
+          setIsTyping(false);
+          handleContinue("Sorry for the hiccup. Please continue - I'm listening.");
+        });
     }
   };
 

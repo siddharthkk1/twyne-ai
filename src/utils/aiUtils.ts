@@ -1,4 +1,3 @@
-
 import { ChatRole } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -228,41 +227,62 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
 
     // Only start steering after N user messages
     if (userMessageCount >= 12) {
-      const coverageResult = await checkConversationCoverage({
-        ...conversation,
-        messages: updatedMessages,
-        userAnswers: [...conversation.userAnswers, userMessage]
-      });
+      try {
+        const coverageResult = await checkConversationCoverage({
+          ...conversation,
+          messages: updatedMessages,
+          userAnswers: [...conversation.userAnswers, userMessage]
+        });
 
-      const missingCategories = Object.entries(coverageResult)
-        .filter(([key, val]) =>
-          ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
-          val === "Missing"
-        )
-        .map(([key]) => key);
+        const missingCategories = Object.entries(coverageResult)
+          .filter(([key, val]) =>
+            ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
+            val === "Missing"
+          )
+          .map(([key]) => key);
 
-      if (missingCategories.length > 0) {
-        assistantGuidance = `After responding to the user's last message, if the current topic feels complete or winds down, gently pivot the conversation toward these missing areas: ${missingCategories.join(", ")}. Use curiosity and warmth — do not make it obvious that you're filling gaps. Only pivot if the topic feels naturally complete.`;
+        if (missingCategories.length > 0) {
+          assistantGuidance = `After responding to the user's last message, if the current topic feels complete or winds down, gently pivot the conversation toward these missing areas: ${missingCategories.join(", ")}. Use curiosity and warmth — do not make it obvious that you're filling gaps. Only pivot if the topic feels naturally complete.`;
+        }
+      } catch (err) {
+        console.log("Error in coverage evaluation, continuing without guidance:", err);
       }
     }
 
-    // Send only the messages and assistantGuidance - do not duplicate the user message
-    const { data, error } = await supabase.functions.invoke('ai-chat', {
-      body: {
-        endpoint: 'chat',
-        data: {
-          messages: updatedMessages,
-          assistantGuidance
-        }
-      }
+    // Add detailed logging
+    console.log("Sending chat request with:", {
+      messageCount: updatedMessages.length,
+      hasAssistantGuidance: !!assistantGuidance,
+      lastMessageRole: updatedMessages[updatedMessages.length - 1]?.role
     });
 
-    if (error) {
-      console.error("Error getting AI response:", error);
-      throw new Error(`Edge function error: ${error.message}`);
-    }
+    // Send only the messages and assistantGuidance - do not duplicate the user message
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          endpoint: 'chat',
+          data: {
+            messages: updatedMessages,
+            assistantGuidance
+          }
+        }
+      });
 
-    return data?.content || "Sorry, something went wrong. Can we try that again?";
+      if (error) {
+        console.error("Error getting AI response:", error);
+        throw new Error(`Edge function error: ${error.message}`);
+      }
+
+      if (!data?.content) {
+        console.error("Missing content in AI response:", data);
+        return "Sorry, something went wrong with my response. Let's continue our conversation.";
+      }
+
+      return data.content;
+    } catch (error: any) {
+      console.error("Error getting AI response:", error);
+      return "Sorry, something went wrong with our connection. Could you please share your thoughts again?";
+    }
   } catch (error: any) {
     console.error("Error getting AI response:", error);
     return "Sorry, something went wrong. Can we try that again?";

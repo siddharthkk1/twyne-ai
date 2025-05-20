@@ -20,6 +20,7 @@ serve(async (req) => {
 
   try {
     const { endpoint, data } = await req.json();
+    console.log(`Processing ${endpoint} request with data keys:`, Object.keys(data));
 
     if (endpoint === "chat") {
       return await handleChatRequest(data);
@@ -51,18 +52,27 @@ async function handleChatRequest(data) {
 
   const { messages, assistantGuidance } = data;
   
+  // Validate messages
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    console.error("Invalid messages format:", messages);
+    throw new Error("Invalid or empty messages array provided");
+  }
+  
+  // Log message count and first/last message for debugging
+  console.log(`Processing chat request with ${messages.length} messages`);
+  if (messages.length > 0) {
+    console.log("First message role:", messages[0].role);
+    console.log("Last message role:", messages[messages.length-1].role);
+  }
+  
   // Fixed: Do not add userMessage again as it's already included in messages from frontend
-  const finalMessages = messages ? [
+  const finalMessages = [
     ...messages,
     ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])
-  ] : [];
-
-  if (!finalMessages || finalMessages.length === 0) {
-    throw new Error("No messages provided");
-  }
+  ];
 
   try {
-    console.log("Sending request to OpenAI with messages:", JSON.stringify(finalMessages.slice(-3)));
+    console.log(`Sending request to OpenAI with ${finalMessages.length} messages`);
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -91,8 +101,11 @@ async function handleChatRequest(data) {
       throw new Error("Invalid response from OpenAI");
     }
     
+    const content = responseData.choices[0].message.content;
+    console.log("Successfully generated AI response");
+    
     return new Response(
-      JSON.stringify({ content: responseData.choices[0].message.content }),
+      JSON.stringify({ content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
