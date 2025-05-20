@@ -51,13 +51,19 @@ async function handleChatRequest(data) {
 
   const { messages, userMessage, assistantGuidance } = data;
   
-  const finalMessages = [
+  const finalMessages = messages ? [
     ...messages,
-    { role: "user", content: userMessage },
+    ...(userMessage ? [{ role: "user", content: userMessage }] : []),
     ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])
-  ];
+  ] : [];
+
+  if (!finalMessages || finalMessages.length === 0) {
+    throw new Error("No messages provided");
+  }
 
   try {
+    console.log("Sending request to OpenAI with messages:", JSON.stringify(finalMessages.slice(-3)));
+    
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -102,6 +108,10 @@ async function handleCoverageRequest(data) {
 
   const { conversation } = data;
   
+  if (!conversation || !conversation.messages) {
+    throw new Error("Invalid conversation data");
+  }
+
   // Format conversation for the coverage evaluation prompt
   const formattedConversation = conversation.messages
     .filter((msg) => msg.role !== "system")
@@ -218,6 +228,10 @@ async function handleProfileRequest(data) {
 
   const { conversation } = data;
 
+  if (!conversation || !conversation.messages) {
+    throw new Error("Invalid conversation data for profile generation");
+  }
+
   // Format conversation for the profile generation prompt
   const formattedConversation = conversation.messages
     .filter((msg) => msg.role !== "system")
@@ -272,6 +286,8 @@ Keep all field values non-null, even if it's just: "dealBreakers": "".
 `;
 
   try {
+    console.log("Sending profile generation request to OpenAI");
+    
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -366,6 +382,10 @@ async function handleTranscribeRequest(data) {
   }
 
   const { audioBlob } = data;
+  
+  if (!audioBlob) {
+    throw new Error("No audio data provided");
+  }
   
   try {
     // Convert base64 to blob
