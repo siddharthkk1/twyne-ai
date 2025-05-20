@@ -39,7 +39,7 @@ const OnboardingChat = () => {
     handleSend
   } = useOnboardingChat();
 
-  const { isListening, toggleVoiceInput } = useVoiceRecording(handleSend);
+  const { isListening, isProcessing, toggleVoiceInput } = useVoiceRecording(handleSend);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
@@ -97,6 +97,7 @@ const OnboardingChat = () => {
                     isListening={isListening}
                     toggleVoiceInput={toggleVoiceInput}
                     isDisabled={isTyping || isGeneratingProfile}
+                    isProcessing={isProcessing}
                     switchToTextMode={() => setConversationMode("text")}
                   />
                 )}

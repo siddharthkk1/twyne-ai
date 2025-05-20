@@ -1,1 +1,19 @@
+
+# This file controls the configuration for your Supabase project.
+
 project_id = "lzwkccarbwokfxrzffjd"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[studio]
+port = 54323
+
+[functions]
+[functions.ai-chat]
+verify_jwt = false

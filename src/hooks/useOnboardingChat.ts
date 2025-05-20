@@ -111,7 +111,8 @@ export const useOnboardingChat = () => {
 
     if (shouldRunCheck) {
       checkConversationCoverage(draftConversation).then(async (result) => {
-        if (result.enoughToStop && isCompletionTurn) {
+        // Added null safety check with optional chaining
+        if (result?.enoughToStop && isCompletionTurn) {
           const closingMessage: Message = {
             id: messages.length + 2,
             text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
@@ -124,36 +125,9 @@ export const useOnboardingChat = () => {
 
           try {
             const profile = await generateAIProfile(draftConversation);
-            // Ensure all required fields are present
-            const completeProfile = {
-              name: profile.name || userProfile.name || "",
-              location: profile.location || userProfile.location || "",
-              interests: Array.isArray(profile.interests) ? profile.interests : [],
-              socialStyle: profile.socialStyle || "",
-              connectionPreferences: profile.connectionPreferences || "",
-              personalInsights: Array.isArray(profile.personalInsights) ? profile.personalInsights : [],
-              vibeSummary: profile.vibeSummary || "",
-              socialNeeds: profile.socialNeeds || "",
-              coreValues: profile.coreValues || "",
-              lifeContext: profile.lifeContext || "",
-              twyneTags: Array.isArray(profile.twyneTags) ? profile.twyneTags : [],
-              age: profile.age || "",
-              hometown: profile.hometown || "",
-              talkingPoints: Array.isArray(profile.talkingPoints) ? profile.talkingPoints : [],
-              creativePursuits: profile.creativePursuits || "",
-              mediaTastes: profile.mediaTastes || "",
-              lifeStory: profile.lifeStory || "",
-              careerOrEducation: profile.careerOrEducation || "",
-              meaningfulAchievements: profile.meaningfulAchievements || "",
-              lifePhilosophy: profile.lifePhilosophy || "",
-              challengesOvercome: profile.challengesOvercome || "",
-              growthJourney: profile.growthJourney || "",
-              emotionalIntelligence: profile.emotionalIntelligence || "",
-              // Include any other fields returned by the AI
-              ...profile
-            };
             
-            setUserProfile(completeProfile);
+            // Profile is now guaranteed to have all fields with default values from the edge function
+            setUserProfile(profile);
             setIsGeneratingProfile(false);
             setIsComplete(true);
             setConversation({
@@ -161,7 +135,7 @@ export const useOnboardingChat = () => {
               userAnswers: draftConversation.userAnswers
             });
 
-            if (user) markUserAsOnboarded(completeProfile);
+            if (user) markUserAsOnboarded(profile);
           } catch (error) {
             console.error("Error in profile generation:", error);
             // Handle error with fallback
@@ -176,12 +150,13 @@ export const useOnboardingChat = () => {
           }
         } else {
           // Redirect guidance using missing fields
-          const missingCategories = Object.entries(result)
+          // Added null safety check for result
+          const missingCategories = result ? Object.entries(result)
             .filter(([key, val]) =>
               ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
               val === "Missing"
             )
-            .map(([key]) => key);
+            .map(([key]) => key) : [];
 
           let assistantGuidance = "";
           if (missingCategories.length > 0) {
@@ -197,6 +172,10 @@ export const useOnboardingChat = () => {
 
           getAIResponse(conversation, textToSend, updatedMessages).then(handleContinue);
         }
+      }).catch(error => {
+        console.error("Error checking conversation coverage:", error);
+        // Fallback to continuing the conversation
+        getAIResponse(conversation, textToSend).then(handleContinue);
       });
     } else {
       getAIResponse(conversation, textToSend).then(handleContinue);

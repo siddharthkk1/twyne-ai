@@ -1,9 +1,5 @@
-
 import { ChatRole } from "@/types/chat";
-
-// OpenAI API key - in a real app, this would be stored securely in environment variables or backend
-// For this demo, we're using it directly (not recommended for production)
-const OPENAI_API_KEY = "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";
+import { supabase } from "@/integrations/supabase/client";
 
 // Improved system prompt for the AI to guide its responses
 export const SYSTEM_PROMPT = `
@@ -177,70 +173,31 @@ export interface CoverageResult {
   enoughToStop: boolean;
 }
 
-// Function to check conversation coverage using OpenAI
+// Function to check conversation coverage using OpenAI via Supabase Edge Function
 export const checkConversationCoverage = async (conversation: any): Promise<CoverageResult> => {
   try {
-    // Format conversation for the coverage evaluation prompt
-    const formattedConversation = conversation.messages
-      .filter((msg: any) => msg.role !== "system")
-      .map((msg: any) => `${msg.role.toUpperCase()}: ${msg.content}`)
-      .join("\n\n");
-    
-    // Create prompt for coverage evaluation
-    const prompt = COVERAGE_EVAL_PROMPT.replace("[CONVERSATION]", formattedConversation);
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system" as ChatRole, content: "You are evaluating conversation coverage." },
-          { role: "user" as ChatRole, content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 500
-      })
+    const { data, error } = await supabase.functions.invoke('ai-chat', {
+      body: {
+        endpoint: 'coverage',
+        data: { conversation }
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+    if (error) {
+      console.error("Error in coverage evaluation:", error);
+      throw new Error(`Edge function error: ${error.message}`);
     }
 
-    const data = await response.json();
-    const resultText = data.choices[0].message.content;
-    
-    try {
-      // Extract JSON from response
-      const jsonMatch = resultText.match(/(\{[\s\S]*\})/);
-      const jsonString = jsonMatch ? jsonMatch[0] : "{}";
-      const result = JSON.parse(jsonString);
-      
-      // Return result with default values if any fields are missing
-      return {
-        overview: result.overview || "Missing",
-        lifeStory: result.lifeStory || "Missing",
-        interestsIdentity: result.interestsIdentity || "Missing",
-        vibePersonality: result.vibePersonality || "Missing",
-        innerWorld: result.innerWorld || "Missing",
-        connectionNeeds: result.connectionNeeds || "Missing",
-        enoughToStop: !!result.enoughToStop
-      };
-    } catch (error) {
-      console.error("Error parsing coverage evaluation:", error);
-      return {
-        overview: "Error",
-        lifeStory: "Error",
-        interestsIdentity: "Error",
-        vibePersonality: "Error",
-        innerWorld: "Error",
-        connectionNeeds: "Error",
-        enoughToStop: false
-      };
-    }
+    // Return result with default values if any fields are missing
+    return {
+      overview: data?.overview || "Missing",
+      lifeStory: data?.lifeStory || "Missing",
+      interestsIdentity: data?.interestsIdentity || "Missing",
+      vibePersonality: data?.vibePersonality || "Missing",
+      innerWorld: data?.innerWorld || "Missing",
+      connectionNeeds: data?.connectionNeeds || "Missing",
+      enoughToStop: !!data?.enoughToStop
+    };
   } catch (error) {
     console.error("Error evaluating conversation coverage:", error);
     return {
@@ -255,7 +212,7 @@ export const checkConversationCoverage = async (conversation: any): Promise<Cove
   }
 };
 
-// Function to get AI response using OpenAI API
+// Function to get AI response using OpenAI API via Supabase Edge Function
 export const getAIResponse = async (conversation: any, userMessage: string, extraMessages: any[] = []): Promise<string> => {
   try {
     // Add user message to conversation history
@@ -288,93 +245,45 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       }
     }
 
-    const finalMessages: { role: ChatRole; content: string; }[] = [
-      ...updatedMessages,
-      ...(assistantGuidance
-        ? [{ role: "system" as ChatRole, content: assistantGuidance }]
-        : [])
-    ];
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: finalMessages,
-        temperature: 0.7,
-        max_tokens: 150
-      })
+    const { data, error } = await supabase.functions.invoke('ai-chat', {
+      body: {
+        endpoint: 'chat',
+        data: {
+          messages: updatedMessages,
+          userMessage,
+          assistantGuidance
+        }
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("OpenAI API error:", errorData);
-      throw new Error(`API error: ${response.status}`);
+    if (error) {
+      throw new Error(`Edge function error: ${error.message}`);
     }
 
-    const data = await response.json();
-    return data.choices[0].message.content;
+    return data?.content || "Sorry, something went wrong. Can we try that again?";
   } catch (error) {
     console.error("Error getting AI response:", error);
     return "Sorry, something went wrong. Can we try that again?";
   }
 };
 
-// Generate user profile using OpenAI
+// Generate user profile using OpenAI via Supabase Edge Function
 export const generateAIProfile = async (conversation: any): Promise<any> => {
   try {
-    // Format conversation for the profile generation prompt
-    const formattedConversation = conversation.messages
-      .filter((msg: any) => msg.role !== "system")
-      .map((msg: any) => `${msg.role.toUpperCase()}: ${msg.content}`)
-      .join("\n\n");
-    
-    // Create prompt for profile generation
-    const prompt = PROFILE_GENERATION_PROMPT.replace("[CONVERSATION]", formattedConversation);
-
-    console.log("Sending profile generation prompt to OpenAI");
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system" as ChatRole, content: "You analyze conversations and create personality profiles." },
-          { role: "user" as ChatRole, content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
-      })
+    const { data, error } = await supabase.functions.invoke('ai-chat', {
+      body: {
+        endpoint: 'profile',
+        data: { conversation }
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("OpenAI profile generation error:", errorData);
-      throw new Error(`API error: ${response.status}`);
+    if (error) {
+      console.error("Profile generation error:", error);
+      throw new Error(`Edge function error: ${error.message}`);
     }
 
-    const data = await response.json();
-    const profileText = data.choices[0].message.content;
-    
-    console.log("Raw profile from OpenAI:", profileText);
-    
-    // Extract the JSON part from the response
-    const jsonMatch = profileText.match(/(\{[\s\S]*\})/);
-    const jsonString = jsonMatch ? jsonMatch[0] : profileText;
-    
-    try {
-      return JSON.parse(jsonString);
-    } catch (error) {
-      console.error("Error parsing AI profile:", error, profileText);
-      throw new Error("Failed to parse AI-generated profile");
-    }
+    // The edge function already ensures all fields have default values
+    return data;
   } catch (error) {
     console.error("Error generating AI profile:", error);
     throw error;

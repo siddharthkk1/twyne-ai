@@ -1,87 +1,144 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useVoiceRecording = (handleSend: (text: string) => void) => {
   const [audioRecorder, setAudioRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<BlobPart[]>([]);
   const [isListening, setIsListening] = useState(false);
-
-  // OpenAI API key - in a real app, this would be stored securely in environment variables or backend
-  const OPENAI_API_KEY = "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";
+  const [isProcessing, setIsProcessing] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const { toast } = useToast();
 
   const toggleVoiceInput = async () => {
-    if (isListening) {
-      // Stop recording
-      if (audioRecorder) {
-        audioRecorder.stop();
-        setIsListening(false);
-      }
-    } else {
-      try {
-        // Request microphone access
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const recorder = new MediaRecorder(stream);
-        setAudioRecorder(recorder);
-        
-        // Clear previous audio chunks
-        setAudioChunks([]);
-        
-        // Handle data available event
-        recorder.ondataavailable = (e) => {
-          setAudioChunks(chunks => [...chunks, e.data]);
-        };
-        
-        // Handle recording stop event
-        recorder.onstop = async () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    // Prevent rapid clicking
+    if (isProcessing) return;
+    setIsProcessing(true);
+    
+    try {
+      if (isListening) {
+        // Stop recording
+        if (audioRecorder) {
+          audioRecorder.stop();
+          setIsListening(false);
+        }
+      } else {
+        try {
+          // Request microphone access
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+              sampleRate: 24000,
+              channelCount: 1,
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
           
-          try {
-            // Convert speech to text using OpenAI Whisper API
-            const formData = new FormData();
-            formData.append('file', audioBlob, 'audio.webm');
-            formData.append('model', 'whisper-1');
-            
-            // Call OpenAI's Whisper API
-            const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${OPENAI_API_KEY}`
-              },
-              body: formData
-            });
-            
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(`API error: ${errorData.error?.message || response.status}`);
+          const recorder = new MediaRecorder(stream);
+          setAudioRecorder(recorder);
+          
+          // Clear previous audio chunks
+          setAudioChunks([]);
+          
+          // Handle data available event
+          recorder.ondataavailable = (e) => {
+            setAudioChunks(chunks => [...chunks, e.data]);
+          };
+          
+          // Handle recording stop event
+          recorder.onstop = async () => {
+            try {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              // Convert to base64 for easy transmission
+              const reader = new FileReader();
+              reader.readAsDataURL(audioBlob);
+              reader.onloadend = async () => {
+                try {
+                  const base64data = reader.result;
+                  
+                  // Call the Supabase edge function instead of directly calling OpenAI
+                  const { data, error } = await supabase.functions.invoke('ai-chat', {
+                    body: {
+                      endpoint: 'transcribe',
+                      data: {
+                        audioBlob: base64data
+                      }
+                    }
+                  });
+                  
+                  if (error) {
+                    throw new Error(`API error: ${error.message}`);
+                  }
+                  
+                  const transcribedText = data?.text;
+                  
+                  if (transcribedText && transcribedText.trim()) {
+                    handleSend(transcribedText);
+                  } else {
+                    console.error("No speech detected");
+                    toast({
+                      title: "No speech detected",
+                      description: "Please try speaking more clearly or check your microphone.",
+                      variant: "destructive",
+                    });
+                  }
+                } catch (error: any) {
+                  console.error("Error processing speech:", error);
+                  toast({
+                    title: "Speech Processing Error",
+                    description: error.message || "Failed to process your speech. Please try again.",
+                    variant: "destructive",
+                  });
+                }
+              };
+            } catch (error: any) {
+              console.error("Error processing audio:", error);
+              toast({
+                title: "Audio Processing Error",
+                description: error.message || "Failed to process audio. Please try again.",
+                variant: "destructive",
+              });
             }
             
-            const data = await response.json();
-            const transcribedText = data.text;
-            
-            if (transcribedText && transcribedText.trim()) {
-              handleSend(transcribedText);
-            } else {
-              console.error("No speech detected");
-            }
-          } catch (error) {
-            console.error("Error processing speech:", error);
-          }
+            // Clean up
+            stream.getTracks().forEach(track => track.stop());
+            setIsProcessing(false);
+          };
           
-          // Clean up
-          stream.getTracks().forEach(track => track.stop());
-        };
-        
-        // Start recording
-        recorder.start();
-        setIsListening(true);
-      } catch (error) {
-        console.error("Error accessing microphone:", error);
+          // Start recording
+          recorder.start();
+          setIsListening(true);
+          toast({
+            title: "Listening",
+            description: "Speak now. Click the microphone again when finished.",
+          });
+        } catch (error: any) {
+          console.error("Error accessing microphone:", error);
+          toast({
+            title: "Microphone Access Error",
+            description: "Please check your microphone permissions in your browser settings and try again.",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+        }
       }
+    } finally {
+      // Set a safeguard to prevent rapid clicking
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      debounceTimerRef.current = setTimeout(() => {
+        setIsProcessing(false);
+      }, 1000);
     }
   };
 
   return {
     isListening,
+    isProcessing,
     toggleVoiceInput
   };
 };
