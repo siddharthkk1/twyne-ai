@@ -177,6 +177,7 @@ export interface CoverageResult {
 // Function to check conversation coverage using OpenAI via Supabase Edge Function
 export const checkConversationCoverage = async (conversation: any): Promise<CoverageResult> => {
   try {
+    console.log("Sending coverage evaluation request to edge function");
     const { data, error } = await supabase.functions.invoke('ai-chat', {
       body: {
         endpoint: 'coverage',
@@ -188,6 +189,8 @@ export const checkConversationCoverage = async (conversation: any): Promise<Cove
       console.error("Error in coverage evaluation:", error);
       throw new Error(`Edge function error: ${error.message}`);
     }
+
+    console.log("Coverage evaluation response received:", data);
 
     // Return result with default values if any fields are missing
     return {
@@ -306,7 +309,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
         return "I seem to be having network issues connecting to my services. Could you try again in a moment?";
       }
       // More specific error message with action suggestions
-      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?" +  JSON.stringify(error?.message);
+      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?";
     }
   } catch (error: any) {
     console.error("Error in getAIResponse:", error);
@@ -317,6 +320,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
 // Generate user profile using OpenAI via Supabase Edge Function
 export const generateAIProfile = async (conversation: any): Promise<any> => {
   try {
+    console.log("Sending profile generation request to edge function");
     const { data, error } = await supabase.functions.invoke('ai-chat', {
       body: {
         endpoint: 'profile',
@@ -329,6 +333,7 @@ export const generateAIProfile = async (conversation: any): Promise<any> => {
       throw new Error(`Edge function error: ${error.message}`);
     }
 
+    console.log("Profile generation response received");
     // The edge function already ensures all fields have default values
     return data;
   } catch (error) {

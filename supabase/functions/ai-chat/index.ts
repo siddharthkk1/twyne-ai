@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -54,7 +53,7 @@ async function handleChatRequest(data) {
   }
 
   // Log the received data to help with debugging
-  console.log("handleChatRequest received data:", JSON.stringify({
+  console.log("handleChatRequest received:", JSON.stringify({
     hasMessages: Array.isArray(data?.messages),
     messageCount: data?.messages?.length || 0,
     hasAssistantGuidance: !!data?.assistantGuidance

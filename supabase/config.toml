@@ -9,9 +9,27 @@ schemas = ["public", "storage", "graphql_public"]
 [db]
 port = 54322
 
+[realtime]
+enabled = true
+
 [studio]
+enabled = true
 port = 54323
 
-[functions]
-[functions.ai-chat]
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[storage]
+enabled = true
+
+[analytics]
+enabled = false
+
+[[functions]]
+name = "ai-chat"
 verify_jwt = false
