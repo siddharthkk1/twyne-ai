@@ -140,8 +140,8 @@ ${formattedConversation}
     throw new Error(`API error: ${response.status}`);
   }
 
-  const data = await response.json();
-  const resultText = data.choices[0].message.content;
+  const responseData = await response.json();
+  const resultText = responseData.choices[0].message.content;
   
   try {
     // Extract JSON from response
@@ -258,8 +258,8 @@ Keep all field values non-null, even if it's just: "dealBreakers": "".
     throw new Error(`API error: ${response.status}`);
   }
 
-  const result = await response.json();
-  const profileText = result.choices[0].message.content;
+  const resultData = await response.json();
+  const profileText = resultData.choices[0].message.content;
   
   try {
     // Extract the JSON part from the response
