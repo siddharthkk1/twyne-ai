@@ -309,7 +309,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
         return "I seem to be having network issues connecting to my services. Could you try again in a moment? + JSON.stringify(data) + JSON.stringify(error?.message)";
       }
       // More specific error message with action suggestions
-      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?";
+      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?"+JSON.stringify(data) + JSON.stringify(error?.message);
     }
   } catch (error: any) {
     console.error("Error in getAIResponse:", error);
