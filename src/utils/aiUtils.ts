@@ -306,7 +306,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
     } catch (error: any) {
       console.error("Error getting AI response:", error);
       if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
-        return "I seem to be having network issues connecting to my services. Could you try again in a moment?";
+        return "I seem to be having network issues connecting to my services. Could you try again in a moment? + JSON.stringify(data) + JSON.stringify(error?.message)";
       }
       // More specific error message with action suggestions
       return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?";
