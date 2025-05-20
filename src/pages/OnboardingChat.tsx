@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, SkipForward, MessageCircle, Loader, ArrowLeft, HelpCircle, X, Sparkles } from "lucide-react";
+import { Send, SkipForward, MessageCircle, Loader, ArrowLeft, HelpCircle, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TwyneOrb from "@/components/ui/TwyneOrb";
 
 interface Message {
   id: number;
@@ -725,7 +726,7 @@ const OnboardingChat = () => {
                     <div className="mr-2 mt-1 flex-shrink-0">
                       <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary">
                         <AvatarFallback className="text-primary text-xs font-medium">
-                          <Sparkles className="h-4 w-4 text-primary" />
+                          <TwyneOrb size={16} />
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -753,7 +754,7 @@ const OnboardingChat = () => {
                   <div className="mr-2 mt-1 flex-shrink-0">
                     <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary animate-pulse-slow">
                       <AvatarFallback className="text-primary text-xs font-medium">
-                        <Sparkles className="h-4 w-4 text-primary" />
+                        <TwyneOrb size={16} pulsing={true} />
                       </AvatarFallback>
                     </Avatar>
                   </div>
