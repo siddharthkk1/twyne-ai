@@ -16,8 +16,11 @@ interface ProfileCompletionDashboardProps {
 export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProps> = ({ userProfile }) => {
   const navigate = useNavigate();
   
-  // Ensure we have arrays even if the API returns null
-  const interests = userProfile?.interests || [];
+  // Ensure we have arrays even if the API returns null or a string
+  const interests = Array.isArray(userProfile?.interests) 
+    ? userProfile.interests 
+    : userProfile?.interests ? [userProfile.interests] : [];
+  
   // Check if vibeWords exists, otherwise use empty array
   const vibeWords = userProfile?.vibeWords || [];
   const twyneTags = userProfile?.twyneTags || [];

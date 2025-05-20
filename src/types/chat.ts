@@ -36,7 +36,7 @@ export interface UserProfile {
   mediaTastes?: string;
   dealBreakers?: string;
   lookingFor?: string;
-  values?: string;
+  values?: string[];
   misunderstood?: string;
   lifeStory?: string;
   background?: string;
@@ -52,4 +52,5 @@ export interface UserProfile {
   socialNeeds?: string;
   coreValues?: string;
   lifeContext?: string;
+  vibeWords?: string[]; // Added missing vibeWords property
 }
