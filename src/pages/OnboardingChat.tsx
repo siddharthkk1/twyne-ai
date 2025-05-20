@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, SkipForward, MessageCircle, Loader, ArrowLeft } from "lucide-react";
+import { Send, SkipForward, MessageCircle, Loader, ArrowLeft, HelpCircle, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,9 @@ import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompl
 import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
+import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 
 interface Message {
   id: number;
@@ -262,6 +264,7 @@ const OnboardingChat = () => {
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
+  const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
 
   useEffect(() => {
     scrollToBottom();
@@ -593,6 +596,28 @@ const OnboardingChat = () => {
     return userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?";
   };
 
+  // Get progress percent based on conversation length
+  // This intentionally doesn't show exact percentages but gives a general feeling of progress
+  const getProgress = (): number => {
+    // Start at 10%, increase based on number of messages
+    // Cap at 90% until final profile generation
+    if (isComplete) return 100;
+    if (isGeneratingProfile) return 95;
+    
+    const baseProgress = 10;
+    // We subtract 2 to account for the initial AI messages
+    const userMessageCount = messages.filter(msg => msg.sender === "user").length;
+    
+    // Progress increases with each message, but at a decreasing rate
+    // This creates the feeling of progress without giving exact timing
+    const progressPerMessage = Math.max(5, 70 / Math.max(1, userMessageCount + 5));
+    
+    // Calculate progress but cap it at 90%
+    const calculatedProgress = Math.min(90, baseProgress + (userMessageCount * progressPerMessage));
+    
+    return calculatedProgress;
+  };
+
   // Loading screen component
   const LoadingScreen = () => (
     <div className="flex flex-col items-center justify-center space-y-4 py-12">
@@ -609,14 +634,49 @@ const OnboardingChat = () => {
     </div>
   );
 
+  // Guidance info component
+  const GuidanceInfo = () => (
+    <div className={`fixed ${showGuidanceInfo ? 'bottom-[80px]' : 'bottom-[-400px]'} right-4 w-80 bg-background/90 backdrop-blur-md border border-border shadow-lg rounded-lg p-4 transition-all duration-300 z-50`}>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-medium flex items-center gap-2">
+          <HelpCircle className="h-4 w-4 text-primary" />
+          How This Conversation Works
+        </h3>
+        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setShowGuidanceInfo(false)}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      <div className="space-y-3 text-sm text-muted-foreground">
+        <p className="flex items-start gap-2">
+          <span className="text-primary">•</span>
+          <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
+        </p>
+        <p className="flex items-start gap-2">
+          <span className="text-primary">•</span>
+          <span>You'll decide later what (if anything) gets shared with others.</span>
+        </p>
+        <p className="flex items-start gap-2">
+          <span className="text-primary">•</span>
+          <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
+        </p>
+        <p className="flex items-start gap-2">
+          <span className="text-primary">•</span>
+          <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
+      <GuidanceInfo />
       
       {!isComplete ? (
         <>
-          {/* Back button to return to selection */}
-          <div className="container mx-auto px-4 pt-6 flex justify-end">
+          {/* Header with back button and progress indicator */}
+          <div className="container mx-auto px-4 pt-6 flex justify-between items-center">
             <Button 
               variant="ghost" 
               onClick={() => navigate("/onboarding")}
@@ -625,9 +685,31 @@ const OnboardingChat = () => {
               <ArrowLeft className="h-3 w-3" />
               Back to options
             </Button>
+            
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs bg-background/50">
+                {isGeneratingProfile ? "Creating profile..." : "Getting to know you"}
+              </Badge>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => setShowGuidanceInfo(!showGuidanceInfo)}
+              >
+                <HelpCircle className="h-3 w-3 mr-1" />
+                Help
+              </Button>
+            </div>
           </div>
           
-          <div className="flex-1 p-4 pt-8 overflow-y-auto"> {/* Added padding-top here */}
+          {/* Progress bar */}
+          <div className="container mx-auto px-4 mt-2">
+            <Progress value={getProgress()} className="h-1" />
+          </div>
+          
+          {/* Chat content */}
+          <div className="flex-1 p-4 pt-4 overflow-y-auto">
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
               {messages.map((message) => (
                 <div
@@ -708,6 +790,21 @@ const OnboardingChat = () => {
                   <Send size={18} />
                 </Button>
               </div>
+              
+              {/* Show guidance toggle reminder */}
+              {!showGuidanceInfo && (
+                <div className="mt-3 text-center">
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowGuidanceInfo(true)}
+                  >
+                    <HelpCircle className="h-3 w-3 mr-1" />
+                    Need help? How this conversation works
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </>
