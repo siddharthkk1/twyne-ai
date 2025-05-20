@@ -3,7 +3,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Clipboard, ArrowRight } from "lucide-react";
+import { MessageCircle, Clipboard, ArrowRight, Mic } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 const OnboardingSelection = () => {
@@ -49,8 +49,13 @@ const OnboardingSelection = () => {
                 <li>Prefer a guided, conversational approach</li>
                 <li>Want to explore different aspects of yourself</li>
                 <li>Enjoy a more personal interaction</li>
-                <li>Have 5-10 minutes to chat</li>
+                <li>Have 5-10 minutes to chat (text or voice)</li>
               </ul>
+              
+              <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
+                <Mic className="h-3.5 w-3.5" />
+                <span>Voice & text conversation options available</span>
+              </div>
             </CardContent>
             <CardFooter>
               <Button onClick={handleSelectConversation} className="w-full mt-4 group">

@@ -4,6 +4,7 @@ import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import TwyneOrb from "@/components/ui/TwyneOrb";
 
 const OnboardingResults = () => {
   const location = useLocation();

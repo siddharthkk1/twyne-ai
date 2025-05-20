@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, SkipForward, MessageCircle, Loader, ArrowLeft, HelpCircle, X } from "lucide-react";
+import { Send, SkipForward, MessageCircle, Loader, ArrowLeft, HelpCircle, X, Mic, MicOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,9 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TwyneOrb from "@/components/ui/TwyneOrb";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Message {
   id: number;
@@ -267,6 +270,8 @@ const OnboardingChat = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
+  const [conversationMode, setConversationMode] = useState<"text" | "voice">("text");
+  const [showModeSelection, setShowModeSelection] = useState(true);
 
   useEffect(() => {
     scrollToBottom();
@@ -670,12 +675,82 @@ const OnboardingChat = () => {
     </div>
   );
 
+  // Mode selection screen component
+  const ConversationModeSelector = () => (
+    <div className="flex flex-col items-center justify-center h-full py-12 px-4">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold mb-2">Choose your conversation style</h2>
+        <p className="text-muted-foreground">
+          How would you prefer to chat with Twyne?
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg">
+        <Button
+          onClick={() => handleModeSelection("text")}
+          variant="outline"
+          className="flex flex-col items-center justify-center h-40 p-6 bg-background hover:bg-background/90 border-primary/20 hover:border-primary/40"
+        >
+          <MessageCircle className="h-8 w-8 mb-4 text-primary" />
+          <span className="text-lg font-medium">Text Chat</span>
+          <span className="text-sm text-muted-foreground mt-2">Type your responses</span>
+        </Button>
+        
+        <Button
+          onClick={() => handleModeSelection("voice")}
+          variant="outline"
+          className="flex flex-col items-center justify-center h-40 p-6 bg-accent/5 hover:bg-accent/10 border-accent/20 hover:border-accent/40"
+        >
+          <Mic className="h-8 w-8 mb-4 text-accent" />
+          <span className="text-lg font-medium">Voice Chat</span>
+          <span className="text-sm text-muted-foreground mt-2">Speak your responses</span>
+        </Button>
+      </div>
+      
+      <Button
+        variant="ghost"
+        className="mt-8 text-sm text-muted-foreground"
+        onClick={() => navigate("/onboarding")}
+      >
+        <ArrowLeft className="h-3 w-3 mr-2" />
+        Back to options
+      </Button>
+    </div>
+  );
+
+  // Voice input functionality (placeholder for now)
+  const [isListening, setIsListening] = useState(false);
+  
+  const toggleVoiceInput = () => {
+    // This is a placeholder for voice recognition functionality
+    // In a real implementation, this would use the Web Speech API or similar
+    setIsListening(!isListening);
+    
+    if (!isListening) {
+      toast({
+        title: "Voice recording started",
+        description: "Speak clearly into your microphone",
+      });
+      
+      // Simulate voice recognition with a timeout
+      setTimeout(() => {
+        setIsListening(false);
+        handleSend("This is a simulated voice response for the demo");
+        toast({
+          title: "Voice recording finished",
+        });
+      }, 3000);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
       <GuidanceInfo />
       
-      {!isComplete ? (
+      {showModeSelection ? (
+        <ConversationModeSelector />
+      ) : !isComplete ? (
         <>
           {/* Fixed header with back button and progress indicator */}
           <div className="fixed top-0 left-0 right-0 z-10 backdrop-blur-lg bg-background/80 border-b">
@@ -796,34 +871,76 @@ const OnboardingChat = () => {
                 </Button>
               </div>
               
-              {/* Input Field and Send Button - Changed Input to Textarea */}
+              {/* Input Field and Send Button - Now with Voice Option */}
               <div className="flex items-end space-x-2">
-                <Textarea
-                  placeholder="Type a message..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  disabled={isTyping || isGeneratingProfile}
-                  className="rounded-2xl shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 min-h-[44px]"
-                  style={{ 
-                    maxHeight: '150px',
-                    lineHeight: '1.5',
-                    padding: '10px 14px'
-                  }}
-                />
-                <Button
-                  size="icon"
-                  onClick={() => handleSend()}
-                  disabled={isTyping || isGeneratingProfile || !input.trim()}
-                  className="rounded-full shadow-md bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200"
-                >
-                  <Send size={18} />
-                </Button>
+                {conversationMode === "text" ? (
+                  <>
+                    <Textarea
+                      placeholder="Type a message..."
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      disabled={isTyping || isGeneratingProfile}
+                      className="rounded-2xl shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 min-h-[44px]"
+                      style={{ 
+                        maxHeight: '150px',
+                        lineHeight: '1.5',
+                        padding: '10px 14px'
+                      }}
+                    />
+                    <Button
+                      size="icon"
+                      onClick={() => handleSend()}
+                      disabled={isTyping || isGeneratingProfile || !input.trim()}
+                      className="rounded-full shadow-md bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200"
+                    >
+                      <Send size={18} />
+                    </Button>
+                    {/* Toggle to voice mode */}
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => setConversationMode("voice")}
+                      className="rounded-full border-muted"
+                    >
+                      <Mic size={18} />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex-1 h-[44px] flex items-center justify-center rounded-2xl shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 px-4">
+                      <p className="text-muted-foreground">
+                        {isListening ? "Listening..." : "Click mic to speak"}
+                      </p>
+                    </div>
+                    <Button
+                      size="icon"
+                      onClick={toggleVoiceInput}
+                      disabled={isTyping || isGeneratingProfile}
+                      className={`rounded-full shadow-md ${
+                        isListening 
+                          ? "bg-red-500 hover:bg-red-600" 
+                          : "bg-gradient-to-r from-accent to-accent/80 hover:opacity-90"
+                      } transition-all duration-200`}
+                    >
+                      {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                    </Button>
+                    {/* Toggle to text mode */}
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => setConversationMode("text")}
+                      className="rounded-full border-muted"
+                    >
+                      <MessageCircle size={18} />
+                    </Button>
+                  </>
+                )}
               </div>
               
               {/* Show guidance toggle reminder */}
