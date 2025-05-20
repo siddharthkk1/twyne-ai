@@ -274,6 +274,7 @@ const OnboardingChat = () => {
   const [showModeSelection, setShowModeSelection] = useState(true);
   const [audioRecorder, setAudioRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<BlobPart[]>([]);
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     scrollToBottom();
