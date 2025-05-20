@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -35,9 +36,12 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in AI chat function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        content: "I'm having trouble processing your request. Let's try again in a moment."
+      }),
       {
-        status: 500,
+        status: 200, // Using 200 to ensure the error message is displayed to the user
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
@@ -49,12 +53,42 @@ async function handleChatRequest(data) {
     throw new Error("OPENAI_API_KEY is not set");
   }
 
+  // Log the received data to help with debugging
+  console.log("handleChatRequest received data:", JSON.stringify({
+    hasMessages: Array.isArray(data?.messages),
+    messageCount: data?.messages?.length || 0,
+    hasAssistantGuidance: !!data?.assistantGuidance
+  }));
+
   const { messages, assistantGuidance } = data;
   
-  // Validate messages
-  if (!messages || !Array.isArray(messages) || messages.length === 0) {
-    console.error("Invalid messages format:", messages);
-    throw new Error("Invalid or empty messages array provided");
+  // Enhanced validation with detailed logging
+  if (!messages || !Array.isArray(messages)) {
+    console.error("Invalid messages format - not an array:", messages);
+    return new Response(
+      JSON.stringify({ 
+        error: "Invalid messages format", 
+        content: "I seem to be having trouble understanding your message. Could you try again?" 
+      }),
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+  
+  if (messages.length === 0) {
+    console.error("Empty messages array provided");
+    return new Response(
+      JSON.stringify({ 
+        error: "Empty messages array", 
+        content: "I didn't receive your message clearly. Could you share your thoughts again?" 
+      }),
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
   
   // Log message count and first/last message for debugging
@@ -72,6 +106,7 @@ async function handleChatRequest(data) {
 
   try {
     console.log(`Sending request to OpenAI with ${finalMessages.length} messages`);
+    console.log("Last 3 messages:", JSON.stringify(finalMessages.slice(-3)));
     
     // Add timeout for fetch to prevent hanging requests
     const controller = new AbortController();
@@ -99,10 +134,17 @@ async function handleChatRequest(data) {
     }
 
     const responseData = await response.json();
+    console.log("Raw OpenAI response:", JSON.stringify(responseData));
     
     if (!responseData.choices || !responseData.choices[0] || !responseData.choices[0].message) {
       console.error("Unexpected response format from OpenAI:", responseData);
-      throw new Error("Invalid response from OpenAI");
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid response format", 
+          content: "I'm having trouble understanding right now. Could we try again in a moment?" 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     const content = responseData.choices[0].message.content;

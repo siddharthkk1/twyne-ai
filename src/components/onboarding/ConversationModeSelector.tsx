@@ -1,60 +1,59 @@
 
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Mic, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mic, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ConversationModeSelectorProps {
   handleModeSelection: (mode: "text" | "voice") => void;
 }
 
-const ConversationModeSelector: React.FC<ConversationModeSelectorProps> = ({ handleModeSelection }) => {
+const ConversationModeSelector: React.FC<ConversationModeSelectorProps> = ({
+  handleModeSelection,
+}) => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen flex flex-col relative">
-      {/* Back button positioned at top left */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5 relative">
+      {/* Back button positioned at the top left */}
       <div className="absolute top-4 left-4 z-10">
-        <Button
-          variant="ghost"
+        <Button 
+          variant="ghost" 
           size="sm"
-          onClick={() => navigate("/onboarding")}
-          className="flex items-center gap-1"
+          onClick={() => navigate(-1)}
+          className="gap-1 text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back
+          <ArrowLeft className="h-4 w-4" /> Back
         </Button>
       </div>
       
-      {/* Centered content - using flex-1 and flex items-center to center vertically */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-lg px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">Choose your conversation style</h2>
-            <p className="text-muted-foreground">
-              How would you prefer to chat with Twyne?
-            </p>
-          </div>
+      {/* Centered content */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <div className="text-center max-w-md mx-auto">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">How would you like to chat?</h1>
+          <p className="text-muted-foreground mb-8">
+            Choose your preferred way to communicate
+          </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+          <div className="flex flex-col space-y-4">
             <Button
-              onClick={() => handleModeSelection("text")}
               variant="outline"
-              className="flex flex-col items-center justify-center h-40 p-6 bg-background hover:bg-background/90 border-primary/20 hover:border-primary/40"
+              size="lg"
+              className="flex items-center justify-center gap-2 h-16 text-lg"
+              onClick={() => handleModeSelection("text")}
             >
-              <MessageCircle className="h-8 w-8 mb-4 text-primary" />
-              <span className="text-lg font-medium">Text Chat</span>
-              <span className="text-sm text-muted-foreground mt-2">Type your responses</span>
+              <MessageSquare className="h-5 w-5" />
+              Type messages
             </Button>
             
             <Button
-              onClick={() => handleModeSelection("voice")}
               variant="outline"
-              className="flex flex-col items-center justify-center h-40 p-6 bg-accent/5 hover:bg-accent/10 border-accent/20 hover:border-accent/40"
+              size="lg"
+              className="flex items-center justify-center gap-2 h-16 text-lg"
+              onClick={() => handleModeSelection("voice")}
             >
-              <Mic className="h-8 w-8 mb-4 text-accent" />
-              <span className="text-lg font-medium">Voice Chat</span>
-              <span className="text-sm text-muted-foreground mt-2">Speak your responses</span>
+              <Mic className="h-5 w-5" />
+              Use voice
             </Button>
           </div>
         </div>
