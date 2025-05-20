@@ -22,13 +22,13 @@ serve(async (req) => {
     const { endpoint, data } = await req.json();
 
     if (endpoint === "chat") {
-      return handleChatRequest(data);
+      return await handleChatRequest(data);
     } else if (endpoint === "coverage") {
-      return handleCoverageRequest(data);
+      return await handleCoverageRequest(data);
     } else if (endpoint === "profile") {
-      return handleProfileRequest(data);
+      return await handleProfileRequest(data);
     } else if (endpoint === "transcribe") {
-      return handleTranscribeRequest(data);
+      return await handleTranscribeRequest(data);
     } else {
       throw new Error(`Unknown endpoint: ${endpoint}`);
     }
@@ -45,6 +45,10 @@ serve(async (req) => {
 });
 
 async function handleChatRequest(data) {
+  if (!OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not set");
+  }
+
   const { messages, userMessage, assistantGuidance } = data;
   
   const finalMessages = [
@@ -53,34 +57,49 @@ async function handleChatRequest(data) {
     ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])
   ];
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: finalMessages,
-      temperature: 0.7,
-      max_tokens: 150
-    })
-  });
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: finalMessages,
+        temperature: 0.7,
+        max_tokens: 150
+      })
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    console.error("OpenAI API error:", errorData);
-    throw new Error(`API error: ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI API error:", errorData);
+      throw new Error(`API error: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    const responseData = await response.json();
+    
+    if (!responseData.choices || !responseData.choices[0] || !responseData.choices[0].message) {
+      console.error("Unexpected response format from OpenAI:", responseData);
+      throw new Error("Invalid response from OpenAI");
+    }
+    
+    return new Response(
+      JSON.stringify({ content: responseData.choices[0].message.content }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error("Error in handleChatRequest:", error);
+    throw error;
   }
-
-  const result = await response.json();
-  return new Response(
-    JSON.stringify({ content: result.choices[0].message.content }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }
 
 async function handleCoverageRequest(data) {
+  if (!OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not set");
+  }
+
   const { conversation } = data;
   
   // Format conversation for the coverage evaluation prompt
@@ -119,67 +138,84 @@ Here is the conversation so far:
 ${formattedConversation}
 `;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "You are evaluating conversation coverage." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.7,
-      max_tokens: 500
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
-  }
-
-  const responseData = await response.json();
-  const resultText = responseData.choices[0].message.content;
-  
   try {
-    // Extract JSON from response
-    const jsonMatch = resultText.match(/(\{[\s\S]*\})/);
-    const jsonString = jsonMatch ? jsonMatch[0] : "{}";
-    const result = JSON.parse(jsonString);
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are evaluating conversation coverage." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 500
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI coverage API error:", errorData);
+      throw new Error(`API error: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    const responseData = await response.json();
     
-    // Return result with default values if any fields are missing
-    return new Response(
-      JSON.stringify({
-        overview: result.overview || "Missing",
-        lifeStory: result.lifeStory || "Missing",
-        interestsIdentity: result.interestsIdentity || "Missing",
-        vibePersonality: result.vibePersonality || "Missing",
-        innerWorld: result.innerWorld || "Missing",
-        connectionNeeds: result.connectionNeeds || "Missing",
-        enoughToStop: !!result.enoughToStop
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    if (!responseData.choices || !responseData.choices[0] || !responseData.choices[0].message) {
+      console.error("Unexpected response format from OpenAI:", responseData);
+      throw new Error("Invalid response from OpenAI");
+    }
+    
+    const resultText = responseData.choices[0].message.content;
+    
+    try {
+      // Extract JSON from response
+      const jsonMatch = resultText.match(/(\{[\s\S]*\})/);
+      const jsonString = jsonMatch ? jsonMatch[0] : "{}";
+      const result = JSON.parse(jsonString);
+      
+      // Return result with default values if any fields are missing
+      return new Response(
+        JSON.stringify({
+          overview: result.overview || "Missing",
+          lifeStory: result.lifeStory || "Missing",
+          interestsIdentity: result.interestsIdentity || "Missing",
+          vibePersonality: result.vibePersonality || "Missing",
+          innerWorld: result.innerWorld || "Missing",
+          connectionNeeds: result.connectionNeeds || "Missing",
+          enoughToStop: !!result.enoughToStop
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (error) {
+      console.error("Error parsing coverage evaluation:", error);
+      return new Response(
+        JSON.stringify({
+          overview: "Error",
+          lifeStory: "Error",
+          interestsIdentity: "Error",
+          vibePersonality: "Error",
+          innerWorld: "Error",
+          connectionNeeds: "Error",
+          enoughToStop: false
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
   } catch (error) {
-    console.error("Error parsing coverage evaluation:", error);
-    return new Response(
-      JSON.stringify({
-        overview: "Error",
-        lifeStory: "Error",
-        interestsIdentity: "Error",
-        vibePersonality: "Error",
-        innerWorld: "Error",
-        connectionNeeds: "Error",
-        enoughToStop: false
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    console.error("Error in handleCoverageRequest:", error);
+    throw error;
   }
 }
 
 async function handleProfileRequest(data) {
+  if (!OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not set");
+  }
+
   const { conversation } = data;
 
   // Format conversation for the profile generation prompt
@@ -235,85 +271,100 @@ Use natural language, not clinical tone.
 Keep all field values non-null, even if it's just: "dealBreakers": "".
 `;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: "You analyze conversations and create personality profiles." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    })
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    console.error("OpenAI profile generation error:", errorData);
-    throw new Error(`API error: ${response.status}`);
-  }
-
-  const resultData = await response.json();
-  const profileText = resultData.choices[0].message.content;
-  
   try {
-    // Extract the JSON part from the response
-    const jsonMatch = profileText.match(/(\{[\s\S]*\})/);
-    const jsonString = jsonMatch ? jsonMatch[0] : profileText;
-    
-    const profile = JSON.parse(jsonString);
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "You analyze conversations and create personality profiles." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      })
+    });
 
-    // Ensure all fields have default values
-    const completeProfile = {
-      name: profile.name || "",
-      location: profile.location || "",
-      age: profile.age || "",
-      hometown: profile.hometown || "",
-      job: profile.job || "",
-      ethnicity: profile.ethnicity || "",
-      religion: profile.religion || "", 
-      currentSeason: profile.currentSeason || "",
-      vibeSummary: profile.vibeSummary || "",
-      lifeStory: profile.lifeStory || "",
-      interests: Array.isArray(profile.interests) ? profile.interests : [],
-      creativePursuits: profile.creativePursuits || "",
-      mediaTastes: profile.mediaTastes || "",
-      careerOrEducation: profile.careerOrEducation || "",
-      meaningfulAchievements: profile.meaningfulAchievements || "",
-      lifePhilosophy: profile.lifePhilosophy || "",
-      coreValues: profile.coreValues || "",
-      goals: profile.goals || "",
-      growthJourney: profile.growthJourney || "",
-      challengesOvercome: profile.challengesOvercome || "",
-      vibeWords: Array.isArray(profile.vibeWords) ? profile.vibeWords : [],
-      socialStyle: profile.socialStyle || "",
-      friendshipPace: profile.friendshipPace || "",
-      emotionalPatterns: profile.emotionalPatterns || "",
-      misunderstoodTraits: profile.misunderstoodTraits || "",
-      connectionPreferences: profile.connectionPreferences || "",
-      dealBreakers: profile.dealBreakers || "",
-      socialNeeds: profile.socialNeeds || "",
-      twyneTags: Array.isArray(profile.twyneTags) ? profile.twyneTags : [],
-      talkingPoints: Array.isArray(profile.talkingPoints) ? profile.talkingPoints : [],
-      personalInsights: Array.isArray(profile.personalInsights) ? profile.personalInsights : []
-    };
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI profile generation error:", errorData);
+      throw new Error(`API error: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    const resultData = await response.json();
     
-    return new Response(
-      JSON.stringify(completeProfile),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    if (!resultData.choices || !resultData.choices[0] || !resultData.choices[0].message) {
+      console.error("Unexpected response format from OpenAI:", resultData);
+      throw new Error("Invalid response from OpenAI");
+    }
+    
+    const profileText = resultData.choices[0].message.content;
+    
+    try {
+      // Extract the JSON part from the response
+      const jsonMatch = profileText.match(/(\{[\s\S]*\})/);
+      const jsonString = jsonMatch ? jsonMatch[0] : profileText;
+      
+      const profile = JSON.parse(jsonString);
+
+      // Ensure all fields have default values
+      const completeProfile = {
+        name: profile.name || "",
+        location: profile.location || "",
+        age: profile.age || "",
+        hometown: profile.hometown || "",
+        job: profile.job || "",
+        ethnicity: profile.ethnicity || "",
+        religion: profile.religion || "", 
+        currentSeason: profile.currentSeason || "",
+        vibeSummary: profile.vibeSummary || "",
+        lifeStory: profile.lifeStory || "",
+        interests: Array.isArray(profile.interests) ? profile.interests : [],
+        creativePursuits: profile.creativePursuits || "",
+        mediaTastes: profile.mediaTastes || "",
+        careerOrEducation: profile.careerOrEducation || "",
+        meaningfulAchievements: profile.meaningfulAchievements || "",
+        lifePhilosophy: profile.lifePhilosophy || "",
+        coreValues: profile.coreValues || "",
+        goals: profile.goals || "",
+        growthJourney: profile.growthJourney || "",
+        challengesOvercome: profile.challengesOvercome || "",
+        vibeWords: Array.isArray(profile.vibeWords) ? profile.vibeWords : [],
+        socialStyle: profile.socialStyle || "",
+        friendshipPace: profile.friendshipPace || "",
+        emotionalPatterns: profile.emotionalPatterns || "",
+        misunderstoodTraits: profile.misunderstoodTraits || "",
+        connectionPreferences: profile.connectionPreferences || "",
+        dealBreakers: profile.dealBreakers || "",
+        socialNeeds: profile.socialNeeds || "",
+        twyneTags: Array.isArray(profile.twyneTags) ? profile.twyneTags : [],
+        talkingPoints: Array.isArray(profile.talkingPoints) ? profile.talkingPoints : [],
+        personalInsights: Array.isArray(profile.personalInsights) ? profile.personalInsights : []
+      };
+      
+      return new Response(
+        JSON.stringify(completeProfile),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (error) {
+      console.error("Error parsing AI profile:", error, profileText);
+      throw new Error("Failed to parse AI-generated profile");
+    }
   } catch (error) {
-    console.error("Error parsing AI profile:", error, profileText);
-    throw new Error("Failed to parse AI-generated profile");
+    console.error("Error in handleProfileRequest:", error);
+    throw error;
   }
 }
 
 async function handleTranscribeRequest(data) {
+  if (!OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not set");
+  }
+
   const { audioBlob } = data;
   
   try {
@@ -340,6 +391,7 @@ async function handleTranscribeRequest(data) {
     
     if (!response.ok) {
       const errorData = await response.json();
+      console.error("OpenAI transcription API error:", errorData);
       throw new Error(`API error: ${errorData.error?.message || response.status}`);
     }
     

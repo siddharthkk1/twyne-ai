@@ -1,3 +1,4 @@
+
 import { ChatRole } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -257,11 +258,12 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
     });
 
     if (error) {
+      console.error("Error getting AI response:", error);
       throw new Error(`Edge function error: ${error.message}`);
     }
 
     return data?.content || "Sorry, something went wrong. Can we try that again?";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error getting AI response:", error);
     return "Sorry, something went wrong. Can we try that again?";
   }
