@@ -743,6 +743,12 @@ const OnboardingChat = () => {
     }
   };
 
+  // Function to handle conversation mode selection (text or voice)
+  const handleModeSelection = (mode: "text" | "voice") => {
+    setConversationMode(mode);
+    setShowModeSelection(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
