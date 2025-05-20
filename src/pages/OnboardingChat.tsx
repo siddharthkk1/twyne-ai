@@ -614,6 +614,18 @@ const OnboardingChat = () => {
       
       {!isComplete ? (
         <>
+          {/* Back button to return to selection */}
+          <div className="container mx-auto px-4 pt-6 flex justify-end">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate("/onboarding")}
+              className="text-sm flex items-center gap-1"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              Back to options
+            </Button>
+          </div>
+          
           <div className="flex-1 p-4 pt-8 overflow-y-auto"> {/* Added padding-top here */}
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
               {messages.map((message) => (
