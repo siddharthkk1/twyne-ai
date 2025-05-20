@@ -256,7 +256,6 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       lastMessageRole: updatedMessages[updatedMessages.length - 1]?.role
     });
 
-    // Send only the messages and assistantGuidance - do not duplicate the user message
     try {
       const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
@@ -271,6 +270,13 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       if (error) {
         console.error("Error getting AI response:", error);
         throw new Error(`Edge function error: ${error.message}`);
+      }
+
+      // Handle the case when error is returned in the data object (our custom handling)
+      if (data.error) {
+        console.error("Error in AI response data:", data.error);
+        // Return the content if provided, which will be our custom error message
+        return data.content || "I'm having trouble connecting right now. Let's try again in a moment.";
       }
 
       // This is the specific error we're seeing - let's improve the null/undefined check

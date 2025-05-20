@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -65,7 +64,7 @@ async function handleChatRequest(data) {
     console.log("Last message role:", messages[messages.length-1].role);
   }
   
-  // Fixed: Only use messages as provided from the frontend and optionally append assistantGuidance
+  // Use messages as provided and optionally append assistantGuidance
   const finalMessages = [
     ...messages,
     ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])
@@ -73,6 +72,10 @@ async function handleChatRequest(data) {
 
   try {
     console.log(`Sending request to OpenAI with ${finalMessages.length} messages`);
+    
+    // Add timeout for fetch to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -85,8 +88,9 @@ async function handleChatRequest(data) {
         messages: finalMessages,
         temperature: 0.7,
         max_tokens: 150
-      })
-    });
+      }),
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -110,7 +114,25 @@ async function handleChatRequest(data) {
     );
   } catch (error) {
     console.error("Error in handleChatRequest:", error);
-    throw error;
+    
+    // Provide more specific error based on the type
+    let errorMessage = "An unexpected error occurred";
+    if (error.name === "AbortError") {
+      errorMessage = "Request timed out. Please try again.";
+    } else if (error.message.includes("API error")) {
+      errorMessage = "API service temporarily unavailable. Please try again in a moment.";
+    }
+    
+    return new Response(
+      JSON.stringify({ 
+        error: error.message, 
+        content: errorMessage
+      }),
+      { 
+        status: 200, // Return 200 instead of error to prevent fallback cascades
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
 
