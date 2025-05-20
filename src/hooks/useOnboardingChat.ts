@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
-import { Message, Conversation, UserProfile } from '@/types/chat';
+import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
 import { SYSTEM_PROMPT } from '@/utils/aiUtils';
 import { getAIResponse, generateAIProfile, checkConversationCoverage } from '@/utils/aiUtils';
 
@@ -28,7 +28,7 @@ export const useOnboardingChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
-    messages: [{ role: "system", content: SYSTEM_PROMPT }],
+    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT }],
     userAnswers: []
   });
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -80,7 +80,7 @@ export const useOnboardingChat = () => {
     setCurrentQuestionIndex(newIndex);
 
     const draftConversation: Conversation = {
-      messages: [...conversation.messages, { role: "user", content: textToSend }],
+      messages: [...conversation.messages, { role: "user" as ChatRole, content: textToSend }],
       userAnswers: [...conversation.userAnswers, textToSend]
     };
 
@@ -98,8 +98,8 @@ export const useOnboardingChat = () => {
       const updatedConversation: Conversation = {
         messages: [
           ...conversation.messages,
-          { role: "user", content: textToSend },
-          { role: "assistant", content: aiResponse }
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: aiResponse }
         ],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
@@ -157,7 +157,7 @@ export const useOnboardingChat = () => {
             setIsGeneratingProfile(false);
             setIsComplete(true);
             setConversation({
-              messages: [...draftConversation.messages, { role: "assistant", content: closingMessage.text }],
+              messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
               userAnswers: draftConversation.userAnswers
             });
 
@@ -188,10 +188,10 @@ export const useOnboardingChat = () => {
             assistantGuidance = `After responding to the user's last message, if the topic feels complete or winds down, gently pivot the conversation toward these areas: ${missingCategories.join(", ")}. Be subtle and natural — don't make it obvious.`;
           }
 
-          const updatedMessages: Conversation["messages"] = [
+          const updatedMessages: { role: ChatRole; content: string; }[] = [
             ...draftConversation.messages,
             ...(assistantGuidance
-              ? [{ role: "system", content: assistantGuidance }]
+              ? [{ role: "system" as ChatRole, content: assistantGuidance }]
               : [])
           ];
 

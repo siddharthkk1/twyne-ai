@@ -288,7 +288,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       }
     }
 
-    const finalMessages: any[] = [
+    const finalMessages: { role: ChatRole; content: string; }[] = [
       ...updatedMessages,
       ...(assistantGuidance
         ? [{ role: "system" as ChatRole, content: assistantGuidance }]
