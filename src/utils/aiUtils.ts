@@ -216,7 +216,7 @@ export const checkConversationCoverage = async (conversation: any): Promise<Cove
 // Function to get AI response using OpenAI API via Supabase Edge Function
 export const getAIResponse = async (conversation: any, userMessage: string, extraMessages: any[] = []): Promise<string> => {
   try {
-    // Add user message to conversation history
+    // Use provided extraMessages if available, otherwise add user message to conversation history
     const updatedMessages = extraMessages.length > 0
       ? extraMessages
       : [...conversation.messages, { role: "user" as ChatRole, content: userMessage }];
@@ -246,12 +246,12 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       }
     }
 
+    // Send only the messages and assistantGuidance - do not duplicate the user message
     const { data, error } = await supabase.functions.invoke('ai-chat', {
       body: {
         endpoint: 'chat',
         data: {
           messages: updatedMessages,
-          userMessage,
           assistantGuidance
         }
       }

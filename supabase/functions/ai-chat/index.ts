@@ -49,11 +49,11 @@ async function handleChatRequest(data) {
     throw new Error("OPENAI_API_KEY is not set");
   }
 
-  const { messages, userMessage, assistantGuidance } = data;
+  const { messages, assistantGuidance } = data;
   
+  // Fixed: Do not add userMessage again as it's already included in messages from frontend
   const finalMessages = messages ? [
     ...messages,
-    ...(userMessage ? [{ role: "user", content: userMessage }] : []),
     ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])
   ] : [];
 
