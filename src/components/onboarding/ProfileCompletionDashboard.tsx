@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from "@/types/chat";
 import { Check, ChevronRight } from "lucide-react";
-import ValueCard from "./ValueCard";
-import InsightCard from "./InsightCard";
-import PersonalityChart from "./PersonalityChart";
+import { ValueCard } from "./ValueCard";
+import { InsightCard } from "./InsightCard";
+import { PersonalityChart } from "./PersonalityChart";
 
 interface ProfileCompletionDashboardProps {
   userProfile: UserProfile;
@@ -18,6 +18,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
   
   // Ensure we have arrays even if the API returns null
   const interests = userProfile?.interests || [];
+  // Check if vibeWords exists, otherwise use empty array
   const vibeWords = userProfile?.vibeWords || [];
   const twyneTags = userProfile?.twyneTags || [];
   const personalInsights = userProfile?.personalInsights || [];
@@ -99,29 +100,41 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
 
       {/* Personal Values */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <ValueCard title="Social Style" content={userProfile?.socialStyle} />
-        <ValueCard title="Values" content={userProfile?.coreValues} />
-        <ValueCard title="Connection Style" content={userProfile?.connectionPreferences} />
+        {userProfile?.values && Array.isArray(userProfile.values) && userProfile.values.map((value, index) => (
+          <ValueCard key={index} value={value} index={index} />
+        ))}
+        {(!userProfile?.values || !Array.isArray(userProfile.values)) && (
+          <>
+            <ValueCard value={userProfile?.socialStyle || "Authentic communicator"} index={0} />
+            <ValueCard value={userProfile?.coreValues || "Deep connections"} index={1} />
+            <ValueCard value={userProfile?.connectionPreferences || "Meaningful interactions"} index={2} />
+          </>
+        )}
       </div>
 
       {/* Personality Charts */}
       <div className="mb-8">
         <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Your Personality Dimensions</h3>
-        <PersonalityChart userProfile={userProfile} />
+        <PersonalityChart traits={{
+          extroversion: 65,
+          openness: 80,
+          empathy: 75,
+          structure: 60
+        }} />
       </div>
 
       {/* Insights */}
       <div className="mb-10">
         <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Personal Insights</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {personalInsights.length > 0 ? (
+          {Array.isArray(personalInsights) && personalInsights.length > 0 ? (
             personalInsights.map((insight, index) => (
-              <InsightCard key={index} insight={insight} />
+              <InsightCard key={index} insight={insight} index={index} />
             ))
           ) : (
             <>
-              <InsightCard insight="Your unique perspective adds depth to conversations and helps others see things differently." />
-              <InsightCard insight="You value authentic connections where both people can be themselves without judgment." />
+              <InsightCard insight="Your unique perspective adds depth to conversations and helps others see things differently." index={0} />
+              <InsightCard insight="You value authentic connections where both people can be themselves without judgment." index={1} />
             </>
           )}
         </div>
