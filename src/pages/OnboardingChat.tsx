@@ -285,54 +285,79 @@ const OnboardingChat = () => {
   };
 
   // Function to get AI response using OpenAI API
-  const getAIResponse = async (userMessage: string): Promise<string> => {
-    try {
-      // Add user message to conversation history
-      const updatedMessages = [
-        ...conversation.messages,
-        { role: "user" as const, content: userMessage }
-      ];
+  const getAIResponse = async (userMessage: string, extraMessages: Conversation["messages"] = []): Promise<string> => {
+  try {
+    // Add user message to conversation history
+    const updatedMessages = extraMessages.length > 0
+      ? extraMessages
+      : [...conversation.messages, { role: "user", content: userMessage }];
 
-      console.log("Sending to OpenAI:", updatedMessages);
+    // Use the length of userAnswers for accurate and fast counting
+    const userMessageCount = conversation.userAnswers.length + 1;
 
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: updatedMessages,
-          temperature: 0.7,
-          max_tokens: 150
-        })
+    let assistantGuidance = "";
+
+    // Only start steering after N user messages
+    if (userMessageCount >= 12) {
+      const coverageResult = await checkConversationCoverage({
+        ...conversation,
+        messages: updatedMessages,
+        userAnswers: [...conversation.userAnswers, userMessage]
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("OpenAI API error:", errorData);
-        throw new Error(`API error: ${response.status}`);
-      }
+      const missingCategories = Object.entries(coverageResult)
+        .filter(([key, val]) =>
+          ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
+          val === "Missing"
+        )
+        .map(([key]) => key);
 
-      const data = await response.json();
-      const aiResponse = data.choices[0].message.content;
-      
-      // Save AI's response to conversation history
-      setConversation(prev => ({
-        messages: [
-          ...updatedMessages,
-          { role: "assistant" as const, content: aiResponse }
-        ],
-        userAnswers: [...prev.userAnswers, userMessage]
-      }));
-      
-      return aiResponse;
-    } catch (error) {
-      console.error("Error getting AI response:", error);
-      return "I'm having trouble processing that right now. Could you tell me more about yourself?";
+      if (missingCategories.length > 0) {
+        assistantGuidance = `After responding to the user's last message, if the current topic feels complete or winds down, gently pivot the conversation toward these missing areas: ${missingCategories.join(", ")}. Use curiosity and warmth — do not make it obvious that you're filling gaps. Only pivot if the topic feels naturally complete.`;
+      }
     }
-  };
+
+    const finalMessages = [
+      ...updatedMessages,
+      ...(assistantGuidance
+        ? [{ role: "system" as const, content: assistantGuidance }]
+        : [])
+    ];
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: finalMessages,
+        temperature: 0.7,
+        max_tokens: 150
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI API error:", errorData);
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0].message.content;
+
+    setConversation(prev => ({
+      messages: [...finalMessages, { role: "assistant", content: aiResponse }],
+      userAnswers: [...prev.userAnswers, userMessage]
+    }));
+
+    return aiResponse;
+  } } catch (error) {
+  console.error("Error getting AI response:", error);
+  return "Sorry, something went wrong. Can we try that again?";
+  }
+
 
   const checkConversationCoverage = async (conversation: Conversation): Promise<{ enoughToStop: boolean }> => {
     const formattedConversation = conversation.messages
@@ -465,92 +490,110 @@ const OnboardingChat = () => {
   };
 
   const handleSend = (message?: string) => {
-    const textToSend = message || input;
-    if (!textToSend.trim()) return;
-  
-    const newUserMessage: Message = {
-      id: messages.length + 1,
-      text: textToSend,
-      sender: "user",
+  const textToSend = message || input;
+  if (!textToSend.trim()) return;
+
+  const newUserMessage: Message = {
+    id: messages.length + 1,
+    text: textToSend,
+    sender: "user",
+  };
+
+  setMessages((prev) => [...prev, newUserMessage]);
+  setInput("");
+  setIsTyping(true);
+
+  if (currentQuestionIndex === 0) {
+    setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
+  } else if (currentQuestionIndex === 1) {
+    setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
+  }
+
+  const newIndex = currentQuestionIndex + 1;
+  setCurrentQuestionIndex(newIndex);
+
+  const draftConversation: Conversation = {
+    messages: [...conversation.messages, { role: "user", content: textToSend }],
+    userAnswers: [...conversation.userAnswers, textToSend]
+  };
+
+  const userMessageCount = draftConversation.userAnswers.length;
+  const shouldRunCheck = userMessageCount >= 8;
+  const isCompletionTurn = userMessageCount % 3 === 0;
+
+  const handleContinue = (aiResponse: string) => {
+    const newAiMessage: Message = {
+      id: messages.length + 2,
+      text: aiResponse,
+      sender: "ai",
     };
-  
-    setMessages((prev) => [...prev, newUserMessage]);
-    setInput("");
-    setIsTyping(true);
-  
-    if (currentQuestionIndex === 0) {
-      // After the user provides their name, save it
-      setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
-    } else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
-    }
-    
-    const newIndex = currentQuestionIndex + 1;
-    setCurrentQuestionIndex(newIndex);
-    
-    // Check if we have enough coverage to stop before getting next AI response
-    const draftConversation: Conversation = {
+
+    const updatedConversation: Conversation = {
       messages: [
         ...conversation.messages,
-        { role: "user", content: textToSend }
+        { role: "user", content: textToSend },
+        { role: "assistant", content: aiResponse }
       ],
       userAnswers: [...conversation.userAnswers, textToSend]
     };
-    
-    checkConversationCoverage(draftConversation).then(result => {
-      if (result.enoughToStop && currentQuestionIndex >= 8) {
+
+    setMessages(prev => [...prev, newAiMessage]);
+    setConversation(updatedConversation);
+    setIsTyping(false);
+  };
+
+  if (shouldRunCheck) {
+    checkConversationCoverage(draftConversation).then(async (result) => {
+      if (result.enoughToStop && isCompletionTurn) {
         const closingMessage: Message = {
           id: messages.length + 2,
           text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
           sender: "ai",
         };
-    
+
         setMessages(prev => [...prev, closingMessage]);
         setIsTyping(false);
-        setIsGeneratingProfile(true); // Show loading screen while generating profile
-    
-        generateAIProfile().then(profile => {
-          setUserProfile(profile);
-          setIsTyping(false);
-          setIsGeneratingProfile(false); // Hide loading screen
-          setIsComplete(true);
-          setConversation({
-            messages: [
-              ...draftConversation.messages,
-              { role: "assistant", content: closingMessage.text }
-            ],
-            userAnswers: draftConversation.userAnswers
-          });
-    
-          if (user) markUserAsOnboarded(profile);
+        setIsGeneratingProfile(true);
+
+        const profile = await generateAIProfile();
+        setUserProfile(profile);
+        setIsGeneratingProfile(false);
+        setIsComplete(true);
+        setConversation({
+          messages: [...draftConversation.messages, { role: "assistant", content: closingMessage.text }],
+          userAnswers: draftConversation.userAnswers
         });
+
+        if (user) markUserAsOnboarded(profile);
       } else {
-        // Not enough — proceed to get the AI's next question
-        setTimeout(() => {
-          getAIResponse(textToSend).then(aiResponse => {
-            const newAiMessage: Message = {
-              id: messages.length + 2,
-              text: aiResponse,
-              sender: "ai",
-            };
-    
-            const updatedConversation: Conversation = {
-              messages: [
-                ...conversation.messages,
-                { role: "user", content: textToSend },
-                { role: "assistant", content: aiResponse }
-              ],
-              userAnswers: [...conversation.userAnswers, textToSend]
-            };
-    
-            setMessages((prev) => [...prev, newAiMessage]);
-            setConversation(updatedConversation);
-            setIsTyping(false);
-          });
-        }, 1000);
+        // redirect guidance using missing fields
+        const missingCategories = Object.entries(result)
+          .filter(([key, val]) =>
+            ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
+            val === "Missing"
+          )
+          .map(([key]) => key);
+
+        let assistantGuidance = "";
+        if (missingCategories.length > 0) {
+          assistantGuidance = `After responding to the user's last message, if the topic feels complete or winds down, gently pivot the conversation toward these areas: ${missingCategories.join(", ")}. Be subtle and natural — don't make it obvious.`;
+        }
+
+        const updatedMessages = [
+          ...draftConversation.messages,
+          ...(assistantGuidance
+            ? [{ role: "system" as const, content: assistantGuidance }]
+            : [])
+        ];
+
+        getAIResponse(textToSend, updatedMessages).then(handleContinue);
       }
     });
-  };
+  } else {
+    getAIResponse(textToSend).then(handleContinue);
+  }
+};
+
 
   const markUserAsOnboarded = async (profile: UserProfile) => {
     if (user) {
