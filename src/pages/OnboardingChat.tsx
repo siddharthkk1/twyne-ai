@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, SkipForward, MessageCircle, Loader, ArrowLeft, HelpCircle, X } from "lucide-react";
+import { Send, SkipForward, MessageCircle, Loader, ArrowLeft, HelpCircle, X, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Message {
   id: number;
@@ -724,7 +724,9 @@ const OnboardingChat = () => {
                   {message.sender === "ai" && (
                     <div className="mr-2 mt-1 flex-shrink-0">
                       <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary">
-                        <AvatarFallback className="text-primary text-xs font-medium">TW</AvatarFallback>
+                        <AvatarFallback className="text-primary text-xs font-medium">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        </AvatarFallback>
                       </Avatar>
                     </div>
                   )}
@@ -749,8 +751,10 @@ const OnboardingChat = () => {
               {isTyping && (
                 <div className="flex">
                   <div className="mr-2 mt-1 flex-shrink-0">
-                    <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary">
-                      <AvatarFallback className="text-primary text-xs font-medium">TW</AvatarFallback>
+                    <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary animate-pulse-slow">
+                      <AvatarFallback className="text-primary text-xs font-medium">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                      </AvatarFallback>
                     </Avatar>
                   </div>
                   <div className="chat-bubble-ai bg-background border border-border/50 shadow-sm backdrop-blur-sm rounded-2xl p-4 animate-pulse flex space-x-1 w-16">
