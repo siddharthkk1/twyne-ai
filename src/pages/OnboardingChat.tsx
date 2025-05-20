@@ -748,22 +748,46 @@ const OnboardingChat = () => {
           const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
           
           try {
-            // Convert speech to text (placeholder - in a real app, you would send this to a speech-to-text API)
-            // For now, we'll simulate a response after a brief delay
+            // Convert speech to text using OpenAI Whisper API
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'audio.webm');
+            formData.append('model', 'whisper-1');
+            
             toast({
               title: "Processing your voice...",
             });
             
-            setTimeout(() => {
-              // Simulate voice-to-text processing
-              // In a real implementation, you would send the audio to a service like OpenAI Whisper
-              const simulatedText = "This is what I said using voice input";
-              handleSend(simulatedText);
+            // Call OpenAI's Whisper API
+            const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
+              },
+              body: formData
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(`API error: ${errorData.error?.message || response.status}`);
+            }
+            
+            const data = await response.json();
+            const transcribedText = data.text;
+            
+            if (transcribedText && transcribedText.trim()) {
+              handleSend(transcribedText);
               
               toast({
-                title: "Voice recording processed",
+                title: "Voice processed",
+                description: `"${transcribedText.substring(0, 30)}${transcribedText.length > 30 ? '...' : ''}"`
               });
-            }, 1500);
+            } else {
+              toast({
+                title: "No speech detected",
+                description: "Please try speaking more clearly",
+                variant: "destructive",
+              });
+            }
           } catch (error) {
             console.error("Error processing speech:", error);
             toast({
@@ -782,7 +806,7 @@ const OnboardingChat = () => {
         setIsListening(true);
         
         toast({
-          title: "Voice recording started",
+          title: "Listening...",
           description: "Speak clearly into your microphone",
         });
       } catch (error) {
