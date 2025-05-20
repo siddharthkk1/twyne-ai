@@ -272,6 +272,8 @@ const OnboardingChat = () => {
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
   const [conversationMode, setConversationMode] = useState<"text" | "voice">("text");
   const [showModeSelection, setShowModeSelection] = useState(true);
+  const [audioRecorder, setAudioRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<BlobPart[]>([]);
 
   useEffect(() => {
     scrollToBottom();
@@ -439,7 +441,6 @@ const OnboardingChat = () => {
           lifePhilosophy: profile.lifePhilosophy || "",
           challengesOvercome: profile.challengesOvercome || "",
           growthJourney: profile.growthJourney || "",
-          friendshipPace: profile.friendshipPace || "",
           emotionalIntelligence: profile.emotionalIntelligence || "",
           // Include any other fields returned by the AI
           ...profile
@@ -718,28 +719,79 @@ const OnboardingChat = () => {
     </div>
   );
 
-  // Voice input functionality (placeholder for now)
-  const [isListening, setIsListening] = useState(false);
-  
-  const toggleVoiceInput = () => {
-    // This is a placeholder for voice recognition functionality
-    // In a real implementation, this would use the Web Speech API or similar
-    setIsListening(!isListening);
-    
-    if (!isListening) {
-      toast({
-        title: "Voice recording started",
-        description: "Speak clearly into your microphone",
-      });
-      
-      // Simulate voice recognition with a timeout
-      setTimeout(() => {
+  // Voice input functionality with real microphone access
+  const toggleVoiceInput = async () => {
+    if (isListening) {
+      // Stop recording
+      if (audioRecorder) {
+        audioRecorder.stop();
         setIsListening(false);
-        handleSend("This is a simulated voice response for the demo");
+      }
+    } else {
+      try {
+        // Request microphone access
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        setAudioRecorder(recorder);
+        
+        // Clear previous audio chunks
+        setAudioChunks([]);
+        
+        // Handle data available event
+        recorder.ondataavailable = (e) => {
+          setAudioChunks(chunks => [...chunks, e.data]);
+        };
+        
+        // Handle recording stop event
+        recorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          
+          try {
+            // Convert speech to text (placeholder - in a real app, you would send this to a speech-to-text API)
+            // For now, we'll simulate a response after a brief delay
+            toast({
+              title: "Processing your voice...",
+            });
+            
+            setTimeout(() => {
+              // Simulate voice-to-text processing
+              // In a real implementation, you would send the audio to a service like OpenAI Whisper
+              const simulatedText = "This is what I said using voice input";
+              handleSend(simulatedText);
+              
+              toast({
+                title: "Voice recording processed",
+              });
+            }, 1500);
+          } catch (error) {
+            console.error("Error processing speech:", error);
+            toast({
+              title: "Error processing speech",
+              description: "Please try again or switch to text input",
+              variant: "destructive",
+            });
+          }
+          
+          // Clean up
+          stream.getTracks().forEach(track => track.stop());
+        };
+        
+        // Start recording
+        recorder.start();
+        setIsListening(true);
+        
         toast({
-          title: "Voice recording finished",
+          title: "Voice recording started",
+          description: "Speak clearly into your microphone",
         });
-      }, 3000);
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+        toast({
+          title: "Microphone access denied",
+          description: "Please allow microphone access to use voice input",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -805,9 +857,9 @@ const OnboardingChat = () => {
                 >
                   {message.sender === "ai" && (
                     <div className="mr-2 mt-1 flex-shrink-0">
-                      <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary">
-                        <AvatarFallback className="text-primary text-xs font-medium">
-                          <TwyneOrb size={16} />
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-primary text-xs font-medium p-0">
+                          <TwyneOrb size={24} />
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -833,9 +885,9 @@ const OnboardingChat = () => {
               {isTyping && (
                 <div className="flex">
                   <div className="mr-2 mt-1 flex-shrink-0">
-                    <Avatar className="h-8 w-8 bg-primary/20 border-2 border-primary animate-pulse-slow">
-                      <AvatarFallback className="text-primary text-xs font-medium">
-                        <TwyneOrb size={16} pulsing={true} />
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-primary text-xs font-medium p-0">
+                        <TwyneOrb size={24} pulsing={true} />
                       </AvatarFallback>
                     </Avatar>
                   </div>

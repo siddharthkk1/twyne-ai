@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +48,7 @@ interface UserProfile {
   religion?: string;
   vibeWords?: string[];  // Added missing property
   goals?: string;        // Added missing property
+  currentSeason?: string; // Added new property
 }
 
 export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> = ({ userProfile }) => {
@@ -156,6 +156,25 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
                       ))
                     ) : (
                       <span className="text-muted-foreground text-sm">Tags will appear as we learn more about you</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Life Context Card - New addition */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-md">
+                <CardHeader>
+                  <CardTitle>Current Life Context</CardTitle>
+                  <CardDescription>What's happening in your life right now</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lifeContext || "No current life context identified"}</p>
+                  
+                  <div className="mt-4">
+                    {userProfile.currentSeason && (
+                      <Badge className="mr-2 mb-2 bg-primary/10 hover:bg-primary/20">
+                        {userProfile.currentSeason}
+                      </Badge>
                     )}
                   </div>
                 </CardContent>

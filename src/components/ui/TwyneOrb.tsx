@@ -25,22 +25,6 @@ const TwyneOrb: React.FC<TwyneOrbProps> = ({
         style={{
           width: size,
           height: size,
-          boxShadow: `0 0 10px rgba(147, 51, 234, 0.6), 0 0 20px rgba(147, 51, 234, 0.3)`,
-          backgroundSize: "200% 200%",
-        }}
-      />
-      
-      {/* Glow effect outer layer */}
-      <div 
-        className={cn(
-          "absolute rounded-full bg-gradient-to-r from-primary/30 via-accent/20 to-secondary/30 animate-gradient-slow",
-          pulsing ? "animate-pulse-slow" : ""
-        )}
-        style={{
-          width: size * 1.5,
-          height: size * 1.5,
-          filter: "blur(5px)",
-          zIndex: -1,
           backgroundSize: "200% 200%",
         }}
       />
