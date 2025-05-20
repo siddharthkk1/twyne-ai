@@ -299,7 +299,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       // This is the specific error we're seeing - let's improve the null/undefined check
       if (!data || data.content === undefined || data.content === null) {
         console.error("Missing or invalid content in AI response:", data);
-        return "I'm having trouble processing your message right now. Could you share your thoughts again?";
+        return "I'm having trouble processing your message right now. Could you share your thoughts again?"+JSON.stringify(data) + JSON.stringify(error?.message);
       }
 
       return data.content;
