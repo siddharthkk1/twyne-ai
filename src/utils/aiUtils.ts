@@ -267,7 +267,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
     }
 
     try {
-      const { data: responseData, error } = await supabase.functions.invoke('ai-chat', {
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
           endpoint: 'chat',
           data: {
@@ -278,10 +278,10 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       });
 
       console.log("AI response received:", {
-        hasData: !!responseData,
+        hasData: !!data,
         hasError: !!error,
-        hasContentInData: !!responseData?.content,
-        hasErrorInData: !!responseData?.error
+        hasContentInData: !!data?.content,
+        hasErrorInData: !!data?.error
       });
 
       if (error) {
@@ -290,26 +290,26 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       }
 
       // Handle the case when error is returned in the data object (our custom handling)
-      if (responseData?.error) {
-        console.error("Error in AI response data:", responseData.error);
+      if (data?.error) {
+        console.error("Error in AI response data:", data.error);
         // Return the content if provided, which will be our custom error message
-        return responseData.content || "I'm having trouble connecting right now. Let's try again in a moment.";
+        return data.content || "I'm having trouble connecting right now. Let's try again in a moment.";
       }
 
       // This is the specific error we're seeing - let's improve the null/undefined check
-      if (!responseData || responseData.content === undefined || responseData.content === null) {
-        console.error("Missing or invalid content in AI response:", responseData);
-        return "I'm having trouble processing your message right now. Could you share your thoughts again?";
+      if (!data || data.content === undefined || data.content === null) {
+        console.error("Missing or invalid content in AI response:", data);
+        return "I'm having trouble processing your message right now. Could you share your thoughts again?"+JSON.stringify(data) + JSON.stringify(error?.message);
       }
 
-      return responseData.content;
+      return data.content;
     } catch (error: any) {
       console.error("Error getting AI response:", error);
       if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
-        return "I seem to be having network issues connecting to my services. Could you try again in a moment?";
+        return "I seem to be having network issues connecting to my services. Could you try again in a moment? + JSON.stringify(data) + JSON.stringify(error?.message)";
       }
       // More specific error message with action suggestions
-      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?";
+      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?" + JSON.stringify(data) + JSON.stringify(error?.message);
     }
   } catch (error: any) {
     console.error("Error in getAIResponse:", error);
