@@ -30,6 +30,6 @@ enabled = true
 [analytics]
 enabled = false
 
-[[functions]]
-name = "ai-chat"
+[functions.ai-chat]
 verify_jwt = false
+
