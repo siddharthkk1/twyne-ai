@@ -299,17 +299,17 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       // This is the specific error we're seeing - let's improve the null/undefined check
       if (!data || data.content === undefined || data.content === null) {
         console.error("Missing or invalid content in AI response:", data);
-        return "I'm having trouble processing your message right now. Could you share your thoughts again?"+JSON.stringify(data) + JSON.stringify(error?.message);
+        return "I'm having trouble processing your message right now. Could you share your thoughts again?";
       }
 
       return data.content;
     } catch (error: any) {
       console.error("Error getting AI response:", error);
       if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
-        return "I seem to be having network issues connecting to my services. Could you try again in a moment? + JSON.stringify(data) + JSON.stringify(error?.message)";
+        return "I seem to be having network issues connecting to my services. Could you try again in a moment?";
       }
       // More specific error message with action suggestions
-      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?" + JSON.stringify(data) + JSON.stringify(error?.message);
+      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?";
     }
   } catch (error: any) {
     console.error("Error in getAIResponse:", error);
