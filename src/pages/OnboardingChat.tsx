@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
@@ -17,6 +17,7 @@ import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
 import PromptModeSelector from "@/components/onboarding/PromptModeSelector";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const OnboardingChat = () => {
   const {
@@ -47,6 +48,17 @@ const OnboardingChat = () => {
 
   const { isListening, isProcessing, transcript, toggleVoiceInput } = useVoiceRecording(handleSend);
 
+  // Add a ref for the ScrollArea viewport
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when messages change or typing indicator appears/disappears
+  useEffect(() => {
+    if (scrollViewportRef.current) {
+      const scrollElement = scrollViewportRef.current;
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+    }
+  }, [messages, isTyping]);
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
@@ -64,8 +76,11 @@ const OnboardingChat = () => {
             showGuidanceInfo={showGuidanceInfo}
           />
           
-          {/* Chat content */}
-          <div className="flex-1 p-4 pt-24 overflow-y-auto">
+          {/* Chat content with ScrollArea */}
+          <ScrollArea 
+            className="flex-1 p-4 pt-24" 
+            viewportRef={scrollViewportRef}
+          >
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
               {/* Prompt Mode Selector */}
               <div className="flex justify-end mb-2">
@@ -97,7 +112,7 @@ const OnboardingChat = () => {
               {isGeneratingProfile && <LoadingScreen />}
               <div ref={messagesEndRef}></div>
             </div>
-          </div>
+          </ScrollArea>
 
           <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0">
             <div className="max-w-3xl mx-auto">

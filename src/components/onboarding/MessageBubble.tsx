@@ -18,16 +18,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, nameInitial }) =
   // State to track which parts of the message are visible
   const [visibleParts, setVisibleParts] = useState<number[]>([]);
 
-  // Add staggered appearance effect for AI messages
+  // Add staggered appearance effect for AI messages with slightly varied delays
   useEffect(() => {
     if (message.sender === "ai") {
       // Show first part immediately
       setVisibleParts([0]);
       
-      // Show subsequent parts with delays
+      // Show subsequent parts with varied delays
       messageParts.forEach((_, index) => {
         if (index > 0) {
-          const delay = 500 + (index * 600); // Staggered timing
+          // Add slight variation to delays (between 500-700ms base + index * 500-700ms)
+          const baseDelay = 500 + Math.floor(Math.random() * 200);
+          const incrementDelay = 500 + Math.floor(Math.random() * 200);
+          const delay = baseDelay + (index * incrementDelay);
+          
           setTimeout(() => {
             setVisibleParts(prev => [...prev, index]);
           }, delay);
