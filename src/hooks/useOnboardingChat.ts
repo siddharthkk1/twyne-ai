@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
+import type { Json } from '@/integrations/supabase/types';
 import { 
   SYSTEM_PROMPT_STRUCTURED, 
   SYSTEM_PROMPT_PLAYFUL, 
@@ -554,16 +555,17 @@ export const useOnboardingChat = () => {
       console.log("Conversation data length:", convoData.messages.length);
       
       try {
-        // Fix: Wrap the data in an array since Supabase insert expects an array of objects
+        // Fix the insert by correctly preparing data for Supabase
+        // Insert a single object (not in an array) with properly typed fields
         const { error } = await supabase
           .from('onboarding_data')
-          .insert([{
+          .insert({
             user_id: userId,
             is_anonymous: !user,
-            profile_data: profile,
-            conversation_data: convoData,
+            profile_data: profile as unknown as Json,
+            conversation_data: convoData as unknown as Json,
             prompt_mode: promptMode,
-          }]);
+          });
         
         if (error) {
           console.error("Error saving with Supabase client:", error);
