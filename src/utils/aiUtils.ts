@@ -1,5 +1,19 @@
+
 import { ChatRole } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
+
+// Helper function to format category keys for display
+const formatKey = (key: string): string => {
+  switch (key) {
+    case 'overview': return 'Overview';
+    case 'lifeStory': return 'Life Story';
+    case 'interestsIdentity': return 'Interests & Identity';
+    case 'vibePersonality': return 'Vibe & Personality';
+    case 'innerWorld': return 'Inner World';
+    case 'connectionNeeds': return 'Connection Needs';
+    default: return key.charAt(0).toUpperCase() + key.slice(1);
+  }
+};
 
 // Improved system prompt for the AI to guide its responses
 export const SYSTEM_PROMPT = `
