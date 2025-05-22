@@ -16,7 +16,7 @@ import VoiceInput from "@/components/onboarding/VoiceInput";
 import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
 import PromptModeSelector from "@/components/onboarding/PromptModeSelector";
-import ProfileCompletionDashboard from "@/components/onboarding/ProfileCompletionDashboard";
+import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 
 const OnboardingChat = () => {
   const {
