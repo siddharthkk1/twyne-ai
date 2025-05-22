@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -12,6 +11,7 @@ import ChatContainer from "@/components/onboarding/ChatContainer";
 import InputContainer from "@/components/onboarding/InputContainer";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const OnboardingChat = () => {
   const {
