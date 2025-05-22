@@ -54,9 +54,21 @@ export const useOnboardingAI = () => {
           `The user's name is ${userName}. Start by greeting them by name and introducing yourself.` :
           "Please introduce yourself and ask for the user's name in a conversational way.";
           
-        aiGreeting = await getAIResponse(
-          initialConversation, 
-          nameGuidance
+        // Update the conversation temporarily to include our guidance
+        const guidedConversation = {
+          ...initialConversation,
+          messages: [
+            ...initialConversation.messages,
+            { role: "user" as ChatRole, content: nameGuidance }
+          ]
+        };
+        
+        // Call getAIResponse with the single conversation argument
+        aiGreeting = await getAIResponse(guidedConversation);
+        
+        // Remove the guidance message as it was just for prompting
+        initialConversation.messages = initialConversation.messages.filter(
+          msg => msg.role !== "user" || msg.content !== nameGuidance
         );
       }
       
