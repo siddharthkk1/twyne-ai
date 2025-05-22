@@ -117,8 +117,14 @@ export const useOnboardingAI = () => {
     setIsGeneratingProfile(true);
     
     try {
-      // Pass the userName to the profile generation function for better personalization
-      const profile = await generateAIProfile(finalConversation, userName);
+      // Generate profile - since function now expects only one argument
+      const profile = await generateAIProfile(finalConversation);
+      
+      // If we have a userName from the onboarding process, add it to the profile
+      if (userName && (!profile.name || profile.name === "")) {
+        profile.name = userName;
+      }
+      
       setIsGeneratingProfile(false);
       return profile;
     } catch (error) {
