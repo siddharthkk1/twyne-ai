@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
-import { Message, Conversation, UserProfile } from '@/types/chat';
+import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
 import { PromptModeType, usePromptMode } from './usePromptMode';
 import { ConversationModeType, useConversationMode } from './useConversationMode';
 import { useSmsConversation } from './useSmsConversation';
@@ -9,6 +9,11 @@ import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
 import { useOnboardingScroll } from './useOnboardingScroll';
+import { 
+  SYSTEM_PROMPT_STRUCTURED,
+  SYSTEM_PROMPT_PLAYFUL,
+  SYSTEM_PROMPT_YOUNG_ADULT
+} from '@/utils/aiUtils';
 
 // Maximum number of messages before automatically completing the onboarding
 const MESSAGE_CAP = 20; // Count only user messages, not AI messages
