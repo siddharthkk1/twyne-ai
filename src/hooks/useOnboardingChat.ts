@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -297,7 +296,7 @@ export const useOnboardingChat = () => {
     }
   };
 
-  // New function to save onboarding data to Supabase
+  // Updated saveOnboardingData function with better error handling
   const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
     try {
       // Get a unique ID for anonymous users
@@ -312,7 +311,6 @@ export const useOnboardingChat = () => {
       const userId = user?.id || anonymousId;
       
       // Insert onboarding data using REST API instead of Supabase client directly
-      // This avoids TypeScript errors with the table not being in the types
       const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
         method: 'POST',
         headers: {
@@ -332,6 +330,8 @@ export const useOnboardingChat = () => {
       if (!response.ok) {
         const errorData = await response.text();
         console.error("Error saving onboarding data:", errorData);
+        
+        // Show more specific error message
         toast({
           title: "Error",
           description: "Failed to save your onboarding data, but your profile has been created.",
@@ -347,6 +347,13 @@ export const useOnboardingChat = () => {
       }
     } catch (error) {
       console.error("Error in saveOnboardingData:", error);
+      
+      // Show generic error message for uncaught exceptions
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving your data.",
+        variant: "destructive",
+      });
     }
   };
 

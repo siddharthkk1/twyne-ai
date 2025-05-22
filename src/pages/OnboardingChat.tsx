@@ -5,7 +5,6 @@ import { HelpCircle } from "lucide-react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
-import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 import GuidanceInfo from "@/components/onboarding/GuidanceInfo";
 import ConversationHeader from "@/components/onboarding/ConversationHeader";
 import MessageBubble from "@/components/onboarding/MessageBubble";
@@ -16,6 +15,7 @@ import TextInput from "@/components/onboarding/TextInput";
 import VoiceInput from "@/components/onboarding/VoiceInput";
 import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
+import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
 
 const OnboardingChat = () => {
   const {
@@ -130,8 +130,11 @@ const OnboardingChat = () => {
         </>
       ) : (
         <>          
-          <div className="flex-1">
-            <ProfileCompletionDashboard userProfile={userProfile} />
+          <div className="flex-1 p-4">
+            <ProfileInsightsDashboard 
+              profileData={userProfile} 
+              nameInitial={getNameInitial()}
+            />
           </div>
         </>
       )}
