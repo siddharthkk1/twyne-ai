@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
-import { SYSTEM_PROMPT } from '@/utils/aiUtils';
+import { SYSTEM_PROMPT_STRUCTURED, SYSTEM_PROMPT_PLAYFUL } from '@/utils/aiUtils';
 import { getAIResponse, generateAIProfile, checkConversationCoverage } from '@/utils/aiUtils';
 
 const initialMessages: Message[] = [
@@ -20,17 +20,32 @@ const initialMessages: Message[] = [
   },
 ];
 
+// Initial messages for playful mode
+const initialMessagesPlayful: Message[] = [
+  {
+    id: 1,
+    text: "Hey there! ✨ I'm Twyne — your new conversation buddy! Let's have some fun getting to know each other so we can find people who match your vibe. This usually takes 5-10 mins, but we'll keep it light!",
+    sender: "ai",
+  },
+  {
+    id: 2,
+    text: "First things first — what should I call you?",
+    sender: "ai",
+  },
+];
+
 // Maximum number of messages before automatically completing the onboarding
 const MESSAGE_CAP = 28;
 
 export const useOnboardingChat = () => {
+  const [promptMode, setPromptMode] = useState<"structured" | "playful">("structured");
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
-    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT }],
+    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_STRUCTURED }],
     userAnswers: []
   });
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -49,8 +64,22 @@ export const useOnboardingChat = () => {
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
   const [conversationMode, setConversationMode] = useState<"text" | "voice" | "sms">("text");
   const [showModeSelection, setShowModeSelection] = useState(true);
+  const [showPromptSelection, setShowPromptSelection] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSmsVerified, setIsSmsVerified] = useState(false);
+
+  // Reset conversation when prompt mode changes
+  useEffect(() => {
+    const systemPrompt = promptMode === "structured" ? SYSTEM_PROMPT_STRUCTURED : SYSTEM_PROMPT_PLAYFUL;
+    const initialMsgs = promptMode === "structured" ? initialMessages : initialMessagesPlayful;
+    
+    setMessages(initialMsgs);
+    setConversation({
+      messages: [{ role: "system" as ChatRole, content: systemPrompt }],
+      userAnswers: []
+    });
+    setCurrentQuestionIndex(0);
+  }, [promptMode]);
 
   useEffect(() => {
     scrollToBottom();
@@ -58,6 +87,11 @@ export const useOnboardingChat = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handlePromptSelection = (mode: "structured" | "playful") => {
+    setPromptMode(mode);
+    setShowPromptSelection(false);
   };
 
   const handleSend = (message?: string) => {
@@ -324,6 +358,7 @@ export const useOnboardingChat = () => {
           is_anonymous: !user,
           profile_data: profile,
           conversation_data: convoData,
+          prompt_mode: promptMode // Add the prompt mode to the saved data
         })
       });
       
@@ -530,6 +565,11 @@ export const useOnboardingChat = () => {
     conversationMode,
     setConversationMode,
     showModeSelection,
+    showPromptSelection,
+    setShowPromptSelection,
+    promptMode,
+    setPromptMode,
+    handlePromptSelection,
     phoneNumber,
     setPhoneNumber,
     isSmsVerified,

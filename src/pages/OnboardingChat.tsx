@@ -15,6 +15,7 @@ import TextInput from "@/components/onboarding/TextInput";
 import VoiceInput from "@/components/onboarding/VoiceInput";
 import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
+import PromptModeSelector from "@/components/onboarding/PromptModeSelector";
 import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
 
 const OnboardingChat = () => {
@@ -34,6 +35,8 @@ const OnboardingChat = () => {
     conversationMode,
     setConversationMode,
     showModeSelection,
+    showPromptSelection,
+    handlePromptSelection,
     phoneNumber,
     getProgress,
     handleModeSelection,
@@ -48,7 +51,9 @@ const OnboardingChat = () => {
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
       <GuidanceInfo showGuidanceInfo={showGuidanceInfo} setShowGuidanceInfo={setShowGuidanceInfo} />
       
-      {showModeSelection ? (
+      {showPromptSelection ? (
+        <PromptModeSelector handlePromptSelection={handlePromptSelection} />
+      ) : showModeSelection ? (
         <ConversationModeSelector handleModeSelection={handleModeSelection} />
       ) : !isComplete ? (
         <>
