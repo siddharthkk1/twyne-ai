@@ -30,7 +30,7 @@ export interface PersonalityTraits {
 export interface UserProfile {
   name: string;
   location: string;
-  interests: string[] | string; // Updated to accept both string and array
+  interests: string[] | string; // Can be string or array
   socialStyle: string;
   connectionPreferences: string;
   personalInsights: string[];
@@ -44,7 +44,7 @@ export interface UserProfile {
   mediaTastes?: string;
   dealBreakers?: string;
   lookingFor?: string;
-  values?: string[] | string; // Updated to accept both string array and string
+  values?: string[] | string; // Can be string or array
   misunderstood?: string;
   lifeStory?: string;
   background?: string;
@@ -64,5 +64,5 @@ export interface UserProfile {
   job?: string;
   ethnicity?: string;
   religion?: string;
-  personalityTraits?: PersonalityTraits; // Added personality traits
+  personalityTraits?: PersonalityTraits;
 }

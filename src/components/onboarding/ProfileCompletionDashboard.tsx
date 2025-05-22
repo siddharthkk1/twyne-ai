@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import InsightCard from './InsightCard';
 import ValueCard from './ValueCard';
 import PersonalityChart from './PersonalityChart';
+import { Badge } from "@/components/ui/badge";
+import { Lock } from "lucide-react";
 
 interface ProfileCompletionDashboardProps {
   userProfile: UserProfile;
@@ -47,6 +49,13 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
     structure: 50
   };
 
+  // Extract all tags
+  const getTags = () => {
+    return userProfile.twyneTags || userProfile.vibeWords || [];
+  };
+
+  const tags = getTags();
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="flex flex-col gap-8">
@@ -54,7 +63,18 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-3">Your Twyne Profile</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Here's what we learned about you from our conversation. This helps us find great connections that match your vibe.
+            Here's what we learned about you from our conversation. This information is private and only visible to you.
+          </p>
+        </div>
+
+        {/* Privacy Notice */}
+        <div className="bg-primary/5 rounded-lg p-4 border border-primary/10 max-w-3xl mx-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="h-4 w-4 text-primary" />
+            <h3 className="font-medium">Privacy Guarantee</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            This profile is private and only visible to you. Twyne will never share your information with other users without your explicit permission.
           </p>
         </div>
 
@@ -77,6 +97,22 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 </div>
               )}
               
+              {/* Job/Occupation if available */}
+              {userProfile.job && (
+                <div>
+                  <h3 className="font-medium text-muted-foreground">Occupation</h3>
+                  <p>{userProfile.job}</p>
+                </div>
+              )}
+              
+              {/* Background if available */}
+              {userProfile.background && (
+                <div>
+                  <h3 className="font-medium text-muted-foreground">Background</h3>
+                  <p>{userProfile.background}</p>
+                </div>
+              )}
+              
               {/* Interests and Passions */}
               <div>
                 <h3 className="font-medium text-muted-foreground mb-2">Interests & Passions</h3>
@@ -91,6 +127,23 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                   ))}
                 </div>
               </div>
+              
+              {/* Twyne Tags */}
+              {tags.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-muted-foreground mb-2">#TwyneTags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag, i) => (
+                      <span 
+                        key={i} 
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(i + 10)}`}
+                      >
+                        #{tag.replace(/\s+/g, '')}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* Keywords that describe you */}
               {userProfile.personalInsights?.length > 0 && (
@@ -113,6 +166,18 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
           
           {/* Right column - Personality and insights */}
           <div className="col-span-2 space-y-6">
+            {/* Vibe Summary / Overview */}
+            {userProfile.vibeSummary && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Vibe Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.vibeSummary}</p>
+                </CardContent>
+              </Card>
+            )}
+            
             {/* Personality Chart */}
             <Card className="border border-border bg-card">
               <CardHeader>
@@ -124,7 +189,52 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
               </CardContent>
             </Card>
             
-            {/* Social Style */}
+            {/* Values section */}
+            {userProfile.coreValues && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Core Values</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.coreValues}</p>
+                  {ensureArray(userProfile.values).length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {ensureArray(userProfile.values).map((value, i) => (
+                        <Badge key={i} variant="outline" className="bg-secondary/5 text-secondary">
+                          {value}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Life Stories section */}
+            {userProfile.lifeStory && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Life Stories</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lifeStory}</p>
+                  {userProfile.challengesOvercome && (
+                    <div className="mt-4">
+                      <h4 className="font-medium mb-1">Challenges Overcome</h4>
+                      <p className="text-sm">{userProfile.challengesOvercome}</p>
+                    </div>
+                  )}
+                  {userProfile.meaningfulAchievements && (
+                    <div className="mt-4">
+                      <h4 className="font-medium mb-1">Meaningful Achievements</h4>
+                      <p className="text-sm">{userProfile.meaningfulAchievements}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Social Connection Style */}
             {userProfile.socialStyle && (
               <InsightCard 
                 insight={userProfile.socialStyle}
@@ -137,6 +247,14 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
               <InsightCard 
                 insight={userProfile.connectionPreferences}
                 index={1}
+              />
+            )}
+            
+            {/* Social Needs */}
+            {userProfile.socialNeeds && (
+              <InsightCard 
+                insight={userProfile.socialNeeds}
+                index={2}
               />
             )}
           </div>

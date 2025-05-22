@@ -14,7 +14,7 @@ import {
 } from '@/utils/aiUtils';
 
 // Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 34;
+const MESSAGE_CAP = 20; // Changed from 34 to 20 as requested
 
 export type PromptModeType = "structured" | "playful" | "young-adult";
 
@@ -554,36 +554,51 @@ export const useOnboardingChat = () => {
       console.log("Conversation data length:", convoData.messages.length);
       
       try {
-        // First attempt - Using direct REST API approach to avoid type issues
-        console.log("Attempting to save data with REST API to onboarding_test_data table");
-        const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_test_data`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-            'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({
+        // Using direct supabase client approach which is more reliable
+        const { error } = await supabase
+          .from('onboarding_test_data')
+          .insert({
             user_id: userId,
             is_anonymous: !user,
             profile_data: profile,
             conversation_data: convoData,
             prompt_mode: promptMode,
             name: extractedName
-          })
-        });
+          });
         
-        console.log("REST API response status:", response.status);
-        
-        if (!response.ok) {
-          const errorData = await response.text();
-          console.error("Error saving with REST API:", errorData);
+        if (error) {
+          console.error("Error saving with Supabase client:", error);
+          // Try fallback REST API approach
+          console.log("Attempting to save data with REST API to onboarding_test_data table");
+          const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_test_data`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+              'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              is_anonymous: !user,
+              profile_data: profile,
+              conversation_data: convoData,
+              prompt_mode: promptMode,
+              name: extractedName
+            })
+          });
           
-          // Create a custom error message without trying another Supabase client approach
-          throw new Error(`Failed to save data: ${errorData}`);
+          console.log("REST API response status:", response.status);
+          
+          if (!response.ok) {
+            const errorData = await response.text();
+            console.error("Error saving with REST API:", errorData);
+            throw new Error(`Failed to save data: ${errorData}`);
+          } else {
+            console.log("Data saved successfully with REST API");
+          }
         } else {
-          console.log("Data saved successfully with REST API");
+          console.log("Data saved successfully with Supabase client");
         }
         
         // If user is logged in, update their metadata

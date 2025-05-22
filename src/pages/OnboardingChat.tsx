@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
@@ -58,6 +57,18 @@ const OnboardingChat = () => {
       scrollElement.scrollTop = scrollElement.scrollHeight;
     }
   }, [messages, isTyping]);
+  
+  // Force scroll to bottom whenever a new message is added or when typing status changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (scrollViewportRef.current) {
+        const scrollElement = scrollViewportRef.current;
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }, 100); // Small delay to ensure content is rendered
+    
+    return () => clearTimeout(timer);
+  }, [messages.length, isTyping]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
