@@ -19,7 +19,13 @@ serve(async (req) => {
   console.log("ABCDEFG");
   if (req.method === 'OPTIONS') {
     console.log("Handling OPTIONS preflight request");
-    return new Response('ok', { headers: corsHeaders });
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
+      });
+    }
+
   }
 
   try {
