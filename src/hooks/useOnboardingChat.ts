@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -107,10 +106,18 @@ export const useOnboardingChat = () => {
     
     // Reset messages and conversation
     setMessages([]);
+    
+    // Fix: Properly type the message role as ChatRole
+    const initialMessage: { role: ChatRole; content: string } = {
+      role: "system",
+      content: systemPrompt
+    };
+    
     setConversation({
-      messages: [{ role: "system" as ChatRole, content: systemPrompt }],
+      messages: [initialMessage],
       userAnswers: []
     });
+    
     setCurrentQuestionIndex(0);
     
     // Initialize chat with AI greeting
@@ -183,12 +190,22 @@ export const useOnboardingChat = () => {
       setMessages(prev => [...prev, closingMessage]);
       setIsTyping(false);
 
-      // Update conversation with user's final message
+      // Update conversation with user's final message - Fix typing here
+      const userMessageObj: { role: ChatRole; content: string } = { 
+        role: "user", 
+        content: textToSend 
+      };
+      
+      const assistantMessageObj: { role: ChatRole; content: string } = { 
+        role: "assistant", 
+        content: closingMessage.text 
+      };
+
       const finalConversation = {
         messages: [
           ...conversation.messages, 
-          { role: "user" as ChatRole, content: textToSend },
-          { role: "assistant" as ChatRole, content: closingMessage.text }
+          userMessageObj,
+          assistantMessageObj
         ],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
@@ -225,9 +242,14 @@ export const useOnboardingChat = () => {
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
 
-    // Prepare conversation data for API request
+    // Prepare conversation data for API request - Fix typing here
+    const userMessageObj: { role: ChatRole; content: string } = { 
+      role: "user", 
+      content: textToSend 
+    };
+    
     const draftConversation: Conversation = {
-      messages: [...conversation.messages, { role: "user" as ChatRole, content: textToSend }],
+      messages: [...conversation.messages, userMessageObj],
       userAnswers: [...conversation.userAnswers, textToSend]
     };
 
@@ -264,9 +286,14 @@ export const useOnboardingChat = () => {
         setMessages(prev => [...prev, closingMessage]);
         setIsTyping(false);
 
-        // Update final conversation state with closing message
+        // Update final conversation state with closing message - Fix typing here
+        const assistantMessageObj: { role: ChatRole; content: string } = { 
+          role: "assistant", 
+          content: closingMessage.text 
+        };
+        
         const finalConversation = {
-          messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
+          messages: [...draftConversation.messages, assistantMessageObj],
           userAnswers: draftConversation.userAnswers
         };
         
