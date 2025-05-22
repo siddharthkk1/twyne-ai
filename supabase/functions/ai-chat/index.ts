@@ -15,12 +15,22 @@ const corsHeaders = {
 
 // The key fix: awaiting the serve function at the top level
 await serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: corsHeaders, // ✅ MUST be here
-    });
+    return new Response('ok', { headers: corsHeaders });
   }
+
+  try {
+    const { endpoint, data } = await req.json();
+    // route to handlers...
+  } catch (error) {
+    console.error("Error in AI chat function:", error);
+    return new Response(
+      JSON.stringify({ error: error.message, content: "I'm having trouble processing your request. Let's try again in a moment." }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } } // ✅ FIXED
+    );
+  }
+});
+
 
   try {
     const { endpoint, data } = await req.json();
