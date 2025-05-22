@@ -131,38 +131,38 @@ const OnboardingChat = () => {
       )}
       
       {/* Help dialog - shown in the middle of the screen */}
-      <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogTitle className="text-xl font-semibold">
-            How This Conversation Works
-          </DialogTitle>
-          
-          <div className="space-y-3 text-muted-foreground mt-4">
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>You'll decide later what (if anything) gets shared with others.</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
-            </p>
-          </div>
-          
-          <div className="pt-4">
-            <Button onClick={handleCloseHelpDialog} className="w-full">
-              Got it
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
+    <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogTitle className="text-xl font-semibold">How This Conversation Works</DialogTitle>
+    
+        <div className="space-y-3 text-muted-foreground">
+          <p className="flex items-start gap-2">
+            <span className="text-primary font-medium">•</span>
+            <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
+          </p>
+          <p className="flex items-start gap-2">
+            <span className="text-primary font-medium">•</span>
+            <span>You'll decide later what (if anything) gets shared with others.</span>
+          </p>
+          <p className="flex items-start gap-2">
+            <span className="text-primary font-medium">•</span>
+            <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
+          </p>
+          <p className="flex items-start gap-2">
+            <span className="text-primary font-medium">•</span>
+            <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
+          </p>
+        </div>
+    
+        <div className="pt-4">
+          <Button onClick={handleCloseHelpDialog} className="w-full">
+            Got it
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
       
       <GuidanceInfo showGuidanceInfo={showGuidanceInfo} setShowGuidanceInfo={setShowGuidanceInfo} />
       
