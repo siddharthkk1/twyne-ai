@@ -22,7 +22,26 @@ await serve(async (req) => {
   }
 
   try {
-    const { endpoint, data } = await req.json();
+    console.log("Incoming request method:", req.method);
+    console.log("Incoming request headers:", [...req.headers.entries()]);
+    
+    const rawBody = await req.text();
+    console.log("Raw request body:", rawBody);
+    
+    let endpoint, data;
+    try {
+      ({ endpoint, data } = JSON.parse(rawBody));
+    } catch (err) {
+      console.error("JSON parse error:", err.message);
+      return new Response(
+        JSON.stringify({
+          error: "Invalid JSON body",
+          content: "The request body couldn't be understood. Please check your format."
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`Processing ${endpoint} request with data keys:`, Object.keys(data));
 
     if (endpoint === "chat") {
