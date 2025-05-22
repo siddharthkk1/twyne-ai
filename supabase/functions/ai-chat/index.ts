@@ -14,7 +14,7 @@ const corsHeaders = {
 };
 
 // Handle all requests
-await serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   console.log("ABCDEFG");
   if (req.method === 'OPTIONS') {
@@ -60,11 +60,18 @@ await serve(async (req) => {
     console.error("Error in AI chat function:", error);
     return new Response(
       JSON.stringify({
-        error: error.message,
-        content: "I'm having trouble processing your request. Let's try again in a moment."
+        error: error.message || "Unknown error",
+        content: "Internal server error"
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
     );
+
   }
 });
 
