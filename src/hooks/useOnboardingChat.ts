@@ -554,16 +554,16 @@ export const useOnboardingChat = () => {
       console.log("Conversation data length:", convoData.messages.length);
       
       try {
-        // Fix: Remove the array wrapper and use a single object for insert
+        // Fix: Wrap the data in an array since Supabase insert expects an array of objects
         const { error } = await supabase
           .from('onboarding_data')
-          .insert({
+          .insert([{
             user_id: userId,
             is_anonymous: !user,
             profile_data: profile,
             conversation_data: convoData,
             prompt_mode: promptMode,
-          });
+          }]);
         
         if (error) {
           console.error("Error saving with Supabase client:", error);
