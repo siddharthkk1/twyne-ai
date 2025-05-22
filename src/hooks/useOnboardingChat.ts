@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -555,17 +554,16 @@ export const useOnboardingChat = () => {
       console.log("Conversation data length:", convoData.messages.length);
       
       try {
-        // Using direct supabase client approach which is more reliable
-        // Fix: Wrap the object in an array for the insert method
+        // Fix: Remove the array wrapper and use a single object for insert
         const { error } = await supabase
           .from('onboarding_data')
-          .insert([{
+          .insert({
             user_id: userId,
             is_anonymous: !user,
             profile_data: profile,
             conversation_data: convoData,
             prompt_mode: promptMode,
-          }]);
+          });
         
         if (error) {
           console.error("Error saving with Supabase client:", error);
