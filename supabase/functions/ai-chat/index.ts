@@ -13,9 +13,11 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-// The key fix: awaiting the serve function at the top level
+// Handle all requests
 await serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log("Handling OPTIONS preflight request");
     return new Response('ok', { headers: corsHeaders });
   }
 

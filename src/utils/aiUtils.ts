@@ -1,4 +1,3 @@
-
 import { ChatRole } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 
