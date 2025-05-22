@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +20,9 @@ const initialMessages: Message[] = [
     sender: "ai",
   },
 ];
+
+// Maximum number of messages before automatically completing the onboarding
+const MESSAGE_CAP = 28;
 
 export const useOnboardingChat = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -60,6 +64,64 @@ export const useOnboardingChat = () => {
   const handleSend = (message?: string) => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
+
+    // Check if we've reached the message cap
+    if (messages.length >= MESSAGE_CAP - 1) { // -1 to account for the new user message we're about to add
+      // Add user message to UI
+      const newUserMessage: Message = {
+        id: messages.length + 1,
+        text: textToSend,
+        sender: "user",
+      };
+
+      setMessages((prev) => [...prev, newUserMessage]);
+      setInput("");
+      
+      // Add closing message
+      const closingMessage: Message = {
+        id: messages.length + 2,
+        text: "Thanks for sharing! I think I've got enough to understand your vibe. Building your personal dashboard now...",
+        sender: "ai",
+      };
+
+      setMessages(prev => [...prev, closingMessage]);
+      setIsTyping(false);
+      setIsGeneratingProfile(true);
+
+      // Update conversation with user's final message
+      const finalConversation = {
+        messages: [
+          ...conversation.messages, 
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: closingMessage.text }
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
+      };
+      
+      setConversation(finalConversation);
+
+      // Generate profile and complete onboarding
+      generateAIProfile(finalConversation)
+        .then(profile => {
+          setUserProfile(profile);
+          setIsGeneratingProfile(false);
+          setIsComplete(true);
+          
+          // Save conversation to Supabase
+          saveOnboardingData(profile, finalConversation);
+        })
+        .catch(error => {
+          console.error("Error generating profile at message cap:", error);
+          setIsGeneratingProfile(false);
+          toast({
+            title: "Error generating profile",
+            description: "We encountered an issue creating your profile.",
+            variant: "destructive",
+          });
+        });
+      
+      return;
+    }
 
     // Add user message to UI
     const newUserMessage: Message = {
@@ -157,12 +219,16 @@ export const useOnboardingChat = () => {
               setUserProfile(profile);
               setIsGeneratingProfile(false);
               setIsComplete(true);
-              setConversation({
+              
+              // Update final conversation state with closing message
+              const finalConversation = {
                 messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
                 userAnswers: draftConversation.userAnswers
-              });
-
-              if (user) markUserAsOnboarded(profile);
+              };
+              setConversation(finalConversation);
+              
+              // Save conversation to Supabase
+              saveOnboardingData(profile, finalConversation);
             } catch (error) {
               console.error("Error in profile generation:", error);
               // Handle error with fallback
@@ -228,6 +294,50 @@ export const useOnboardingChat = () => {
           setIsTyping(false);
           handleContinue("Sorry for the hiccup. Please continue - I'm listening.");
         });
+    }
+  };
+
+  // New function to save onboarding data to Supabase
+  const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
+    try {
+      // Get a unique ID for anonymous users
+      const anonymousId = localStorage.getItem('anonymous_twyne_id') || crypto.randomUUID();
+      
+      // If this is a new anonymous user, save the ID
+      if (!localStorage.getItem('anonymous_twyne_id')) {
+        localStorage.setItem('anonymous_twyne_id', anonymousId);
+      }
+      
+      // If user is logged in, save with user ID, otherwise use anonymous ID
+      const userId = user?.id || anonymousId;
+      
+      // Insert onboarding data into Supabase
+      const { error } = await supabase
+        .from('onboarding_data')
+        .insert({
+          user_id: userId,
+          is_anonymous: !user,
+          profile_data: profile,
+          conversation_data: convoData,
+        });
+      
+      if (error) {
+        console.error("Error saving onboarding data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save your onboarding data, but your profile has been created.",
+          variant: "destructive",
+        });
+      } else {
+        console.log("Onboarding data saved successfully");
+        
+        // If user is logged in, update their metadata
+        if (user) {
+          markUserAsOnboarded(profile);
+        }
+      }
+    } catch (error) {
+      console.error("Error in saveOnboardingData:", error);
     }
   };
 
