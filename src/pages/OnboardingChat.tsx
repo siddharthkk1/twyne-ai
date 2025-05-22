@@ -35,8 +35,8 @@ const OnboardingChat = () => {
     conversationMode,
     setConversationMode,
     showModeSelection,
-    showPromptSelection,
-    handlePromptSelection,
+    promptMode,
+    handlePromptModeChange,
     phoneNumber,
     getProgress,
     handleModeSelection,
@@ -51,9 +51,7 @@ const OnboardingChat = () => {
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
       <GuidanceInfo showGuidanceInfo={showGuidanceInfo} setShowGuidanceInfo={setShowGuidanceInfo} />
       
-      {showPromptSelection ? (
-        <PromptModeSelector handlePromptSelection={handlePromptSelection} />
-      ) : showModeSelection ? (
+      {showModeSelection ? (
         <ConversationModeSelector handleModeSelection={handleModeSelection} />
       ) : !isComplete ? (
         <>
@@ -68,6 +66,15 @@ const OnboardingChat = () => {
           {/* Chat content - added padding-top to avoid overlap with fixed header */}
           <div className="flex-1 p-4 pt-24 overflow-y-auto">
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
+              {/* Prompt Mode Selector - added within the chat */}
+              <div className="flex justify-end mb-2">
+                <PromptModeSelector 
+                  promptMode={promptMode} 
+                  onPromptModeChange={handlePromptModeChange}
+                  disabled={messages.filter(msg => msg.sender === "user").length > 0}
+                />
+              </div>
+              
               {messages.map((message) => (
                 <MessageBubble 
                   key={message.id}

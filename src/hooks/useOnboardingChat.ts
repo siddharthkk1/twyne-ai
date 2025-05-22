@@ -1,10 +1,11 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
-import { SYSTEM_PROMPT_STRUCTURED, SYSTEM_PROMPT_PLAYFUL } from '@/utils/aiUtils';
+import { SYSTEM_PROMPT_STRUCTURED, SYSTEM_PROMPT_PLAYFUL, SYSTEM_PROMPT_YOUNG_ADULT } from '@/utils/aiUtils';
 import { getAIResponse, generateAIProfile, checkConversationCoverage } from '@/utils/aiUtils';
 
 const initialMessages: Message[] = [
@@ -34,11 +35,27 @@ const initialMessagesPlayful: Message[] = [
   },
 ];
 
+// Initial messages for young adult mode
+const initialMessagesYoungAdult: Message[] = [
+  {
+    id: 1,
+    text: "Hey there 👋 I'm Twyne — let's chat and get to know you better so we can connect you with people you'll genuinely vibe with. This is just a casual conversation, not an interview.",
+    sender: "ai",
+  },
+  {
+    id: 2,
+    text: "To start off — what's your name?",
+    sender: "ai",
+  },
+];
+
 // Maximum number of messages before automatically completing the onboarding
 const MESSAGE_CAP = 28;
 
+export type PromptModeType = "structured" | "playful" | "young-adult";
+
 export const useOnboardingChat = () => {
-  const [promptMode, setPromptMode] = useState<"structured" | "playful">("structured");
+  const [promptMode, setPromptMode] = useState<PromptModeType>("structured");
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
@@ -63,15 +80,23 @@ export const useOnboardingChat = () => {
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
   const [conversationMode, setConversationMode] = useState<"text" | "voice" | "sms">("text");
-  const [showModeSelection, setShowModeSelection] = useState(true);
-  const [showPromptSelection, setShowPromptSelection] = useState(true);
+  const [showModeSelection, setShowModeSelection] = useState(false);
+  const [showPromptSelection, setShowPromptSelection] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSmsVerified, setIsSmsVerified] = useState(false);
 
   // Reset conversation when prompt mode changes
   useEffect(() => {
-    const systemPrompt = promptMode === "structured" ? SYSTEM_PROMPT_STRUCTURED : SYSTEM_PROMPT_PLAYFUL;
-    const initialMsgs = promptMode === "structured" ? initialMessages : initialMessagesPlayful;
+    let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
+    let initialMsgs = initialMessages;
+    
+    if (promptMode === "playful") {
+      systemPrompt = SYSTEM_PROMPT_PLAYFUL;
+      initialMsgs = initialMessagesPlayful;
+    } else if (promptMode === "young-adult") {
+      systemPrompt = SYSTEM_PROMPT_YOUNG_ADULT;
+      initialMsgs = initialMessagesYoungAdult;
+    }
     
     setMessages(initialMsgs);
     setConversation({
@@ -89,9 +114,23 @@ export const useOnboardingChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handlePromptSelection = (mode: "structured" | "playful") => {
-    setPromptMode(mode);
-    setShowPromptSelection(false);
+  const handlePromptModeChange = (mode: PromptModeType) => {
+    // Only change the prompt mode if we're at the beginning of the conversation
+    if (currentQuestionIndex === 0) {
+      setPromptMode(mode);
+      toast({
+        title: "Conversation style changed",
+        description: `You've switched to ${mode === "structured" ? "Guided Conversation" : mode === "playful" ? "Playful Chat" : "College Student Chat"} mode.`,
+        duration: 3000,
+      });
+    } else {
+      // If conversation already started, show warning
+      toast({
+        title: "Cannot change conversation style",
+        description: "You can only change the conversation style at the beginning of the chat.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSend = (message?: string) => {
@@ -569,7 +608,7 @@ export const useOnboardingChat = () => {
     setShowPromptSelection,
     promptMode,
     setPromptMode,
-    handlePromptSelection,
+    handlePromptModeChange,
     phoneNumber,
     setPhoneNumber,
     isSmsVerified,
