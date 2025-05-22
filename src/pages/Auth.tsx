@@ -8,9 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
-import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -21,7 +18,6 @@ const Auth = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [isLoginLoading, setIsLoginLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Register form state
   const [registerEmail, setRegisterEmail] = useState("");
@@ -57,35 +53,6 @@ const Auth = () => {
       }
     } finally {
       setIsLoginLoading(false);
-    }
-  };
-
-  const handleGoogleAuth = async () => {
-    setIsGoogleLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-      
-      if (error) {
-        toast({
-          title: "Google sign in failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Something went wrong with Google sign in.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGoogleLoading(false);
     }
   };
 
@@ -178,40 +145,9 @@ const Auth = () => {
                     />
                   </div>
                 </CardContent>
-                <CardFooter className="flex-col space-y-2">
+                <CardFooter>
                   <Button type="submit" className="w-full" disabled={isLoginLoading}>
-                    {isLoginLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign in"
-                    )}
-                  </Button>
-                  
-                  <div className="relative my-2 w-full">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleGoogleAuth}
-                    disabled={isGoogleLoading}
-                  >
-                    {isGoogleLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <FcGoogle className="mr-2 h-5 w-5" />
-                    )}
-                    Google
+                    {isLoginLoading ? "Signing in..." : "Sign in"}
                   </Button>
                 </CardFooter>
               </form>
@@ -277,40 +213,9 @@ const Auth = () => {
                     />
                   </div>
                 </CardContent>
-                <CardFooter className="flex-col space-y-2">
+                <CardFooter>
                   <Button type="submit" className="w-full" disabled={isRegisterLoading}>
-                    {isRegisterLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      "Create account"
-                    )}
-                  </Button>
-                  
-                  <div className="relative my-2 w-full">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleGoogleAuth}
-                    disabled={isGoogleLoading}
-                  >
-                    {isGoogleLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <FcGoogle className="mr-2 h-5 w-5" />
-                    )}
-                    Google
+                    {isRegisterLoading ? "Creating account..." : "Create account"}
                   </Button>
                 </CardFooter>
               </form>

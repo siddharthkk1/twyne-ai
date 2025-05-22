@@ -113,19 +113,14 @@ export default {
 				'gradient-shift': {
 					'0%, 100%': { backgroundPosition: '0% 50%' },
 					'50%': { backgroundPosition: '100% 50%' },
-				},
-				gradient: {
-					"0%": { backgroundPosition: "0% 50%" },
-					"50%": { backgroundPosition: "100% 50%" },
-					"100%": { backgroundPosition: "0% 50%" },
-				},
+				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out',
 				'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
-				'gradient-slow': 'gradient 8s ease infinite',
+				'gradient-slow': 'gradient-shift 15s ease infinite',
 			},
 		}
 	},
