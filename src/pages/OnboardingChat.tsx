@@ -58,35 +58,36 @@ const OnboardingChat = () => {
         const scrollElement = scrollViewportRef.current;
         scrollElement.scrollTop = scrollElement.scrollHeight;
       }
+      
+      // Also use the messagesEndRef for additional scrolling support
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
     };
 
     // Immediate scroll attempt
     scrollToBottom();
 
-    // Also schedule a delayed scroll to handle any render delays
-    const timer = setTimeout(scrollToBottom, 100);
-    
-    return () => clearTimeout(timer);
-  }, [messages, isTyping]);
-  
-  // Additional scroll effect when messages change
-  useEffect(() => {
-    // Extra timed scrolls for when content might be delayed in rendering
+    // Also schedule multiple delayed scrolls to handle any render delays
     const timers = [
-      setTimeout(() => {
-        if (scrollViewportRef.current) {
-          scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
-        }
-      }, 200),
-      setTimeout(() => {
-        if (scrollViewportRef.current) {
-          scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
-        }
-      }, 500)
+      setTimeout(scrollToBottom, 100),
+      setTimeout(scrollToBottom, 300),
+      setTimeout(scrollToBottom, 500)
     ];
     
     return () => timers.forEach(clearTimeout);
-  }, [messages.length]); // Only depend on message count for this one
+  }, [messages, isTyping]);
+  
+  // Additional scroll effect for window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (scrollViewportRef.current) {
+        scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+      }
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
@@ -109,7 +110,6 @@ const OnboardingChat = () => {
           <ScrollArea 
             className="flex-1 p-4 pt-24" 
             viewportRef={scrollViewportRef}
-            onViewportScroll={() => console.log("Viewport scrolled")}
           >
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
               {/* Prompt Mode Selector */}
@@ -140,7 +140,7 @@ const OnboardingChat = () => {
               
               {isTyping && !isInitializing && <TypingIndicator />}
               {isGeneratingProfile && <LoadingScreen />}
-              <div ref={messagesEndRef}></div>
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
 

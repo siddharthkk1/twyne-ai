@@ -10,14 +10,32 @@ import {
   generateAIProfile,
   getRandomSeedMessage 
 } from '@/utils/aiUtils';
+import { PromptModeType, usePromptMode } from './usePromptMode';
+import { ConversationModeType, useConversationMode } from './useConversationMode';
+import { useSmsConversation } from './useSmsConversation';
+import { useSupabaseSync } from './useSupabaseSync';
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from '@/integrations/supabase/types';
 
 // Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 20; // Changed from 34 to 20 as requested
-
-export type PromptModeType = "structured" | "playful" | "young-adult";
+const MESSAGE_CAP = 20; // Count only user messages, not AI messages
 
 export const useOnboardingChat = () => {
-  const [promptMode, setPromptMode] = useState<PromptModeType>("playful"); // Default to playful
+  const { promptMode, setPromptMode, showPromptSelection, setShowPromptSelection, handlePromptModeChange } = usePromptMode();
+  const { 
+    conversationMode, 
+    setConversationMode, 
+    showModeSelection, 
+    setShowModeSelection, 
+    phoneNumber, 
+    setPhoneNumber, 
+    isSmsVerified, 
+    handleModeSelection, 
+    startSmsConversation 
+  } = useConversationMode();
+  const { handleSmsResponse } = useSmsConversation();
+  const { saveOnboardingData } = useSupabaseSync();
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
@@ -47,11 +65,6 @@ export const useOnboardingChat = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
-  const [conversationMode, setConversationMode] = useState<"text" | "voice" | "sms">("text");
-  const [showModeSelection, setShowModeSelection] = useState(false);
-  const [showPromptSelection, setShowPromptSelection] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [isSmsVerified, setIsSmsVerified] = useState(false);
   const [userName, setUserName] = useState<string>(""); // Store name separately
 
   // Reset conversation when prompt mode changes and initialize with AI greeting
@@ -162,25 +175,6 @@ export const useOnboardingChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handlePromptModeChange = (mode: PromptModeType) => {
-    // Only change the prompt mode if we're at the beginning of the conversation
-    if (currentQuestionIndex === 0) {
-      setPromptMode(mode);
-      toast({
-        title: "Conversation style changed",
-        description: `You've switched to ${mode === "structured" ? "Guided Conversation" : mode === "playful" ? "Playful Chat" : "Chill Talk"} mode.`,
-        duration: 3000,
-      });
-    } else {
-      // If conversation already started, show warning
-      toast({
-        title: "Cannot change conversation style",
-        description: "You can only change the conversation style at the beginning of the chat.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleSend = (message?: string) => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
@@ -231,7 +225,7 @@ export const useOnboardingChat = () => {
           setIsComplete(true);
           
           // Save conversation to Supabase
-          saveOnboardingData(profile, finalConversation);
+          saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
         })
         .catch(error => {
           console.error("Error generating profile at message cap:", error);
@@ -277,7 +271,15 @@ export const useOnboardingChat = () => {
     // If in SMS mode, handle sending messages via SMS
     if (conversationMode === "sms") {
       // In a real implementation, this would send the message to the SMS edge function
-      handleSmsResponse(textToSend, draftConversation);
+      handleSmsResponse(
+        textToSend, 
+        draftConversation, 
+        conversation, 
+        setMessages, 
+        setConversation, 
+        setIsTyping, 
+        phoneNumber
+      );
       return;
     }
 
@@ -351,8 +353,8 @@ export const useOnboardingChat = () => {
               };
               setConversation(finalConversation);
               
-              // Save conversation to Supabase
-              saveOnboardingData(profile, finalConversation);
+              // Save conversation to Supabase using the extracted function
+              saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
             })
             .catch(error => {
               console.error("Error in profile generation:", error);
@@ -424,243 +426,9 @@ export const useOnboardingChat = () => {
     return calculatedProgress;
   };
 
-  // Function to handle conversation mode selection (text, voice, or sms)
-  const handleModeSelection = (mode: "text" | "voice" | "sms", phoneNumberInput?: string) => {
-    setConversationMode(mode);
-    
-    if (mode === "sms" && phoneNumberInput) {
-      setPhoneNumber(phoneNumberInput);
-      
-      // In a real implementation, we would verify the phone number here
-      // and send an initial message to start the conversation
-      toast({
-        title: "SMS conversation started",
-        description: `We've sent an initial message to ${phoneNumberInput}. Reply to continue the conversation.`,
-      });
-    }
-    
-    setShowModeSelection(false);
-  };
-
   // Function to get the first letter of the user's name for avatar
   const getNameInitial = () => {
     return userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?";
-  };
-
-  // New function to handle SMS verification
-  const startSmsConversation = async (phoneNumberInput: string) => {
-    try {
-      setIsTyping(true);
-      
-      // In a real implementation, this would:
-      // 1. Validate the phone number format
-      // 2. Send a verification code via SMS
-      // 3. Wait for the user to enter the code
-      // 4. Start the conversation
-      
-      // For now, we'll simulate success
-      setPhoneNumber(phoneNumberInput);
-      setIsSmsVerified(true);
-      setConversationMode("sms");
-      setShowModeSelection(false);
-      setIsTyping(false);
-      
-      toast({
-        title: "SMS conversation started",
-        description: "You can now continue the conversation via SMS. Replies will appear here as well.",
-      });
-    } catch (error) {
-      console.error("Error starting SMS conversation:", error);
-      setIsTyping(false);
-      
-      toast({
-        title: "Error",
-        description: "Failed to start SMS conversation. Please try again or choose a different option.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handling SMS response (simplified for this implementation)
-  const handleSmsResponse = async (userMessage: string, draftConversation: Conversation) => {
-    try {
-      // In a real implementation, this would call the SMS edge function
-      console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
-      
-      // For the demo, we'll simulate the SMS flow with the regular AI response
-      const aiResponse = await getAIResponse(conversation, userMessage);
-      
-      // Log the simulated SMS response
-      console.log(`Would receive SMS response: ${aiResponse}`);
-      
-      // Update UI as if we got the response via SMS
-      const newAiMessage: Message = {
-        id: messages.length + 2,
-        text: aiResponse,
-        sender: "ai",
-      };
-
-      const updatedConversation: Conversation = {
-        messages: [
-          ...conversation.messages,
-          { role: "user" as ChatRole, content: userMessage },
-          { role: "assistant" as ChatRole, content: aiResponse }
-        ],
-        userAnswers: [...conversation.userAnswers, userMessage]
-      };
-
-      setMessages(prev => [...prev, newAiMessage]);
-      setConversation(updatedConversation);
-      setIsTyping(false);
-      
-    } catch (error) {
-      console.error("Error in SMS conversation:", error);
-      setIsTyping(false);
-      
-      // Show error toast
-      toast({
-        title: "SMS service error",
-        description: "We encountered an issue with the SMS service. Please try again or choose a different conversation mode.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Save onboarding data
-  const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
-    try {
-      console.log("Starting saveOnboardingData function");
-      console.log("User auth state:", user ? "Logged in" : "Anonymous");
-      
-      // Get a unique ID for anonymous users
-      const anonymousId = localStorage.getItem('anonymous_twyne_id') || crypto.randomUUID();
-      
-      // If this is a new anonymous user, save the ID
-      if (!localStorage.getItem('anonymous_twyne_id')) {
-        localStorage.setItem('anonymous_twyne_id', anonymousId);
-      }
-      
-      // If user is logged in, save with user ID, otherwise use anonymous ID
-      const userId = user?.id || anonymousId;
-      console.log("Using ID for save:", userId);
-      console.log("Is anonymous:", !user);
-      
-      // Extract name - use the first user message or "N/A"
-      const extractedName = userName || "N/A";
-      console.log("Extracted name for saving:", extractedName);
-      
-      // Debug profile and conversation data
-      console.log("Profile data to save:", profile);
-      console.log("Conversation data length:", convoData.messages.length);
-      
-      try {
-        // Fix the insert by correctly preparing data for Supabase
-        // Insert a single object (not in an array) with properly typed fields
-        const { error } = await supabase
-          .from('onboarding_data')
-          .insert({
-            user_id: userId,
-            is_anonymous: !user,
-            profile_data: profile as unknown as Json,
-            conversation_data: convoData as unknown as Json,
-            prompt_mode: promptMode,
-          });
-        
-        if (error) {
-          console.error("Error saving with Supabase client:", error);
-          // Try fallback REST API approach
-          console.log("Attempting to save data with REST API to onboarding_data table");
-          const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-              'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({
-              user_id: userId,
-              is_anonymous: !user,
-              profile_data: profile,
-              conversation_data: convoData,
-              prompt_mode: promptMode,
-            })
-          });
-          
-          console.log("REST API response status:", response.status);
-          
-          if (!response.ok) {
-            const errorData = await response.text();
-            console.error("Error saving with REST API:", errorData);
-            throw new Error(`Failed to save data: ${errorData}`);
-          } else {
-            console.log("Data saved successfully with REST API");
-          }
-        } else {
-          console.log("Data saved successfully with Supabase client");
-        }
-        
-        // If user is logged in, update their metadata
-        if (user) {
-          markUserAsOnboarded(profile);
-        }
-        
-        // Show success message to user
-        toast({
-          title: "Profile Saved",
-          description: "Your profile has been saved successfully!",
-        });
-      } catch (innerError) {
-        console.error("Error in save operation:", innerError);
-        
-        // Show error toast for save operation failure
-        toast({
-          title: "Error",
-          description: "Failed to save your profile data. Please try again or contact support.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error in saveOnboardingData:", error);
-      
-      // Show generic error message for uncaught exceptions
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while saving your data.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const markUserAsOnboarded = async (profile: UserProfile) => {
-    if (user) {
-      try {
-        console.log("Attempting to mark user as onboarded");
-        // Save user profile data to user metadata
-        const { error } = await supabase.auth.updateUser({
-          data: { 
-            has_onboarded: true,
-            profile_data: profile,
-            conversation_data: conversation
-          }
-        });
-        
-        if (error) {
-          console.error("Error updating user metadata:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update your profile. Please try again.",
-            variant: "destructive",
-          });
-        } else {
-          // Clear the new user flag after successful onboarding
-          clearNewUserFlag();
-          console.log("User has been marked as onboarded");
-        }
-      } catch (error) {
-        console.error("Error marking user as onboarded:", error);
-      }
-    }
   };
 
   return {
