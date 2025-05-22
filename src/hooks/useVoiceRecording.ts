@@ -58,6 +58,7 @@ export const useVoiceRecording = (handleSend: (text: string) => void) => {
                 try {
                   const base64data = reader.result;
                   
+                  console.log("Sending audio data to edge function...");
                   // Call the Supabase edge function instead of directly calling OpenAI
                   const { data, error } = await supabase.functions.invoke('ai-chat', {
                     body: {
@@ -69,9 +70,11 @@ export const useVoiceRecording = (handleSend: (text: string) => void) => {
                   });
                   
                   if (error) {
+                    console.error("Edge function error:", error);
                     throw new Error(`API error: ${error.message}`);
                   }
                   
+                  console.log("Transcription response:", data);
                   const transcribedText = data?.text;
                   
                   if (transcribedText && transcribedText.trim()) {

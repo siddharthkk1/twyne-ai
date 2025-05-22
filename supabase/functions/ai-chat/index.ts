@@ -13,15 +13,14 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-
 // The key fix: awaiting the serve function at the top level
 await serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-  return new Response('ok', {
-    headers: corsHeaders, // ✅ MUST be here
-  });
-}
+    return new Response('ok', {
+      headers: corsHeaders, // ✅ MUST be here
+    });
+  }
 
   try {
     const { endpoint, data } = await req.json();
@@ -483,6 +482,8 @@ async function handleTranscribeRequest(data) {
     formData.append('file', new Blob([ab], {type: 'audio/webm'}), 'audio.webm');
     formData.append('model', 'whisper-1');
     
+    console.log("Sending audio data to OpenAI for transcription");
+    
     const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
       method: "POST",
       headers: {
@@ -498,6 +499,7 @@ async function handleTranscribeRequest(data) {
     }
     
     const result = await response.json();
+    console.log("Successfully received transcription from OpenAI:", result.text ? "Text received" : "No text");
     
     return new Response(
       JSON.stringify({ text: result.text }),
