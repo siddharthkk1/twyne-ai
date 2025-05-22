@@ -36,7 +36,7 @@ export const useVoiceRecording = (handleSend: (text: string) => void) => {
             }
           });
           
-          const recorder = new MediaRecorder(stream);
+          const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
           setAudioRecorder(recorder);
           
           // Clear previous audio chunks
@@ -44,13 +44,37 @@ export const useVoiceRecording = (handleSend: (text: string) => void) => {
           
           // Handle data available event
           recorder.ondataavailable = (e) => {
-            setAudioChunks(chunks => [...chunks, e.data]);
+            if (e.data.size > 0) {
+              setAudioChunks(chunks => [...chunks, e.data]);
+            }
           };
           
           // Handle recording stop event
           recorder.onstop = async () => {
             try {
+              if (audioChunks.length === 0) {
+                toast({
+                  title: "No audio recorded",
+                  description: "Please try again and speak clearly.",
+                  variant: "destructive",
+                });
+                setIsProcessing(false);
+                return;
+              }
+              
               const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              
+              // Check if the blob is valid
+              if (audioBlob.size === 0) {
+                toast({
+                  title: "No audio data captured",
+                  description: "Please try again and check your microphone.",
+                  variant: "destructive",
+                });
+                setIsProcessing(false);
+                return;
+              }
+              
               // Convert to base64 for easy transmission
               const reader = new FileReader();
               reader.readAsDataURL(audioBlob);
@@ -59,12 +83,15 @@ export const useVoiceRecording = (handleSend: (text: string) => void) => {
                   const base64data = reader.result;
                   
                   console.log("Sending audio data to edge function...");
-                  // Call the Supabase edge function instead of directly calling OpenAI
+                  console.log("Audio data size:", audioBlob.size, "bytes");
+                  
+                  // Call the Supabase edge function with improved error handling
                   const { data, error } = await supabase.functions.invoke('ai-chat', {
                     body: {
                       endpoint: 'transcribe',
                       data: {
-                        audioBlob: base64data
+                        audioBlob: base64data,
+                        language: "en" // Specify English language for transcription
                       }
                     }
                   });

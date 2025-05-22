@@ -237,7 +237,13 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
           userAnswers: [...conversation.userAnswers, userMessage]
         });
 
-        const missingCategories = Object.entries(coverageResult)
+        // Added null safety check with optional chaining
+        if (coverageResult?.enoughToStop && userMessageCount % 3 === 0) {
+          // Handle conversation completion
+          return "Thanks for sharing all that 🙏 Building your personal dashboard now...";
+        }
+        
+        const missingCategories = Object.entries(coverageResult || {})
           .filter(([key, val]) =>
             ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
             val === "Missing"
@@ -306,11 +312,14 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       return responseData.content;
     } catch (error: any) {
       console.error("Error getting AI response:", error);
+      
+      // More specific error handling based on the error type
       if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
-        return "I seem to be having network issues connecting to my services. Could you try again in a moment?";
+        return "I seem to be having network issues. Let's try again in a moment. The conversation will continue when the connection is restored.";
       }
-      // More specific error message with action suggestions
-      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Could you share your thoughts again in a moment?";
+      
+      // Fallback error message
+      return "I'm having trouble connecting to my services right now. This might be a temporary connection issue. Please try again in a moment.";
     }
   } catch (error: any) {
     console.error("Error in getAIResponse:", error);
