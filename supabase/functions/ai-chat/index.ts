@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
@@ -15,17 +14,15 @@ const corsHeaders = {
 
 // Handle all requests
 serve(async (req) => {
+  console.log("Request received:", req.method);
+  
   // Handle CORS preflight requests
-  console.log("ABCDEFG");
   if (req.method === 'OPTIONS') {
     console.log("Handling OPTIONS preflight request");
-    if (req.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders,
-      });
-    }
-
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
   }
 
   try {
@@ -77,10 +74,8 @@ serve(async (req) => {
         }
       }
     );
-
   }
 });
-
 
 async function handleChatRequest(data) {
   if (!OPENAI_API_KEY) {

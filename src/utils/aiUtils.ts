@@ -266,6 +266,8 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
     }
 
     try {
+      console.log("Invoking AI chat function with endpoint: chat");
+      
       const { data: responseData, error } = await supabase.functions.invoke('ai-chat', {
         body: {
           endpoint: 'chat',
