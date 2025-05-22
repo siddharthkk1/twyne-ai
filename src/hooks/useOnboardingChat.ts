@@ -68,6 +68,7 @@ export const useOnboardingChat = () => {
     generateProfile
   } = useOnboardingAI();
   
+  // Expose userName and setUserName from the messages hook
   const {
     messages,
     setMessages,
@@ -97,6 +98,11 @@ export const useOnboardingChat = () => {
 
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
+    if (!userName) {
+      // If no userName is set, don't initialize the chat yet
+      return;
+    }
+
     let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
     
     if (promptMode === "playful") {
@@ -134,7 +140,7 @@ export const useOnboardingChat = () => {
       setMessages([greetingMessage]);
       setConversation(updatedConversation);
     });
-  }, [promptMode]);
+  }, [promptMode, userName]);
 
   useEffect(() => {
     scrollToBottom();
@@ -235,10 +241,10 @@ export const useOnboardingChat = () => {
 
     // Update basic profile info for first user messages
     if (currentQuestionIndex === 0) {
-      setUserName(textToSend.trim());
-      setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
-    } else if (currentQuestionIndex === 1) {
+      // Don't update name from first question anymore since we're collecting it separately
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
+    } else if (currentQuestionIndex === 1) {
+      setUserProfile(prev => ({ ...prev, interests: [textToSend.trim()] }));
     }
 
     const newIndex = currentQuestionIndex + 1;
@@ -368,6 +374,7 @@ export const useOnboardingChat = () => {
     handleSend,
     startSmsConversation,
     userName,
+    setUserName,
     // Scroll-related
     scrollViewportRef,
     dashboardRef,
