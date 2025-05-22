@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -125,6 +126,13 @@ const OnboardingChat = () => {
     };
   }, [isComplete, messages.length, handleMessagePartVisible, scrollViewportRef]);
 
+  // Scroll dashboard to top after profile generation is complete
+  useEffect(() => {
+    if (isComplete && dashboardRef.current) {
+      dashboardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [isComplete, dashboardRef]);
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
@@ -221,7 +229,8 @@ const OnboardingChat = () => {
           <>          
             <div ref={dashboardRef} className="flex-1 p-4 scroll-smooth">
               <ProfileCompletionDashboard 
-                userProfile={userProfile} 
+                userProfile={userProfile}
+                isGeneratingProfile={isGeneratingProfile}
               />
             </div>
           </>

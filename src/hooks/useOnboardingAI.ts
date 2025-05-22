@@ -21,7 +21,7 @@ export const useOnboardingAI = () => {
   });
 
   // Initialize chat with AI greeting
-  const initializeChat = async (systemPrompt: string) => {
+  const initializeChat = async (systemPrompt: string, userName?: string) => {
     setIsInitializing(true);
     setIsTyping(true);
     
@@ -32,17 +32,32 @@ export const useOnboardingAI = () => {
         userAnswers: []
       };
       
+      // If we have a userName, add guidance for the AI
+      if (userName) {
+        initialConversation.messages.push({
+          role: "assistant" as ChatRole,
+          content: `The user's name is ${userName}. Please personalize your responses accordingly.`
+        });
+      }
+      
       let aiGreeting: string;
       
       // Use a seed message if in playful mode, otherwise get from AI
       if (systemPrompt === SYSTEM_PROMPT_PLAYFUL) {
-        aiGreeting = getRandomSeedMessage();
+        // Personalize greeting with name if available
+        aiGreeting = userName ? 
+          `Hey ${userName}! ${getRandomSeedMessage()}` :
+          getRandomSeedMessage();
       } else {
-        // Get AI greeting with specific guidance to ask for name
+        // Get AI greeting with specific guidance to use the name if available
+        const nameGuidance = userName ? 
+          `The user's name is ${userName}. Start by greeting them by name and introducing yourself.` :
+          "Please introduce yourself and ask for the user's name in a conversational way.";
+          
         aiGreeting = await getAIResponse(
           initialConversation, 
           "", // Empty user message to trigger greeting
-          "Please introduce yourself and ask for the user's name in a conversational way."
+          nameGuidance
         );
       }
       
@@ -63,9 +78,13 @@ export const useOnboardingAI = () => {
       let fallbackGreeting: string;
       
       if (systemPrompt === SYSTEM_PROMPT_PLAYFUL) {
-        fallbackGreeting = getRandomSeedMessage();
+        fallbackGreeting = userName ? 
+          `Hey ${userName}! ${getRandomSeedMessage()}` :
+          getRandomSeedMessage();
       } else {
-        fallbackGreeting = "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?";
+        fallbackGreeting = userName ?
+          `Hey ${userName}! I'm Twyne — let's chat and get to know you better.` :
+          "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?";
       }
       
       const fallbackConversation = {
@@ -83,11 +102,12 @@ export const useOnboardingAI = () => {
     }
   };
 
-  const generateProfile = async (finalConversation: Conversation) => {
+  const generateProfile = async (finalConversation: Conversation, userName?: string) => {
     setIsGeneratingProfile(true);
     
     try {
-      const profile = await generateAIProfile(finalConversation);
+      // Pass the userName to the profile generation function for better personalization
+      const profile = await generateAIProfile(finalConversation, userName);
       setIsGeneratingProfile(false);
       return profile;
     } catch (error) {
