@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
 import { SYSTEM_PROMPT_STRUCTURED, SYSTEM_PROMPT_PLAYFUL, SYSTEM_PROMPT_YOUNG_ADULT } from '@/utils/aiUtils';
-import { getAIResponse, generateAIProfile, checkConversationCoverage } from '@/utils/aiUtils';
+import { getAIResponse, generateAIProfile } from '@/utils/aiUtils';
 
 const initialMessages: Message[] = [
   {
@@ -221,10 +221,6 @@ export const useOnboardingChat = () => {
       userAnswers: [...conversation.userAnswers, textToSend]
     };
 
-    const userMessageCount = draftConversation.userAnswers.length;
-    const shouldRunCheck = userMessageCount >= 8;
-    const isCompletionTurn = userMessageCount % 3 === 0;
-
     // If in SMS mode, handle sending messages via SMS
     if (conversationMode === "sms") {
       // In a real implementation, this would send the message to the SMS edge function
@@ -266,26 +262,30 @@ export const useOnboardingChat = () => {
       setIsTyping(false);
     };
 
-    // Evaluate conversation completeness if enough messages exchanged
-    if (shouldRunCheck) {
-      checkConversationCoverage(draftConversation)
-        .then(async (result) => {
-          // Added null safety check with optional chaining
-          if (result?.enoughToStop && isCompletionTurn) {
-            // Handle conversation completion
-            const closingMessage: Message = {
-              id: messages.length + 2,
-              text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
-              sender: "ai",
-            };
+    // Removing coverage checks as requested, but keeping a simplified approach
+    // to determine when to end the conversation
+    const userMessageCount = draftConversation.userAnswers.length;
+    
+    // If we've had a substantial conversation and it's time to wrap up
+    if (userMessageCount >= 15 && userMessageCount % 5 === 0 && userMessageCount >= MESSAGE_CAP - 10) {
+      // There's a chance we should end the conversation here
+      const shouldEnd = Math.random() > 0.7; // 30% chance to end if we're in the range
+      
+      if (shouldEnd) {
+        // Handle conversation completion
+        const closingMessage: Message = {
+          id: messages.length + 2,
+          text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
+          sender: "ai",
+        };
 
-            setMessages(prev => [...prev, closingMessage]);
-            setIsTyping(false);
-            setIsGeneratingProfile(true);
+        setMessages(prev => [...prev, closingMessage]);
+        setIsTyping(false);
+        setIsGeneratingProfile(true);
 
-            try {
-              const profile = await generateAIProfile(draftConversation);
-              
+        try {
+          generateAIProfile(draftConversation)
+            .then(profile => {
               // Profile is now guaranteed to have all fields with default values from the edge function
               setUserProfile(profile);
               setIsGeneratingProfile(false);
@@ -300,7 +300,8 @@ export const useOnboardingChat = () => {
               
               // Save conversation to Supabase
               saveOnboardingData(profile, finalConversation);
-            } catch (error) {
+            })
+            .catch(error => {
               console.error("Error in profile generation:", error);
               // Handle error with fallback
               setIsGeneratingProfile(false);
@@ -316,48 +317,29 @@ export const useOnboardingChat = () => {
                   console.error("Failed to get AI response after profile error:", error);
                   setIsTyping(false);
                 });
-            }
-          } else {
-            // Continue normal conversation with guidance based on missing fields
-            const missingCategories = result ? Object.entries(result)
-              .filter(([key, val]) =>
-                ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
-                val === "Missing"
-              )
-              .map(([key]) => key) : [];
-
-            let assistantGuidance = "";
-            if (missingCategories.length > 0) {
-              assistantGuidance = `After responding to the user's last message, if the topic feels complete or winds down, gently pivot the conversation toward these areas: ${missingCategories.join(", ")}. Be subtle and natural — don't make it obvious.`;
-            }
-
-            const updatedMessages: { role: ChatRole; content: string; }[] = [
-              ...draftConversation.messages,
-              ...(assistantGuidance
-                ? [{ role: "system" as ChatRole, content: assistantGuidance }]
-                : [])
-            ];
-
-            getAIResponse(conversation, textToSend, updatedMessages)
-              .then(handleContinue)
-              .catch(error => {
-                console.error("Failed to get AI response:", error);
-                setIsTyping(false);
-                handleContinue("I'm having a moment. Could you share that thought again?");
-              });
-          }
-        }).catch(error => {
-          console.error("Error checking conversation coverage:", error);
-          // Fallback to continuing the conversation
+            });
+        } catch (error) {
+          console.error("Error in profile generation:", error);
+          setIsGeneratingProfile(false);
           getAIResponse(conversation, textToSend)
             .then(handleContinue)
             .catch(error => {
-              console.error("Failed to get AI response after coverage check error:", error);
+              console.error("Failed to get AI response:", error);
               setIsTyping(false);
-              handleContinue("I seem to be having connection issues. Let's keep going though - what else would you like to share?");
             });
-        });
+        }
+      } else {
+        // Continue normal conversation
+        getAIResponse(conversation, textToSend)
+          .then(handleContinue)
+          .catch(error => {
+            console.error("Failed to get AI response:", error);
+            setIsTyping(false);
+            handleContinue("I'm having a moment. Could you share that thought again?");
+          });
+      }
     } else {
+      // Standard conversation flow
       getAIResponse(conversation, textToSend)
         .then(handleContinue)
         .catch(error => {
@@ -368,9 +350,12 @@ export const useOnboardingChat = () => {
     }
   };
 
-  // Updated saveOnboardingData function with better error handling
+  // Updated saveOnboardingData function with better error handling and debugging
   const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
     try {
+      console.log("Starting saveOnboardingData function");
+      console.log("User auth state:", user ? "Logged in" : "Anonymous");
+      
       // Get a unique ID for anonymous users
       const anonymousId = localStorage.getItem('anonymous_twyne_id') || crypto.randomUUID();
       
@@ -381,42 +366,79 @@ export const useOnboardingChat = () => {
       
       // If user is logged in, save with user ID, otherwise use anonymous ID
       const userId = user?.id || anonymousId;
+      console.log("Using ID for save:", userId);
+      console.log("Is anonymous:", !user);
       
-      // Insert onboarding data using REST API instead of Supabase client directly
-      const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-          'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          is_anonymous: !user,
-          profile_data: profile,
-          conversation_data: convoData,
-          prompt_mode: promptMode // Add the prompt mode to the saved data
-        })
-      });
+      // Debug profile and conversation data
+      console.log("Profile data to save:", profile);
+      console.log("Conversation data length:", convoData.messages.length);
       
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("Error saving onboarding data:", errorData);
-        
-        // Show more specific error message
-        toast({
-          title: "Error",
-          description: "Failed to save your onboarding data, but your profile has been created.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Onboarding data saved successfully");
+      try {
+        // First attempt - Using Supabase client directly for better error tracking
+        console.log("Attempting to save data using Supabase client");
+        const { data, error } = await supabase
+          .from('onboarding_data')
+          .insert({
+            user_id: userId,
+            is_anonymous: !user,
+            profile_data: profile,
+            conversation_data: convoData,
+            prompt_mode: promptMode
+          });
+
+        if (error) {
+          console.error("Error saving with Supabase client:", error);
+          
+          // Try alternative approach with REST API
+          console.log("Falling back to REST API approach");
+          const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+              'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              is_anonymous: !user,
+              profile_data: profile,
+              conversation_data: convoData,
+              prompt_mode: promptMode
+            })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.text();
+            console.error("Error saving with REST API:", errorData);
+            throw new Error(`REST API error: ${errorData}`);
+          } else {
+            console.log("Data saved successfully with REST API");
+          }
+        } else {
+          console.log("Data saved successfully with Supabase client");
+        }
         
         // If user is logged in, update their metadata
         if (user) {
           markUserAsOnboarded(profile);
         }
+        
+        // Show success message to user
+        toast({
+          title: "Profile Saved",
+          description: "Your profile has been saved successfully!",
+        });
+        
+      } catch (innerError) {
+        console.error("Error in save operation:", innerError);
+        
+        // Show error toast for save operation failure
+        toast({
+          title: "Error",
+          description: "Failed to save your profile data. Please try again or contact support.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error in saveOnboardingData:", error);
@@ -482,6 +504,7 @@ export const useOnboardingChat = () => {
   const markUserAsOnboarded = async (profile: UserProfile) => {
     if (user) {
       try {
+        console.log("Attempting to mark user as onboarded");
         // Save user profile data to user metadata
         const { error } = await supabase.auth.updateUser({
           data: { 
