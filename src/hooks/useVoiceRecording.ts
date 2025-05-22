@@ -49,25 +49,29 @@ export const useVoiceRecording = (
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         
-        // Provide user-friendly error messages based on error type
-        if (event.error === 'not-allowed') {
-          toast({
-            title: "Microphone Access Denied",
-            description: "Please enable microphone access to use voice input.",
-            variant: "destructive",
-          });
-        } else if (event.error === 'network') {
-          toast({
-            title: "Network Error",
-            description: "There's a problem with your internet connection. Please try again.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Voice Input Error",
-            description: "There was a problem with voice recording. Please try again or use text input.",
-            variant: "destructive",
-          });
+        // Only show toast for serious errors, not common ones like "no-speech"
+        if (event.error !== 'no-speech') {
+          // Provide user-friendly error messages based on error type
+          if (event.error === 'not-allowed') {
+            toast({
+              title: "Microphone Access Denied",
+              description: "Please enable microphone access to use voice input.",
+              variant: "destructive",
+            });
+          } else if (event.error === 'network') {
+            toast({
+              title: "Network Error",
+              description: "There's a problem with your internet connection. Please try again.",
+              variant: "destructive",
+            });
+          } else if (event.error !== 'aborted') {
+            // Don't show errors for aborted operations (normal stop)
+            toast({
+              title: "Voice Input Error",
+              description: "There was a problem with voice recording. Please try again or use text input.",
+              variant: "destructive",
+            });
+          }
         }
         
         stopListening();

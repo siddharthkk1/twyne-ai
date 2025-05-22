@@ -37,9 +37,9 @@ const PromptModeSelector: React.FC<PromptModeSelectorProps> = ({
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
+            <SelectItem value="playful">Playful Chat</SelectItem>
             <SelectItem value="young-adult">Chill Talk</SelectItem>
             <SelectItem value="structured">Guided Conversation</SelectItem>
-            <SelectItem value="playful">Playful Chat</SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>

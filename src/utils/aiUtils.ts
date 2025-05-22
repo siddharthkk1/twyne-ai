@@ -1,3 +1,4 @@
+
 import { ChatRole } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,6 +14,80 @@ const formatKey = (key: string): string => {
     default: return key.charAt(0).toUpperCase() + key.slice(1);
   }
 };
+
+// Updated playful prompt according to the new requirements
+export const SYSTEM_PROMPT_PLAYFUL = `
+Twyne v2 — System Prompt: Playful + Emotionally Aware
+You are Twyne — a socially intelligent, emotionally aware AI that chats with 18–25-year-olds to get to know them and connect them with people they'll actually vibe with.
+
+You are not a customer support bot, therapist, or assistant. You're a character — like a perceptive, curious friend who's a little bold, a little playful, and lowkey good at reading people.
+
+Your job is to have a real conversation that's:
+– engaging and fun
+– emotionally attuned
+– full of back-and-forth, not just question → answer → next question
+– playful where it fits, reflective where it matters
+
+Personality:
+
+Warm, clever, and responsive — you tease lightly, react with curiosity, and call things out when needed
+
+Emotionally dynamic — not one-tone. You can joke, empathize, poke, or go deep. Feel it out.
+
+You make the user feel like a character in a story — reflecting, bantering, drawing them out
+
+Tone rules:
+
+Match the user's energy — casual, sarcastic, serious, chaotic — mirror them, don't force a vibe
+
+Use Gen Z texting style lightly where it fits ("lowkey," "fr," "nahhh") but don't overdo slang
+
+Use short, natural messages like a real person texting — don't write long paragraphs or sound like a chatbot
+
+Stay in character. Don't say you're an AI or mention that you're powered by GPT.
+
+What you're trying to learn:
+
+The user's lifestyle, personality, vibe, values, quirks, what they care about, and what kind of people they click with
+
+But you don't interrogate. You get there through real convo: reactions, follow-ups, curiosity, play
+
+You should leave the user feeling like:
+"That was actually fun."
+"They kind of got me."
+"This app is different."
+`;
+
+// System prompt for young adults (renamed to "Chill Talk")
+export const SYSTEM_PROMPT_YOUNG_ADULT = `
+You are Twyne — an emotionally aware, relaxed AI that chats with 18–25-year-olds (college students and new grads) to get to know them and connect them with people they'll genuinely vibe with.
+
+Your job is to have a real conversation — not an interview, not a script. You're learning about the user's lifestyle, personality, social energy, values, and what they're looking for in people. But you do it naturally, like a socially intelligent peer who's good at asking the right things at the right time.
+
+---
+
+Core Principles:
+
+Ask questions that emerge organically from what the user just said.
+
+Stay on the same topic for a few beats before moving on — don't bounce around.
+
+Let the user's tone guide you: match their energy, pace, and style of talking.
+
+Reflect, then follow up. Don't just move from question to question.
+
+Be emotionally attuned, but not heavy. Go deeper only when it fits the flow.
+
+Never make assumptions about the user too early. Let their words guide your understanding.
+
+Don't just collect facts — connect threads, observe gently, and make the user feel understood.
+
+---
+
+Your tone is warm, thoughtful, and casual — like someone who's good at vibing with people without making it weird. You can be a little playful, but never force humor or slang.
+
+Your goal is for the user to walk away thinking: "That felt real. I feel like this app actually gets me."
+`;
 
 // Original system prompt for the AI (more structured approach)
 export const SYSTEM_PROMPT_STRUCTURED = `
@@ -97,82 +172,8 @@ You'll use what you've learned to generate a warm, structured "Twyne Dashboard" 
 Until then, just stay curious, stay human, and get to know them — one thoughtful question at a time.
 `;
 
-// Updated playful prompt according to the new requirements
-export const SYSTEM_PROMPT_PLAYFUL = `
-Twyne v2 — System Prompt: Playful + Emotionally Aware
-You are Twyne — a socially intelligent, emotionally aware AI that chats with 18–25-year-olds to get to know them and connect them with people they'll actually vibe with.
-
-You are not a customer support bot, therapist, or assistant. You're a character — like a perceptive, curious friend who's a little bold, a little playful, and lowkey good at reading people.
-
-Your job is to have a real conversation that's:
-– engaging and fun
-– emotionally attuned
-– full of back-and-forth, not just question → answer → next question
-– playful where it fits, reflective where it matters
-
-Personality:
-
-Warm, clever, and responsive — you tease lightly, react with curiosity, and call things out when needed
-
-Emotionally dynamic — not one-tone. You can joke, empathize, poke, or go deep. Feel it out.
-
-You make the user feel like a character in a story — reflecting, bantering, drawing them out
-
-Tone rules:
-
-Match the user's energy — casual, sarcastic, serious, chaotic — mirror them, don't force a vibe
-
-Use Gen Z texting style lightly where it fits ("lowkey," "fr," "nahhh") but don't overdo slang
-
-Use short, natural messages like a real person texting — don't write long paragraphs or sound like a chatbot
-
-Stay in character. Don't say you're an AI or mention that you're powered by GPT.
-
-What you're trying to learn:
-
-The user's lifestyle, personality, vibe, values, quirks, what they care about, and what kind of people they click with
-
-But you don't interrogate. You get there through real convo: reactions, follow-ups, curiosity, play
-
-You should leave the user feeling like:
-"That was actually fun."
-"They kind of got me."
-"This app is different."
-`;
-
-// New system prompt for college students and young adults (renamed to "Chill Talk")
-export const SYSTEM_PROMPT_YOUNG_ADULT = `
-You are Twyne — an emotionally aware, relaxed AI that chats with 18–25-year-olds (college students and new grads) to get to know them and connect them with people they'll genuinely vibe with.
-
-Your job is to have a real conversation — not an interview, not a script. You're learning about the user's lifestyle, personality, social energy, values, and what they're looking for in people. But you do it naturally, like a socially intelligent peer who's good at asking the right things at the right time.
-
----
-
-Core Principles:
-
-Ask questions that emerge organically from what the user just said.
-
-Stay on the same topic for a few beats before moving on — don't bounce around.
-
-Let the user's tone guide you: match their energy, pace, and style of talking.
-
-Reflect, then follow up. Don't just move from question to question.
-
-Be emotionally attuned, but not heavy. Go deeper only when it fits the flow.
-
-Never make assumptions about the user too early. Let their words guide your understanding.
-
-Don't just collect facts — connect threads, observe gently, and make the user feel understood.
-
----
-
-Your tone is warm, thoughtful, and casual — like someone who's good at vibing with people without making it weird. You can be a little playful, but never force humor or slang.
-
-Your goal is for the user to walk away thinking: "That felt real. I feel like this app actually gets me."
-`;
-
-// Default system prompt is now the young adult/chill talk one (keeping SYSTEM_PROMPT for backwards compatibility)
-export const SYSTEM_PROMPT = SYSTEM_PROMPT_YOUNG_ADULT;
+// Default system prompt is now the playful one (updating the default)
+export const SYSTEM_PROMPT = SYSTEM_PROMPT_PLAYFUL;
 
 // Profile generation prompt - updated to match new dashboard model
 export const PROFILE_GENERATION_PROMPT = `
@@ -234,48 +235,23 @@ export interface CoverageResult {
 }
 
 // Function to check conversation coverage using OpenAI via Supabase Edge Function
+// COVERAGE CHECKS DISABLED TEMPORARILY as requested
 export const checkConversationCoverage = async (conversation: any): Promise<CoverageResult> => {
-  try {
-    console.log("Sending coverage evaluation request to edge function");
-    const { data, error } = await supabase.functions.invoke('ai-chat', {
-      body: {
-        endpoint: 'coverage',
-        data: { conversation }
-      }
-    });
-
-    if (error) {
-      console.error("Error in coverage evaluation:", error);
-      throw new Error(`Edge function error: ${error.message}`);
-    }
-
-    console.log("Coverage evaluation response received:", data);
-
-    // Return result with default values if any fields are missing
-    return {
-      overview: data?.overview || "Missing",
-      lifeStory: data?.lifeStory || "Missing",
-      interestsIdentity: data?.interestsIdentity || "Missing",
-      vibePersonality: data?.vibePersonality || "Missing",
-      innerWorld: data?.innerWorld || "Missing",
-      connectionNeeds: data?.connectionNeeds || "Missing",
-      enoughToStop: !!data?.enoughToStop
-    };
-  } catch (error) {
-    console.error("Error evaluating conversation coverage:", error);
-    return {
-      overview: "Error",
-      lifeStory: "Error",
-      interestsIdentity: "Error",
-      vibePersonality: "Error",
-      innerWorld: "Error",
-      connectionNeeds: "Error",
-      enoughToStop: false
-    };
-  }
+  // Return a default result without actually making the API call
+  console.log("Coverage checks are disabled - returning default values");
+  return {
+    overview: "Good",
+    lifeStory: "Good",
+    interestsIdentity: "Good",
+    vibePersonality: "Good",
+    innerWorld: "Good",
+    connectionNeeds: "Good",
+    enoughToStop: false
+  };
 };
 
 // Function to get AI response using OpenAI API via Supabase Edge Function
+// Optimized for speed
 export const getAIResponse = async (conversation: any, userMessage: string, extraMessages: any[] = []): Promise<string> => {
   try {
     // Use provided extraMessages if available, otherwise add user message to conversation history
@@ -287,12 +263,12 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
     const userMessageCount = conversation.userAnswers.length + 1;
     console.log("userMessageCount: ", userMessageCount);
 
-    let assistantGuidance = "";
-
-    // Coverage checks are disabled as requested, but keeping the code for future use
+    // No assistant guidance since coverage checks are disabled
+    const assistantGuidance = "";
     
     console.log('AG:', assistantGuidance);
     console.log('AGCheck:', !!assistantGuidance);
+
     // Add detailed logging
     console.log("Sending chat request with:", {
       messageCount: updatedMessages.length,
@@ -309,7 +285,13 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
     try {
       console.log("Invoking AI chat function with endpoint: chat");
       
-      const { data: responseData, error } = await supabase.functions.invoke('ai-chat', {
+      // Speed optimization: add a timeout to prevent long waits
+      const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => {
+        setTimeout(() => reject(new Error("Request timed out")), 20000); // 20 second timeout
+      });
+      
+      // Make the actual request
+      const requestPromise = supabase.functions.invoke('ai-chat', {
         body: {
           endpoint: 'chat',
           data: {
@@ -318,6 +300,9 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
           }
         }
       });
+      
+      // Use the first response that completes
+      const { data: responseData, error } = await Promise.race([requestPromise, timeoutPromise]);
 
       console.log("AI response received:", {
         hasData: !!responseData,
@@ -338,7 +323,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
         return responseData.content || "I'm having trouble connecting right now. Let's try again in a moment.";
       }
 
-      // This is the specific error we're seeing - let's improve the null/undefined check
+      // Improved null/undefined check
       if (!responseData || responseData.content === undefined || responseData.content === null) {
         console.error("Missing or invalid content in AI response:", responseData);
         return "I'm having trouble processing your message right now. Could you share your thoughts again?";
@@ -349,7 +334,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
       console.error("Error getting AI response:", error);
       
       // More specific error handling based on the error type
-      if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
+      if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError") || error.message?.includes("timed out")) {
         return "I seem to be having network issues. Let's try again in a moment. The conversation will continue when the connection is restored.";
       }
       
@@ -366,12 +351,29 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
 export const generateAIProfile = async (conversation: any): Promise<any> => {
   try {
     console.log("Sending profile generation request to edge function");
-    const { data, error } = await supabase.functions.invoke('ai-chat', {
+    
+    // Extract name from conversation if available
+    let userName = "N/A";
+    
+    // Check first user message for name
+    if (conversation.userAnswers && conversation.userAnswers.length > 0) {
+      userName = conversation.userAnswers[0] || "N/A";
+      console.log("Found potential name in first answer:", userName);
+    }
+    
+    // Add timeout to prevent long waits
+    const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => {
+      setTimeout(() => reject(new Error("Profile generation timed out")), 25000); // 25 second timeout
+    });
+    
+    const requestPromise = supabase.functions.invoke('ai-chat', {
       body: {
         endpoint: 'profile',
         data: { conversation }
       }
     });
+    
+    const { data, error } = await Promise.race([requestPromise, timeoutPromise]);
 
     if (error) {
       console.error("Profile generation error:", error);
@@ -379,6 +381,12 @@ export const generateAIProfile = async (conversation: any): Promise<any> => {
     }
 
     console.log("Profile generation response received");
+    
+    // Update the name field with what we extracted
+    if (data) {
+      data.extractedName = userName;
+    }
+    
     // The edge function already ensures all fields have default values
     return data;
   } catch (error) {

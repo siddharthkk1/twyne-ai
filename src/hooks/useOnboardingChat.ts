@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +21,7 @@ const initialMessages: Message[] = [
   },
 ];
 
-// Initial messages for playful mode
+// Initial messages for playful mode (now the default)
 const initialMessagesPlayful: Message[] = [
   {
     id: 1,
@@ -34,7 +35,7 @@ const initialMessagesPlayful: Message[] = [
   },
 ];
 
-// Initial messages for young adult mode
+// Initial messages for young adult mode (second option)
 const initialMessagesYoungAdult: Message[] = [
   {
     id: 1,
@@ -54,14 +55,14 @@ const MESSAGE_CAP = 34;
 export type PromptModeType = "structured" | "playful" | "young-adult";
 
 export const useOnboardingChat = () => {
-  const [promptMode, setPromptMode] = useState<PromptModeType>("young-adult");
-  const [messages, setMessages] = useState<Message[]>(initialMessagesYoungAdult);
+  const [promptMode, setPromptMode] = useState<PromptModeType>("playful"); // Change default to playful
+  const [messages, setMessages] = useState<Message[]>(initialMessagesPlayful); // Change default to playful
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
-    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_YOUNG_ADULT }],
+    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_PLAYFUL }], // Change default to playful
     userAnswers: []
   });
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -83,6 +84,7 @@ export const useOnboardingChat = () => {
   const [showPromptSelection, setShowPromptSelection] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSmsVerified, setIsSmsVerified] = useState(false);
+  const [userName, setUserName] = useState<string>(""); // Store name separately
 
   // Reset conversation when prompt mode changes
   useEffect(() => {
@@ -205,8 +207,9 @@ export const useOnboardingChat = () => {
     setInput("");
     setIsTyping(true);
 
-    // Update basic profile info for first two questions
+    // Update basic profile info for first question - extract name
     if (currentQuestionIndex === 0) {
+      setUserName(textToSend.trim());
       setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
@@ -350,7 +353,7 @@ export const useOnboardingChat = () => {
     }
   };
 
-  // Updated saveOnboardingData function with better error handling and debugging
+  // Updated saveOnboardingData function to use the new table name and include name field
   const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
     try {
       console.log("Starting saveOnboardingData function");
@@ -369,14 +372,18 @@ export const useOnboardingChat = () => {
       console.log("Using ID for save:", userId);
       console.log("Is anonymous:", !user);
       
+      // Extract name - use the first user message or "N/A"
+      const extractedName = userName || "N/A";
+      console.log("Extracted name for saving:", extractedName);
+      
       // Debug profile and conversation data
       console.log("Profile data to save:", profile);
       console.log("Conversation data length:", convoData.messages.length);
       
       try {
         // First attempt - Using direct REST API approach to avoid type issues
-        console.log("Attempting to save data with REST API");
-        const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
+        console.log("Attempting to save data with REST API to onboarding_test_data table");
+        const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_test_data`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -389,14 +396,37 @@ export const useOnboardingChat = () => {
             is_anonymous: !user,
             profile_data: profile,
             conversation_data: convoData,
-            prompt_mode: promptMode
+            prompt_mode: promptMode,
+            name: extractedName
           })
         });
+        
+        console.log("REST API response status:", response.status);
         
         if (!response.ok) {
           const errorData = await response.text();
           console.error("Error saving with REST API:", errorData);
-          throw new Error(`REST API error: ${errorData}`);
+          
+          // Try alternate fallback method using Supabase client directly
+          console.log("Trying fallback with Supabase client");
+          
+          const { error: supabaseError } = await supabase
+            .from('onboarding_test_data')
+            .insert({
+              user_id: userId,
+              is_anonymous: !user,
+              profile_data: profile,
+              conversation_data: convoData,
+              prompt_mode: promptMode,
+              name: extractedName
+            });
+            
+          if (supabaseError) {
+            console.error("Fallback error:", supabaseError);
+            throw new Error(`Fallback error: ${supabaseError.message}`);
+          } else {
+            console.log("Data saved successfully with fallback method");
+          }
         } else {
           console.log("Data saved successfully with REST API");
         }
@@ -619,6 +649,7 @@ export const useOnboardingChat = () => {
     handleModeSelection,
     getNameInitial,
     handleSend,
-    startSmsConversation
+    startSmsConversation,
+    userName
   };
 };
