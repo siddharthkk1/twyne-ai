@@ -43,46 +43,57 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, nameInitial }) =
     }
   }, [message.id, messageParts.length, message.sender]);
 
-  return (
-    <>
-      {messageParts.map((part, index) => (
-        visibleParts.includes(index) && (
-          <div
-            key={`${message.id}-${index}`}
-            className={`animate-fade-in flex ${
-              message.sender === "user" ? "justify-end" : "justify-start"
-            } mb-2`}
-          >
-            {message.sender === "ai" && (
-              <div className="mr-2 mt-1 flex-shrink-0">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-primary text-xs font-medium p-0">
-                    <TwyneOrb size={24} />
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            )}
-            <div
-              className={`${
-                message.sender === "user" 
-                  ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto shadow-lg" 
-                  : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
-              } rounded-2xl p-4 max-w-[85%] md:max-w-[70%] transition-all duration-200`}
-            >
-              {part.trim()}
-            </div>
-            {message.sender === "user" && (
-              <div className="ml-2 mt-1 flex-shrink-0">
-                <Avatar className="h-8 w-8 bg-muted">
-                  <AvatarFallback>{nameInitial}</AvatarFallback>
-                </Avatar>
-              </div>
-            )}
+  // Create placeholder divs for parts that will be visible later to prevent layout shifts
+  const allMessageParts = messageParts.map((part, index) => {
+    const isVisible = visibleParts.includes(index);
+    
+    return (
+      <div
+        key={`${message.id}-${index}`}
+        className={`flex ${
+          message.sender === "user" ? "justify-end" : "justify-start"
+        } mb-2`}
+        // Set minimal height to reduce layout shift, but only for parts not yet visible
+        style={!isVisible ? { 
+          visibility: 'hidden', 
+          height: '0px', 
+          margin: '0px',
+          opacity: 0 
+        } : {
+          opacity: 1,
+          transition: 'opacity 0.3s ease-in'
+        }}
+      >
+        {message.sender === "ai" && (
+          <div className="mr-2 mt-1 flex-shrink-0">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="text-primary text-xs font-medium p-0">
+                <TwyneOrb size={24} />
+              </AvatarFallback>
+            </Avatar>
           </div>
-        )
-      ))}
-    </>
-  );
+        )}
+        <div
+          className={`${
+            message.sender === "user" 
+              ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto shadow-lg" 
+              : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
+          } rounded-2xl p-4 max-w-[85%] md:max-w-[70%]`}
+        >
+          {part.trim()}
+        </div>
+        {message.sender === "user" && (
+          <div className="ml-2 mt-1 flex-shrink-0">
+            <Avatar className="h-8 w-8 bg-muted">
+              <AvatarFallback>{nameInitial}</AvatarFallback>
+            </Avatar>
+          </div>
+        )}
+      </div>
+    );
+  });
+
+  return <>{allMessageParts}</>;
 };
 
 export default MessageBubble;

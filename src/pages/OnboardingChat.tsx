@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
@@ -51,43 +51,65 @@ const OnboardingChat = () => {
   // Add a ref for the ScrollArea viewport
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   
-  // Force scroll to bottom whenever a new message is added or typing status changes
+  // Define a function to scroll to bottom
+  const scrollToBottom = useCallback(() => {
+    if (scrollViewportRef.current) {
+      const scrollElement = scrollViewportRef.current;
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+    }
+    
+    // Also use the messagesEndRef for additional scrolling support
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+    }
+  }, [messagesEndRef]);
+  
+  // Force scroll to bottom whenever messages or typing status changes
   useEffect(() => {
-    const scrollToBottom = () => {
-      if (scrollViewportRef.current) {
-        const scrollElement = scrollViewportRef.current;
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-      }
-      
-      // Also use the messagesEndRef for additional scrolling support
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-    };
-
-    // Immediate scroll attempt
+    // Immediate scroll
     scrollToBottom();
-
-    // Also schedule multiple delayed scrolls to handle any render delays
+    
+    // Schedule additional scrolls to ensure it happens after any rendering delays
+    // These multiple timers help ensure scrolling happens even if renders are delayed
     const timers = [
-      setTimeout(scrollToBottom, 100),
+      setTimeout(scrollToBottom, 50),
+      setTimeout(scrollToBottom, 150),
       setTimeout(scrollToBottom, 300),
       setTimeout(scrollToBottom, 500)
     ];
     
     return () => timers.forEach(clearTimeout);
-  }, [messages, isTyping]);
+  }, [messages, isTyping, scrollToBottom]);
   
-  // Additional scroll effect for window resize
+  // Set up a MutationObserver to detect DOM changes and scroll to bottom
   useEffect(() => {
-    const handleResize = () => {
-      if (scrollViewportRef.current) {
-        scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
-      }
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    // Skip if we're not in the chat view
+    if (isComplete || !scrollViewportRef.current) return;
+    
+    // Create a MutationObserver that will scroll to bottom when content is added
+    const observer = new MutationObserver(() => {
+      scrollToBottom();
+    });
+    
+    // Start observing the chat container for changes
+    if (scrollViewportRef.current) {
+      observer.observe(scrollViewportRef.current, {
+        childList: true,
+        subtree: true
+      });
+    }
+    
+    return () => {
+      observer.disconnect();
     };
-
+  }, [isComplete, scrollToBottom]);
+  
+  // Handle window resize events
+  useEffect(() => {
+    const handleResize = () => scrollToBottom();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [scrollToBottom]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
