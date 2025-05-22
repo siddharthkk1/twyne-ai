@@ -1,21 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/components/ui/use-toast";
-import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
-import { 
-  SYSTEM_PROMPT_STRUCTURED, 
-  SYSTEM_PROMPT_PLAYFUL, 
-  SYSTEM_PROMPT_YOUNG_ADULT,
-  getAIResponse, 
-  generateAIProfile,
-  getRandomSeedMessage 
-} from '@/utils/aiUtils';
+import { Message, Conversation, UserProfile } from '@/types/chat';
 import { PromptModeType, usePromptMode } from './usePromptMode';
 import { ConversationModeType, useConversationMode } from './useConversationMode';
 import { useSmsConversation } from './useSmsConversation';
 import { useSupabaseSync } from './useSupabaseSync';
-import { supabase } from "@/integrations/supabase/client";
-import type { Json } from '@/integrations/supabase/types';
+import { useOnboardingAI } from './useOnboardingAI';
+import { useOnboardingMessages } from './useOnboardingMessages';
+import { useOnboardingScroll } from './useOnboardingScroll';
 
 // Maximum number of messages before automatically completing the onboarding
 const MESSAGE_CAP = 20; // Count only user messages, not AI messages
@@ -36,16 +29,12 @@ export const useOnboardingChat = () => {
   const { handleSmsResponse } = useSmsConversation();
   const { saveOnboardingData } = useSupabaseSync();
   
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
-  const [conversation, setConversation] = useState<Conversation>({
-    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_PLAYFUL }], // Default to playful
-    userAnswers: []
-  });
+  const { user, clearNewUserFlag } = useAuth();
+  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
+  const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
+  
+  // Initialize userProfile state
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: "",
     location: "",
@@ -60,12 +49,46 @@ export const useOnboardingChat = () => {
       structure: 50
     }
   });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user, clearNewUserFlag } = useAuth();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
-  const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
-  const [userName, setUserName] = useState<string>(""); // Store name separately
+  
+  // Import all the refactored hooks
+  const { 
+    conversation, 
+    setConversation, 
+    isTyping, 
+    setIsTyping, 
+    isInitializing,
+    setIsInitializing,
+    isGeneratingProfile, 
+    initializeChat,
+    generateProfile
+  } = useOnboardingAI();
+  
+  const {
+    messages,
+    setMessages,
+    input,
+    setInput,
+    handleAIResponse,
+    userName,
+    setUserName,
+    currentQuestionIndex,
+    setCurrentQuestionIndex
+  } = useOnboardingMessages(
+    (name: string) => setUserProfile(prev => ({ ...prev, name })),
+    MESSAGE_CAP
+  );
+  
+  const {
+    messagesEndRef,
+    scrollViewportRef,
+    dashboardRef,
+    userHasScrolledUp,
+    setUserHasScrolledUp,
+    scrollToBottom,
+    handleScroll,
+    resetScrollState,
+    handleMessagePartVisible
+  } = useOnboardingScroll(isComplete);
 
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
@@ -86,35 +109,7 @@ export const useOnboardingChat = () => {
     setCurrentQuestionIndex(0);
     
     // Initialize chat with AI greeting
-    initializeChat(systemPrompt);
-  }, [promptMode]);
-
-  // Initialize chat with AI greeting
-  const initializeChat = async (systemPrompt: string) => {
-    setIsInitializing(true);
-    setIsTyping(true);
-    
-    try {
-      // Create initial conversation with just the system prompt
-      const initialConversation: Conversation = {
-        messages: [{ role: "system", content: systemPrompt }],
-        userAnswers: []
-      };
-      
-      let aiGreeting: string;
-      
-      // Use a seed message if in playful mode, otherwise get from AI
-      if (promptMode === "playful") {
-        aiGreeting = getRandomSeedMessage();
-      } else {
-        // Get AI greeting
-        aiGreeting = await getAIResponse(
-          initialConversation, 
-          "", // Empty user message to trigger greeting
-          "Please introduce yourself and ask for the user's name in a conversational way."
-        );
-      }
-      
+    initializeChat(systemPrompt).then(({ aiGreeting, updatedConversation }) => {
       // Add AI greeting to messages
       const greetingMessage: Message = {
         id: 1,
@@ -123,56 +118,35 @@ export const useOnboardingChat = () => {
       };
       
       setMessages([greetingMessage]);
-      
-      // Update conversation with AI greeting
-      setConversation({
-        messages: [
-          ...initialConversation.messages,
-          { role: "assistant", content: aiGreeting }
-        ],
-        userAnswers: []
-      });
-      
-    } catch (error) {
-      console.error("Failed to initialize chat:", error);
-      
-      // Fallback greeting if AI fails
-      let fallbackGreeting: string;
-      
-      if (promptMode === "playful") {
-        fallbackGreeting = getRandomSeedMessage();
-      } else {
-        fallbackGreeting = "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?";
-      }
-      
-      const fallbackMessage: Message = {
-        id: 1,
-        text: fallbackGreeting,
-        sender: "ai"
-      };
-      
-      setMessages([fallbackMessage]);
-      
-      // Update conversation with fallback greeting
-      setConversation({
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "assistant", content: fallbackGreeting }
-        ],
-        userAnswers: []
-      });
-    } finally {
-      setIsInitializing(false);
-      setIsTyping(false);
-    }
-  };
+      setConversation(updatedConversation);
+    });
+  }, [promptMode]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Complete onboarding and generate profile
+  const completeOnboarding = async (finalConversation: Conversation) => {
+    try {
+      const profile = await generateProfile(finalConversation);
+      
+      // Update userName in case we have it in the profile
+      if (profile.name) {
+        setUserName(profile.name);
+      }
+      
+      setUserProfile(profile);
+      setIsComplete(true);
+      
+      // Save conversation to Supabase
+      saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
+      
+      return true;
+    } catch (error) {
+      console.error("Error in profile generation:", error);
+      return false;
+    }
   };
 
   const handleSend = (message?: string) => {
@@ -203,7 +177,6 @@ export const useOnboardingChat = () => {
 
       setMessages(prev => [...prev, closingMessage]);
       setIsTyping(false);
-      setIsGeneratingProfile(true);
 
       // Update conversation with user's final message
       const finalConversation = {
@@ -216,27 +189,9 @@ export const useOnboardingChat = () => {
       };
       
       setConversation(finalConversation);
-
-      // Generate profile and complete onboarding
-      generateAIProfile(finalConversation)
-        .then(profile => {
-          setUserProfile(profile);
-          setIsGeneratingProfile(false);
-          setIsComplete(true);
-          
-          // Save conversation to Supabase
-          saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
-        })
-        .catch(error => {
-          console.error("Error generating profile at message cap:", error);
-          setIsGeneratingProfile(false);
-          toast({
-            title: "Error generating profile",
-            description: "We encountered an issue creating your profile.",
-            variant: "destructive",
-          });
-        });
       
+      // Complete the onboarding process
+      completeOnboarding(finalConversation);
       return;
     }
 
@@ -250,8 +205,11 @@ export const useOnboardingChat = () => {
     setMessages((prev) => [...prev, newUserMessage]);
     setInput("");
     setIsTyping(true);
+    
+    // Reset scroll state when user sends a message
+    resetScrollState();
 
-    // Update basic profile info for first question - extract name
+    // Update basic profile info for first user messages
     if (currentQuestionIndex === 0) {
       setUserName(textToSend.trim());
       setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
@@ -270,7 +228,6 @@ export const useOnboardingChat = () => {
 
     // If in SMS mode, handle sending messages via SMS
     if (conversationMode === "sms") {
-      // In a real implementation, this would send the message to the SMS edge function
       handleSmsResponse(
         textToSend, 
         draftConversation, 
@@ -283,42 +240,7 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Function to handle AI response and update UI
-    const handleContinue = (aiResponse: string) => {
-      // Add error checking for empty or invalid responses
-      if (!aiResponse || aiResponse.trim() === "") {
-        console.error("Empty AI response received");
-        setIsTyping(false);
-        toast({
-          title: "Connection issue",
-          description: "We're having trouble connecting to our AI. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const newAiMessage: Message = {
-        id: messages.length + 2,
-        text: aiResponse,
-        sender: "ai",
-      };
-
-      const updatedConversation: Conversation = {
-        messages: [
-          ...conversation.messages,
-          { role: "user" as ChatRole, content: textToSend },
-          { role: "assistant" as ChatRole, content: aiResponse }
-        ],
-        userAnswers: [...conversation.userAnswers, textToSend]
-      };
-
-      setMessages(prev => [...prev, newAiMessage]);
-      setConversation(updatedConversation);
-      setIsTyping(false);
-    };
-
-    // Removing coverage checks as requested, but keeping a simplified approach
-    // to determine when to end the conversation
+    // Check if we should complete the conversation based on message count
     const updatedUserMessageCount = draftConversation.userAnswers.length;
     
     // If we've had a substantial conversation and it's time to wrap up
@@ -336,72 +258,24 @@ export const useOnboardingChat = () => {
 
         setMessages(prev => [...prev, closingMessage]);
         setIsTyping(false);
-        setIsGeneratingProfile(true);
 
-        try {
-          generateAIProfile(draftConversation)
-            .then(profile => {
-              // Profile is now guaranteed to have all fields with default values from the edge function
-              setUserProfile(profile);
-              setIsGeneratingProfile(false);
-              setIsComplete(true);
-              
-              // Update final conversation state with closing message
-              const finalConversation = {
-                messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
-                userAnswers: draftConversation.userAnswers
-              };
-              setConversation(finalConversation);
-              
-              // Save conversation to Supabase using the extracted function
-              saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
-            })
-            .catch(error => {
-              console.error("Error in profile generation:", error);
-              // Handle error with fallback
-              setIsGeneratingProfile(false);
-              toast({
-                title: "Error generating profile",
-                description: "We encountered an issue creating your profile. Let's continue our conversation.",
-                variant: "destructive",
-              });
-              // Continue conversation instead
-              getAIResponse(conversation, textToSend)
-                .then(handleContinue)
-                .catch(error => {
-                  console.error("Failed to get AI response after profile error:", error);
-                  setIsTyping(false);
-                });
-            });
-        } catch (error) {
-          console.error("Error in profile generation:", error);
-          setIsGeneratingProfile(false);
-          getAIResponse(conversation, textToSend)
-            .then(handleContinue)
-            .catch(error => {
-              console.error("Failed to get AI response:", error);
-              setIsTyping(false);
-            });
-        }
+        // Update final conversation state with closing message
+        const finalConversation = {
+          messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
+          userAnswers: draftConversation.userAnswers
+        };
+        
+        setConversation(finalConversation);
+        
+        // Complete the onboarding process
+        completeOnboarding(finalConversation);
       } else {
-        // Continue normal conversation
-        getAIResponse(conversation, textToSend)
-          .then(handleContinue)
-          .catch(error => {
-            console.error("Failed to get AI response:", error);
-            setIsTyping(false);
-            handleContinue("I'm having a moment. Could you share that thought again?");
-          });
+        // Continue normal conversation flow
+        handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
       }
     } else {
       // Standard conversation flow
-      getAIResponse(conversation, textToSend)
-        .then(handleContinue)
-        .catch(error => {
-          console.error("Failed to get AI response:", error);
-          setIsTyping(false);
-          handleContinue("Sorry for the hiccup. Please continue - I'm listening.");
-        });
+      handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
     }
   };
 
@@ -417,7 +291,6 @@ export const useOnboardingChat = () => {
     const userMessageCount = conversation.userAnswers.length;
     
     // Progress increases with each message, but at a decreasing rate
-    // This creates the feeling of progress without giving exact timing
     const progressPerMessage = Math.max(5, 70 / Math.max(1, userMessageCount + 5));
     
     // Calculate progress but cap it at 90%
@@ -428,7 +301,7 @@ export const useOnboardingChat = () => {
 
   // Function to get the first letter of the user's name for avatar
   const getNameInitial = () => {
-    return userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?";
+    return userName ? userName.charAt(0).toUpperCase() : "?";
   };
 
   return {
@@ -451,7 +324,6 @@ export const useOnboardingChat = () => {
     showPromptSelection,
     setShowPromptSelection,
     promptMode,
-    setPromptMode,
     handlePromptModeChange,
     phoneNumber,
     setPhoneNumber,
@@ -461,6 +333,12 @@ export const useOnboardingChat = () => {
     getNameInitial,
     handleSend,
     startSmsConversation,
-    userName
+    userName,
+    // Scroll-related
+    scrollViewportRef,
+    dashboardRef,
+    handleScroll,
+    resetScrollState,
+    handleMessagePartVisible
   };
 };

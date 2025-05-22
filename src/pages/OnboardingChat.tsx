@@ -1,23 +1,15 @@
 
-import React, { useEffect, useRef, useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { HelpCircle } from "lucide-react";
+import React, { useEffect } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 import GuidanceInfo from "@/components/onboarding/GuidanceInfo";
 import ConversationHeader from "@/components/onboarding/ConversationHeader";
-import MessageBubble from "@/components/onboarding/MessageBubble";
-import TypingIndicator from "@/components/onboarding/TypingIndicator";
 import LoadingScreen from "@/components/onboarding/LoadingScreen";
-import QuickActionButtons from "@/components/onboarding/QuickActionButtons";
-import TextInput from "@/components/onboarding/TextInput";
-import VoiceInput from "@/components/onboarding/VoiceInput";
-import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
-import PromptModeSelector from "@/components/onboarding/PromptModeSelector";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import ChatContainer from "@/components/onboarding/ChatContainer";
+import InputContainer from "@/components/onboarding/InputContainer";
 
 const OnboardingChat = () => {
   const {
@@ -44,95 +36,15 @@ const OnboardingChat = () => {
     handleModeSelection,
     getNameInitial,
     handleSend,
-    userName
+    userName,
+    // Scroll-related
+    scrollViewportRef,
+    dashboardRef,
+    handleScroll,
+    handleMessagePartVisible
   } = useOnboardingChat();
 
   const { isListening, isProcessing, toggleVoiceInput } = useVoiceRecording(handleSend);
-
-  // Add a ref for the ScrollArea viewport
-  const scrollViewportRef = useRef<HTMLDivElement>(null);
-  const dashboardRef = useRef<HTMLDivElement>(null);
-  
-  // Track if user has manually scrolled up
-  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
-  
-  // Store the last scroll position to determine scroll direction
-  const lastScrollTopRef = useRef<number>(0);
-  
-  // Define a function to scroll to bottom with smooth animation
-  const scrollToBottom = useCallback(() => {
-    if (!scrollViewportRef.current || userHasScrolledUp) return;
-    
-    const scrollElement = scrollViewportRef.current;
-    scrollElement.scrollTo({
-      top: scrollElement.scrollHeight,
-      behavior: "smooth"
-    });
-    
-    // Also use the messagesEndRef for additional scrolling support
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messagesEndRef, userHasScrolledUp]);
-
-  // Handle user scroll events to detect if they've scrolled up
-  const handleScroll = useCallback(() => {
-    if (!scrollViewportRef.current) return;
-    
-    const scrollElement = scrollViewportRef.current;
-    const { scrollTop, scrollHeight, clientHeight } = scrollElement;
-    
-    // Detect scroll direction
-    const isScrollingUp = scrollTop < lastScrollTopRef.current;
-    lastScrollTopRef.current = scrollTop;
-    
-    // Calculate how close to bottom (within 100px)
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-    
-    // If user is scrolling up and not near bottom, they're reading history
-    if (isScrollingUp && !isNearBottom) {
-      setUserHasScrolledUp(true);
-    }
-    
-    // If user manually scrolls to bottom, reset the flag
-    if (isNearBottom) {
-      setUserHasScrolledUp(false);
-    }
-  }, []);
-  
-  // Force scroll to bottom whenever a new message is added or typing status changes
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages.length, isTyping, scrollToBottom]);
-  
-  // Reset user scroll state when user sends a new message
-  useEffect(() => {
-    const resetScrollState = () => {
-      setUserHasScrolledUp(false);
-      requestAnimationFrame(scrollToBottom);
-    };
-    
-    // Create a shallow copy to detect when the length changes
-    const messageIds = messages.map(m => m.id);
-    
-    return () => {
-      // When messages change, check if a new one was added
-      const newMessageIds = messages.map(m => m.id);
-      if (newMessageIds.length > messageIds.length) {
-        resetScrollState();
-      }
-    };
-  }, [messages, scrollToBottom]);
-  
-  // Scroll to top when profile is complete
-  useEffect(() => {
-    if (isComplete && dashboardRef.current) {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
-    }
-  }, [isComplete]);
   
   // Set up a ResizeObserver to handle window and content size changes
   useEffect(() => {
@@ -140,14 +52,14 @@ const OnboardingChat = () => {
     
     // Create both a resize observer and mutation observer
     const resizeObserver = new ResizeObserver(() => {
-      if (!userHasScrolledUp) {
-        scrollToBottom();
+      if (messages.length > 0) {
+        handleMessagePartVisible();
       }
     });
     
     const mutationObserver = new MutationObserver(() => {
-      if (!userHasScrolledUp) {
-        scrollToBottom();
+      if (messages.length > 0) {
+        handleMessagePartVisible();
       }
     });
     
@@ -166,16 +78,7 @@ const OnboardingChat = () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
     };
-  }, [isComplete, scrollToBottom, userHasScrolledUp]);
-  
-  // Handle scroll to bottom whenever a new message part becomes visible
-  const handleMessagePartVisible = useCallback(() => {
-    requestAnimationFrame(() => {
-      if (!userHasScrolledUp) {
-        scrollToBottom();
-      }
-    });
-  }, [scrollToBottom, userHasScrolledUp]);
+  }, [isComplete, messages.length, handleMessagePartVisible, scrollViewportRef]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
@@ -194,114 +97,38 @@ const OnboardingChat = () => {
             showGuidanceInfo={showGuidanceInfo}
           />
           
-          {/* Chat content with ScrollArea */}
-          <ScrollArea 
-            className="flex-1 p-4 pt-24 overflow-hidden" 
-            viewportRef={scrollViewportRef}
-            onViewportScroll={handleScroll}
-          >
-            <div className="space-y-4 pb-24 max-w-3xl mx-auto">
-              {/* Prompt Mode Selector */}
-              <div className="flex justify-end mb-2">
-                <PromptModeSelector 
-                  promptMode={promptMode} 
-                  onPromptModeChange={handlePromptModeChange}
-                  disabled={messages.length > 0 && !isInitializing}
-                />
-              </div>
-              
-              {/* Show initializing state if waiting for AI greeting */}
-              {isInitializing ? (
-                <div className="flex justify-center my-8">
-                  <TypingIndicator />
-                </div>
-              ) : (
-                <>
-                  {messages.map((message) => (
-                    <MessageBubble 
-                      key={message.id}
-                      message={message} 
-                      nameInitial={getNameInitial()}
-                      onMessagePartVisible={handleMessagePartVisible}
-                      userName={userName}
-                    />
-                  ))}
-                </>
-              )}
-              
-              {isTyping && !isInitializing && (
-                <div>
-                  <TypingIndicator />
-                  {/* Invisible element that helps with scrolling when typing indicator appears */}
-                  <div className="h-16" />
-                </div>
-              )}
-              {isGeneratingProfile && <LoadingScreen />}
-              <div ref={messagesEndRef} className="h-4" /> {/* Add some height to ensure we can scroll past the last message */}
-            </div>
-          </ScrollArea>
+          {/* Chat content */}
+          <ChatContainer 
+            messages={messages}
+            isTyping={isTyping}
+            isInitializing={isInitializing}
+            isGeneratingProfile={isGeneratingProfile}
+            getNameInitial={getNameInitial}
+            handleMessagePartVisible={handleMessagePartVisible}
+            scrollViewportRef={scrollViewportRef}
+            handleScroll={handleScroll}
+            messagesEndRef={messagesEndRef}
+            promptMode={promptMode}
+            handlePromptModeChange={handlePromptModeChange}
+            userName={userName}
+          />
 
-          <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0 z-10">
-            <div className="max-w-3xl mx-auto">
-              {/* Quick Action Buttons moved above the input */}
-              <QuickActionButtons 
-                handleSend={handleSend} 
-                isDisabled={isTyping || isGeneratingProfile || isInitializing}
-              />
-              
-              {/* Input Field and Send Button */}
-              <div className="flex items-end space-x-2">
-                {conversationMode === "text" ? (
-                  <TextInput 
-                    input={input}
-                    setInput={setInput}
-                    handleSend={() => {
-                      handleSend();
-                      // Reset userHasScrolledUp when user sends a message
-                      setUserHasScrolledUp(false);
-                      // Force scroll to bottom after sending
-                      setTimeout(scrollToBottom, 100);
-                    }}
-                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
-                    switchToVoiceMode={() => setConversationMode("voice")}
-                  />
-                ) : conversationMode === "voice" ? (
-                  <VoiceInput 
-                    isListening={isListening}
-                    toggleVoiceInput={() => {
-                      toggleVoiceInput();
-                      // Reset userHasScrolledUp when starting voice input
-                      setUserHasScrolledUp(false);
-                    }}
-                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
-                    isProcessing={isProcessing}
-                    switchToTextMode={() => setConversationMode("text")}
-                  />
-                ) : (
-                  <SmsInput 
-                    phoneNumber={phoneNumber}
-                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
-                    switchToTextMode={() => setConversationMode("text")}
-                  />
-                )}
-              </div>
-              
-              {/* Show guidance toggle reminder */}
-              {!showGuidanceInfo && (
-                <div className="mt-3 text-center">
-                  <Button 
-                    variant="link" 
-                    size="sm" 
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowGuidanceInfo(true)}
-                  >
-                    <HelpCircle className="h-3 w-3 mr-1" />
-                    Need help? How this conversation works
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Input container */}
+          <InputContainer 
+            conversationMode={conversationMode}
+            input={input}
+            setInput={setInput}
+            handleSend={handleSend}
+            isDisabled={isTyping || isGeneratingProfile || isInitializing}
+            switchToVoiceMode={() => setConversationMode("voice")}
+            switchToTextMode={() => setConversationMode("text")}
+            isListening={isListening}
+            toggleVoiceInput={toggleVoiceInput}
+            isProcessing={isProcessing}
+            phoneNumber={phoneNumber}
+            showGuidanceInfo={showGuidanceInfo}
+            setShowGuidanceInfo={setShowGuidanceInfo}
+          />
         </>
       ) : (
         <>          

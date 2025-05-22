@@ -10,7 +10,7 @@ import PersonalityChart from './PersonalityChart';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
-import { Lock, BarChart3, Heart, User, Activity, Lightbulb, BookOpen, Share2 } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Share2, Lightbulb, Brain } from "lucide-react";
 
 interface ProfileCompletionDashboardProps {
   userProfile: UserProfile;
@@ -123,13 +123,13 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Interests</span>
             </TabsTrigger>
-            <TabsTrigger value="personality" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Style</span>
+            <TabsTrigger value="inner-world" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">Inner World</span>
             </TabsTrigger>
-            <TabsTrigger value="values" className="flex items-center gap-2">
+            <TabsTrigger value="connection" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
-              <span className="hidden sm:inline">Values</span>
+              <span className="hidden sm:inline">Connection</span>
             </TabsTrigger>
             <TabsTrigger value="story" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
@@ -266,19 +266,93 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
             )}
           </TabsContent>
 
-          {/* Personality Tab */}
-          <TabsContent value="personality" className="space-y-6">
+          {/* Inner World Tab (replacing Personality Tab) */}
+          <TabsContent value="inner-world" className="space-y-6">
             {/* Personality Chart */}
             <Card className="border border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-xl">Your Social Style</CardTitle>
-                <CardDescription>Based on our conversation, here's your social style and energy</CardDescription>
+                <CardTitle className="text-xl">Your Personality Profile</CardTitle>
+                <CardDescription>A visual representation of your inner dimensions</CardDescription>
               </CardHeader>
               <CardContent className="pb-8">
                 <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
               </CardContent>
             </Card>
             
+            {/* Values */}
+            {userProfile.coreValues && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Core Values</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.coreValues}</p>
+                  {ensureArray(userProfile.values).length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {ensureArray(userProfile.values).map((value, i) => (
+                        <Badge key={i} variant="outline" className="bg-secondary/5 text-secondary">
+                          {value}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Life Philosophy */}
+            {userProfile.lifePhilosophy && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Life Philosophy</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lifePhilosophy}</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Personal Insights */}
+            {userProfile.personalInsights?.length > 0 && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Key Traits & Characteristics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {ensureArray(userProfile.personalInsights).map((trait, i) => (
+                      <span 
+                        key={i} 
+                        className="px-3 py-1.5 rounded-full text-sm font-medium"
+                        style={{ 
+                          backgroundColor: `${userTheme.light}`,
+                          color: `${userTheme.dark}`,
+                          border: `1px solid ${userTheme.medium}`
+                        }}
+                      >
+                        {trait}
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Vibe Summary if available */}
+            {userProfile.vibeSummary && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Inner World Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.vibeSummary}</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          {/* Connection Tab (replacing Values Tab) */}
+          <TabsContent value="connection" className="space-y-6">
             {/* Social Style */}
             {userProfile.socialStyle && (
               <Card className="border border-border bg-card">
@@ -315,64 +389,26 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
               </Card>
             )}
             
-            {/* Keywords that describe you */}
-            {userProfile.personalInsights?.length > 0 && (
+            {/* Looking For */}
+            {userProfile.lookingFor && (
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl">Keywords That Describe You</CardTitle>
+                  <CardTitle className="text-xl">What You're Looking For</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {ensureArray(userProfile.personalInsights).map((trait, i) => (
-                      <span 
-                        key={i} 
-                        className="px-3 py-1.5 rounded-full text-sm font-medium"
-                        style={{ 
-                          backgroundColor: `${userTheme.light}`,
-                          color: `${userTheme.dark}`,
-                          border: `1px solid ${userTheme.medium}`
-                        }}
-                      >
-                        {trait}
-                      </span>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          
-          {/* Values Tab */}
-          <TabsContent value="values" className="space-y-6">
-            {/* Core Values */}
-            {userProfile.coreValues && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Core Values</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.coreValues}</p>
-                  {ensureArray(userProfile.values).length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {ensureArray(userProfile.values).map((value, i) => (
-                        <Badge key={i} variant="outline" className="bg-secondary/5 text-secondary">
-                          {value}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
+                  <p>{userProfile.lookingFor}</p>
                 </CardContent>
               </Card>
             )}
             
-            {/* Life Philosophy */}
-            {userProfile.lifePhilosophy && (
+            {/* Friendship Pace if available */}
+            {userProfile.friendshipPace && (
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl">Life Philosophy</CardTitle>
+                  <CardTitle className="text-xl">Friendship Pace</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.lifePhilosophy}</p>
+                  <p>{userProfile.friendshipPace}</p>
                 </CardContent>
               </Card>
             )}
