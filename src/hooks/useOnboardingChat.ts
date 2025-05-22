@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
-import type { Json } from '@/integrations/supabase/types';
 import { 
   SYSTEM_PROMPT_STRUCTURED, 
   SYSTEM_PROMPT_PLAYFUL, 
@@ -47,7 +44,6 @@ export const useOnboardingChat = () => {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, clearNewUserFlag } = useAuth();
-  const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
@@ -190,7 +186,10 @@ export const useOnboardingChat = () => {
     if (!textToSend.trim()) return;
 
     // Check if we've reached the message cap
-    if (messages.length >= MESSAGE_CAP - 1) { // -1 to account for the new user message we're about to add
+    // Count only user messages for the message cap
+    const userMessageCount = conversation.userAnswers.length;
+    
+    if (userMessageCount >= MESSAGE_CAP - 1) { // -1 to account for the new user message we're about to add
       // Add user message to UI
       const newUserMessage: Message = {
         id: messages.length + 1,
@@ -318,10 +317,10 @@ export const useOnboardingChat = () => {
 
     // Removing coverage checks as requested, but keeping a simplified approach
     // to determine when to end the conversation
-    const userMessageCount = draftConversation.userAnswers.length;
+    const updatedUserMessageCount = draftConversation.userAnswers.length;
     
     // If we've had a substantial conversation and it's time to wrap up
-    if (userMessageCount >= 15 && userMessageCount % 5 === 0 && userMessageCount >= MESSAGE_CAP - 10) {
+    if (updatedUserMessageCount >= 15 && updatedUserMessageCount % 5 === 0 && updatedUserMessageCount >= MESSAGE_CAP - 10) {
       // There's a chance we should end the conversation here
       const shouldEnd = Math.random() > 0.7; // 30% chance to end if we're in the range
       
@@ -412,8 +411,8 @@ export const useOnboardingChat = () => {
     if (isGeneratingProfile) return 95;
     
     const baseProgress = 10;
-    // We subtract 2 to account for the initial AI messages
-    const userMessageCount = messages.filter(msg => msg.sender === "user").length;
+    // We count only user messages
+    const userMessageCount = conversation.userAnswers.length;
     
     // Progress increases with each message, but at a decreasing rate
     // This creates the feeling of progress without giving exact timing

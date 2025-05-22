@@ -46,30 +46,47 @@ const OnboardingChat = () => {
     handleSend
   } = useOnboardingChat();
 
-  const { isListening, isProcessing, transcript, toggleVoiceInput } = useVoiceRecording(handleSend);
+  const { isListening, isProcessing, toggleVoiceInput } = useVoiceRecording(handleSend);
 
   // Add a ref for the ScrollArea viewport
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   
-  // Auto-scroll to bottom when messages change or typing indicator appears/disappears
+  // Force scroll to bottom whenever a new message is added or typing status changes
   useEffect(() => {
-    if (scrollViewportRef.current) {
-      const scrollElement = scrollViewportRef.current;
-      scrollElement.scrollTop = scrollElement.scrollHeight;
-    }
-  }, [messages, isTyping]);
-  
-  // Force scroll to bottom whenever a new message is added or when typing status changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
+    const scrollToBottom = () => {
       if (scrollViewportRef.current) {
         const scrollElement = scrollViewportRef.current;
         scrollElement.scrollTop = scrollElement.scrollHeight;
       }
-    }, 100); // Small delay to ensure content is rendered
+    };
+
+    // Immediate scroll attempt
+    scrollToBottom();
+
+    // Also schedule a delayed scroll to handle any render delays
+    const timer = setTimeout(scrollToBottom, 100);
     
     return () => clearTimeout(timer);
-  }, [messages.length, isTyping]);
+  }, [messages, isTyping]);
+  
+  // Additional scroll effect when messages change
+  useEffect(() => {
+    // Extra timed scrolls for when content might be delayed in rendering
+    const timers = [
+      setTimeout(() => {
+        if (scrollViewportRef.current) {
+          scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+        }
+      }, 200),
+      setTimeout(() => {
+        if (scrollViewportRef.current) {
+          scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+        }
+      }, 500)
+    ];
+    
+    return () => timers.forEach(clearTimeout);
+  }, [messages.length]); // Only depend on message count for this one
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
@@ -92,6 +109,7 @@ const OnboardingChat = () => {
           <ScrollArea 
             className="flex-1 p-4 pt-24" 
             viewportRef={scrollViewportRef}
+            onViewportScroll={() => console.log("Viewport scrolled")}
           >
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
               {/* Prompt Mode Selector */}
