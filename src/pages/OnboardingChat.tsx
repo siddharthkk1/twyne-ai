@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -62,12 +61,17 @@ const OnboardingChat = () => {
     }
   }, [showCreateAccountPrompt, userName]);
   
-  // When name is collected, show the help dialog
+  // When name is collected, show the help dialog if not shown before
   useEffect(() => {
-    if (!showNameCollectionStep && userName && !showHelpDialog && messages.length <= 1) {
+    // Check if the dialog was already shown in this session
+    const helpDialogShown = sessionStorage.getItem("helpDialogShown") === "true";
+    
+    if (!showNameCollectionStep && userName && !showHelpDialog && !helpDialogShown && messages.length <= 1) {
       // Short delay to make the sequence feel more natural
       const timer = setTimeout(() => {
         setShowHelpDialog(true);
+        // Mark dialog as shown for this session
+        sessionStorage.setItem("helpDialogShown", "true");
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -83,6 +87,8 @@ const OnboardingChat = () => {
   const handleCloseHelpDialog = () => {
     setShowHelpDialog(false);
     setShowGuidanceInfo(false);
+    // Ensure we mark that the dialog has been shown
+    sessionStorage.setItem("helpDialogShown", "true");
   };
   
   // Set up a ResizeObserver to handle window and content size changes
