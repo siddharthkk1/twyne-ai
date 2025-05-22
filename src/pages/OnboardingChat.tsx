@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -10,7 +11,7 @@ import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompl
 import ChatContainer from "@/components/onboarding/ChatContainer";
 import InputContainer from "@/components/onboarding/InputContainer";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 const OnboardingChat = () => {
@@ -53,12 +54,13 @@ const OnboardingChat = () => {
   const [showNameCollectionStep, setShowNameCollectionStep] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   
-  // Control flow of onboarding steps - simplified to remove the nameCollectionComplete state
+  // Control flow of onboarding steps - improved to ensure name collection shows after create account
   useEffect(() => {
-    if (!showNameCollectionStep && !showCreateAccountPrompt && !userName) {
+    // Only show name collection after create account prompt is closed and no userName exists
+    if (!showCreateAccountPrompt && !userName && !showNameCollectionStep) {
       setShowNameCollectionStep(true);
     }
-  }, [showNameCollectionStep, showCreateAccountPrompt, userName]);
+  }, [showCreateAccountPrompt, userName, showNameCollectionStep]);
   
   // When name is collected, show the help dialog
   useEffect(() => {
@@ -131,33 +133,33 @@ const OnboardingChat = () => {
       {/* Help dialog - shown in the middle of the screen */}
       <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
         <DialogContent className="sm:max-w-lg">
-          <div className="space-y-4 py-2">
-            <h2 className="text-xl font-semibold">How This Conversation Works</h2>
-            
-            <div className="space-y-3 text-muted-foreground">
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
-              </p>
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>You'll decide later what (if anything) gets shared with others.</span>
-              </p>
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
-              </p>
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
-              </p>
-            </div>
-            
-            <div className="pt-4">
-              <Button onClick={handleCloseHelpDialog} className="w-full">
-                Got it
-              </Button>
-            </div>
+          <DialogTitle className="text-xl font-semibold">
+            How This Conversation Works
+          </DialogTitle>
+          
+          <div className="space-y-3 text-muted-foreground mt-4">
+            <p className="flex items-start gap-2">
+              <span className="text-primary font-medium">•</span>
+              <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <span className="text-primary font-medium">•</span>
+              <span>You'll decide later what (if anything) gets shared with others.</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <span className="text-primary font-medium">•</span>
+              <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <span className="text-primary font-medium">•</span>
+              <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
+            </p>
+          </div>
+          
+          <div className="pt-4">
+            <Button onClick={handleCloseHelpDialog} className="w-full">
+              Got it
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
