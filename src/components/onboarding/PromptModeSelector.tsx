@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PromptModeType } from '@/hooks/useOnboardingChat';
+import { PromptModeType } from '@/hooks/usePromptMode';
 
 interface PromptModeSelectorProps {
   promptMode: PromptModeType;
