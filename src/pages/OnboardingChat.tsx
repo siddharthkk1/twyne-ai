@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -53,34 +52,29 @@ const OnboardingChat = () => {
   // Add state for name collection step
   const [showNameCollectionStep, setShowNameCollectionStep] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
-  const [nameCollectionComplete, setNameCollectionComplete] = useState(() => {
-    // Check if we have userName already in localStorage
-    return !!userName;
-  });
   
-  // Control flow of onboarding steps - fixed to prevent loop
+  // Control flow of onboarding steps - simplified to remove the nameCollectionComplete state
   useEffect(() => {
-    if (!nameCollectionComplete && !showNameCollectionStep && !showCreateAccountPrompt && !userName) {
+    if (!showNameCollectionStep && !showCreateAccountPrompt && !userName) {
       setShowNameCollectionStep(true);
     }
-  }, [showNameCollectionStep, showCreateAccountPrompt, userName, nameCollectionComplete]);
+  }, [showNameCollectionStep, showCreateAccountPrompt, userName]);
   
   // When name is collected, show the help dialog
   useEffect(() => {
-    if (userName && !showHelpDialog && messages.length <= 1 && nameCollectionComplete) {
+    if (userName && !showHelpDialog && messages.length <= 1) {
       // Short delay to make the sequence feel more natural
       const timer = setTimeout(() => {
         setShowHelpDialog(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [userName, showHelpDialog, messages.length, nameCollectionComplete]);
+  }, [userName, showHelpDialog, messages.length]);
 
   // Handle name submission
   const handleNameSubmission = (name: string) => {
     setUserName(name);
     setShowNameCollectionStep(false);
-    setNameCollectionComplete(true);
   };
   
   // Handle closing the help dialog
