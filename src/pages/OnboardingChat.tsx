@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -11,7 +10,7 @@ import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompl
 import ChatContainer from "@/components/onboarding/ChatContainer";
 import InputContainer from "@/components/onboarding/InputContainer";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 const OnboardingChat = () => {
@@ -53,26 +52,25 @@ const OnboardingChat = () => {
   // Add state for name collection step
   const [showNameCollectionStep, setShowNameCollectionStep] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
-  // Add state to track if user has closed the create account prompt
-  const [hasClosedCreateAccountPrompt, setHasClosedCreateAccountPrompt] = useState(false);
   
-  // Control flow of onboarding steps - improved to ensure name collection shows after create account
+  // Control flow of onboarding steps
   useEffect(() => {
-  if (!userName && hasClosedCreateAccountPrompt && !showNameCollectionStep) {
-    setShowNameCollectionStep(true);
-  }
-}, [hasClosedCreateAccountPrompt, userName, showNameCollectionStep]);
+    // When create account prompt closes and user hasn't entered name yet, show name collection
+    if (!showCreateAccountPrompt && !userName) {
+      setShowNameCollectionStep(true);
+    }
+  }, [showCreateAccountPrompt, userName]);
   
   // When name is collected, show the help dialog
   useEffect(() => {
-    if (userName && !showHelpDialog && messages.length <= 1) {
+    if (!showNameCollectionStep && userName && !showHelpDialog && messages.length <= 1) {
       // Short delay to make the sequence feel more natural
       const timer = setTimeout(() => {
         setShowHelpDialog(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [userName, showHelpDialog, messages.length]);
+  }, [showNameCollectionStep, userName, showHelpDialog, messages.length]);
 
   // Handle name submission
   const handleNameSubmission = (name: string) => {
@@ -122,18 +120,10 @@ const OnboardingChat = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
-      <CreateAccountPrompt 
-        open={showCreateAccountPrompt} 
-        onOpenChange={(open) => {
-          setShowCreateAccountPrompt(open);
-          if (!open) {
-            setHasClosedCreateAccountPrompt(true);
-          }
-        }} 
-      />
+      <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
       
-      {/* Name collection step - only show when create account is not visible AND has been closed */}
-      {!showCreateAccountPrompt && hasClosedCreateAccountPrompt && showNameCollectionStep && (
+      {/* Name collection step */}
+      {showNameCollectionStep && (
         <div className="flex-1 flex items-center justify-center">
           <NameCollectionStep onSubmit={handleNameSubmission} />
         </div>
@@ -142,38 +132,40 @@ const OnboardingChat = () => {
       {/* Help dialog - shown in the middle of the screen */}
       <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
         <DialogContent className="sm:max-w-lg">
-          <DialogTitle className="text-xl font-semibold">How This Conversation Works</DialogTitle>
-      
-          <div className="space-y-3 text-muted-foreground">
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>You'll decide later what (if anything) gets shared with others.</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="text-primary font-medium">•</span>
-              <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
-            </p>
-          </div>
-      
-          <div className="pt-4">
-            <Button onClick={handleCloseHelpDialog} className="w-full">
-              Got it
-            </Button>
+          <div className="space-y-4 py-2">
+            <h2 className="text-xl font-semibold">How This Conversation Works</h2>
+            
+            <div className="space-y-3 text-muted-foreground">
+              <p className="flex items-start gap-2">
+                <span className="text-primary font-medium">•</span>
+                <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="text-primary font-medium">•</span>
+                <span>You'll decide later what (if anything) gets shared with others.</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="text-primary font-medium">•</span>
+                <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="text-primary font-medium">•</span>
+                <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
+              </p>
+            </div>
+            
+            <div className="pt-4">
+              <Button onClick={handleCloseHelpDialog} className="w-full">
+                Got it
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
-
+      
       <GuidanceInfo showGuidanceInfo={showGuidanceInfo} setShowGuidanceInfo={setShowGuidanceInfo} />
       
-      {(!showNameCollectionStep && !showModeSelection && !showCreateAccountPrompt) ? (
+      {(!showNameCollectionStep && !showModeSelection) ? (
         !isComplete ? (
           <>
             {/* Fixed header with back button and progress indicator */}
@@ -226,7 +218,7 @@ const OnboardingChat = () => {
             </div>
           </>
         )
-      ) : showModeSelection && !showCreateAccountPrompt && !showNameCollectionStep ? (
+      ) : showModeSelection ? (
         <ConversationModeSelector handleModeSelection={handleModeSelection} />
       ) : null}
     </div>
