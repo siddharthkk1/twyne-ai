@@ -289,66 +289,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
 
     let assistantGuidance = "";
 
-    // Disabling coverage checks as requested, but keeping the code for future use
-    /*
-    // Only start steering after N user messages
-    if (userMessageCount >= 12) {
-      try {
-        const coverageResult = await checkConversationCoverage({
-          ...conversation,
-          messages: updatedMessages,
-          userAnswers: [...conversation.userAnswers, userMessage]
-        });
-
-        console.log("covRes: ", coverageResult);
-
-        // Added null safety check with optional chaining
-        if (coverageResult?.enoughToStop && userMessageCount % 3 === 0) {
-          // Handle conversation completion
-          return "Thanks for sharing all that 🙏 Building your personal dashboard now...";
-        }
-        
-        const missingCategories = Object.entries(coverageResult || {})
-          .filter(([key, val]) =>
-            ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
-            typeof val === "string" && val.startsWith("Missing")
-          )
-          .map(([key]) => key);
-
-        console.log('missing categories: ', missingCategories);
-
-        const partialCategories = Object.entries(coverageResult || {})
-          .filter(([key, val]) =>
-            ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
-            typeof val === "string" && val.startsWith("Partial")
-          )
-          .map(([key]) => key);
-
-        const guidanceItems = Object.entries(coverageResult || {})
-          .filter(([key, val]) =>
-            ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
-            typeof val === "string" &&
-            (val.startsWith("Missing") || val.startsWith("Partial"))
-          )
-          .map(([key, val]) => `• **${formatKey(key)}** — ${val}`);
-
-        console.log('guidance: ', guidanceItems);
-        
-        if (guidanceItems.length > 0) {
-          console.log('something is not complete!!!');
-            assistantGuidance = `
-          After responding to the user's last message, consider gently exploring these areas (if the current topic feels complete):
-          
-          ${guidanceItems.join("\n")}
-          
-          Use warmth and curiosity. Avoid making it feel like a checklist — just stay human and follow emotional threads.
-            `.trim();
-          }
-      } catch (err) {
-        console.log("Error in coverage evaluation, continuing without guidance:", err);
-      }
-    }
-    */
+    // Coverage checks are disabled as requested, but keeping the code for future use
     
     console.log('AG:', assistantGuidance);
     console.log('AGCheck:', !!assistantGuidance);

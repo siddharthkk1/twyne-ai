@@ -74,9 +74,8 @@ export const useVoiceRecording = (
       };
       
       recognitionRef.current.onend = () => {
-        // Sometimes onend fires even when we're still listening
-        // Only process if we were intentionally stopping
-        if (isListening && transcript) {
+        // Only process if we were intentionally stopping and have transcript
+        if (isListening && transcript.trim()) {
           setIsProcessing(true);
           
           // Small delay to make the UX smoother
@@ -110,7 +109,7 @@ export const useVoiceRecording = (
         }
       }
     };
-  }, [onComplete]);
+  }, [onComplete, transcript, isListening]);
 
   // Function to start listening
   const startListening = () => {

@@ -374,49 +374,31 @@ export const useOnboardingChat = () => {
       console.log("Conversation data length:", convoData.messages.length);
       
       try {
-        // First attempt - Using Supabase client directly for better error tracking
-        console.log("Attempting to save data using Supabase client");
-        const { data, error } = await supabase
-          .from('onboarding_data')
-          .insert({
+        // First attempt - Using direct REST API approach to avoid type issues
+        console.log("Attempting to save data with REST API");
+        const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+            'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
             user_id: userId,
             is_anonymous: !user,
             profile_data: profile,
             conversation_data: convoData,
             prompt_mode: promptMode
-          });
-
-        if (error) {
-          console.error("Error saving with Supabase client:", error);
-          
-          // Try alternative approach with REST API
-          console.log("Falling back to REST API approach");
-          const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-              'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({
-              user_id: userId,
-              is_anonymous: !user,
-              profile_data: profile,
-              conversation_data: convoData,
-              prompt_mode: promptMode
-            })
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.text();
-            console.error("Error saving with REST API:", errorData);
-            throw new Error(`REST API error: ${errorData}`);
-          } else {
-            console.log("Data saved successfully with REST API");
-          }
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Error saving with REST API:", errorData);
+          throw new Error(`REST API error: ${errorData}`);
         } else {
-          console.log("Data saved successfully with Supabase client");
+          console.log("Data saved successfully with REST API");
         }
         
         // If user is logged in, update their metadata
@@ -429,7 +411,6 @@ export const useOnboardingChat = () => {
           title: "Profile Saved",
           description: "Your profile has been saved successfully!",
         });
-        
       } catch (innerError) {
         console.error("Error in save operation:", innerError);
         
