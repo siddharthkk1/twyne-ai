@@ -10,7 +10,7 @@ import { getAIResponse, generateAIProfile, checkConversationCoverage } from '@/u
 const initialMessages: Message[] = [
   {
     id: 1,
-    text: "Hey there xxx👋 I'm Twyne — here to get to know you a bit and help you connect with people you'll actually vibe with. This usually takes around 5–10 minutes, and you can share whatever feels natural.",
+    text: "Hey there 👋 I'm Twyne — here to get to know you a bit and help you connect with people you'll actually vibe with. This usually takes around 5–10 minutes, and you can share whatever feels natural.",
     sender: "ai",
   },
   {
@@ -44,8 +44,10 @@ export const useOnboardingChat = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
-  const [conversationMode, setConversationMode] = useState<"text" | "voice">("text");
+  const [conversationMode, setConversationMode] = useState<"text" | "voice" | "sms">("text");
   const [showModeSelection, setShowModeSelection] = useState(true);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isSmsVerified, setIsSmsVerified] = useState(false);
 
   useEffect(() => {
     scrollToBottom();
@@ -89,6 +91,13 @@ export const useOnboardingChat = () => {
     const userMessageCount = draftConversation.userAnswers.length;
     const shouldRunCheck = userMessageCount >= 8;
     const isCompletionTurn = userMessageCount % 3 === 0;
+
+    // If in SMS mode, handle sending messages via SMS
+    if (conversationMode === "sms") {
+      // In a real implementation, this would send the message to the SMS edge function
+      handleSmsResponse(textToSend, draftConversation);
+      return;
+    }
 
     // Function to handle AI response and update UI
     const handleContinue = (aiResponse: string) => {
@@ -222,6 +231,55 @@ export const useOnboardingChat = () => {
     }
   };
 
+  // New function to handle SMS conversation
+  const handleSmsResponse = async (userMessage: string, draftConversation: Conversation) => {
+    try {
+      // In a real implementation, this would call the SMS edge function
+      console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
+      
+      // For the demo, we'll simulate the SMS flow with the regular AI response
+      const aiResponse = await getAIResponse(conversation, userMessage);
+      
+      // Log the simulated SMS response
+      console.log(`Would receive SMS response: ${aiResponse}`);
+      
+      // Update UI as if we got the response via SMS
+      const newAiMessage: Message = {
+        id: messages.length + 2,
+        text: aiResponse,
+        sender: "ai",
+      };
+
+      const updatedConversation: Conversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user" as ChatRole, content: userMessage },
+          { role: "assistant" as ChatRole, content: aiResponse }
+        ],
+        userAnswers: [...conversation.userAnswers, userMessage]
+      };
+
+      setMessages(prev => [...prev, newAiMessage]);
+      setConversation(updatedConversation);
+      setIsTyping(false);
+      
+      // Here you would typically store the phone number and SMS conversation state
+      // For the demo, we'll just set the phone number in the state
+      setPhoneNumber(phoneNumber);
+      
+    } catch (error) {
+      console.error("Error in SMS conversation:", error);
+      setIsTyping(false);
+      
+      // Show error toast
+      toast({
+        title: "SMS service error",
+        description: "We encountered an issue with the SMS service. Please try again or choose a different conversation mode.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const markUserAsOnboarded = async (profile: UserProfile) => {
     if (user) {
       try {
@@ -253,7 +311,6 @@ export const useOnboardingChat = () => {
   };
 
   // Get progress percent based on conversation length
-  // This intentionally doesn't show exact percentages but gives a general feeling of progress
   const getProgress = (): number => {
     // Start at 10%, increase based on number of messages
     // Cap at 90% until final profile generation
@@ -274,15 +331,61 @@ export const useOnboardingChat = () => {
     return calculatedProgress;
   };
 
-  // Function to handle conversation mode selection (text or voice)
-  const handleModeSelection = (mode: "text" | "voice") => {
+  // Function to handle conversation mode selection (text, voice, or sms)
+  const handleModeSelection = (mode: "text" | "voice" | "sms", phoneNumberInput?: string) => {
     setConversationMode(mode);
+    
+    if (mode === "sms" && phoneNumberInput) {
+      setPhoneNumber(phoneNumberInput);
+      
+      // In a real implementation, we would verify the phone number here
+      // and send an initial message to start the conversation
+      toast({
+        title: "SMS conversation started",
+        description: `We've sent an initial message to ${phoneNumberInput}. Reply to continue the conversation.`,
+      });
+    }
+    
     setShowModeSelection(false);
   };
 
   // Function to get the first letter of the user's name for avatar
   const getNameInitial = () => {
     return userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?";
+  };
+
+  // New function to handle SMS verification
+  const startSmsConversation = async (phoneNumberInput: string) => {
+    try {
+      setIsTyping(true);
+      
+      // In a real implementation, this would:
+      // 1. Validate the phone number format
+      // 2. Send a verification code via SMS
+      // 3. Wait for the user to enter the code
+      // 4. Start the conversation
+      
+      // For now, we'll simulate success
+      setPhoneNumber(phoneNumberInput);
+      setIsSmsVerified(true);
+      setConversationMode("sms");
+      setShowModeSelection(false);
+      setIsTyping(false);
+      
+      toast({
+        title: "SMS conversation started",
+        description: "You can now continue the conversation via SMS. Replies will appear here as well.",
+      });
+    } catch (error) {
+      console.error("Error starting SMS conversation:", error);
+      setIsTyping(false);
+      
+      toast({
+        title: "Error",
+        description: "Failed to start SMS conversation. Please try again or choose a different option.",
+        variant: "destructive",
+      });
+    }
   };
 
   return {
@@ -301,9 +404,13 @@ export const useOnboardingChat = () => {
     conversationMode,
     setConversationMode,
     showModeSelection,
+    phoneNumber,
+    setPhoneNumber,
+    isSmsVerified,
     getProgress,
     handleModeSelection,
     getNameInitial,
-    handleSend
+    handleSend,
+    startSmsConversation
   };
 };

@@ -14,6 +14,7 @@ import LoadingScreen from "@/components/onboarding/LoadingScreen";
 import QuickActionButtons from "@/components/onboarding/QuickActionButtons";
 import TextInput from "@/components/onboarding/TextInput";
 import VoiceInput from "@/components/onboarding/VoiceInput";
+import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
 
 const OnboardingChat = () => {
@@ -33,6 +34,7 @@ const OnboardingChat = () => {
     conversationMode,
     setConversationMode,
     showModeSelection,
+    phoneNumber,
     getProgress,
     handleModeSelection,
     getNameInitial,
@@ -82,7 +84,7 @@ const OnboardingChat = () => {
                 isDisabled={isTyping || isGeneratingProfile}
               />
               
-              {/* Input Field and Send Button - Now with Voice Option */}
+              {/* Input Field and Send Button - Now with SMS Option */}
               <div className="flex items-end space-x-2">
                 {conversationMode === "text" ? (
                   <TextInput 
@@ -92,12 +94,18 @@ const OnboardingChat = () => {
                     isDisabled={isTyping || isGeneratingProfile}
                     switchToVoiceMode={() => setConversationMode("voice")}
                   />
-                ) : (
+                ) : conversationMode === "voice" ? (
                   <VoiceInput 
                     isListening={isListening}
                     toggleVoiceInput={toggleVoiceInput}
                     isDisabled={isTyping || isGeneratingProfile}
                     isProcessing={isProcessing}
+                    switchToTextMode={() => setConversationMode("text")}
+                  />
+                ) : (
+                  <SmsInput 
+                    phoneNumber={phoneNumber}
+                    isDisabled={isTyping || isGeneratingProfile}
                     switchToTextMode={() => setConversationMode("text")}
                   />
                 )}

@@ -68,39 +68,13 @@ double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
-
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
 enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 
-# Configure one of the supported SMS providers: `twilio`, `messagebird`, `textlocal`, `vonage`.
-[auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
-# Find this at https://twilio.com/console.
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
-
-# Use use alternative templates.
-# [auth.sms.twilio.template.sms_otp]
-# body = "Your code is {{ .Code }}. It expires in {{ .Expires }}."
-
-# [auth.sms.twilio.template.sms_verification]
-# body = "Your confirmation code is {{ .Code }}."
-
-# Override number format regularization.
-# [auth.phone_template]
-# example = "+11234567890"
-
-# Use custom templates for various auth flows.
 [auth.template]
-
 [auth.template.sms]
 # Customize the SMS template used for authentication.
 confirmation = "Your confirmation code is {{ .Code }}"
@@ -109,34 +83,16 @@ magic_link = "Your login link to {{ .SiteURL }} is {{ .ActionLink }}"
 otp = "Your one-time passcode to log in is {{ .Code }}"
 recovery = "Your code to recover your password is {{ .Code }}"
 
-# Define custom actions for auth hooks.
-# [auth.hooks.custom_access_token]
-# enabled = true
-# uri = "pg-functions://hooks/custom_access_token"
-
-# [auth.hooks.custom_account_delete]
-# enabled = true
-# uri = "pg-functions://hooks/custom_account_delete"
-
-# [auth.hooks.custom_pre_signup]
-# enabled = true
-# uri = "pg-functions://hooks/custom_pre_signup"
-
-# [auth.hooks.custom_post_signup]
-# enabled = true
-# uri = "pg-functions://hooks/custom_post_signup"
-
-# [auth.hooks.custom_post_confirm_signup]
-# enabled = true
-# uri = "pg-functions://hooks/custom_post_confirm_signup"
-
 [functions]
 # Port to serve Functions API from.
 port = 54321
-
 # Allow foreign connections to the Functions server. You'll need to set this if you're
 # connecting from a different network (e.g. from a different Supabase project).
 allowed_origin = "*"
+
+# Define the SMS chat function
+[functions.sms-chat]
+verify_jwt = false
 
 [observability]
 # Will be passed to Vector as a source.
