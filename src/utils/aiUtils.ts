@@ -249,14 +249,39 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
         const missingCategories = Object.entries(coverageResult || {})
           .filter(([key, val]) =>
             ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
-            val === "Missing"
+            typeof val === "string" && val.startsWith("Missing")
           )
           .map(([key]) => key);
+
         console.log('missing categories: ', missingCategories);
-        if (missingCategories.length > 0) {
-          console.log('something is missing!!!');
-          assistantGuidance = `After responding to the user's last message, if the current topic feels complete or winds down, gently pivot the conversation toward these missing areas: ${missingCategories.join(", ")}. Use curiosity and warmth — do not make it obvious that you're filling gaps. Only pivot if the topic feels naturally complete.`;
-        }
+
+        const partialCategories = Object.entries(coverageResult || {})
+          .filter(([key, val]) =>
+            ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
+            typeof val === "string" && val.startsWith("Partial")
+          )
+          .map(([key]) => key);
+
+        const guidanceItems = Object.entries(coverageResult || {})
+          .filter(([key, val]) =>
+            ["overview", "lifeStory", "interestsIdentity", "vibePersonality", "innerWorld", "connectionNeeds"].includes(key) &&
+            typeof val === "string" &&
+            (val.startsWith("Missing") || val.startsWith("Partial"))
+          )
+          .map(([key, val]) => `• **${formatKey(key)}** — ${val}`);
+
+        console.log('guidance: ', guidanceItems);
+        
+        if (guidanceItems.length > 0) {
+          console.log('something is not complete!!!');
+            assistantGuidance = `
+          After responding to the user's last message, consider gently exploring these areas (if the current topic feels complete):
+          
+          ${guidanceItems.join("\n")}
+          
+          Use warmth and curiosity. Avoid making it feel like a checklist — just stay human and follow emotional threads.
+            `.trim();
+          }
       } catch (err) {
         console.log("Error in coverage evaluation, continuing without guidance:", err);
       }
