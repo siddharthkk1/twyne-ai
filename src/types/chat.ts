@@ -65,11 +65,29 @@ export interface UserProfile {
   ethnicity?: string;
   religion?: string;
   personalityTraits?: PersonalityTraits;
-  // New fields to store overview/vibe summary, background details, inner world, etc.
-  overview?: string;
-  innerWorld?: string;
-  connectionDetails?: string;
-  lifeStories?: string[];
-  beliefs?: string[];
+  // New fields from the reference image
+  keyFacts?: string;
+  favoriteActivities?: string;
+  school?: string; // School they are in or went to
+  philosophy?: string;
+  beliefSystem?: string;
+  spirituality?: string;
   goals?: string[];
+  aspirations?: string[];
+  personalityQuirks?: string[];
+  communicationStyle?: string;
+  boundaries?: string;
+  petPeeves?: string;
+  upbringing?: string;
+  majorEvents?: string[];
+  turningPoints?: string[];
+  recentLifeContext?: string;
+  loveLanguage?: string;
+  friendsStyle?: string;
+  // New or existing fields organized as per the image
+  // Overview section
+  oneLinerSummary?: string;
+  // Inner world section
+  // Story section
+  // Connection section
 }

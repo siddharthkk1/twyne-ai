@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -107,12 +108,13 @@ export const useOnboardingChat = () => {
     // Reset messages and conversation
     setMessages([]);
     
-    // Fix: Properly type the message role as ChatRole
+    // Fix: Create a properly typed message object
     const initialMessage: { role: ChatRole; content: string } = {
       role: "system",
       content: systemPrompt
     };
     
+    // Use the properly typed message object
     setConversation({
       messages: [initialMessage],
       userAnswers: []
