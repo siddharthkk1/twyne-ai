@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Conversation, UserProfile } from '@/types/chat';
 
@@ -28,7 +29,13 @@ Keep the conversation casual and authentic.
 export const getAIResponse = async (conversation: Conversation, userMessage: string, assistantGuidance?: string): Promise<string> => {
   try {
     // Prepare request data
-    let requestData = {
+    let requestData: {
+      endpoint: string;
+      data: {
+        messages: any[];
+        assistantGuidance?: string;
+      }
+    } = {
       endpoint: "chat",
       data: {
         messages: [...conversation.messages]
@@ -104,6 +111,16 @@ export const generateAIProfile = async (conversation: Conversation): Promise<Use
     if (error) {
       console.error("Error from AI profile function:", error);
       throw new Error(`API error: ${error.message}`);
+    }
+
+    // Ensure personalityTraits exist
+    if (!data.personalityTraits) {
+      data.personalityTraits = {
+        extroversion: 50,
+        openness: 50,
+        empathy: 50,
+        structure: 50
+      };
     }
 
     return data;
