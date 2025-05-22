@@ -21,19 +21,6 @@ await serve(async (req) => {
 
   try {
     const { endpoint, data } = await req.json();
-    // route to handlers...
-  } catch (error) {
-    console.error("Error in AI chat function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message, content: "I'm having trouble processing your request. Let's try again in a moment." }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } } // ✅ FIXED
-    );
-  }
-});
-
-
-  try {
-    const { endpoint, data } = await req.json();
     console.log(`Processing ${endpoint} request with data keys:`, Object.keys(data));
 
     if (endpoint === "chat") {
@@ -50,17 +37,15 @@ await serve(async (req) => {
   } catch (error) {
     console.error("Error in AI chat function:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message,
         content: "I'm having trouble processing your request. Let's try again in a moment."
       }),
-      {
-        status: 200, // Using 200 to ensure the error message is displayed to the user
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
+
 
 async function handleChatRequest(data) {
   if (!OPENAI_API_KEY) {
