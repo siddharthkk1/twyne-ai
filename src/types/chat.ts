@@ -36,7 +36,7 @@ export interface UserProfile {
   mediaTastes?: string;
   dealBreakers?: string;
   lookingFor?: string;
-  values?: string[];
+  values?: string[] | string; // Updated to accept both string array and string
   misunderstood?: string;
   lifeStory?: string;
   background?: string;
@@ -53,4 +53,7 @@ export interface UserProfile {
   coreValues?: string;
   lifeContext?: string;
   vibeWords?: string[]; // Added missing vibeWords property
+  job?: string;
+  ethnicity?: string;
+  religion?: string;
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +27,7 @@ interface UserProfile {
   mediaTastes?: string;
   dealBreakers?: string;
   lookingFor?: string;
-  values?: string;
+  values?: string[] | string;
   misunderstood?: string;
   lifeStory?: string;
   background?: string;
@@ -44,6 +43,7 @@ interface UserProfile {
   socialNeeds?: string;
   coreValues?: string;
   lifeContext?: string;
+  vibeWords?: string[];
   job?: string;
   ethnicity?: string;
   religion?: string;
@@ -77,7 +77,13 @@ export const ProfileCompletionDashboard: React.FC<{ userProfile: UserProfile }> 
     return segments.map(s => s.trim()).filter(s => s.length > 5 && s.length < 100);
   };
 
-  const values = extractKeyValues(userProfile.values);
+  // Update values extraction to handle both string and string array
+  const values = Array.isArray(userProfile.values) 
+    ? userProfile.values 
+    : typeof userProfile.values === 'string'
+      ? extractKeyValues(userProfile.values)
+      : extractKeyValues(userProfile.coreValues); // Fallback to coreValues if values is undefined
+
   const insights = extractKeyValues(userProfile.lifePhilosophy)
     .concat(extractKeyValues(userProfile.meaningfulAchievements))
     .concat(extractKeyValues(userProfile.challengesOvercome));
