@@ -58,11 +58,10 @@ const OnboardingChat = () => {
   
   // Control flow of onboarding steps - improved to ensure name collection shows after create account
   useEffect(() => {
-    // Only show name collection after create account prompt is closed and no userName exists
-    if (!userName && hasClosedCreateAccountPrompt) {
-      setShowNameCollectionStep(true);
-    }
-  }, [hasClosedCreateAccountPrompt, userName]);
+  if (!userName && hasClosedCreateAccountPrompt && !showNameCollectionStep) {
+    setShowNameCollectionStep(true);
+  }
+}, [hasClosedCreateAccountPrompt, userName, showNameCollectionStep]);
   
   // When name is collected, show the help dialog
   useEffect(() => {
