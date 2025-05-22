@@ -156,7 +156,7 @@ You are reviewing a conversation between Twyne (a warm, curious AI) and a user. 
 5. Inner World – values, beliefs, personal philosophy, goals
 6. Connection Needs – what helps them feel safe, who they click with, what they're looking for
 
-For each category, return a string starting with label ('Complete', 'Partial', or 'Missing') followed by a hyphen and a short explanation of why you chose that label — even if the reasoning is simple.
+For each category, return a string starting with form "{label} - {reasoning}" where label can be one of ('Complete', 'Partial', or 'Missing') and reasoning is a short explanation of why you chose that label.
 
 Return your output in **valid JSON**:
 
