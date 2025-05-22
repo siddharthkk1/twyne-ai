@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { Lock } from "lucide-react";
+import { Lock, Edit3, User, Lightbulb } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
 
 const Dashboard = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   
   // Form state
   const [formData, setFormData] = useState({
@@ -82,6 +85,9 @@ const Dashboard = () => {
       ? profile.username[0] 
       : user?.email?.[0] || "?";
 
+  // Get the profile data from user metadata (from onboarding)
+  const profileData = user?.user_metadata?.profile_data || {};
+
   return (
     <div className="py-4 space-y-6">
       <div className="flex items-center justify-between">
@@ -94,80 +100,32 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="bg-background rounded-2xl p-6 shadow-sm">
-        <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10 mb-6">
-          <p className="text-muted-foreground">
-            <span className="font-medium text-primary">Privacy note:</span> This information is private and used by Twyne AI to help you make meaningful connections.
-            It's not visible as a public profile to other users.
-          </p>
-        </div>
-        
-        {isEditing ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input 
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="Your username"
-                />
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-3 mb-4">
+          <TabsTrigger value="profile" className="flex items-center">
+            <User className="h-4 w-4 mr-2" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center">
+            <Lightbulb className="h-4 w-4 mr-2" />
+            Insights
+          </TabsTrigger>
+          <TabsTrigger value="edit" className="flex items-center">
+            <Edit3 className="h-4 w-4 mr-2" />
+            Edit
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="space-y-4">
+          <div className="bg-background rounded-2xl p-6 shadow-sm">
+            <div className="flex flex-col items-center mb-6">
+              <div className="h-24 w-24 rounded-full bg-secondary/50 mb-4 flex items-center justify-center text-2xl font-semibold">
+                {nameInitial}
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name</Label>
-                <Input 
-                  id="full_name"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  placeholder="Your full name"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input 
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="Your location (e.g., San Francisco)"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="bio">About You</Label>
-                <Textarea 
-                  id="bio"
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  placeholder="Tell us a bit about yourself..."
-                  rows={4}
-                />
-              </div>
+              <h2 className="text-xl font-medium">{profile?.full_name || profile?.username || user?.email?.split('@')[0]}</h2>
+              <p className="text-muted-foreground">{profile?.location || 'No location set'}</p>
             </div>
 
-            <div className="flex space-x-3 pt-4">
-              <Button type="submit" className="flex-1" disabled={isLoading}>
-                {isLoading ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => setIsEditing(false)}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <>
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">ABOUT YOU</h3>
@@ -186,19 +144,99 @@ const Dashboard = () => {
                 <p className="mt-1">{profile?.username || 'No username set'}</p>
               </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-4">
+          <ProfileInsightsDashboard 
+            profileData={profileData} 
+            nameInitial={nameInitial} 
+          />
+        </TabsContent>
+
+        <TabsContent value="edit" className="space-y-4">
+          <div className="bg-background rounded-2xl p-6 shadow-sm">
+            <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10 mb-6">
+              <p className="text-muted-foreground">
+                <span className="font-medium text-primary">Privacy note:</span> This information is private and used by Twyne AI to help you make meaningful connections.
+                It's not visible as a public profile to other users.
+              </p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex flex-col items-center mb-6">
+                <div className="h-24 w-24 rounded-full bg-secondary/50 mb-4 flex items-center justify-center text-2xl font-semibold">
+                  {nameInitial}
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input 
+                    id="username"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    placeholder="Your username"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Full Name</Label>
+                  <Input 
+                    id="full_name"
+                    name="full_name"
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    placeholder="Your full name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input 
+                    id="location"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="Your location (e.g., San Francisco)"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="bio">About You</Label>
+                  <Textarea 
+                    id="bio"
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    placeholder="Tell us a bit about yourself..."
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <Button type="submit" className="flex-1" disabled={isLoading}>
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setActiveTab("profile")}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <div className="space-y-3">
-        <Button 
-          variant="outline" 
-          className="w-full rounded-full"
-          onClick={() => setIsEditing(true)}
-          disabled={isEditing}
-        >
-          Edit Dashboard
-        </Button>
         <Button variant="outline" className="w-full rounded-full text-muted-foreground" onClick={handleSignOut}>
           Sign Out
         </Button>

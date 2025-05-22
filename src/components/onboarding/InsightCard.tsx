@@ -25,3 +25,5 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight, index }) => {
     </Card>
   );
 };
+
+export default InsightCard;

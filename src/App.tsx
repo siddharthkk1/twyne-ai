@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import OnboardingChat from "./pages/OnboardingChat";
+import OnboardingSelection from "./pages/OnboardingSelection";
+import OnboardingPaste from "./pages/OnboardingPaste";
+import OnboardingResults from "./pages/OnboardingResults";
 import Connections from "./pages/Connections";
 import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
@@ -33,8 +36,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
-            {/* Onboarding route without authentication protection */}
-            <Route path="/onboarding" element={<OnboardingChat />} />
+            {/* Onboarding routes without authentication protection */}
+            <Route path="/onboarding" element={<OnboardingSelection />} />
+            <Route path="/onboarding-chat" element={<OnboardingChat />} />
+            <Route path="/onboarding-paste" element={<OnboardingPaste />} />
+            <Route path="/onboarding-results" element={<OnboardingResults />} />
             <Route element={
               <ProtectedRoute>
                 <Layout />

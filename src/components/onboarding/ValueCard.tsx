@@ -33,3 +33,5 @@ export const ValueCard: React.FC<ValueCardProps> = ({ value, index }) => {
     </Card>
   );
 };
+
+export default ValueCard;

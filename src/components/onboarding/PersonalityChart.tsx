@@ -143,3 +143,5 @@ export const PersonalityChart: React.FC<PersonalityChartProps> = ({ traits }) =>
     </div>
   );
 };
+
+export default PersonalityChart;

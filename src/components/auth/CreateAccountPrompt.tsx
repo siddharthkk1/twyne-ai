@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Mail } from "lucide-react";
+import { Mail, Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 
 interface CreateAccountPromptProps {
   open: boolean;
@@ -18,6 +19,7 @@ export const CreateAccountPrompt = ({ open, onOpenChange }: CreateAccountPromptP
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { user } = useAuth();
 
   // If user is already logged in, don't show the dialog
@@ -69,6 +71,35 @@ export const CreateAccountPrompt = ({ open, onOpenChange }: CreateAccountPromptP
     }
   };
 
+  const handleGoogleSignUp = async () => {
+    setIsGoogleLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Google sign in failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong with Google sign in.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   const handleSkip = () => {
     onOpenChange(false);
   };
@@ -110,10 +141,41 @@ export const CreateAccountPrompt = ({ open, onOpenChange }: CreateAccountPromptP
 
           <div className="flex flex-col space-y-2">
             <Button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90">
-              {isLoading ? "Creating Account..." : "Create Account"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
             
-            <Button type="button" variant="outline" onClick={handleSkip} className="w-full">
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleGoogleSignUp} 
+              disabled={isGoogleLoading}
+              className="w-full"
+            >
+              {isGoogleLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <FcGoogle className="mr-2 h-5 w-5" />
+              )}
+              Google
+            </Button>
+            
+            <Button type="button" variant="outline" onClick={handleSkip} className="w-full mt-4">
               Skip for now
             </Button>
 
