@@ -101,20 +101,6 @@ async function handleChatRequest(data) {
     );
   }
   
-  if (messages.length === 0) {
-    console.error("Empty messages array provided");
-    return new Response(
-      JSON.stringify({ 
-        error: "Empty messages array", 
-        content: "I didn't receive your message clearly. Could you share your thoughts again?" 
-      }),
-      { 
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-  }
-  
   // Log message count and first/last message for debugging
   console.log(`Processing chat request with ${messages.length} messages`);
   if (messages.length > 0) {
@@ -123,10 +109,24 @@ async function handleChatRequest(data) {
   }
   
   // Use messages as provided and optionally append assistantGuidance
-  const finalMessages = [
-    ...messages,
-    ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])
-  ];
+  let finalMessages = [...messages];
+  
+  // Add assistant guidance as a system message if provided
+  if (assistantGuidance) {
+    finalMessages.push({ role: "system", content: assistantGuidance });
+  }
+  
+  // If the last message isn't from a user, and we're generating an initial greeting
+  const lastMessage = messages[messages.length - 1];
+  const isInitialGreeting = lastMessage && lastMessage.role === "system";
+  
+  // If this is a greeting request, add a special instruction
+  if (isInitialGreeting) {
+    finalMessages.push({ 
+      role: "system", 
+      content: "Generate a friendly greeting to start the conversation. Ask for the user's name in a casual, conversational way." 
+    });
+  }
 
   try {
     console.log(`Sending request to OpenAI with ${finalMessages.length} messages`);
@@ -146,7 +146,7 @@ async function handleChatRequest(data) {
         model: "gpt-4o-mini",
         messages: finalMessages,
         temperature: 0.7,
-        max_tokens: 300 // Increased from 150 to 300 to handle longer responses
+        max_tokens: 300 // Kept at 300 for normal responses
       }),
       signal: controller.signal
     }).finally(() => clearTimeout(timeoutId));

@@ -7,61 +7,21 @@ import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
 import { SYSTEM_PROMPT_STRUCTURED, SYSTEM_PROMPT_PLAYFUL, SYSTEM_PROMPT_YOUNG_ADULT } from '@/utils/aiUtils';
 import { getAIResponse, generateAIProfile } from '@/utils/aiUtils';
 
-const initialMessages: Message[] = [
-  {
-    id: 1,
-    text: "Hey there 👋 I'm Twyne — here to get to know you a bit and help you connect with people you'll actually vibe with. This usually takes around 5–10 minutes, and you can share whatever feels natural.",
-    sender: "ai",
-  },
-  {
-    id: 2,
-    text: "Let's start light — what's your name or what do you like to be called?",
-    sender: "ai",
-  },
-];
-
-// Initial messages for playful mode (now the default)
-const initialMessagesPlayful: Message[] = [
-  {
-    id: 1,
-    text: "Hey there! ✨ I'm Twyne — your new conversation buddy! Let's have some fun getting to know each other so we can find people who match your vibe. This usually takes 5-10 mins, but we'll keep it light!",
-    sender: "ai",
-  },
-  {
-    id: 2,
-    text: "First things first — what should I call you?",
-    sender: "ai",
-  },
-];
-
-// Initial messages for young adult mode (second option)
-const initialMessagesYoungAdult: Message[] = [
-  {
-    id: 1,
-    text: "Hey there 👋 I'm Twyne — let's chat and get to know you better so we can connect you with people you'll genuinely vibe with. This is just a casual conversation, not an interview.",
-    sender: "ai",
-  },
-  {
-    id: 2,
-    text: "To start off — what's your name?",
-    sender: "ai",
-  },
-];
-
 // Maximum number of messages before automatically completing the onboarding
 const MESSAGE_CAP = 34;
 
 export type PromptModeType = "structured" | "playful" | "young-adult";
 
 export const useOnboardingChat = () => {
-  const [promptMode, setPromptMode] = useState<PromptModeType>("playful"); // Change default to playful
-  const [messages, setMessages] = useState<Message[]>(initialMessagesPlayful); // Change default to playful
+  const [promptMode, setPromptMode] = useState<PromptModeType>("playful"); // Default to playful
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
-    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_PLAYFUL }], // Change default to playful
+    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_PLAYFUL }], // Default to playful
     userAnswers: []
   });
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -71,6 +31,12 @@ export const useOnboardingChat = () => {
     socialStyle: "",
     connectionPreferences: "",
     personalInsights: [],
+    personalityTraits: {
+      extroversion: 50,
+      openness: 50,
+      empathy: 50,
+      structure: 50
+    }
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, clearNewUserFlag } = useAuth();
@@ -85,26 +51,90 @@ export const useOnboardingChat = () => {
   const [isSmsVerified, setIsSmsVerified] = useState(false);
   const [userName, setUserName] = useState<string>(""); // Store name separately
 
-  // Reset conversation when prompt mode changes
+  // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
     let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
-    let initialMsgs = initialMessages;
     
     if (promptMode === "playful") {
       systemPrompt = SYSTEM_PROMPT_PLAYFUL;
-      initialMsgs = initialMessagesPlayful;
     } else if (promptMode === "young-adult") {
       systemPrompt = SYSTEM_PROMPT_YOUNG_ADULT;
-      initialMsgs = initialMessagesYoungAdult;
     }
     
-    setMessages(initialMsgs);
+    // Reset messages and conversation
+    setMessages([]);
     setConversation({
       messages: [{ role: "system" as ChatRole, content: systemPrompt }],
       userAnswers: []
     });
     setCurrentQuestionIndex(0);
+    
+    // Initialize chat with AI greeting
+    initializeChat(systemPrompt);
   }, [promptMode]);
+
+  // Initialize chat with AI greeting
+  const initializeChat = async (systemPrompt: string) => {
+    setIsInitializing(true);
+    setIsTyping(true);
+    
+    try {
+      // Create initial conversation with just the system prompt
+      const initialConversation: Conversation = {
+        messages: [{ role: "system", content: systemPrompt }],
+        userAnswers: []
+      };
+      
+      // Get AI greeting
+      const aiGreeting = await getAIResponse(
+        initialConversation, 
+        "", // Empty user message to trigger greeting
+        "Please introduce yourself and ask for the user's name in a conversational way."
+      );
+      
+      // Add AI greeting to messages
+      const greetingMessage: Message = {
+        id: 1,
+        text: aiGreeting,
+        sender: "ai"
+      };
+      
+      setMessages([greetingMessage]);
+      
+      // Update conversation with AI greeting
+      setConversation({
+        messages: [
+          ...initialConversation.messages,
+          { role: "assistant", content: aiGreeting }
+        ],
+        userAnswers: []
+      });
+      
+    } catch (error) {
+      console.error("Failed to initialize chat:", error);
+      
+      // Fallback greeting if AI fails
+      const fallbackGreeting: Message = {
+        id: 1,
+        text: "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?",
+        sender: "ai"
+      };
+      
+      setMessages([fallbackGreeting]);
+      
+      // Update conversation with fallback greeting
+      setConversation({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "assistant", content: fallbackGreeting.text }
+        ],
+        userAnswers: []
+      });
+    } finally {
+      setIsInitializing(false);
+      setIsTyping(false);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -612,6 +642,7 @@ export const useOnboardingChat = () => {
     setInput,
     isComplete,
     isTyping,
+    isInitializing,
     isGeneratingProfile,
     userProfile,
     messagesEndRef,

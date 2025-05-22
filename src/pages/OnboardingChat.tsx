@@ -25,6 +25,7 @@ const OnboardingChat = () => {
     setInput,
     isComplete,
     isTyping,
+    isInitializing,
     isGeneratingProfile,
     userProfile,
     messagesEndRef,
@@ -63,26 +64,36 @@ const OnboardingChat = () => {
             showGuidanceInfo={showGuidanceInfo}
           />
           
-          {/* Chat content - added padding-top to avoid overlap with fixed header */}
+          {/* Chat content */}
           <div className="flex-1 p-4 pt-24 overflow-y-auto">
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
-              {/* Prompt Mode Selector - added within the chat */}
+              {/* Prompt Mode Selector */}
               <div className="flex justify-end mb-2">
                 <PromptModeSelector 
                   promptMode={promptMode} 
                   onPromptModeChange={handlePromptModeChange}
-                  disabled={messages.filter(msg => msg.sender === "user").length > 0}
+                  disabled={messages.length > 0 && !isInitializing}
                 />
               </div>
               
-              {messages.map((message) => (
-                <MessageBubble 
-                  key={message.id}
-                  message={message} 
-                  nameInitial={getNameInitial()} 
-                />
-              ))}
-              {isTyping && <TypingIndicator />}
+              {/* Show initializing state if waiting for AI greeting */}
+              {isInitializing ? (
+                <div className="flex justify-center my-8">
+                  <TypingIndicator />
+                </div>
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <MessageBubble 
+                      key={message.id}
+                      message={message} 
+                      nameInitial={getNameInitial()} 
+                    />
+                  ))}
+                </>
+              )}
+              
+              {isTyping && !isInitializing && <TypingIndicator />}
               {isGeneratingProfile && <LoadingScreen />}
               <div ref={messagesEndRef}></div>
             </div>
@@ -93,31 +104,31 @@ const OnboardingChat = () => {
               {/* Quick Action Buttons moved above the input */}
               <QuickActionButtons 
                 handleSend={handleSend} 
-                isDisabled={isTyping || isGeneratingProfile}
+                isDisabled={isTyping || isGeneratingProfile || isInitializing}
               />
               
-              {/* Input Field and Send Button - Now with SMS Option */}
+              {/* Input Field and Send Button */}
               <div className="flex items-end space-x-2">
                 {conversationMode === "text" ? (
                   <TextInput 
                     input={input}
                     setInput={setInput}
                     handleSend={() => handleSend()}
-                    isDisabled={isTyping || isGeneratingProfile}
+                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
                     switchToVoiceMode={() => setConversationMode("voice")}
                   />
                 ) : conversationMode === "voice" ? (
                   <VoiceInput 
                     isListening={isListening}
                     toggleVoiceInput={toggleVoiceInput}
-                    isDisabled={isTyping || isGeneratingProfile}
+                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
                     isProcessing={isProcessing}
                     switchToTextMode={() => setConversationMode("text")}
                   />
                 ) : (
                   <SmsInput 
                     phoneNumber={phoneNumber}
-                    isDisabled={isTyping || isGeneratingProfile}
+                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
                     switchToTextMode={() => setConversationMode("text")}
                   />
                 )}
