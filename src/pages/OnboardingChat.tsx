@@ -55,10 +55,10 @@ const OnboardingChat = () => {
   
   // Control flow of onboarding steps
   useEffect(() => {
-    if (!showNameCollectionStep && !showCreateAccountPrompt && !userName) {
-      setShowNameCollectionStep(true);
-    }
-  }, [showNameCollectionStep, showCreateAccountPrompt, userName]);
+  if (!showNameCollectionStep && !showCreateAccountPrompt && !userName) {
+    setShowNameCollectionStep(true);
+  }
+}, [showNameCollectionStep, showCreateAccountPrompt, userName]);
 
   
   // When name is collected, show the help dialog
