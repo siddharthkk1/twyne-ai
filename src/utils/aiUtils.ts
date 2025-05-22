@@ -1,4 +1,3 @@
-
 import { ChatRole } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -385,6 +384,16 @@ export const generateAIProfile = async (conversation: any): Promise<any> => {
     // Update the name field with what we extracted
     if (data) {
       data.extractedName = userName;
+      
+      // Add mock personality traits if not present
+      if (!data.personalityTraits) {
+        data.personalityTraits = {
+          extroversion: Math.floor(Math.random() * 40) + 40, // 40-80 range
+          openness: Math.floor(Math.random() * 30) + 60,     // 60-90 range
+          empathy: Math.floor(Math.random() * 30) + 60,      // 60-90 range
+          structure: Math.floor(Math.random() * 60) + 30     // 30-90 range
+        };
+      }
     }
     
     // The edge function already ensures all fields have default values

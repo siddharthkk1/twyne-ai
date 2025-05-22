@@ -32,6 +32,21 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
     return tagColors[index % tagColors.length];
   };
 
+  // Helper function to ensure interests and personalInsights are arrays
+  const ensureArray = (value: string[] | string | undefined): string[] => {
+    if (!value) return [];
+    if (typeof value === 'string') return [value];
+    return value;
+  };
+
+  // Default personality traits if none provided
+  const defaultTraits = {
+    extroversion: 60,
+    openness: 70,
+    empathy: 80,
+    structure: 50
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="flex flex-col gap-8">
@@ -66,7 +81,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
               <div>
                 <h3 className="font-medium text-muted-foreground mb-2">Interests & Passions</h3>
                 <div className="flex flex-wrap gap-2">
-                  {userProfile.interests?.slice(0, 6).map((interest, i) => (
+                  {ensureArray(userProfile.interests).slice(0, 6).map((interest, i) => (
                     <span 
                       key={i} 
                       className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(i)}`}
@@ -82,7 +97,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 <div>
                   <h3 className="font-medium text-muted-foreground mb-2">Keywords That Describe You</h3>
                   <div className="flex flex-wrap gap-2">
-                    {userProfile.personalInsights?.slice(0, 5).map((trait, i) => (
+                    {ensureArray(userProfile.personalInsights).slice(0, 5).map((trait, i) => (
                       <span 
                         key={i} 
                         className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(i + 3)}`}
@@ -105,25 +120,23 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 <CardDescription>Based on our conversation, here's your social style and energy</CardDescription>
               </CardHeader>
               <CardContent>
-                <PersonalityChart />
+                <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
               </CardContent>
             </Card>
             
             {/* Social Style */}
             {userProfile.socialStyle && (
               <InsightCard 
-                title="How You Connect" 
-                content={userProfile.socialStyle} 
-                icon="users" 
+                insight={userProfile.socialStyle}
+                index={0}
               />
             )}
             
             {/* Connection Preferences */}
             {userProfile.connectionPreferences && (
               <InsightCard 
-                title="Connection Preferences" 
-                content={userProfile.connectionPreferences} 
-                icon="heart" 
+                insight={userProfile.connectionPreferences}
+                index={1}
               />
             )}
           </div>

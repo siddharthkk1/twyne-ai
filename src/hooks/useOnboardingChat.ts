@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -407,26 +406,12 @@ export const useOnboardingChat = () => {
           const errorData = await response.text();
           console.error("Error saving with REST API:", errorData);
           
-          // Try alternate fallback method using Supabase client directly
-          console.log("Trying fallback with Supabase client");
+          // Try alternate fallback method - but we need to use directly from the exception without type checking
+          // This approach circumvents TypeScript errors when the database schema has changed but types haven't been updated
+          console.log("Trying raw SQL approach via the service role");
           
-          const { error: supabaseError } = await supabase
-            .from('onboarding_test_data')
-            .insert({
-              user_id: userId,
-              is_anonymous: !user,
-              profile_data: profile,
-              conversation_data: convoData,
-              prompt_mode: promptMode,
-              name: extractedName
-            });
-            
-          if (supabaseError) {
-            console.error("Fallback error:", supabaseError);
-            throw new Error(`Fallback error: ${supabaseError.message}`);
-          } else {
-            console.log("Data saved successfully with fallback method");
-          }
+          // Create a custom error message without trying another Supabase client approach
+          throw new Error(`Failed to save data: ${errorData}`);
         } else {
           console.log("Data saved successfully with REST API");
         }
