@@ -225,6 +225,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
 
     // Use the length of userAnswers for accurate and fast counting
     const userMessageCount = conversation.userAnswers.length + 1;
+    console.log("userMessageCount: ", userMessageCount);
 
     let assistantGuidance = "";
 
