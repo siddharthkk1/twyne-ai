@@ -556,21 +556,20 @@ export const useOnboardingChat = () => {
       try {
         // Using direct supabase client approach which is more reliable
         const { error } = await supabase
-          .from('onboarding_test_data')
+          .from('onboarding_data')
           .insert({
             user_id: userId,
             is_anonymous: !user,
             profile_data: profile,
             conversation_data: convoData,
             prompt_mode: promptMode,
-            name: extractedName
           });
         
         if (error) {
           console.error("Error saving with Supabase client:", error);
           // Try fallback REST API approach
-          console.log("Attempting to save data with REST API to onboarding_test_data table");
-          const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_test_data`, {
+          console.log("Attempting to save data with REST API to onboarding_data table");
+          const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_data`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -584,7 +583,6 @@ export const useOnboardingChat = () => {
               profile_data: profile,
               conversation_data: convoData,
               prompt_mode: promptMode,
-              name: extractedName
             })
           });
           

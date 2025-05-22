@@ -26,7 +26,7 @@ export interface PersonalityTraits {
   structure: number;
 }
 
-// User profile type
+// User profile type with enhanced properties
 export interface UserProfile {
   name: string;
   location: string;
@@ -60,9 +60,16 @@ export interface UserProfile {
   socialNeeds?: string;
   coreValues?: string;
   lifeContext?: string;
-  vibeWords?: string[]; // Added missing vibeWords property
+  vibeWords?: string[];
   job?: string;
   ethnicity?: string;
   religion?: string;
   personalityTraits?: PersonalityTraits;
+  // New fields to store overview/vibe summary, background details, inner world, etc.
+  overview?: string;
+  innerWorld?: string;
+  connectionDetails?: string;
+  lifeStories?: string[];
+  beliefs?: string[];
+  goals?: string[];
 }
