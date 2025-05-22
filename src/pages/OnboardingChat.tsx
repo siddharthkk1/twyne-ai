@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -10,7 +11,7 @@ import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompl
 import ChatContainer from "@/components/onboarding/ChatContainer";
 import InputContainer from "@/components/onboarding/InputContainer";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 const OnboardingChat = () => {
@@ -132,6 +133,7 @@ const OnboardingChat = () => {
       {/* Help dialog - shown in the middle of the screen */}
       <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
         <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="sr-only">How This Conversation Works</DialogTitle>
           <div className="space-y-4 py-2">
             <h2 className="text-xl font-semibold">How This Conversation Works</h2>
             
