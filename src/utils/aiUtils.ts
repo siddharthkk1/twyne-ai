@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Conversation, UserProfile } from '@/types/chat';
 
@@ -75,6 +76,15 @@ Your goal is to get to know the user on a personal level, so you can introduce t
 Ask open-ended questions that encourage self-expression, and be a good listener.
 Keep the conversation casual and authentic.
 `;
+
+// Seed messages for playful conversation mode
+export const PLAYFUL_SEED_MESSAGES = [
+  "yo.||not gonna hit you with the corporate welcome speech||just curious — what kind of energy are you walking around with lately?",
+  "yo. i don't know anything about you yet — which makes this fun.||you more 'mysterious chill' or 'tell-me-your-life-story-at-2am' energy?",
+  "hey — i'm twyne.||i intro people to others they'll actually vibe with, but first i gotta figure you out||so... what kind of energy have you been on lately?",
+  "lemme guess — you either overshare to strangers or it takes a while to unlock you||which one am i getting today?",
+  "ok, real question before we start||are you the kind of person who overshares to strangers, or do i have to work for it a little?"
+];
 
 // Function to get AI response
 export const getAIResponse = async (conversation: Conversation, userMessage: string, assistantGuidance?: string): Promise<string> => {
@@ -176,7 +186,7 @@ export const generateAIProfile = async (conversation: Conversation): Promise<Use
 
     return data;
   } catch (err) {
-    console.error("Error generating AI profile:", err);
+    console.error("Error generating profile:", err);
     throw err;
   }
 };
@@ -201,4 +211,10 @@ export const transcribeAudio = async (audioBlob: string, language?: string): Pro
     console.error("Error transcribing audio:", err);
     throw err;
   }
+};
+
+// Get a random seed message for the playful mode
+export const getRandomSeedMessage = (): string => {
+  const randomIndex = Math.floor(Math.random() * PLAYFUL_SEED_MESSAGES.length);
+  return PLAYFUL_SEED_MESSAGES[randomIndex];
 };

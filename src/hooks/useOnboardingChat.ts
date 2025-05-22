@@ -4,8 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
-import { SYSTEM_PROMPT_STRUCTURED, SYSTEM_PROMPT_PLAYFUL, SYSTEM_PROMPT_YOUNG_ADULT } from '@/utils/aiUtils';
-import { getAIResponse, generateAIProfile } from '@/utils/aiUtils';
+import { 
+  SYSTEM_PROMPT_STRUCTURED, 
+  SYSTEM_PROMPT_PLAYFUL, 
+  SYSTEM_PROMPT_YOUNG_ADULT,
+  getAIResponse, 
+  generateAIProfile,
+  getRandomSeedMessage 
+} from '@/utils/aiUtils';
 
 // Maximum number of messages before automatically completing the onboarding
 const MESSAGE_CAP = 34;
@@ -85,12 +91,19 @@ export const useOnboardingChat = () => {
         userAnswers: []
       };
       
-      // Get AI greeting
-      const aiGreeting = await getAIResponse(
-        initialConversation, 
-        "", // Empty user message to trigger greeting
-        "Please introduce yourself and ask for the user's name in a conversational way."
-      );
+      let aiGreeting: string;
+      
+      // Use a seed message if in playful mode, otherwise get from AI
+      if (promptMode === "playful") {
+        aiGreeting = getRandomSeedMessage();
+      } else {
+        // Get AI greeting
+        aiGreeting = await getAIResponse(
+          initialConversation, 
+          "", // Empty user message to trigger greeting
+          "Please introduce yourself and ask for the user's name in a conversational way."
+        );
+      }
       
       // Add AI greeting to messages
       const greetingMessage: Message = {
@@ -114,19 +127,27 @@ export const useOnboardingChat = () => {
       console.error("Failed to initialize chat:", error);
       
       // Fallback greeting if AI fails
-      const fallbackGreeting: Message = {
+      let fallbackGreeting: string;
+      
+      if (promptMode === "playful") {
+        fallbackGreeting = getRandomSeedMessage();
+      } else {
+        fallbackGreeting = "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?";
+      }
+      
+      const fallbackMessage: Message = {
         id: 1,
-        text: "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?",
+        text: fallbackGreeting,
         sender: "ai"
       };
       
-      setMessages([fallbackGreeting]);
+      setMessages([fallbackMessage]);
       
       // Update conversation with fallback greeting
       setConversation({
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "assistant", content: fallbackGreeting.text }
+          { role: "assistant", content: fallbackGreeting }
         ],
         userAnswers: []
       });
@@ -382,182 +403,6 @@ export const useOnboardingChat = () => {
     }
   };
 
-  // Updated saveOnboardingData function to use the new table name and include name field
-  const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
-    try {
-      console.log("Starting saveOnboardingData function");
-      console.log("User auth state:", user ? "Logged in" : "Anonymous");
-      
-      // Get a unique ID for anonymous users
-      const anonymousId = localStorage.getItem('anonymous_twyne_id') || crypto.randomUUID();
-      
-      // If this is a new anonymous user, save the ID
-      if (!localStorage.getItem('anonymous_twyne_id')) {
-        localStorage.setItem('anonymous_twyne_id', anonymousId);
-      }
-      
-      // If user is logged in, save with user ID, otherwise use anonymous ID
-      const userId = user?.id || anonymousId;
-      console.log("Using ID for save:", userId);
-      console.log("Is anonymous:", !user);
-      
-      // Extract name - use the first user message or "N/A"
-      const extractedName = userName || "N/A";
-      console.log("Extracted name for saving:", extractedName);
-      
-      // Debug profile and conversation data
-      console.log("Profile data to save:", profile);
-      console.log("Conversation data length:", convoData.messages.length);
-      
-      try {
-        // First attempt - Using direct REST API approach to avoid type issues
-        console.log("Attempting to save data with REST API to onboarding_test_data table");
-        const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_test_data`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-            'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            is_anonymous: !user,
-            profile_data: profile,
-            conversation_data: convoData,
-            prompt_mode: promptMode,
-            name: extractedName
-          })
-        });
-        
-        console.log("REST API response status:", response.status);
-        
-        if (!response.ok) {
-          const errorData = await response.text();
-          console.error("Error saving with REST API:", errorData);
-          
-          // Try alternate fallback method - but we need to use directly from the exception without type checking
-          // This approach circumvents TypeScript errors when the database schema has changed but types haven't been updated
-          console.log("Trying raw SQL approach via the service role");
-          
-          // Create a custom error message without trying another Supabase client approach
-          throw new Error(`Failed to save data: ${errorData}`);
-        } else {
-          console.log("Data saved successfully with REST API");
-        }
-        
-        // If user is logged in, update their metadata
-        if (user) {
-          markUserAsOnboarded(profile);
-        }
-        
-        // Show success message to user
-        toast({
-          title: "Profile Saved",
-          description: "Your profile has been saved successfully!",
-        });
-      } catch (innerError) {
-        console.error("Error in save operation:", innerError);
-        
-        // Show error toast for save operation failure
-        toast({
-          title: "Error",
-          description: "Failed to save your profile data. Please try again or contact support.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error in saveOnboardingData:", error);
-      
-      // Show generic error message for uncaught exceptions
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while saving your data.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // New function to handle SMS conversation
-  const handleSmsResponse = async (userMessage: string, draftConversation: Conversation) => {
-    try {
-      // In a real implementation, this would call the SMS edge function
-      console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
-      
-      // For the demo, we'll simulate the SMS flow with the regular AI response
-      const aiResponse = await getAIResponse(conversation, userMessage);
-      
-      // Log the simulated SMS response
-      console.log(`Would receive SMS response: ${aiResponse}`);
-      
-      // Update UI as if we got the response via SMS
-      const newAiMessage: Message = {
-        id: messages.length + 2,
-        text: aiResponse,
-        sender: "ai",
-      };
-
-      const updatedConversation: Conversation = {
-        messages: [
-          ...conversation.messages,
-          { role: "user" as ChatRole, content: userMessage },
-          { role: "assistant" as ChatRole, content: aiResponse }
-        ],
-        userAnswers: [...conversation.userAnswers, userMessage]
-      };
-
-      setMessages(prev => [...prev, newAiMessage]);
-      setConversation(updatedConversation);
-      setIsTyping(false);
-      
-      // Here you would typically store the phone number and SMS conversation state
-      // For the demo, we'll just set the phone number in the state
-      setPhoneNumber(phoneNumber);
-      
-    } catch (error) {
-      console.error("Error in SMS conversation:", error);
-      setIsTyping(false);
-      
-      // Show error toast
-      toast({
-        title: "SMS service error",
-        description: "We encountered an issue with the SMS service. Please try again or choose a different conversation mode.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const markUserAsOnboarded = async (profile: UserProfile) => {
-    if (user) {
-      try {
-        console.log("Attempting to mark user as onboarded");
-        // Save user profile data to user metadata
-        const { error } = await supabase.auth.updateUser({
-          data: { 
-            has_onboarded: true,
-            profile_data: profile,
-            conversation_data: conversation
-          }
-        });
-        
-        if (error) {
-          console.error("Error updating user metadata:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update your profile. Please try again.",
-            variant: "destructive",
-          });
-        } else {
-          // Clear the new user flag after successful onboarding
-          clearNewUserFlag();
-          console.log("User has been marked as onboarded");
-        }
-      } catch (error) {
-        console.error("Error marking user as onboarded:", error);
-      }
-    }
-  };
-
   // Get progress percent based on conversation length
   const getProgress = (): number => {
     // Start at 10%, increase based on number of messages
@@ -633,6 +478,174 @@ export const useOnboardingChat = () => {
         description: "Failed to start SMS conversation. Please try again or choose a different option.",
         variant: "destructive",
       });
+    }
+  };
+
+  // Handling SMS response (simplified for this implementation)
+  const handleSmsResponse = async (userMessage: string, draftConversation: Conversation) => {
+    try {
+      // In a real implementation, this would call the SMS edge function
+      console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
+      
+      // For the demo, we'll simulate the SMS flow with the regular AI response
+      const aiResponse = await getAIResponse(conversation, userMessage);
+      
+      // Log the simulated SMS response
+      console.log(`Would receive SMS response: ${aiResponse}`);
+      
+      // Update UI as if we got the response via SMS
+      const newAiMessage: Message = {
+        id: messages.length + 2,
+        text: aiResponse,
+        sender: "ai",
+      };
+
+      const updatedConversation: Conversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user" as ChatRole, content: userMessage },
+          { role: "assistant" as ChatRole, content: aiResponse }
+        ],
+        userAnswers: [...conversation.userAnswers, userMessage]
+      };
+
+      setMessages(prev => [...prev, newAiMessage]);
+      setConversation(updatedConversation);
+      setIsTyping(false);
+      
+    } catch (error) {
+      console.error("Error in SMS conversation:", error);
+      setIsTyping(false);
+      
+      // Show error toast
+      toast({
+        title: "SMS service error",
+        description: "We encountered an issue with the SMS service. Please try again or choose a different conversation mode.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Save onboarding data
+  const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
+    try {
+      console.log("Starting saveOnboardingData function");
+      console.log("User auth state:", user ? "Logged in" : "Anonymous");
+      
+      // Get a unique ID for anonymous users
+      const anonymousId = localStorage.getItem('anonymous_twyne_id') || crypto.randomUUID();
+      
+      // If this is a new anonymous user, save the ID
+      if (!localStorage.getItem('anonymous_twyne_id')) {
+        localStorage.setItem('anonymous_twyne_id', anonymousId);
+      }
+      
+      // If user is logged in, save with user ID, otherwise use anonymous ID
+      const userId = user?.id || anonymousId;
+      console.log("Using ID for save:", userId);
+      console.log("Is anonymous:", !user);
+      
+      // Extract name - use the first user message or "N/A"
+      const extractedName = userName || "N/A";
+      console.log("Extracted name for saving:", extractedName);
+      
+      // Debug profile and conversation data
+      console.log("Profile data to save:", profile);
+      console.log("Conversation data length:", convoData.messages.length);
+      
+      try {
+        // First attempt - Using direct REST API approach to avoid type issues
+        console.log("Attempting to save data with REST API to onboarding_test_data table");
+        const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_test_data`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+            'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            is_anonymous: !user,
+            profile_data: profile,
+            conversation_data: convoData,
+            prompt_mode: promptMode,
+            name: extractedName
+          })
+        });
+        
+        console.log("REST API response status:", response.status);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Error saving with REST API:", errorData);
+          
+          // Create a custom error message without trying another Supabase client approach
+          throw new Error(`Failed to save data: ${errorData}`);
+        } else {
+          console.log("Data saved successfully with REST API");
+        }
+        
+        // If user is logged in, update their metadata
+        if (user) {
+          markUserAsOnboarded(profile);
+        }
+        
+        // Show success message to user
+        toast({
+          title: "Profile Saved",
+          description: "Your profile has been saved successfully!",
+        });
+      } catch (innerError) {
+        console.error("Error in save operation:", innerError);
+        
+        // Show error toast for save operation failure
+        toast({
+          title: "Error",
+          description: "Failed to save your profile data. Please try again or contact support.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error in saveOnboardingData:", error);
+      
+      // Show generic error message for uncaught exceptions
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving your data.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const markUserAsOnboarded = async (profile: UserProfile) => {
+    if (user) {
+      try {
+        console.log("Attempting to mark user as onboarded");
+        // Save user profile data to user metadata
+        const { error } = await supabase.auth.updateUser({
+          data: { 
+            has_onboarded: true,
+            profile_data: profile,
+            conversation_data: conversation
+          }
+        });
+        
+        if (error) {
+          console.error("Error updating user metadata:", error);
+          toast({
+            title: "Error",
+            description: "Failed to update your profile. Please try again.",
+            variant: "destructive",
+          });
+        } else {
+          // Clear the new user flag after successful onboarding
+          clearNewUserFlag();
+          console.log("User has been marked as onboarded");
+        }
+      } catch (error) {
+        console.error("Error marking user as onboarded:", error);
+      }
     }
   };
 
