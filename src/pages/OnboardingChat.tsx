@@ -53,7 +53,10 @@ const OnboardingChat = () => {
   // Add state for name collection step
   const [showNameCollectionStep, setShowNameCollectionStep] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
-  const [nameCollectionComplete, setNameCollectionComplete] = useState(false);
+  const [nameCollectionComplete, setNameCollectionComplete] = useState(() => {
+    // Check if we have userName already in localStorage
+    return !!userName;
+  });
   
   // Control flow of onboarding steps - fixed to prevent loop
   useEffect(() => {
@@ -61,7 +64,6 @@ const OnboardingChat = () => {
       setShowNameCollectionStep(true);
     }
   }, [showNameCollectionStep, showCreateAccountPrompt, userName, nameCollectionComplete]);
-
   
   // When name is collected, show the help dialog
   useEffect(() => {

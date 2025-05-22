@@ -10,9 +10,24 @@ export const useOnboardingMessages = (
 ) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [userName, setUserName] = useState<string>("");
+  
+  // Initialize userName from localStorage to persist across refreshes
+  const [userName, setUserName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('onboarding_userName') || "";
+    }
+    return "";
+  });
+  
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
+  // Update localStorage when userName changes
+  useEffect(() => {
+    if (userName) {
+      localStorage.setItem('onboarding_userName', userName);
+    }
+  }, [userName]);
+
   // Handle sending messages and getting AI responses
   const handleAIResponse = async (
     textToSend: string,
