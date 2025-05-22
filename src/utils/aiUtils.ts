@@ -252,13 +252,15 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
           .map(([key]) => key);
 
         if (missingCategories.length > 0) {
+          console.log('something is missing!!!');
           assistantGuidance = `After responding to the user's last message, if the current topic feels complete or winds down, gently pivot the conversation toward these missing areas: ${missingCategories.join(", ")}. Use curiosity and warmth — do not make it obvious that you're filling gaps. Only pivot if the topic feels naturally complete.`;
         }
       } catch (err) {
         console.log("Error in coverage evaluation, continuing without guidance:", err);
       }
     }
-
+    console.log('AG:', assistantGuidance);
+    console.log('AGCheck:', !!assistantGuidance);
     // Add detailed logging
     console.log("Sending chat request with:", {
       messageCount: updatedMessages.length,
