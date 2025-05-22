@@ -8,7 +8,7 @@ interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
   onMessagePartVisible?: () => void;
-  userName?: string; // Add userName prop
+  userName?: string;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ 
@@ -50,8 +50,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           setTimeout(() => {
             setVisibleParts(prev => {
               const newParts = [...prev, index];
-              // Trigger scroll callback when bubble appears
-              onMessagePartVisible?.();
+              // Important: Trigger scroll callback when a new message bubble appears
+              requestAnimationFrame(() => {
+                onMessagePartVisible?.();
+              });
               return newParts;
             });
           }, delay);

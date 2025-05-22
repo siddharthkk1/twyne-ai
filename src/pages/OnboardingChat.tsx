@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
@@ -53,26 +53,76 @@ const OnboardingChat = () => {
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
   
+  // Track if user has manually scrolled up
+  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
+  
+  // Store the last scroll position to determine scroll direction
+  const lastScrollTopRef = useRef<number>(0);
+  
   // Define a function to scroll to bottom with smooth animation
   const scrollToBottom = useCallback(() => {
-    if (scrollViewportRef.current) {
-      const scrollElement = scrollViewportRef.current;
-      scrollElement.scrollTo({
-        top: scrollElement.scrollHeight,
-        behavior: "smooth"
-      });
-    }
+    if (!scrollViewportRef.current || userHasScrolledUp) return;
+    
+    const scrollElement = scrollViewportRef.current;
+    scrollElement.scrollTo({
+      top: scrollElement.scrollHeight,
+      behavior: "smooth"
+    });
     
     // Also use the messagesEndRef for additional scrolling support
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messagesEndRef]);
+  }, [messagesEndRef, userHasScrolledUp]);
 
+  // Handle user scroll events to detect if they've scrolled up
+  const handleScroll = useCallback(() => {
+    if (!scrollViewportRef.current) return;
+    
+    const scrollElement = scrollViewportRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+    
+    // Detect scroll direction
+    const isScrollingUp = scrollTop < lastScrollTopRef.current;
+    lastScrollTopRef.current = scrollTop;
+    
+    // Calculate how close to bottom (within 100px)
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    
+    // If user is scrolling up and not near bottom, they're reading history
+    if (isScrollingUp && !isNearBottom) {
+      setUserHasScrolledUp(true);
+    }
+    
+    // If user manually scrolls to bottom, reset the flag
+    if (isNearBottom) {
+      setUserHasScrolledUp(false);
+    }
+  }, []);
+  
   // Force scroll to bottom whenever a new message is added or typing status changes
   useEffect(() => {
     scrollToBottom();
   }, [messages.length, isTyping, scrollToBottom]);
+  
+  // Reset user scroll state when user sends a new message
+  useEffect(() => {
+    const resetScrollState = () => {
+      setUserHasScrolledUp(false);
+      requestAnimationFrame(scrollToBottom);
+    };
+    
+    // Create a shallow copy to detect when the length changes
+    const messageIds = messages.map(m => m.id);
+    
+    return () => {
+      // When messages change, check if a new one was added
+      const newMessageIds = messages.map(m => m.id);
+      if (newMessageIds.length > messageIds.length) {
+        resetScrollState();
+      }
+    };
+  }, [messages, scrollToBottom]);
   
   // Scroll to top when profile is complete
   useEffect(() => {
@@ -90,11 +140,15 @@ const OnboardingChat = () => {
     
     // Create both a resize observer and mutation observer
     const resizeObserver = new ResizeObserver(() => {
-      scrollToBottom();
+      if (!userHasScrolledUp) {
+        scrollToBottom();
+      }
     });
     
     const mutationObserver = new MutationObserver(() => {
-      scrollToBottom();
+      if (!userHasScrolledUp) {
+        scrollToBottom();
+      }
     });
     
     // Start observing
@@ -108,20 +162,20 @@ const OnboardingChat = () => {
       });
     }
     
-    // Also set up a regular interval to check scroll position
-    const scrollInterval = setInterval(scrollToBottom, 1000);
-    
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
-      clearInterval(scrollInterval);
     };
-  }, [isComplete, scrollToBottom]);
+  }, [isComplete, scrollToBottom, userHasScrolledUp]);
   
   // Handle scroll to bottom whenever a new message part becomes visible
   const handleMessagePartVisible = useCallback(() => {
-    requestAnimationFrame(scrollToBottom);
-  }, [scrollToBottom]);
+    requestAnimationFrame(() => {
+      if (!userHasScrolledUp) {
+        scrollToBottom();
+      }
+    });
+  }, [scrollToBottom, userHasScrolledUp]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
@@ -144,6 +198,7 @@ const OnboardingChat = () => {
           <ScrollArea 
             className="flex-1 p-4 pt-24 overflow-hidden" 
             viewportRef={scrollViewportRef}
+            onViewportScroll={handleScroll}
           >
             <div className="space-y-4 pb-24 max-w-3xl mx-auto">
               {/* Prompt Mode Selector */}
@@ -202,6 +257,8 @@ const OnboardingChat = () => {
                     setInput={setInput}
                     handleSend={() => {
                       handleSend();
+                      // Reset userHasScrolledUp when user sends a message
+                      setUserHasScrolledUp(false);
                       // Force scroll to bottom after sending
                       setTimeout(scrollToBottom, 100);
                     }}
@@ -211,7 +268,11 @@ const OnboardingChat = () => {
                 ) : conversationMode === "voice" ? (
                   <VoiceInput 
                     isListening={isListening}
-                    toggleVoiceInput={toggleVoiceInput}
+                    toggleVoiceInput={() => {
+                      toggleVoiceInput();
+                      // Reset userHasScrolledUp when starting voice input
+                      setUserHasScrolledUp(false);
+                    }}
                     isDisabled={isTyping || isGeneratingProfile || isInitializing}
                     isProcessing={isProcessing}
                     switchToTextMode={() => setConversationMode("text")}
