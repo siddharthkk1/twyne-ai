@@ -51,64 +51,64 @@ const OnboardingChat = () => {
   // Add a ref for the ScrollArea viewport
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   
-  // Define a function to scroll to bottom
+  // Define a function to scroll to bottom with smooth animation
   const scrollToBottom = useCallback(() => {
     if (scrollViewportRef.current) {
       const scrollElement = scrollViewportRef.current;
-      scrollElement.scrollTop = scrollElement.scrollHeight;
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: "smooth"
+      });
     }
     
     // Also use the messagesEndRef for additional scrolling support
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messagesEndRef]);
-  
-  // Force scroll to bottom whenever messages or typing status changes
+
+  // Force scroll to bottom whenever a new message is added or typing status changes
   useEffect(() => {
-    // Immediate scroll
     scrollToBottom();
-    
-    // Schedule additional scrolls to ensure it happens after any rendering delays
-    // These multiple timers help ensure scrolling happens even if renders are delayed
-    const timers = [
-      setTimeout(scrollToBottom, 50),
-      setTimeout(scrollToBottom, 150),
-      setTimeout(scrollToBottom, 300),
-      setTimeout(scrollToBottom, 500)
-    ];
-    
-    return () => timers.forEach(clearTimeout);
-  }, [messages, isTyping, scrollToBottom]);
+  }, [messages.length, isTyping, scrollToBottom]);
   
-  // Set up a MutationObserver to detect DOM changes and scroll to bottom
+  // Set up a ResizeObserver to handle window and content size changes
   useEffect(() => {
-    // Skip if we're not in the chat view
-    if (isComplete || !scrollViewportRef.current) return;
+    if (!scrollViewportRef.current || isComplete) return;
     
-    // Create a MutationObserver that will scroll to bottom when content is added
-    const observer = new MutationObserver(() => {
+    // Create both a resize observer and mutation observer
+    const resizeObserver = new ResizeObserver(() => {
       scrollToBottom();
     });
     
-    // Start observing the chat container for changes
+    const mutationObserver = new MutationObserver(() => {
+      scrollToBottom();
+    });
+    
+    // Start observing
     if (scrollViewportRef.current) {
-      observer.observe(scrollViewportRef.current, {
-        childList: true,
-        subtree: true
+      resizeObserver.observe(scrollViewportRef.current);
+      mutationObserver.observe(scrollViewportRef.current, {
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        characterData: true
       });
     }
     
+    // Also set up a regular interval to check scroll position
+    const scrollInterval = setInterval(scrollToBottom, 1000);
+    
     return () => {
-      observer.disconnect();
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      clearInterval(scrollInterval);
     };
   }, [isComplete, scrollToBottom]);
   
-  // Handle window resize events
-  useEffect(() => {
-    const handleResize = () => scrollToBottom();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+  // Handle scroll to bottom whenever a new message part becomes visible
+  const handleMessagePartVisible = useCallback(() => {
+    requestAnimationFrame(scrollToBottom);
   }, [scrollToBottom]);
 
   return (
@@ -130,10 +130,10 @@ const OnboardingChat = () => {
           
           {/* Chat content with ScrollArea */}
           <ScrollArea 
-            className="flex-1 p-4 pt-24" 
+            className="flex-1 p-4 pt-24 overflow-hidden" 
             viewportRef={scrollViewportRef}
           >
-            <div className="space-y-4 pb-4 max-w-3xl mx-auto">
+            <div className="space-y-4 pb-24 max-w-3xl mx-auto">
               {/* Prompt Mode Selector */}
               <div className="flex justify-end mb-2">
                 <PromptModeSelector 
@@ -154,19 +154,26 @@ const OnboardingChat = () => {
                     <MessageBubble 
                       key={message.id}
                       message={message} 
-                      nameInitial={getNameInitial()} 
+                      nameInitial={getNameInitial()}
+                      onMessagePartVisible={handleMessagePartVisible}
                     />
                   ))}
                 </>
               )}
               
-              {isTyping && !isInitializing && <TypingIndicator />}
+              {isTyping && !isInitializing && (
+                <div>
+                  <TypingIndicator />
+                  {/* Invisible element that helps with scrolling when typing indicator appears */}
+                  <div className="h-16" />
+                </div>
+              )}
               {isGeneratingProfile && <LoadingScreen />}
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} className="h-4" /> {/* Add some height to ensure we can scroll past the last message */}
             </div>
           </ScrollArea>
 
-          <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0">
+          <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0 z-10">
             <div className="max-w-3xl mx-auto">
               {/* Quick Action Buttons moved above the input */}
               <QuickActionButtons 
@@ -180,7 +187,11 @@ const OnboardingChat = () => {
                   <TextInput 
                     input={input}
                     setInput={setInput}
-                    handleSend={() => handleSend()}
+                    handleSend={() => {
+                      handleSend();
+                      // Force scroll to bottom after sending
+                      setTimeout(scrollToBottom, 100);
+                    }}
                     isDisabled={isTyping || isGeneratingProfile || isInitializing}
                     switchToVoiceMode={() => setConversationMode("voice")}
                   />

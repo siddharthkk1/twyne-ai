@@ -7,9 +7,14 @@ import { Message } from '@/types/chat';
 interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
+  onMessagePartVisible?: () => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, nameInitial }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ 
+  message, 
+  nameInitial,
+  onMessagePartVisible 
+}) => {
   // Split message text by || divider to create multiple message bubbles
   const messageParts = message.sender === "ai" 
     ? message.text.split("||") 
@@ -23,6 +28,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, nameInitial }) =
     if (message.sender === "ai") {
       // Show first part immediately
       setVisibleParts([0]);
+      // Trigger scroll for first bubble
+      onMessagePartVisible?.();
       
       // Show subsequent parts with varied delays
       messageParts.forEach((_, index) => {
@@ -33,15 +40,22 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, nameInitial }) =
           const delay = baseDelay + (index * incrementDelay);
           
           setTimeout(() => {
-            setVisibleParts(prev => [...prev, index]);
+            setVisibleParts(prev => {
+              const newParts = [...prev, index];
+              // Trigger scroll callback when bubble appears
+              onMessagePartVisible?.();
+              return newParts;
+            });
           }, delay);
         }
       });
     } else {
       // Show user messages immediately
       setVisibleParts([...Array(messageParts.length).keys()]);
+      // Trigger scroll for user message
+      onMessagePartVisible?.();
     }
-  }, [message.id, messageParts.length, message.sender]);
+  }, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
 
   // Create placeholder divs for parts that will be visible later to prevent layout shifts
   const allMessageParts = messageParts.map((part, index) => {
@@ -53,7 +67,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, nameInitial }) =
         className={`flex ${
           message.sender === "user" ? "justify-end" : "justify-start"
         } mb-2`}
-        // Set minimal height to reduce layout shift, but only for parts not yet visible
         style={!isVisible ? { 
           visibility: 'hidden', 
           height: '0px', 
