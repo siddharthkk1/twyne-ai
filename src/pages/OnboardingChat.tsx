@@ -43,13 +43,15 @@ const OnboardingChat = () => {
     getProgress,
     handleModeSelection,
     getNameInitial,
-    handleSend
+    handleSend,
+    userName
   } = useOnboardingChat();
 
   const { isListening, isProcessing, toggleVoiceInput } = useVoiceRecording(handleSend);
 
   // Add a ref for the ScrollArea viewport
   const scrollViewportRef = useRef<HTMLDivElement>(null);
+  const dashboardRef = useRef<HTMLDivElement>(null);
   
   // Define a function to scroll to bottom with smooth animation
   const scrollToBottom = useCallback(() => {
@@ -71,6 +73,16 @@ const OnboardingChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages.length, isTyping, scrollToBottom]);
+  
+  // Scroll to top when profile is complete
+  useEffect(() => {
+    if (isComplete && dashboardRef.current) {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+  }, [isComplete]);
   
   // Set up a ResizeObserver to handle window and content size changes
   useEffect(() => {
@@ -156,6 +168,7 @@ const OnboardingChat = () => {
                       message={message} 
                       nameInitial={getNameInitial()}
                       onMessagePartVisible={handleMessagePartVisible}
+                      userName={userName}
                     />
                   ))}
                 </>
@@ -231,7 +244,7 @@ const OnboardingChat = () => {
         </>
       ) : (
         <>          
-          <div className="flex-1 p-4">
+          <div ref={dashboardRef} className="flex-1 p-4 scroll-smooth">
             <ProfileCompletionDashboard 
               userProfile={userProfile} 
             />

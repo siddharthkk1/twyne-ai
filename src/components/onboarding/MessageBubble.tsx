@@ -8,12 +8,14 @@ interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
   onMessagePartVisible?: () => void;
+  userName?: string; // Add userName prop
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ 
   message, 
   nameInitial,
-  onMessagePartVisible 
+  onMessagePartVisible,
+  userName
 }) => {
   // Split message text by || divider to create multiple message bubbles
   const messageParts = message.sender === "ai" 
@@ -22,6 +24,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   
   // State to track which parts of the message are visible
   const [visibleParts, setVisibleParts] = useState<number[]>([]);
+
+  // Personalize AI messages by replacing {{name}} placeholder with actual name if provided
+  const personalizeMessage = (text: string) => {
+    if (!userName || userName === "") return text;
+    return text.replace(/{{name}}/g, userName);
+  };
 
   // Add staggered appearance effect for AI messages with slightly varied delays
   useEffect(() => {
@@ -60,6 +68,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   // Create placeholder divs for parts that will be visible later to prevent layout shifts
   const allMessageParts = messageParts.map((part, index) => {
     const isVisible = visibleParts.includes(index);
+    const personalizedText = message.sender === "ai" ? personalizeMessage(part) : part;
     
     return (
       <div
@@ -93,7 +102,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
           } rounded-2xl p-4 max-w-[85%] md:max-w-[70%]`}
         >
-          {part.trim()}
+          {personalizedText.trim()}
         </div>
         {message.sender === "user" && (
           <div className="ml-2 mt-1 flex-shrink-0">
