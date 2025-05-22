@@ -28,7 +28,7 @@ export const useOnboardingAI = () => {
     try {
       // Create initial conversation with just the system prompt
       const initialConversation: Conversation = {
-        messages: [{ role: "system", content: systemPrompt }],
+        messages: [{ role: "system" as ChatRole, content: systemPrompt }],
         userAnswers: []
       };
       
@@ -50,7 +50,7 @@ export const useOnboardingAI = () => {
       const updatedConversation = {
         messages: [
           ...initialConversation.messages,
-          { role: "assistant", content: aiGreeting }
+          { role: "assistant" as ChatRole, content: aiGreeting }
         ],
         userAnswers: []
       };
@@ -70,8 +70,8 @@ export const useOnboardingAI = () => {
       
       const fallbackConversation = {
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "assistant", content: fallbackGreeting }
+          { role: "system" as ChatRole, content: systemPrompt },
+          { role: "assistant" as ChatRole, content: fallbackGreeting }
         ],
         userAnswers: []
       };

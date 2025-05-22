@@ -110,7 +110,7 @@ export const useOnboardingChat = () => {
     
     // Fix: Create a properly typed message object
     const initialMessage: { role: ChatRole; content: string } = {
-      role: "system",
+      role: "system" as ChatRole,
       content: systemPrompt
     };
     
@@ -194,12 +194,12 @@ export const useOnboardingChat = () => {
 
       // Update conversation with user's final message - Fix typing here
       const userMessageObj: { role: ChatRole; content: string } = { 
-        role: "user", 
+        role: "user" as ChatRole, 
         content: textToSend 
       };
       
       const assistantMessageObj: { role: ChatRole; content: string } = { 
-        role: "assistant", 
+        role: "assistant" as ChatRole, 
         content: closingMessage.text 
       };
 
@@ -246,7 +246,7 @@ export const useOnboardingChat = () => {
 
     // Prepare conversation data for API request - Fix typing here
     const userMessageObj: { role: ChatRole; content: string } = { 
-      role: "user", 
+      role: "user" as ChatRole, 
       content: textToSend 
     };
     
@@ -290,7 +290,7 @@ export const useOnboardingChat = () => {
 
         // Update final conversation state with closing message - Fix typing here
         const assistantMessageObj: { role: ChatRole; content: string } = { 
-          role: "assistant", 
+          role: "assistant" as ChatRole, 
           content: closingMessage.text 
         };
         

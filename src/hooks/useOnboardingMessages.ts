@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Message } from '@/types/chat';
+import { Message, ChatRole } from '@/types/chat';
 import { toast } from "@/components/ui/use-toast";
 import { getAIResponse } from '@/utils/aiUtils';
 
@@ -46,8 +46,8 @@ export const useOnboardingMessages = (
       const updatedConversation = {
         messages: [
           ...conversation.messages,
-          { role: "user", content: textToSend },
-          { role: "assistant", content: aiResponse }
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: aiResponse }
         ],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
@@ -72,8 +72,8 @@ export const useOnboardingMessages = (
       const updatedConversation = {
         messages: [
           ...conversation.messages,
-          { role: "user", content: textToSend },
-          { role: "assistant", content: fallbackResponse }
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: fallbackResponse }
         ],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
