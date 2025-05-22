@@ -16,7 +16,7 @@ import VoiceInput from "@/components/onboarding/VoiceInput";
 import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
 import PromptModeSelector from "@/components/onboarding/PromptModeSelector";
-import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
+import ProfileCompletionDashboard from "@/components/onboarding/ProfileCompletionDashboard";
 
 const OnboardingChat = () => {
   const {
@@ -143,9 +143,8 @@ const OnboardingChat = () => {
       ) : (
         <>          
           <div className="flex-1 p-4">
-            <ProfileInsightsDashboard 
-              profileData={userProfile} 
-              nameInitial={getNameInitial()}
+            <ProfileCompletionDashboard 
+              userProfile={userProfile} 
             />
           </div>
         </>

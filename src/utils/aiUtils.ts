@@ -153,7 +153,7 @@ You also **mirror their energy**. You adapt your rhythm, humor, and tone to matc
 Let's go vibe with them.
 `;
 
-// New system prompt for college students and young adults
+// New system prompt for college students and young adults (renamed to "Chill Talk")
 export const SYSTEM_PROMPT_YOUNG_ADULT = `
 You are Twyne — an emotionally aware, relaxed AI that chats with 18–25-year-olds (college students and new grads) to get to know them and connect them with people they'll genuinely vibe with.
 
@@ -184,8 +184,8 @@ Your tone is warm, thoughtful, and casual — like someone who's good at vibing 
 Your goal is for the user to walk away thinking: "That felt real. I feel like this app actually gets me."
 `;
 
-// Default system prompt (keeping the original one for backwards compatibility)
-export const SYSTEM_PROMPT = SYSTEM_PROMPT_STRUCTURED;
+// Default system prompt is now the young adult/chill talk one (keeping SYSTEM_PROMPT for backwards compatibility)
+export const SYSTEM_PROMPT = SYSTEM_PROMPT_YOUNG_ADULT;
 
 // Profile generation prompt - updated to match new dashboard model
 export const PROFILE_GENERATION_PROMPT = `

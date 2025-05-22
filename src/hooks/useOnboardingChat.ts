@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,19 +49,19 @@ const initialMessagesYoungAdult: Message[] = [
 ];
 
 // Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 28;
+const MESSAGE_CAP = 34;
 
 export type PromptModeType = "structured" | "playful" | "young-adult";
 
 export const useOnboardingChat = () => {
-  const [promptMode, setPromptMode] = useState<PromptModeType>("structured");
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [promptMode, setPromptMode] = useState<PromptModeType>("young-adult");
+  const [messages, setMessages] = useState<Message[]>(initialMessagesYoungAdult);
   const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [conversation, setConversation] = useState<Conversation>({
-    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_STRUCTURED }],
+    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_YOUNG_ADULT }],
     userAnswers: []
   });
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -120,7 +119,7 @@ export const useOnboardingChat = () => {
       setPromptMode(mode);
       toast({
         title: "Conversation style changed",
-        description: `You've switched to ${mode === "structured" ? "Guided Conversation" : mode === "playful" ? "Playful Chat" : "College Student Chat"} mode.`,
+        description: `You've switched to ${mode === "structured" ? "Guided Conversation" : mode === "playful" ? "Playful Chat" : "Chill Talk"} mode.`,
         duration: 3000,
       });
     } else {
