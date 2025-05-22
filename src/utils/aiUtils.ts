@@ -238,6 +238,8 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
           userAnswers: [...conversation.userAnswers, userMessage]
         });
 
+        console.log("covRes: ", coverageResult);
+
         // Added null safety check with optional chaining
         if (coverageResult?.enoughToStop && userMessageCount % 3 === 0) {
           // Handle conversation completion
@@ -250,7 +252,7 @@ export const getAIResponse = async (conversation: any, userMessage: string, extr
             val === "Missing"
           )
           .map(([key]) => key);
-
+        console.log('missing categories: ', missingCategories);
         if (missingCategories.length > 0) {
           console.log('something is missing!!!');
           assistantGuidance = `After responding to the user's last message, if the current topic feels complete or winds down, gently pivot the conversation toward these missing areas: ${missingCategories.join(", ")}. Use curiosity and warmth — do not make it obvious that you're filling gaps. Only pivot if the topic feels naturally complete.`;
