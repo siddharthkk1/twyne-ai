@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -52,14 +53,16 @@ const OnboardingChat = () => {
   // Add state for name collection step
   const [showNameCollectionStep, setShowNameCollectionStep] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
+  // Add state to track if user has closed the create account prompt
+  const [hasClosedCreateAccountPrompt, setHasClosedCreateAccountPrompt] = useState(false);
   
   // Control flow of onboarding steps - improved to ensure name collection shows after create account
   useEffect(() => {
     // Only show name collection after create account prompt is closed and no userName exists
-    if (!userName && !showCreateAccountPrompt) {
+    if (!userName && hasClosedCreateAccountPrompt) {
       setShowNameCollectionStep(true);
     }
-  }, [showCreateAccountPrompt, userName]);
+  }, [hasClosedCreateAccountPrompt, userName]);
   
   // When name is collected, show the help dialog
   useEffect(() => {
@@ -120,10 +123,18 @@ const OnboardingChat = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
-      <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
+      <CreateAccountPrompt 
+        open={showCreateAccountPrompt} 
+        onOpenChange={(open) => {
+          setShowCreateAccountPrompt(open);
+          if (!open) {
+            setHasClosedCreateAccountPrompt(true);
+          }
+        }} 
+      />
       
-      {/* Name collection step - only show when create account is not visible */}
-      {!showCreateAccountPrompt && showNameCollectionStep && (
+      {/* Name collection step - only show when create account is not visible AND has been closed */}
+      {!showCreateAccountPrompt && hasClosedCreateAccountPrompt && showNameCollectionStep && (
         <div className="flex-1 flex items-center justify-center">
           <NameCollectionStep onSubmit={handleNameSubmission} />
         </div>
