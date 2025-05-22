@@ -104,7 +104,7 @@ export const getAIResponse = async (conversation: Conversation, userMessage: str
     };
 
     // Add user message if provided (for normal conversation flow)
-    if (userMessage && userMessage.trim() !== "") {  // Fixed the always truthy expression
+    if (userMessage && userMessage.trim() !== "") {  
       requestData.data.messages.push({ role: "user", content: userMessage });
     }
 

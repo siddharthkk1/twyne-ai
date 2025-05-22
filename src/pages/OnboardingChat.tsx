@@ -45,7 +45,7 @@ const OnboardingChat = () => {
     handleSend
   } = useOnboardingChat();
 
-  const { isListening, isProcessing, toggleVoiceInput } = useVoiceRecording(handleSend);
+  const { isListening, isProcessing, transcript, toggleVoiceInput } = useVoiceRecording(handleSend);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
