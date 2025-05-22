@@ -56,7 +56,6 @@ export const useOnboardingAI = () => {
           
         aiGreeting = await getAIResponse(
           initialConversation, 
-          "", // Empty user message to trigger greeting
           nameGuidance
         );
       }

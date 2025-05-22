@@ -36,6 +36,11 @@ export const ProfileCompletionDashboard = ({
     coreValues = [] 
   } = userProfile;
 
+  // Convert coreValues to array if it's a string
+  const coreValuesArray = typeof coreValues === 'string' 
+    ? [coreValues] 
+    : (Array.isArray(coreValues) ? coreValues : []);
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-24 animate-fade-in">
       <div className="text-center mb-8">
@@ -56,12 +61,12 @@ export const ProfileCompletionDashboard = ({
       )}
 
       {/* Core Values */}
-      {coreValues && coreValues.length > 0 && (
+      {coreValuesArray.length > 0 && (
         <div className="bg-background rounded-xl shadow-sm border p-6">
           <h2 className="text-xl font-medium mb-4">Your Core Values</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {coreValues.map((value, index) => (
-              <ValueCard key={index} value={value} />
+            {coreValuesArray.map((value, index) => (
+              <ValueCard key={index} value={value} index={index} />
             ))}
           </div>
         </div>
@@ -73,7 +78,7 @@ export const ProfileCompletionDashboard = ({
           <h2 className="text-xl font-medium mb-4">Personal Insights</h2>
           <div className="grid grid-cols-1 gap-4">
             {personalInsights.map((insight, index) => (
-              <InsightCard key={index} insight={insight} />
+              <InsightCard key={index} insight={insight} index={index} />
             ))}
           </div>
         </div>
