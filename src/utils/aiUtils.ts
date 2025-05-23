@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Conversation, UserProfile } from '@/types/chat';
 
@@ -206,4 +205,31 @@ export const transcribeAudio = async (audioBlob: string, language?: string): Pro
 export const getRandomSeedMessage = (): string => {
   const randomIndex = Math.floor(Math.random() * PLAYFUL_SEED_MESSAGES.length);
   return PLAYFUL_SEED_MESSAGES[randomIndex];
+};
+
+// Function to get mirror chat response
+export const getMirrorChatResponse = async (conversation: Conversation): Promise<string> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('mirror-chat', {
+      body: {
+        conversation,
+        updateType: "chat"
+      }
+    });
+
+    if (error) {
+      console.error("Error from mirror chat function:", error);
+      throw new Error(`API error: ${error.message}`);
+    }
+
+    if (data.error) {
+      console.error("Error in mirror chat response:", data.error);
+      throw new Error(`Mirror chat error: ${data.error}`);
+    }
+
+    return data.content || "I didn't catch that. Could you try again?";
+  } catch (err) {
+    console.error("Error getting mirror chat response:", err);
+    throw err;
+  }
 };
