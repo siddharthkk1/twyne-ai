@@ -1,20 +1,21 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Send, User, AlertCircle, Lock, Edit3, Lightbulb } from "lucide-react";
-import { getAIResponse, getMirrorChatResponse } from "@/utils/aiUtils";
+import { getMirrorChatResponse } from "@/utils/aiUtils";
 import { Message, Conversation, ChatRole } from "@/types/chat";
 import { toast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
 
 const Mirror = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -33,7 +34,7 @@ const Mirror = () => {
     messages: [
       { 
         role: "system" as ChatRole, 
-        content: "You are the user's personal mirror assistant. You help them reflect on themselves and update their personal profile information. When they want to update something about themselves, help them think through it and then provide the updated information in a structured format. Be friendly, insightful, and helpful." 
+        content: "You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values. The user will tell you what they want to change or update. Your job is to: Listen carefully and understand the essence of what they're saying. Interpret their message and map it to structured Mirror updates (e.g., personality traits, preferences, goals, values, lifestyle changes). Reflect back a concise summary of the proposed changes and ask for confirmation before applying them. Ask a clarifying follow-up only if necessary to make the update accurate. Keep your tone kind, casual, and respectful. You are here to help them feel seen. Prioritize clarity and consent." 
       }
     ],
     userAnswers: []
@@ -52,8 +53,7 @@ const Mirror = () => {
       const initialPrompt = `
         The user's name is ${userName}. 
         Here's what I know about them: ${JSON.stringify(profileData)}
-        Greet them and let them know they can ask you questions about their profile 
-        or ask to update any information about themselves. You can help them update their bio, interests, values, and other personal information.
+        Greet them warmly and let them know you're here to help them update their Mirror - their personal profile that captures who they are. Explain that they can tell you what they'd like to change about themselves or their profile, and you'll help them update it thoughtfully.
       `;
       
       try {
@@ -65,7 +65,7 @@ const Mirror = () => {
           ]
         };
         
-        const response = await getAIResponse(tempConversation);
+        const response = await getMirrorChatResponse(tempConversation);
         
         const aiMessage: Message = {
           id: 1,
@@ -203,11 +203,11 @@ const Mirror = () => {
   };
 
   // Get name initial for avatar
-  const nameInitial = profileData.name 
-    ? profileData.name[0].toUpperCase() 
-    : profile?.full_name 
-      ? profile.full_name[0].toUpperCase() 
-      : user?.email?.[0]?.toUpperCase() || "?";
+  const nameInitial = profile?.full_name 
+    ? profile.full_name[0] 
+    : profile?.username 
+      ? profile.username[0] 
+      : user?.email?.[0] || "?";
 
   return (
     <div className="py-4 space-y-6">
@@ -269,64 +269,10 @@ const Mirror = () => {
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-4">
-          <Card className="animate-fade-in w-full">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <h2 className="font-medium text-xl">Your Insights</h2>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Lock className="h-4 w-4 mr-1 text-primary/70" />
-                  <span>Private</span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-5">
-                <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10">
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-primary">Privacy note:</span> This information is private and not shared with other users. 
-                    It's only used by Twyne AI to help you make meaningful connections and is not visible as a public profile.
-                  </p>
-                </div>
-                
-                {profileData.vibeSummary && (
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Vibe Summary</div>
-                    <div className="bg-secondary/5 rounded-lg p-3 text-sm border border-secondary/10">
-                      {profileData.vibeSummary}
-                    </div>
-                  </div>
-                )}
-                
-                {profileData.twyneTags && profileData.twyneTags.length > 0 && (
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Twyne Tags</div>
-                    <div className="flex flex-wrap gap-2">
-                      {profileData.twyneTags.map((tag: string, index: number) => (
-                        <Badge key={index} variant="outline" className="bg-primary/5 text-primary">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="space-y-3">
-                  {Object.entries(profileData).filter(([key, value]) => 
-                    key !== 'vibeSummary' && key !== 'twyneTags' && value && value !== "Not specified"
-                  ).map(([key, value], index) => (
-                    <div key={index} className="grid grid-cols-3 gap-2">
-                      <div className="text-sm font-medium text-muted-foreground capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </div>
-                      <div className="col-span-2 text-sm">
-                        {Array.isArray(value) ? value.join(", ") : String(value)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ProfileInsightsDashboard 
+            profileData={profileData} 
+            nameInitial={nameInitial} 
+          />
         </TabsContent>
 
         <TabsContent value="edit" className="space-y-4">
@@ -416,8 +362,7 @@ const Mirror = () => {
         <CardHeader className="pb-2">
           <CardTitle className="text-xl">Chat With Your Mirror</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Ask me to help you update your profile information, reflect on your experiences, 
-            or explore what makes you unique. I can help you refine your bio, interests, values, and more.
+            Tell me what you'd like to update about yourself or your profile. I'll help you reflect on and refine how you want to be seen and understood.
           </p>
         </CardHeader>
         <CardContent>
@@ -453,7 +398,7 @@ const Mirror = () => {
           </div>
           <div className="flex items-end gap-2">
             <Textarea
-              placeholder="Ask me to help update your profile or reflect on yourself..."
+              placeholder="Tell me what you'd like to update about yourself..."
               className="resize-none"
               value={input}
               onChange={(e) => setInput(e.target.value)}

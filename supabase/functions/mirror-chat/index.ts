@@ -55,13 +55,16 @@ serve(async (req) => {
     // Get user from auth
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
+      console.error("Auth error:", authError);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
-    const { conversation, updateType } = await req.json();
+    console.log("User authenticated:", user.id);
+
+    const { conversation } = await req.json();
     
     if (!conversation || !conversation.messages) {
       return new Response(
@@ -73,6 +76,8 @@ serve(async (req) => {
       );
     }
 
+    console.log("Processing conversation with", conversation.messages.length, "messages");
+
     // Get current user profile data
     const { data: profile } = await supabase
       .from('profiles')
@@ -83,7 +88,7 @@ serve(async (req) => {
     const profileData = user.user_metadata?.profile_data || {};
 
     // Enhanced system prompt for mirror chat
-    const systemPrompt = `You are the user's personal mirror assistant. You help them reflect on themselves and update their personal profile information.
+    const systemPrompt = `You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values.
 
 Current user profile:
 - Name: ${profile?.full_name || 'Not set'}
@@ -91,16 +96,17 @@ Current user profile:
 - Location: ${profile?.location || 'Not set'}
 - Username: ${profile?.username || 'Not set'}
 
-Current profile data from onboarding:
+Current profile insights from onboarding:
 ${JSON.stringify(profileData, null, 2)}
 
-Your role is to:
-1. Help the user reflect on their experiences and identity
-2. Suggest updates to their profile information when appropriate
-3. Ask thoughtful questions to help them discover more about themselves
-4. Be supportive and encouraging in their self-discovery journey
+The user will tell you what they want to change or update. Your job is to:
 
-When the user wants to update their profile, help them think through the changes and provide clear, actionable suggestions. Be conversational and insightful.`;
+1. Listen carefully and understand the essence of what they're saying
+2. Interpret their message and map it to structured Mirror updates (e.g., personality traits, preferences, goals, values, lifestyle changes)
+3. Reflect back a concise summary of the proposed changes and ask for confirmation before applying them
+4. Ask a clarifying follow-up only if necessary to make the update accurate
+
+Keep your tone kind, casual, and respectful. You are here to help them feel seen. Prioritize clarity and consent.`;
 
     // Prepare messages for OpenAI
     const messages = [
@@ -109,6 +115,14 @@ When the user wants to update their profile, help them think through the changes
     ];
 
     console.log("Sending request to OpenAI with messages:", messages.length);
+
+    if (!openAIApiKey) {
+      console.error("OpenAI API key not found");
+      return new Response(JSON.stringify({ error: "OpenAI API key not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
 
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -127,28 +141,29 @@ When the user wants to update their profile, help them think through the changes
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenAI API error:", errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error("OpenAI API error:", response.status, errorText);
+      return new Response(JSON.stringify({ error: `OpenAI API error: ${response.status}` }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
     const data = await response.json();
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error("Invalid response from OpenAI API");
+      console.error("Invalid OpenAI response:", data);
+      return new Response(JSON.stringify({ error: "Invalid response from OpenAI API" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
     const aiResponse = data.choices[0].message.content;
-
-    // Check if the AI response suggests profile updates
-    // This is a simple implementation - could be enhanced with more sophisticated parsing
-    const suggestsUpdate = aiResponse.toLowerCase().includes('update') || 
-                          aiResponse.toLowerCase().includes('change') ||
-                          aiResponse.toLowerCase().includes('modify');
+    console.log("OpenAI response received successfully");
 
     return new Response(
       JSON.stringify({ 
         content: aiResponse,
-        suggestsUpdate,
         timestamp: new Date().toISOString()
       }),
       { 
