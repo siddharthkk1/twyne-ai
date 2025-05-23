@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,8 @@ import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompl
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { Card, CardContent } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 const OnboardingResults = () => {
   const navigate = useNavigate();
@@ -13,14 +16,62 @@ const OnboardingResults = () => {
   const { userProfile } = useOnboardingChat();
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     setIsCreatingAccount(true);
-    navigate("/auth");
+    
+    // Store onboarding data in localStorage temporarily
+    try {
+      localStorage.setItem('onboarding_profile_data', JSON.stringify(userProfile));
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error storing onboarding data:", error);
+      navigate("/auth");
+    }
   };
 
   const handleContinueWithoutAccount = () => {
-    // For now, just redirect to landing page or keep them on results
     navigate("/");
+  };
+
+  const handleGoToMirror = async () => {
+    if (user) {
+      // Save to user_data table if user is authenticated
+      try {
+        const { error } = await supabase
+          .from('user_data')
+          .insert({
+            user_id: user.id,
+            profile_data: userProfile,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) {
+          console.error("Error saving user data:", error);
+          toast({
+            title: "Error",
+            description: "Failed to save your profile data. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Profile Saved",
+          description: "Your profile has been saved successfully!",
+        });
+      } catch (error) {
+        console.error("Error saving user data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save your profile data. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    navigate("/mirror");
   };
 
   return (
@@ -72,7 +123,7 @@ const OnboardingResults = () => {
         {user && (
           <div className="text-center mt-8">
             <Button 
-              onClick={() => navigate("/mirror")}
+              onClick={handleGoToMirror}
               className="bg-gradient-to-r from-primary to-accent text-white"
             >
               Go to Your Mirror

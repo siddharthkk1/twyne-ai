@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,7 +66,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/onboarding`
         }
       });
       
@@ -118,11 +117,21 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Registration successful",
-          description: "Your account has been created. You can now log in.",
-        });
-        setAuthState("login");
+        // After successful registration, automatically sign them in
+        const { error: signInError } = await signIn(registerEmail, registerPassword);
+        if (signInError) {
+          toast({
+            title: "Registration successful",
+            description: "Your account has been created. Please log in.",
+          });
+          setAuthState("login");
+        } else {
+          toast({
+            title: "Account created successfully",
+            description: "Welcome to Twyne! Let's get to know you better.",
+          });
+          navigate("/onboarding");
+        }
       }
     } finally {
       setIsRegisterLoading(false);

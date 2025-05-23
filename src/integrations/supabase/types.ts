@@ -81,6 +81,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_data: {
+        Row: {
+          conversation_data: Json | null
+          created_at: string
+          id: string
+          profile_data: Json
+          prompt_mode: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_data?: Json | null
+          created_at?: string
+          id?: string
+          profile_data?: Json
+          prompt_mode?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_data?: Json | null
+          created_at?: string
+          id?: string
+          profile_data?: Json
+          prompt_mode?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           age: number | null
