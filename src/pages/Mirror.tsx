@@ -3,15 +3,16 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, User, AlertCircle, Lock, Edit3, Lightbulb } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Send, User, AlertCircle, Lock, Edit3, Lightbulb, Brain, Heart, Activity, BookOpen } from "lucide-react";
 import { getMirrorChatResponse } from "@/utils/aiUtils";
 import { Message, Conversation, ChatRole } from "@/types/chat";
 import { toast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import ProfileInsightsDashboard from "@/components/connections/ProfileInsightsDashboard";
+import { Badge } from "@/components/ui/badge";
+import PersonalityChart from "@/components/onboarding/PersonalityChart";
 import { supabase } from "@/integrations/supabase/client";
 
 const Mirror = () => {
@@ -19,8 +20,7 @@ const Mirror = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [activeTab, setActiveTab] = useState("profile");
-  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   
   // Form state for editing
   const [formData, setFormData] = useState({
@@ -52,10 +52,52 @@ const Mirror = () => {
       ? profile.username[0] 
       : user?.email?.[0] || "?";
 
+  // Generate a color palette based on the user's name
+  const generateUserThemeColor = () => {
+    const nameString = profile?.full_name || profile?.username || "Twyne User";
+    const hashedName = nameString.split('')
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    const hue = hashedName % 360;
+    
+    return {
+      primary: `hsl(${hue}, 80%, 60%)`,
+      secondary: `hsl(${(hue + 30) % 360}, 70%, 65%)`,
+      tertiary: `hsl(${(hue + 60) % 360}, 60%, 70%)`,
+      light: `hsl(${hue}, 70%, 95%)`,
+      medium: `hsl(${hue}, 60%, 85%)`,
+      dark: `hsl(${hue}, 70%, 35%)`
+    };
+  };
+  
+  const userTheme = generateUserThemeColor();
+
+  // Helper function to ensure arrays
+  const ensureArray = (value: string[] | string | undefined): string[] => {
+    if (!value) return [];
+    if (typeof value === 'string') return [value];
+    return value;
+  };
+
+  // Default personality traits if none provided
+  const defaultTraits = {
+    extroversion: 60,
+    openness: 70,
+    empathy: 80,
+    structure: 50
+  };
+
+  // Extract tags
+  const getTags = () => {
+    return profileData.twyneTags || profileData.vibeWords || [];
+  };
+
+  const tags = getTags();
+
   // Initialize with a greeting from the AI
   useEffect(() => {
     const initializeConversation = async () => {
-      if (activeTab !== "chat" || messages.length > 0) return;
+      if (activeTab !== "edit" || messages.length > 0) return;
       
       setIsTyping(true);
       
@@ -105,7 +147,7 @@ const Mirror = () => {
       }
     };
     
-    if (user && activeTab === "chat") {
+    if (user && activeTab === "edit") {
       initializeConversation();
     }
   }, [user, activeTab]);
@@ -147,8 +189,7 @@ const Mirror = () => {
           title: "Profile updated",
           description: "Your information has been updated successfully",
         });
-        setIsEditing(false);
-        setActiveTab("profile");
+        setActiveTab("overview");
       }
     } catch (error: any) {
       toast({
@@ -215,245 +256,430 @@ const Mirror = () => {
   };
 
   return (
-    <div className="py-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
-          {profile?.full_name || profile?.username || user?.email?.split('@')[0] || "Your"}'s Mirror
-        </h1>
-        <div className="flex items-center text-sm text-muted-foreground">
-          <Lock className="h-4 w-4 mr-1 text-primary/70" />
-          <span>Private</span>
+    <div className="container mx-auto py-8 px-4 max-w-5xl">
+      <div className="flex flex-col gap-8">
+        {/* Header with personalized greeting */}
+        <div 
+          className="text-center p-8 rounded-xl mb-4"
+          style={{ 
+            background: `linear-gradient(135deg, ${userTheme.light}, ${userTheme.medium})`,
+            borderBottom: `3px solid ${userTheme.dark}`
+          }}
+        >
+          <h1 className="text-3xl font-bold mb-3" style={{ color: userTheme.dark }}>
+            {profile?.full_name || profile?.username || user?.email?.split('@')[0] || "Your"}'s Mirror
+          </h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Your personal profile that captures who you are. This information is private and only visible to you.
+          </p>
         </div>
-      </div>
 
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 mb-4">
-          <TabsTrigger value="profile" className="flex items-center">
-            <User className="h-4 w-4 mr-2" />
-            Profile
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="flex items-center">
-            <Lightbulb className="h-4 w-4 mr-2" />
-            Insights
-          </TabsTrigger>
-          <TabsTrigger value="edit" className="flex items-center">
-            <Edit3 className="h-4 w-4 mr-2" />
-            Edit
-          </TabsTrigger>
-          <TabsTrigger value="chat" className="flex items-center">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            Chat
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center">
-            <User className="h-4 w-4 mr-2" />
-            Settings
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="profile" className="space-y-4">
-          <div className="bg-background rounded-2xl p-6 shadow-sm">
-            <div className="flex flex-col items-center mb-6">
-              <div className="h-24 w-24 rounded-full bg-secondary/50 mb-4 flex items-center justify-center text-2xl font-semibold">
-                {nameInitial}
-              </div>
-              <h2 className="text-xl font-medium">{profile?.full_name || profile?.username || user?.email?.split('@')[0]}</h2>
-              <p className="text-muted-foreground">{profile?.location || 'No location set'}</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">ABOUT YOU</h3>
-                <p className="mt-1">
-                  {profile?.bio || 'No bio added yet'}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">EMAIL</h3>
-                <p className="mt-1">{user?.email}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">USERNAME</h3>
-                <p className="mt-1">{profile?.username || 'No username set'}</p>
-              </div>
-            </div>
+        {/* Privacy Notice */}
+        <div className="bg-primary/5 rounded-lg p-4 border border-primary/10 max-w-3xl mx-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="h-4 w-4 text-primary" />
+            <h3 className="font-medium">Privacy Guarantee</h3>
           </div>
-        </TabsContent>
+          <p className="text-sm text-muted-foreground">
+            This profile is private and only visible to you. Twyne will never share your information with other users without your explicit permission.
+          </p>
+        </div>
 
-        <TabsContent value="insights" className="space-y-4">
-          <ProfileInsightsDashboard 
-            profileData={profileData} 
-            nameInitial={nameInitial} 
-          />
-        </TabsContent>
+        {/* Main Tabbed Interface */}
+        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-5 mb-8">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="interests" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Interests</span>
+            </TabsTrigger>
+            <TabsTrigger value="inner-world" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">Inner World</span>
+            </TabsTrigger>
+            <TabsTrigger value="connection" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              <span className="hidden sm:inline">Connection</span>
+            </TabsTrigger>
+            <TabsTrigger value="edit" className="flex items-center gap-2">
+              <Edit3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Edit</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="edit" className="space-y-4">
-          <div className="bg-background rounded-2xl p-6 shadow-sm">
-            <div className="bg-primary/5 rounded-lg p-3 text-sm border border-primary/10 mb-6">
-              <p className="text-muted-foreground">
-                <span className="font-medium text-primary">Privacy note:</span> This information is private and used by Twyne AI to help you make meaningful connections.
-                It's not visible as a public profile to other users.
-              </p>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Left column - Core info */}
+              <Card className="p-6 border border-border bg-card">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle className="text-xl">About You</CardTitle>
+                </CardHeader>
+                <CardContent className="px-0 pb-0 space-y-4">
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Name</h3>
+                    <p className="font-semibold text-lg">{profile?.full_name || profile?.username || "Anonymous"}</p>
+                  </div>
+                  
+                  {profile?.location && (
+                    <div>
+                      <h3 className="font-medium text-muted-foreground">Location</h3>
+                      <p>{profile.location}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Email</h3>
+                    <p>{user?.email}</p>
+                  </div>
+                  
+                  {profile?.username && (
+                    <div>
+                      <h3 className="font-medium text-muted-foreground">Username</h3>
+                      <p>{profile.username}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* Middle column - Vibe Summary */}
+              <Card className="col-span-2 border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">About</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profile?.bio || profileData.vibeSummary || "No bio added yet"}</p>
+                  
+                  {/* Twyne Tags */}
+                  {tags.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="font-medium text-muted-foreground mb-2">#TwyneTags</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {tags.map((tag: string, i: number) => (
+                          <Badge key={i} variant="outline" className="bg-primary/5 text-primary">
+                            #{tag.replace(/\s+/g, '')}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex flex-col items-center mb-6">
-                <div className="h-24 w-24 rounded-full bg-secondary/50 mb-4 flex items-center justify-center text-2xl font-semibold">
-                  {nameInitial}
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input 
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="Your username"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Full Name</Label>
-                  <Input 
-                    id="full_name"
-                    name="full_name"
-                    value={formData.full_name}
-                    onChange={handleChange}
-                    placeholder="Your full name"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input 
-                    id="location"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    placeholder="Your location (e.g., San Francisco)"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="bio">About You</Label>
-                  <Textarea 
-                    id="bio"
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleChange}
-                    placeholder="Tell us a bit about yourself..."
-                    rows={4}
-                  />
-                </div>
-              </div>
+            {/* Key Facts/Background */}
+            {profileData.keyFacts && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Key Facts & Background</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profileData.keyFacts}</p>
+                </CardContent>
+              </Card>
+            )}
 
-              <div className="flex space-x-3 pt-4">
-                <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => setActiveTab("profile")}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
-        </TabsContent>
+            {/* Personality Chart */}
+            {profileData.personalityTraits && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Your Social Style</CardTitle>
+                  <CardDescription>Based on our conversation, here's your social style and energy</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PersonalityChart traits={profileData.personalityTraits || defaultTraits} />
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-        <TabsContent value="chat" className="space-y-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl">Chat With Your Mirror</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Tell me what you'd like to update about yourself or your profile. I'll help you reflect on and refine how you want to be seen and understood.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-y-auto mb-4 space-y-4 max-h-[300px] p-1">
-                {messages.map((message) => (
-                  <div 
-                    key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div 
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.sender === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted'
-                      }`}
-                    >
-                      {message.text}
-                    </div>
-                  </div>
-                ))}
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[80%] rounded-lg p-3 bg-muted">
-                      <div className="flex gap-1">
-                        <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce"></div>
-                        <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce delay-150"></div>
-                        <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce delay-300"></div>
+          {/* Interests Tab */}
+          <TabsContent value="interests" className="space-y-6">
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Interests & Passions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {profileData.interests && (
+                  <div className="flex flex-wrap gap-3">
+                    {ensureArray(profileData.interests).map((interest, i) => (
+                      <div 
+                        key={i} 
+                        className="px-4 py-3 rounded-lg text-sm font-medium"
+                        style={{ 
+                          backgroundColor: `${userTheme.light}`,
+                          color: `${userTheme.dark}`,
+                          border: `1px solid ${userTheme.medium}`
+                        }}
+                      >
+                        {interest}
                       </div>
+                    ))}
+                  </div>
+                )}
+                
+                {profileData.weekendActivities && (
+                  <div className="mt-8">
+                    <h3 className="font-medium text-xl mb-4">How You Spend Your Time</h3>
+                    <p>{profileData.weekendActivities}</p>
+                  </div>
+                )}
+                
+                {profileData.mediaTastes && (
+                  <div className="mt-8">
+                    <h3 className="font-medium text-xl mb-4">Media & Cultural Tastes</h3>
+                    <p>{profileData.mediaTastes}</p>
+                  </div>
+                )}
+                
+                {profileData.talkingPoints && (
+                  <div className="mt-8">
+                    <h3 className="font-medium text-xl mb-4">Talking Points</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {ensureArray(profileData.talkingPoints).map((point, i) => (
+                        <Badge key={i} variant="outline" className="bg-secondary/5 text-secondary">
+                          {point}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
-              </div>
-              <div className="flex items-end gap-2">
-                <Textarea
-                  placeholder="Tell me what you'd like to update about yourself..."
-                  className="resize-none"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  disabled={isTyping}
-                />
-                <Button 
-                  size="icon" 
-                  onClick={handleSend} 
-                  disabled={isTyping || !input.trim()}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+            
+            {profileData.lookingFor && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">What You're Looking For</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profileData.lookingFor}</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-        <TabsContent value="settings" className="space-y-4">
-          <div className="bg-background rounded-2xl p-6 shadow-sm">
-            <h3 className="text-lg font-medium mb-4">Account Settings</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground">ACCOUNT ID</h4>
-                <p className="mt-1 text-sm font-mono">{user?.id}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground">CREATED</h4>
-                <p className="mt-1 text-sm">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground">LAST SIGN IN</h4>
-                <p className="mt-1 text-sm">{user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'Unknown'}</p>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+          {/* Inner World Tab */}
+          <TabsContent value="inner-world" className="space-y-6">
+            {profileData.personalityTraits && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Your Personality Profile</CardTitle>
+                  <CardDescription>A visual representation of your inner dimensions</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-8">
+                  <PersonalityChart traits={profileData.personalityTraits || defaultTraits} />
+                </CardContent>
+              </Card>
+            )}
+            
+            {profileData.coreValues && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Core Values</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profileData.coreValues}</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {(profileData.philosophy || profileData.lifePhilosophy) && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Philosophy & Beliefs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profileData.philosophy || profileData.lifePhilosophy}</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {profileData.personalInsights && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Key Traits & Characteristics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {ensureArray(profileData.personalInsights).map((trait, i) => (
+                      <Badge key={i} variant="outline" className="bg-accent/5 text-accent">
+                        {trait}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          {/* Connection Tab */}
+          <TabsContent value="connection" className="space-y-6">
+            {profileData.socialStyle && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Social Style</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profileData.socialStyle}</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {profileData.connectionPreferences && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Connection Preferences</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profileData.connectionPreferences}</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {profileData.lookingFor && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">What You're Looking For</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{profileData.lookingFor}</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Edit Tab with Chat */}
+          <TabsContent value="edit" className="space-y-6">
+            {/* Basic Profile Edit Form */}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Basic Information</CardTitle>
+                <CardDescription>Update your basic profile information</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input 
+                      id="full_name"
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleChange}
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input 
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      placeholder="Your username"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input 
+                      id="location"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      placeholder="Your location (e.g., San Francisco)"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">About You</Label>
+                    <Textarea 
+                      id="bio"
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleChange}
+                      placeholder="Tell us a bit about yourself..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Chat with Mirror */}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Chat With Your Mirror</CardTitle>
+                <CardDescription>
+                  Tell me what you'd like to update about yourself or your profile. I'll help you reflect on and refine how you want to be seen and understood.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-y-auto mb-4 space-y-4 max-h-[400px] p-1">
+                  {messages.map((message) => (
+                    <div 
+                      key={message.id}
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div 
+                        className={`max-w-[80%] rounded-lg p-3 ${
+                          message.sender === 'user' 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'bg-muted'
+                        }`}
+                      >
+                        {message.text}
+                      </div>
+                    </div>
+                  ))}
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                        <div className="flex gap-1">
+                          <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce"></div>
+                          <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce delay-150"></div>
+                          <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce delay-300"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+                <div className="flex items-end gap-2">
+                  <Textarea
+                    placeholder="Tell me what you'd like to update about yourself..."
+                    className="resize-none"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    disabled={isTyping}
+                  />
+                  <Button 
+                    size="icon" 
+                    onClick={handleSend} 
+                    disabled={isTyping || !input.trim()}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
