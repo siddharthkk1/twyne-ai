@@ -28,12 +28,6 @@ const RedirectNewUser = () => {
     const hasCompletedOnboarding = profile?.profile_data && 
       Object.keys(profile.profile_data).length > 0;
     
-    // If user is logged in but hasn't completed onboarding and not in onboarding flow
-    if (user && !hasCompletedOnboarding && !isOnboardingPath) {
-      navigate("/onboarding");
-      return;
-    }
-    
     // If user is on auth page or landing page and already logged in with completed onboarding
     if ((isAuthPath || isLandingPath) && user && hasCompletedOnboarding) {
       navigate("/mirror");
@@ -43,6 +37,13 @@ const RedirectNewUser = () => {
     // If user is in onboarding but has already completed it, redirect to mirror page
     if (isOnboardingPath && user && hasCompletedOnboarding) {
       navigate("/mirror");
+      return;
+    }
+
+    // Only redirect to onboarding if user is logged in, hasn't completed onboarding, 
+    // and is NOT on a landing page or auth page
+    if (user && !hasCompletedOnboarding && !isOnboardingPath && !isLandingPath && !isAuthPath) {
+      navigate("/onboarding");
       return;
     }
 
