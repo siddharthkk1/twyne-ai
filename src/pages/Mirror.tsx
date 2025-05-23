@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, User, AlertCircle, Lock, Edit3, Lightbulb, Brain, Heart, Activity, BookOpen } from "lucide-react";
+import { Send, User, Lock, Edit3, Brain, Heart, Activity } from "lucide-react";
 import { getMirrorChatResponse } from "@/utils/aiUtils";
 import { Message, Conversation, ChatRole } from "@/types/chat";
 import { toast } from "@/components/ui/use-toast";
@@ -43,7 +43,9 @@ const Mirror = () => {
   });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const profileData = user?.user_metadata?.profile_data || {};
+  
+  // Get profile data from the database profile_data column or user metadata
+  const profileData = profile?.profile_data || user?.user_metadata?.profile_data || {};
 
   // Get first letter of name for avatar placeholder
   const nameInitial = profile?.full_name 

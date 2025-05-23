@@ -89,7 +89,7 @@ serve(async (req) => {
       .eq('id', user.id)
       .single();
 
-    const profileData = user.user_metadata?.profile_data || {};
+    const profileData = profile?.profile_data || {};
 
     // Enhanced system prompt for mirror chat
     const systemPrompt = `You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values.

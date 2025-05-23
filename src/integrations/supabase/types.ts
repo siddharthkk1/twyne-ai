@@ -49,6 +49,7 @@ export type Database = {
           latitude: number | null
           location: string | null
           longitude: number | null
+          profile_data: Json | null
           updated_at: string
           username: string | null
         }
@@ -61,6 +62,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          profile_data?: Json | null
           updated_at?: string
           username?: string | null
         }
@@ -73,6 +75,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          profile_data?: Json | null
           updated_at?: string
           username?: string | null
         }

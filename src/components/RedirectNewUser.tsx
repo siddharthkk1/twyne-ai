@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const RedirectNewUser = () => {
-  const { user, isLoading, isNewUser, clearNewUserFlag } = useAuth();
+  const { user, isLoading, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,7 +17,6 @@ const RedirectNewUser = () => {
 
   const isAuthPath = location.pathname === "/auth";
   const isLandingPath = location.pathname === "/";
-  const isProtectedPath = !isOnboardingPath && !isAuthPath && !isLandingPath;
 
   useEffect(() => {
     if (isLoading) return;
@@ -25,25 +24,29 @@ const RedirectNewUser = () => {
     // If user is not logged in and on protected route, Auth page will handle
     if (!user) return;
     
-    // If user is new and not in onboarding, redirect to onboarding
-    if (isNewUser && !isOnboardingPath) {
+    // Check if user has completed onboarding by looking at profile_data
+    const hasCompletedOnboarding = profile?.profile_data && 
+      Object.keys(profile.profile_data).length > 0;
+    
+    // If user is logged in but hasn't completed onboarding and not in onboarding flow
+    if (user && !hasCompletedOnboarding && !isOnboardingPath) {
       navigate("/onboarding");
       return;
     }
     
-    // If user is on auth page or landing page and already logged in, redirect to mirror page
-    if ((isAuthPath || isLandingPath) && user) {
+    // If user is on auth page or landing page and already logged in with completed onboarding
+    if ((isAuthPath || isLandingPath) && user && hasCompletedOnboarding) {
       navigate("/mirror");
       return;
     }
     
-    // If user is in onboarding but has already onboarded, redirect to mirror page
-    if (isOnboardingPath && user && !isNewUser) {
+    // If user is in onboarding but has already completed it, redirect to mirror page
+    if (isOnboardingPath && user && hasCompletedOnboarding) {
       navigate("/mirror");
       return;
     }
 
-  }, [user, isLoading, isNewUser, location.pathname, navigate, isProtectedPath]);
+  }, [user, isLoading, profile, location.pathname, navigate]);
 
   return null;
 };
