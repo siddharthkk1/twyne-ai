@@ -19,7 +19,8 @@ export const useSmsConversation = () => {
       console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
       
       // For the demo, we'll simulate the SMS flow with the regular AI response
-      const aiResponse = await getAIResponse(conversation, userMessage);
+      // Update: Call getAIResponse with only the conversation parameter
+      const aiResponse = await getAIResponse(conversation);
       
       // Log the simulated SMS response
       console.log(`Would receive SMS response: ${aiResponse}`);
