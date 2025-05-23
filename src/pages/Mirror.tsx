@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, User, Lock, Edit3, Brain, Heart, Activity } from "lucide-react";
+import { Send, User, Lock, Edit3, Brain, Heart, Activity, RefreshCw } from "lucide-react";
 import { getMirrorChatResponse } from "@/utils/aiUtils";
 import { Message, Conversation, ChatRole } from "@/types/chat";
 import { toast } from "@/components/ui/use-toast";
@@ -20,6 +20,7 @@ const Mirror = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isUpdating, setIsUpdating] = useState(false);
   
   // Form state for editing
   const [formData, setFormData] = useState({
@@ -46,12 +47,19 @@ const Mirror = () => {
   // Get profile data from the database profile_data column or user metadata
   const profileData = profile?.profile_data || user?.user_metadata?.profile_data || {};
 
-  // Get first letter of name for avatar placeholder
-  const nameInitial = profile?.full_name 
-    ? profile.full_name[0] 
-    : profile?.username 
-      ? profile.username[0] 
-      : user?.email?.[0] || "?";
+  // Get user's actual first name
+  const getUserFirstName = () => {
+    // Try to get name from profile_data first
+    if (profileData.name) {
+      return profileData.name.split(' ')[0];
+    }
+    // Fallback to full_name from profile
+    if (profile?.full_name) {
+      return profile.full_name.split(' ')[0];
+    }
+    // Last resort fallback
+    return user?.email?.split('@')[0] || "Your";
+  };
 
   // Generate a color palette based on the user's name
   const generateUserThemeColor = () => {
@@ -95,14 +103,26 @@ const Mirror = () => {
 
   const tags = getTags();
 
-  // Initialize with a greeting from the AI
+  // Initialize with a greeting from the AI and reset conversation when switching to edit tab
   useEffect(() => {
     const initializeConversation = async () => {
-      if (activeTab !== "edit" || messages.length > 0) return;
+      if (activeTab !== "edit") return;
+      
+      // Reset conversation when entering edit tab
+      setMessages([]);
+      setConversation({
+        messages: [
+          { 
+            role: "system" as ChatRole, 
+            content: "You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values. The user will tell you what they want to change or update. Your job is to: Listen carefully and understand the essence of what they're saying. Interpret their message and map it to structured Mirror updates (e.g., personality traits, preferences, goals, values, lifestyle changes). Reflect back a concise summary of the proposed changes and ask for confirmation before applying them. Ask a clarifying follow-up only if necessary to make the update accurate. Keep your tone kind, casual, and respectful. You are here to help them feel seen. Prioritize clarity and consent." 
+          }
+        ],
+        userAnswers: []
+      });
       
       setIsTyping(true);
       
-      const userName = profileData.name || profile?.full_name || user?.email?.split('@')[0] || "there";
+      const userName = getUserFirstName();
       
       const initialPrompt = `
         The user's name is ${userName}. 
@@ -112,11 +132,14 @@ const Mirror = () => {
       
       try {
         const tempConversation = {
-          ...conversation,
           messages: [
-            ...conversation.messages,
+            { 
+              role: "system" as ChatRole, 
+              content: "You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values. The user will tell you what they want to change or update. Your job is to: Listen carefully and understand the essence of what they're saying. Interpret their message and map it to structured Mirror updates (e.g., personality traits, preferences, goals, values, lifestyle changes). Reflect back a concise summary of the proposed changes and ask for confirmation before applying them. Ask a clarifying follow-up only if necessary to make the update accurate. Keep your tone kind, casual, and respectful. You are here to help them feel seen. Prioritize clarity and consent." 
+            },
             { role: "user" as ChatRole, content: initialPrompt }
-          ]
+          ],
+          userAnswers: []
         };
         
         const response = await getMirrorChatResponse(tempConversation);
@@ -131,7 +154,10 @@ const Mirror = () => {
         
         setConversation({
           messages: [
-            ...conversation.messages,
+            { 
+              role: "system" as ChatRole, 
+              content: "You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values. The user will tell you what they want to change or update. Your job is to: Listen carefully and understand the essence of what they're saying. Interpret their message and map it to structured Mirror updates (e.g., personality traits, preferences, goals, values, lifestyle changes). Reflect back a concise summary of the proposed changes and ask for confirmation before applying them. Ask a clarifying follow-up only if necessary to make the update accurate. Keep your tone kind, casual, and respectful. You are here to help them feel seen. Prioritize clarity and consent." 
+            },
             { role: "assistant" as ChatRole, content: response }
           ],
           userAnswers: []
@@ -148,7 +174,7 @@ const Mirror = () => {
       }
     };
     
-    if (user && activeTab === "edit") {
+    if (user) {
       initializeConversation();
     }
   }, [user, activeTab]);
@@ -259,6 +285,109 @@ const Mirror = () => {
     }
   };
 
+  const handleUpdateProfile = async () => {
+    if (conversation.userAnswers.length === 0) {
+      toast({
+        title: "No conversation to analyze",
+        description: "Please have a conversation first before updating your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      // Create a prompt to analyze the conversation and update the user profile
+      const updatePrompt = `
+        Based on the following conversation between the user and Twyne, analyze what changes should be made to the user's profile data. 
+        
+        Current profile data: ${JSON.stringify(profileData)}
+        
+        Conversation messages: ${JSON.stringify(conversation.messages.filter(m => m.role !== 'system'))}
+        
+        Please return a JSON object with only the fields that should be updated or added to the user's profile. Do not include fields that haven't changed. Focus on personality traits, interests, values, social style, connection preferences, lifestyle changes, goals, or any other meaningful updates mentioned in the conversation.
+        
+        Return only valid JSON without any markdown formatting or additional text.
+      `;
+
+      const updateConversation = {
+        messages: [
+          { role: "system" as ChatRole, content: "You are an AI that analyzes conversations and extracts profile updates. Return only valid JSON." },
+          { role: "user" as ChatRole, content: updatePrompt }
+        ],
+        userAnswers: []
+      };
+
+      const updateResponse = await getMirrorChatResponse(updateConversation);
+      
+      // Parse the AI response to get the updates
+      let profileUpdates;
+      try {
+        profileUpdates = JSON.parse(updateResponse);
+      } catch (parseError) {
+        console.error("Error parsing AI response:", parseError);
+        toast({
+          title: "Update failed",
+          description: "Failed to parse profile updates. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Merge the updates with existing profile data
+      const updatedProfileData = { ...profileData, ...profileUpdates };
+
+      // Save to database
+      const { error } = await supabase
+        .from('user_data')
+        .update({
+          profile_data: updatedProfileData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user?.id);
+
+      if (error) {
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Profile updated successfully",
+          description: "Your Mirror has been updated based on your conversation.",
+        });
+        
+        // Reset conversation after successful update
+        setMessages([]);
+        setConversation({
+          messages: [
+            { 
+              role: "system" as ChatRole, 
+              content: "You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values. The user will tell you what they want to change or update. Your job is to: Listen carefully and understand the essence of what they're saying. Interpret their message and map it to structured Mirror updates (e.g., personality traits, preferences, goals, values, lifestyle changes). Reflect back a concise summary of the proposed changes and ask for confirmation before applying them. Ask a clarifying follow-up only if necessary to make the update accurate. Keep your tone kind, casual, and respectful. You are here to help them feel seen. Prioritize clarity and consent." 
+            }
+          ],
+          userAnswers: []
+        });
+        
+        // Switch back to overview tab to see updates
+        setActiveTab("overview");
+        
+        // Refresh the page to show updated data
+        window.location.reload();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Update failed",
+        description: error.message || "An error occurred while updating your profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="flex flex-col gap-8">
@@ -271,7 +400,7 @@ const Mirror = () => {
           }}
         >
           <h1 className="text-3xl font-bold mb-3" style={{ color: userTheme.dark }}>
-            {profile?.full_name || profile?.username || user?.email?.split('@')[0] || "Your"}'s Mirror
+            {getUserFirstName()}'s Mirror
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Your personal profile that captures who you are. This information is private and only visible to you.
@@ -291,7 +420,7 @@ const Mirror = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-5 mb-8">
+          <TabsList className="grid grid-cols-4 mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -303,10 +432,6 @@ const Mirror = () => {
             <TabsTrigger value="inner-world" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
               <span className="hidden sm:inline">Inner World</span>
-            </TabsTrigger>
-            <TabsTrigger value="connection" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              <span className="hidden sm:inline">Connection</span>
             </TabsTrigger>
             <TabsTrigger value="edit" className="flex items-center gap-2">
               <Edit3 className="h-4 w-4" />
@@ -556,75 +681,35 @@ const Mirror = () => {
             )}
           </TabsContent>
 
-          {/* Edit Tab with Chat */}
+          {/* Edit Tab with Chat Only */}
           <TabsContent value="edit" className="space-y-6">
-            {/* Basic Profile Edit Form */}
-            <Card className="border border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-xl">Basic Information</CardTitle>
-                <CardDescription>Update your basic profile information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="full_name">Full Name</Label>
-                    <Input 
-                      id="full_name"
-                      name="full_name"
-                      value={formData.full_name}
-                      onChange={handleChange}
-                      placeholder="Your full name"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
-                    <Input 
-                      id="username"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      placeholder="Your username"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input 
-                      id="location"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      placeholder="Your location (e.g., San Francisco)"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">About You</Label>
-                    <Textarea 
-                      id="bio"
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleChange}
-                      placeholder="Tell us a bit about yourself..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Saving..." : "Save Changes"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
             {/* Chat with Mirror */}
             <Card className="border border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-xl">Chat With Your Mirror</CardTitle>
-                <CardDescription>
-                  Tell me what you'd like to update about yourself or your profile. I'll help you reflect on and refine how you want to be seen and understood.
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl">Chat With Your Mirror</CardTitle>
+                    <CardDescription>
+                      Tell me what you'd like to update about yourself or your profile. I'll help you reflect on and refine how you want to be seen and understood.
+                    </CardDescription>
+                  </div>
+                  {conversation.userAnswers.length > 0 && (
+                    <Button 
+                      onClick={handleUpdateProfile}
+                      disabled={isUpdating}
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        "Update Profile"
+                      )}
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="overflow-y-auto mb-4 space-y-4 max-h-[400px] p-1">

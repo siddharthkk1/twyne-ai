@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -101,6 +100,7 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
         password,
         options: {
           data: userData,
+          emailRedirectTo: undefined, // Disable email verification
         },
       });
       
@@ -110,19 +110,17 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
           description: error.message,
           variant: "destructive",
         });
-      } else {
-        // If user is immediately available (no email confirmation), save data now
-        if (data.user && !data.user.email_confirmed_at) {
-          toast({
-            title: "Account created",
-            description: "Please check your email for a confirmation link.",
-          });
-        } else if (data.user) {
-          // Save onboarding data to user_data table
-          await saveOnboardingDataToUserTable(data.user.id);
-          // Redirect to mirror page
-          navigate("/mirror");
-        }
+      } else if (data.user) {
+        // Save onboarding data to user_data table immediately
+        await saveOnboardingDataToUserTable(data.user.id);
+        
+        toast({
+          title: "Account created successfully",
+          description: "Welcome to Twyne! Your profile has been saved.",
+        });
+        
+        // Redirect to mirror page
+        navigate("/mirror");
         onOpenChange(false);
       }
     } catch (error: any) {

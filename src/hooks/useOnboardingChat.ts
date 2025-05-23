@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -177,13 +178,13 @@ export const useOnboardingChat = () => {
       // Save conversation to Supabase with user's name
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       
-      // Redirect based on authentication status
+      // Updated redirect logic based on authentication status
       if (user) {
         // If user is logged in, go directly to mirror
         navigate("/mirror");
       } else {
-        // If not logged in, stay on current page to show results dashboard
-        // The onboarding results page will handle the create account flow
+        // If not logged in, go to onboarding results page
+        navigate("/onboarding-results");
       }
       
       return true;
