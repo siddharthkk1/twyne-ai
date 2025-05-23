@@ -21,12 +21,15 @@ const RedirectNewUser = () => {
   useEffect(() => {
     if (isLoading) return;
 
-    // If user is not logged in and on protected route, Auth page will handle
-    if (!user) return;
-    
     // Check if user has completed onboarding by looking at profile_data
     const hasCompletedOnboarding = profile?.profile_data && 
       Object.keys(profile.profile_data).length > 0;
+    
+    // If user is on landing v1 ("/") and not logged in, redirect to landing v2
+    if (location.pathname === "/" && !user) {
+      navigate("/landing-v2");
+      return;
+    }
     
     // If user is on auth page or landing page and already logged in with completed onboarding
     if ((isAuthPath || isLandingPath) && user && hasCompletedOnboarding) {
@@ -37,13 +40,6 @@ const RedirectNewUser = () => {
     // If user is in onboarding but has already completed it, redirect to mirror page
     if (isOnboardingPath && user && hasCompletedOnboarding) {
       navigate("/mirror");
-      return;
-    }
-
-    // Only redirect to onboarding if user is logged in, hasn't completed onboarding, 
-    // and is NOT on a landing page or auth page
-    if (user && !hasCompletedOnboarding && !isOnboardingPath && !isLandingPath && !isAuthPath) {
-      navigate("/onboarding");
       return;
     }
 
