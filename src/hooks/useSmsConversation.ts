@@ -1,114 +1,64 @@
 
-import { useState } from 'react';
+import { Conversation } from '@/types/chat';
 import { getAIResponse } from '@/utils/aiUtils';
-import { Message, Conversation, ChatRole } from '@/types/chat';
+import { toast } from "@/components/ui/use-toast";
 
 export const useSmsConversation = () => {
-  const [isVerifying, setIsVerifying] = useState(false);
-
-  // Function to handle SMS response
+  // Handling SMS response
   const handleSmsResponse = async (
-    userText: string,
+    userMessage: string, 
     draftConversation: Conversation,
-    currentConversation: Conversation,
-    setMessages: (messages: Message[]) => void,
-    setConversation: (conversation: Conversation) => void,
-    setIsTyping: (isTyping: boolean) => void,
+    conversation: Conversation,
+    setMessages: Function,
+    setConversation: Function,
+    setIsTyping: Function,
     phoneNumber: string
   ) => {
     try {
-      // Get AI response from the API
-      const aiResponse = await getAIResponse(draftConversation);
+      // In a real implementation, this would call the SMS edge function
+      console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
       
-      // Add AI message to the UI
-      const newAiMessage: Message = {
-        id: Date.now(), // Unique ID
-        text: aiResponse,
-        sender: "ai" // Using literal "ai" type
-      };
+      // For the demo, we'll simulate the SMS flow with the regular AI response
+      // Update: Call getAIResponse with only the conversation parameter
+      const aiResponse = await getAIResponse(conversation);
       
-      // Convert conversation messages to Message[] type with proper sender literals
-      const mappedMessages: Message[] = currentConversation.messages.map(msg => ({
-        id: msg.role === 'user' ? msg.content.length * 1000 : msg.content.length * 1001,
-        text: msg.content,
-        sender: msg.role === 'user' ? 'user' : 'ai' as "user" | "ai" // Explicitly cast to union type
-      }));
+      // Log the simulated SMS response
+      console.log(`Would receive SMS response: ${aiResponse}`);
       
-      // Pass the new array directly
-      setMessages([...mappedMessages, newAiMessage]);
-      
-      // Update conversation state with AI response
-      setConversation({
-        messages: [
-          ...draftConversation.messages,
-          { role: "assistant" as ChatRole, content: aiResponse }
-        ],
-        userAnswers: draftConversation.userAnswers
-      });
-    } catch (error) {
-      console.error("Error getting AI response for SMS:", error);
-      
-      // Add error message to chat
-      const errorMessage: Message = {
+      // Update UI as if we got the response via SMS
+      const newAiMessage = {
         id: Date.now(),
-        text: "Sorry, I couldn't process your message. Please try again.",
-        sender: "ai" // Using literal "ai" type
+        text: aiResponse,
+        sender: "ai" as const,
       };
-      
-      // Convert conversation messages to Message[] type with proper sender literals
-      const mappedMessages: Message[] = currentConversation.messages.map(msg => ({
-        id: msg.role === 'user' ? msg.content.length * 1000 : msg.content.length * 1001,
-        text: msg.content,
-        sender: msg.role === 'user' ? 'user' : 'ai' as "user" | "ai" // Explicitly cast to union type
-      }));
-      
-      // Pass the new array directly
-      setMessages([...mappedMessages, errorMessage]);
-    } finally {
+
+      const updatedConversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user" as const, content: userMessage },
+          { role: "assistant" as const, content: aiResponse }
+        ],
+        userAnswers: [...conversation.userAnswers, userMessage]
+      };
+
+      setMessages(prev => [...prev, newAiMessage]);
+      setConversation(updatedConversation);
       setIsTyping(false);
+      
+    } catch (error) {
+      console.error("Error in SMS conversation:", error);
+      setIsTyping(false);
+      
+      // Show error toast
+      toast({
+        title: "SMS service error",
+        description: "We encountered an issue with the SMS service. Please try again or choose a different conversation mode.",
+        variant: "destructive",
+      });
     }
   };
 
-  // Function to start SMS conversation
-  const startSmsConversation = async (
-    phoneNumber: string,
-    setIsSmsVerified: (isVerified: boolean) => void
-  ) => {
-    try {
-      setIsVerifying(true);
-      
-      // Make API call to start SMS conversation
-      const response = await fetch('/api/start-sms-conversation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phoneNumber })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to start SMS conversation');
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setIsSmsVerified(true);
-        return true;
-      } else {
-        throw new Error(data.error || 'Failed to verify phone number');
-      }
-    } catch (error) {
-      console.error("Error starting SMS conversation:", error);
-      return false;
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-  
   return {
-    handleSmsResponse,
-    startSmsConversation,
-    isVerifying
+    handleSmsResponse
   };
 };

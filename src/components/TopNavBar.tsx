@@ -28,11 +28,17 @@ export const TopNavBar = () => {
         <div className="flex items-center space-x-3 md:space-x-6">
           {user ? (
             <>
-              <Link to="/mirror" className="text-foreground/80 hover:text-primary transition-colors">
-                Your Mirror
+              <Link to="/onboarding" className="hidden md:block text-foreground/80 hover:text-primary transition-colors">
+                Onboarding
               </Link>
-              <Link to="/settings" className="text-foreground/80 hover:text-primary transition-colors">
-                Settings
+              <Link to="/connections" className="hidden md:block text-foreground/80 hover:text-primary transition-colors">
+                Connections
+              </Link>
+              <Link to="/profile" className="hidden md:block text-foreground/80 hover:text-primary transition-colors">
+                Profile
+              </Link>
+              <Link to="/chat/twyne" className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-sm md:text-base">
+                Chat with AI
               </Link>
             </>
           ) : (

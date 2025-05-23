@@ -7,19 +7,17 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Mail, Loader2, Lock } from "lucide-react";
+import { Mail, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 
 interface CreateAccountPromptProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onboardingProfileData?: any;
 }
 
-export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData }: CreateAccountPromptProps) => {
+export const CreateAccountPrompt = ({ open, onOpenChange }: CreateAccountPromptProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { user } = useAuth();
@@ -41,31 +39,12 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
       return;
     }
 
-    // Check if passwords match
-    if (password !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Prepare user metadata including onboarding data if available
-      const userData = {
-        has_onboarded: onboardingProfileData ? true : false,
-        profile_data: onboardingProfileData || {},
-      };
-
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: userData,
-        },
       });
       
       if (error) {
@@ -99,11 +78,7 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
-          queryParams: onboardingProfileData ? {
-            // Pass a flag that this is from onboarding
-            from_onboarding: 'true'
-          } : undefined
+          redirectTo: window.location.origin
         }
       });
       
@@ -163,18 +138,6 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
               required
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input 
-              id="confirmPassword" 
-              type="password" 
-              placeholder="******" 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
 
           <div className="flex flex-col space-y-2">
             <Button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90">
@@ -184,10 +147,7 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
                   Creating Account...
                 </>
               ) : (
-                <>
-                  <Lock className="mr-2 h-4 w-4" />
-                  Create Account
-                </>
+                "Create Account"
               )}
             </Button>
             
