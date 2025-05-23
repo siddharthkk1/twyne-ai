@@ -57,13 +57,19 @@ const Auth = () => {
           navigate("/mirror");
         }
       } else {
-        // Sign up - simplified without metadata that was causing issues
+        // Sign up with minimal data to avoid trigger issues
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: email.split('@')[0], // Use email prefix as default name
+            }
+          }
         });
 
         if (error) {
+          console.error("Signup error:", error);
           toast({
             title: "Sign up failed",
             description: error.message,
@@ -78,6 +84,7 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
+      console.error("Auth error:", error);
       toast({
         title: "Error",
         description: error.message || "Something went wrong.",

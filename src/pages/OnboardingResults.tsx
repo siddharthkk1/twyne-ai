@@ -30,12 +30,12 @@ const OnboardingResults = () => {
   // Get the user's first name from the collected data
   const getUserFirstName = () => {
     if (userName) {
-      return userName.split(' ')[0] + "'s";
+      return userName.split(' ')[0];
     }
     if (userProfile?.name) {
       return userProfile.name.split(' ')[0];
     }
-    return "Your";
+    return "User";
   };
 
   return (
@@ -44,7 +44,7 @@ const OnboardingResults = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            {getUserFirstName()} Mirror
+            {getUserFirstName()}'s Mirror
           </h1>
           <p className="text-muted-foreground text-lg">
             Here's what we learned about you through our conversation
@@ -52,7 +52,7 @@ const OnboardingResults = () => {
         </div>
 
         {/* Dashboard */}
-        <ProfileCompletionDashboard userProfile={userProfile} />
+        <ProfileCompletionDashboard userProfile={userProfile} userName={userName} />
 
         {/* Action buttons */}
         {!user && (
@@ -100,6 +100,8 @@ const OnboardingResults = () => {
         open={showCreateAccountPrompt}
         onOpenChange={setShowCreateAccountPrompt}
         onboardingProfileData={userProfile}
+        onboardingConversationData={null}
+        userName={userName}
       />
     </div>
   );

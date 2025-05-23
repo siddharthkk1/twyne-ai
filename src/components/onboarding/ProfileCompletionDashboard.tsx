@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -14,16 +13,21 @@ import { Lock, BarChart3, Heart, User, Activity, BookOpen, Share2, Lightbulb, Br
 
 interface ProfileCompletionDashboardProps {
   userProfile: UserProfile;
+  userName?: string;
 }
 
-export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProps> = ({ userProfile }) => {
+export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProps> = ({ userProfile, userName }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Use the passed userName or fall back to userProfile.name
+  const displayName = userName || userProfile.name || "Twyne User";
+  const firstName = displayName.split(' ')[0];
   
   // Generate a color palette based on the user's name or interests
   const generateUserThemeColor = () => {
     // Generate a simple hash from the user's name or first interest
-    const nameString = userProfile.name || "Twyne User";
+    const nameString = displayName;
     const hashedName = nameString.split('')
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
     
@@ -94,7 +98,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
           }}
         >
           <h1 className="text-3xl font-bold mb-3" style={{ color: userTheme.dark }}>
-            Welcome, {userProfile.name || "Twyne User"}!
+            Welcome, {firstName}!
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Here's what we learned about you from our conversation. This information is private and only visible to you.
@@ -146,10 +150,10 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                   <CardTitle className="text-xl">About You</CardTitle>
                 </CardHeader>
                 <CardContent className="px-0 pb-0 space-y-4">
-                  {/* Basic Facts Section (from reference image) */}
+                  {/* Basic Facts Section */}
                   <div>
                     <h3 className="font-medium text-muted-foreground">Name</h3>
-                    <p className="font-semibold text-lg">{userProfile.name || "Anonymous"}</p>
+                    <p className="font-semibold text-lg">{displayName}</p>
                   </div>
                   
                   {userProfile.age && (
