@@ -17,6 +17,7 @@ const RedirectNewUser = () => {
 
   const isAuthPath = location.pathname === "/auth";
   const isLandingPath = location.pathname === "/";
+  const isProtectedPath = !isOnboardingPath && !isAuthPath && !isLandingPath;
 
   useEffect(() => {
     if (isLoading) return;
@@ -30,7 +31,7 @@ const RedirectNewUser = () => {
       return;
     }
     
-    // If user is on auth page and already logged in, redirect to mirror page
+    // If user is on auth page or landing page and already logged in, redirect to mirror page
     if ((isAuthPath || isLandingPath) && user) {
       navigate("/mirror");
       return;
@@ -42,7 +43,7 @@ const RedirectNewUser = () => {
       return;
     }
 
-  }, [user, isLoading, isNewUser, location.pathname, navigate]);
+  }, [user, isLoading, isNewUser, location.pathname, navigate, isProtectedPath]);
 
   return null;
 };

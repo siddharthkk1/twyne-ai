@@ -19,6 +19,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import { useAuth } from "./contexts/AuthContext";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route path="/mirror" element={<Mirror />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
