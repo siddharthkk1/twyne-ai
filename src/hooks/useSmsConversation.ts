@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { getAIResponse } from '@/utils/aiUtils';
 import { Message, Conversation, ChatRole } from '@/types/chat';
@@ -27,7 +26,12 @@ export const useSmsConversation = () => {
         sender: "ai"
       };
       
-      setMessages(prev => [...prev, newAiMessage]);
+      // Fix: Pass the new array directly instead of using a function
+      setMessages([...currentConversation.messages.map(msg => ({
+        id: msg.role === 'user' ? msg.content.length * 1000 : msg.content.length * 1001,
+        text: msg.content,
+        sender: msg.role === 'user' ? 'user' : 'ai'
+      })), newAiMessage]);
       
       // Update conversation state with AI response
       setConversation({
@@ -47,7 +51,12 @@ export const useSmsConversation = () => {
         sender: "ai"
       };
       
-      setMessages(prev => [...prev, errorMessage]);
+      // Fix: Pass the new array directly instead of using a function
+      setMessages([...currentConversation.messages.map(msg => ({
+        id: msg.role === 'user' ? msg.content.length * 1000 : msg.content.length * 1001,
+        text: msg.content,
+        sender: msg.role === 'user' ? 'user' : 'ai'
+      })), errorMessage]);
     } finally {
       setIsTyping(false);
     }
