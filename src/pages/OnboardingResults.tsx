@@ -30,7 +30,7 @@ const OnboardingResults = () => {
   // Get the user's first name from the collected data
   const getUserFirstName = () => {
     if (userName) {
-      return userName.split(' ')[0];
+      return userName.split(' ')[0] + "'s";
     }
     if (userProfile?.name) {
       return userProfile.name.split(' ')[0];
@@ -44,7 +44,7 @@ const OnboardingResults = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            {getUserFirstName()}'s Personal Insights Dashboard
+            {getUserFirstName()} Mirror
           </h1>
           <p className="text-muted-foreground text-lg">
             Here's what we learned about you through our conversation
