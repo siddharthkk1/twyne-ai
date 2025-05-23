@@ -9,8 +9,8 @@ const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const supabaseService = createClient(supabaseUrl, serviceRoleKey || "", {
@@ -21,6 +21,7 @@ const supabaseService = createClient(supabaseUrl, serviceRoleKey || "", {
 });
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { 
       status: 204, 
