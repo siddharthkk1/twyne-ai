@@ -3,6 +3,7 @@ import React from "react";
 import { IntroCardsGrid } from "./IntroCardsGrid";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
+import { initialIntros, additionalIntros } from "./intros-data";
 
 interface WarmIntrosSectionProps {
   onOpenWaitlist?: () => void;
@@ -15,10 +16,19 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
   // Check if we're on the v2 landing page
   const isLandingV2 = location.pathname === '/landing-v2';
 
+  // Combine all intros for the grid
+  const allIntros = [...initialIntros, ...additionalIntros];
+
   const handleButtonClick = () => {
     if (isLandingV2) {
       navigate("/onboarding");
     } else if (onOpenWaitlist) {
+      onOpenWaitlist();
+    }
+  };
+
+  const handleOpenWaitlist = () => {
+    if (onOpenWaitlist) {
       onOpenWaitlist();
     }
   };
@@ -34,7 +44,10 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
           </p>
         </div>
         
-        <IntroCardsGrid />
+        <IntroCardsGrid 
+          intros={allIntros}
+          onOpenWaitlist={handleOpenWaitlist}
+        />
         
         <div className="text-center mt-12">
           <Button 
