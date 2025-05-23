@@ -19,9 +19,9 @@ export const ProfileCompletionDashboard = ({
     return (
       <div className="flex flex-col items-center justify-center py-12 min-h-[50vh] animate-fade-in">
         <Loader className="h-12 w-12 text-primary animate-spin mb-4" />
-        <h2 className="text-xl font-medium mb-2">Building your dashboard...</h2>
+        <h2 className="text-xl font-medium mb-2">Building your mirror...</h2>
         <p className="text-muted-foreground text-center max-w-md">
-          We're creating your personalized profile dashboard based on our conversation.
+          We're creating your personalized profile based on our conversation.
           This will only take a moment.
         </p>
       </div>
@@ -45,7 +45,7 @@ export const ProfileCompletionDashboard = ({
     <div className="space-y-6 max-w-3xl mx-auto pb-24 animate-fade-in">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">
-          {name ? `${name}'s Dashboard` : 'Your Dashboard'}
+          {name ? `${name}'s Mirror` : 'Your Mirror'}
         </h1>
         <p className="text-muted-foreground">
           Based on our conversation, here's what we've learned about you

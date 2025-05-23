@@ -13,9 +13,7 @@ import OnboardingChat from "./pages/OnboardingChat";
 import OnboardingSelection from "./pages/OnboardingSelection";
 import OnboardingPaste from "./pages/OnboardingPaste";
 import OnboardingResults from "./pages/OnboardingResults";
-import Connections from "./pages/Connections";
-import Chat from "./pages/Chat";
-import Dashboard from "./pages/Dashboard";
+import Mirror from "./pages/Mirror";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -46,9 +44,7 @@ const App = () => (
                 <Layout />
               </ProtectedRoute>
             }>
-              <Route path="/connections" element={<Connections />} />
-              <Route path="/chat/:id" element={<Chat />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/mirror" element={<Mirror />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

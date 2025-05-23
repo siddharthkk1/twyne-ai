@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 type AuthContextType = {
   session: Session | null;
@@ -13,6 +14,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   clearNewUserFlag: () => void;
+  updateUserData: (data: any) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -40,6 +42,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             session.user.user_metadata?.has_onboarded === false) {
           console.log("Setting user as new");
           setIsNewUser(true);
+        }
+        
+        // Check for Google OAuth with onboarding data
+        if (event === 'SIGNED_IN' && session?.user?.app_metadata?.provider === 'google') {
+          // Check URL parameters for onboarding flag
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('from_onboarding') === 'true') {
+            // Get onboarding data from localStorage if available
+            const onboardingData = localStorage.getItem('onboarding_profile_data');
+            if (onboardingData) {
+              try {
+                const parsedData = JSON.parse(onboardingData);
+                setTimeout(() => {
+                  updateUserData({
+                    has_onboarded: true,
+                    profile_data: parsedData
+                  });
+                  localStorage.removeItem('onboarding_profile_data');
+                }, 0);
+              } catch (e) {
+                console.error("Could not parse onboarding data:", e);
+              }
+            }
+          }
         }
         
         // Fetch profile if user is logged in
@@ -110,7 +136,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             username: userData.username,
             full_name: userData.fullName,
             avatar_url: userData.avatarUrl,
-            has_onboarded: false,
+            has_onboarded: userData.has_onboarded || false,
+            profile_data: userData.profile_data || {},
           },
         },
       });
@@ -127,6 +154,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const updateUserData = async (data: any) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: data
+      });
+
+      if (error) {
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Profile updated",
+          description: "Your profile data has been updated",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Update error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    }
   };
 
   const clearNewUserFlag = () => {
@@ -146,6 +200,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signOut,
         clearNewUserFlag,
+        updateUserData,
       }}
     >
       {children}
