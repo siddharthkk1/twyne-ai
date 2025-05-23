@@ -1,64 +1,98 @@
 
-import { Conversation } from '@/types/chat';
+import { useState } from 'react';
 import { getAIResponse } from '@/utils/aiUtils';
-import { toast } from "@/components/ui/use-toast";
+import { Message, Conversation, ChatRole } from '@/types/chat';
 
 export const useSmsConversation = () => {
-  // Handling SMS response
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Function to handle SMS response
   const handleSmsResponse = async (
-    userMessage: string, 
+    userText: string,
     draftConversation: Conversation,
-    conversation: Conversation,
-    setMessages: Function,
-    setConversation: Function,
-    setIsTyping: Function,
+    currentConversation: Conversation,
+    setMessages: (messages: Message[]) => void,
+    setConversation: (conversation: Conversation) => void,
+    setIsTyping: (isTyping: boolean) => void,
     phoneNumber: string
   ) => {
     try {
-      // In a real implementation, this would call the SMS edge function
-      console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
+      // Get AI response from the API
+      const aiResponse = await getAIResponse(draftConversation);
       
-      // For the demo, we'll simulate the SMS flow with the regular AI response
-      // Update: Call getAIResponse with only the conversation parameter
-      const aiResponse = await getAIResponse(conversation);
-      
-      // Log the simulated SMS response
-      console.log(`Would receive SMS response: ${aiResponse}`);
-      
-      // Update UI as if we got the response via SMS
-      const newAiMessage = {
-        id: Date.now(),
+      // Add AI message to the UI
+      const newAiMessage: Message = {
+        id: Date.now(), // Unique ID
         text: aiResponse,
-        sender: "ai" as const,
+        sender: "ai"
       };
-
-      const updatedConversation = {
-        messages: [
-          ...conversation.messages,
-          { role: "user" as const, content: userMessage },
-          { role: "assistant" as const, content: aiResponse }
-        ],
-        userAnswers: [...conversation.userAnswers, userMessage]
-      };
-
+      
       setMessages(prev => [...prev, newAiMessage]);
-      setConversation(updatedConversation);
-      setIsTyping(false);
       
-    } catch (error) {
-      console.error("Error in SMS conversation:", error);
-      setIsTyping(false);
-      
-      // Show error toast
-      toast({
-        title: "SMS service error",
-        description: "We encountered an issue with the SMS service. Please try again or choose a different conversation mode.",
-        variant: "destructive",
+      // Update conversation state with AI response
+      setConversation({
+        messages: [
+          ...draftConversation.messages,
+          { role: "assistant" as ChatRole, content: aiResponse }
+        ],
+        userAnswers: draftConversation.userAnswers
       });
+    } catch (error) {
+      console.error("Error getting AI response for SMS:", error);
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: Date.now(),
+        text: "Sorry, I couldn't process your message. Please try again.",
+        sender: "ai"
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
+  // Function to start SMS conversation
+  const startSmsConversation = async (
+    phoneNumber: string,
+    setIsSmsVerified: (isVerified: boolean) => void
+  ) => {
+    try {
+      setIsVerifying(true);
+      
+      // Make API call to start SMS conversation
+      const response = await fetch('/api/start-sms-conversation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to start SMS conversation');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setIsSmsVerified(true);
+        return true;
+      } else {
+        throw new Error(data.error || 'Failed to verify phone number');
+      }
+    } catch (error) {
+      console.error("Error starting SMS conversation:", error);
+      return false;
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+  
   return {
-    handleSmsResponse
+    handleSmsResponse,
+    startSmsConversation,
+    isVerifying
   };
 };

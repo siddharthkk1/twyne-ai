@@ -23,10 +23,15 @@ const OnboardingResults = () => {
   const { saveOnboardingData } = useSupabaseSync();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(false);
   
-  // Use state from location or default values
+  // Use state from location or default values with complete UserProfile type
   const state = location.state as LocationState;
-  const profile = state?.profile || {
+  const profile: UserProfile = state?.profile || {
     name: "",
+    location: "",
+    interests: [],
+    socialStyle: "",
+    connectionPreferences: "",
+    personalInsights: [],
     personalityTraits: {
       extroversion: 50,
       openness: 50,
@@ -34,6 +39,7 @@ const OnboardingResults = () => {
       structure: 50
     }
   };
+  
   const conversation = state?.conversation;
   const promptMode = state?.promptMode || "playful";
   

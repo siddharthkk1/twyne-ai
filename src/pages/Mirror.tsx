@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Send, RefreshCw, User, Settings, AlertCircle } from "lucide-react";
 import { getAIResponse } from "@/utils/aiUtils";
-import { Message, Conversation } from "@/types/chat";
+import { Message, Conversation, ChatRole } from "@/types/chat";
 import { toast } from "@/components/ui/use-toast";
 
 const Mirror = () => {
@@ -19,7 +19,7 @@ const Mirror = () => {
   const [conversation, setConversation] = useState<Conversation>({
     messages: [
       { 
-        role: "system", 
+        role: "system" as ChatRole, 
         content: "You are the user's personal mirror assistant. You help them reflect on themselves and update their personal profile. Be friendly, insightful, and helpful. Use what you know about them to personalize your responses." 
       }
     ],
@@ -51,7 +51,7 @@ const Mirror = () => {
           ...conversation,
           messages: [
             ...conversation.messages,
-            { role: "user", content: initialPrompt }
+            { role: "user" as ChatRole, content: initialPrompt }
           ]
         };
         
@@ -69,7 +69,7 @@ const Mirror = () => {
         setConversation({
           messages: [
             ...conversation.messages,
-            { role: "assistant", content: response }
+            { role: "assistant" as ChatRole, content: response }
           ],
           userAnswers: []
         });
@@ -114,7 +114,7 @@ const Mirror = () => {
       ...conversation,
       messages: [
         ...conversation.messages,
-        { role: "user", content: input }
+        { role: "user" as ChatRole, content: input }
       ],
       userAnswers: [...conversation.userAnswers, input]
     };
@@ -136,7 +136,7 @@ const Mirror = () => {
       setConversation({
         messages: [
           ...updatedConversation.messages,
-          { role: "assistant", content: aiResponse }
+          { role: "assistant" as ChatRole, content: aiResponse }
         ],
         userAnswers: updatedConversation.userAnswers
       });
