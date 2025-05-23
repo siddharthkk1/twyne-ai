@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from '@/types/chat';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import InsightCard from './InsightCard';
-import ValueCard from './ValueCard';
-import PersonalityChart from './PersonalityChart';
+import InsightCard from '@/components/onboarding/InsightCard';
+import ValueCard from '@/components/onboarding/ValueCard';
+import PersonalityChart from '@/components/onboarding/PersonalityChart';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
@@ -671,3 +671,5 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
     </div>
   );
 };
+
+export default ProfileCompletionDashboard;
