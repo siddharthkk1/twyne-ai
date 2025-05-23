@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Conversation, UserProfile } from '@/types/chat';
 
@@ -210,11 +211,23 @@ export const getRandomSeedMessage = (): string => {
 // Function to get mirror chat response
 export const getMirrorChatResponse = async (conversation: Conversation): Promise<string> => {
   try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      throw new Error("No active session or access token found");
+    }
+
     const { data, error } = await supabase.functions.invoke('mirror-chat', {
       body: {
         conversation,
-        updateType: "chat"
-      }
+        updateType: "chat",
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
     });
 
     if (error) {
