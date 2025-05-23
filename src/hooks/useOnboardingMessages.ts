@@ -1,139 +1,122 @@
 
-import { useState, useRef } from 'react';
-import { Message, Conversation } from '@/types/chat';
+import { useState, useEffect } from 'react';
+import { Message, ChatRole } from '@/types/chat';
+import { toast } from "@/components/ui/use-toast";
 import { getAIResponse } from '@/utils/aiUtils';
 
 export const useOnboardingMessages = (
-  onNameChange: (name: string) => void,
-  messageCap: number
+  onCompleteOnboarding: (userName: string) => void, 
+  MESSAGE_CAP = 20
 ) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState<string>("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
-  // Function to handle AI response
+  // Handle sending messages and getting AI responses
   const handleAIResponse = async (
-    userText: string, 
-    draftConversation: Conversation,
-    currentConversation: Conversation,
+    textToSend: string,
+    draftConversation: any,
+    conversation: any,
     setIsTyping: (value: boolean) => void,
-    setConversation: (conversation: Conversation) => void
+    setConversation: (value: any) => void
   ) => {
     try {
-      // Get AI response from the API
-      const aiResponse = await getAIResponse(draftConversation);
+      // Get AI response
+      const aiResponse = await getAIResponse(conversation, textToSend);
       
-      // Add AI message to the UI
+      // Add error checking for empty or invalid responses
+      if (!aiResponse || aiResponse.trim() === "") {
+        console.error("Empty AI response received");
+        setIsTyping(false);
+        toast({
+          title: "Connection issue",
+          description: "We're having trouble connecting to our AI. Please try again.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       const newAiMessage: Message = {
-        id: messages.length + 2, // +2 because user message was +1
+        id: messages.length + 2,
         text: aiResponse,
+        sender: "ai",
+      };
+
+      const updatedConversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: aiResponse }
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
+      };
+
+      setMessages(prev => [...prev, newAiMessage]);
+      setConversation(updatedConversation);
+      setIsTyping(false);
+      
+      return { message: newAiMessage, conversation: updatedConversation };
+    } catch (error) {
+      console.error("Failed to get AI response:", error);
+      setIsTyping(false);
+      
+      const fallbackResponse = "Sorry for the hiccup. Please continue - I'm listening.";
+      
+      const newAiMessage: Message = {
+        id: messages.length + 2,
+        text: fallbackResponse,
         sender: "ai"
+      };
+      
+      const updatedConversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: fallbackResponse }
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
       };
       
       setMessages(prev => [...prev, newAiMessage]);
+      setConversation(updatedConversation);
       
-      // Update conversation state with AI response
-      setConversation({
-        messages: [
-          ...draftConversation.messages,
-          { role: "assistant", content: aiResponse }
-        ],
-        userAnswers: draftConversation.userAnswers
-      });
-      
-      // Check for possible name in the first user message
-      if (currentQuestionIndex === 0 && !userName) {
-        extractUserName(userText);
-      }
-      
-      // Also check AI's response for name recognition like "Nice to meet you, [name]"
-      if (!userName) {
-        checkAIResponseForName(aiResponse);
-      }
-    } catch (error) {
-      console.error("Error getting AI response:", error);
-      
-      // Add error message to chat
-      const errorMessage: Message = {
-        id: messages.length + 2, // +2 because user message was +1
-        text: "Sorry, I had trouble responding. Could you try again?",
-        sender: "ai"
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      
-      // Update conversation with error message
-      setConversation({
-        messages: [
-          ...draftConversation.messages,
-          { role: "assistant", content: errorMessage.text }
-        ],
-        userAnswers: draftConversation.userAnswers
-      });
-    } finally {
-      setIsTyping(false);
+      return { message: newAiMessage, conversation: updatedConversation };
     }
   };
-  
-  // Try to extract name from user's first message
-  const extractUserName = (text: string) => {
-    // Simple name extraction - look for common patterns
-    const patterns = [
-      /my name is (\w+)/i,
-      /i'm (\w+)/i,
-      /i am (\w+)/i,
-      /call me (\w+)/i
-    ];
-    
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-      if (match && match[1]) {
-        const extractedName = match[1];
-        
-        // Capitalize first letter
-        const formattedName = extractedName.charAt(0).toUpperCase() + 
-                              extractedName.slice(1).toLowerCase();
 
-        setUserName(formattedName);
-        onNameChange(formattedName);
-        break;
-      }
-    }
-  };
-  
-  // Check AI's response for possible name recognition
-  const checkAIResponseForName = (aiResponse: string) => {
-    // Look for patterns like "Nice to meet you, [Name]" or "Hi, [Name]!"
-    const namePatterns = [
-      /nice to meet you,?\s+(\w+)[!.]/i,
-      /hi,?\s+(\w+)[!.]/i,
-      /hello,?\s+(\w+)[!.]/i,
-      /hey,?\s+(\w+)[!.]/i
-    ];
-    
-    for (const pattern of namePatterns) {
-      const match = aiResponse.match(pattern);
-      if (match && match[1]) {
-        const extractedName = match[1];
+  // Detect if we should try to extract the user's name
+  useEffect(() => {
+    if (currentQuestionIndex === 1 && userName === "") {
+      // This is likely the first response from the user, try to extract a name
+      const firstUserMessage = messages.find(m => m.sender === "user")?.text || "";
+      
+      // Simple name extraction - look for common patterns in first message
+      const extractName = (text: string): string => {
+        // Try different patterns to extract names
+        const namePatterns = [
+          /(?:^|[^a-zA-Z])(?:I'm|I am|call me|name is|its)\s+([A-Z][a-z]+)/i,
+          /^([A-Z][a-z]+)(?:\s|$)/,  // Just a name at start of message
+          /^Hi[,.!]?\s+(?:I'm|I am)?\s*([A-Z][a-z]+)/i  // Hi, I'm Name
+        ];
         
-        // Filter out common English words that might be false positives
-        const commonWords = ["there", "friend", "buddy", "pal", "folks", "everyone", "guys"];
-        if (commonWords.includes(extractedName.toLowerCase())) {
-          continue;
+        for (const pattern of namePatterns) {
+          const match = text.match(pattern);
+          if (match && match[1]) {
+            return match[1].trim();
+          }
         }
         
-        // Capitalize first letter and handle the rest
-        const formattedName = extractedName.charAt(0).toUpperCase() + 
-                              extractedName.slice(1).toLowerCase();
-        
-        setUserName(formattedName);
-        onNameChange(formattedName);
-        break;
+        return "";
+      };
+      
+      const extractedName = extractName(firstUserMessage);
+      if (extractedName) {
+        setUserName(extractedName);
       }
     }
-  };
-  
+  }, [currentQuestionIndex, userName, messages]);
+
   return {
     messages,
     setMessages,
