@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";

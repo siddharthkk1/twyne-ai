@@ -671,3 +671,26 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
     </div>
   );
 };
+
+// Add default export for App.tsx
+const Dashboard = () => {
+  // You'll need to provide a userProfile here - this is a placeholder
+  const defaultProfile: UserProfile = {
+    name: "User",
+    location: "",
+    interests: [],
+    socialStyle: "",
+    connectionPreferences: "",
+    personalInsights: [],
+    personalityTraits: {
+      extroversion: 50,
+      openness: 50,
+      empathy: 50,
+      structure: 50
+    }
+  };
+
+  return <ProfileCompletionDashboard userProfile={defaultProfile} />;
+};
+
+export default Dashboard;
