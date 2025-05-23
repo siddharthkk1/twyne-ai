@@ -653,20 +653,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
             )}
           </TabsContent>
         </Tabs>
-        
-        <div className="flex justify-center mt-6">
-          <Button 
-            onClick={() => navigate('/connections')}
-            className="px-8 py-6 text-lg"
-            style={{ 
-              backgroundColor: userTheme.primary,
-              color: "white"
-            }}
-          >
-            <Share2 className="mr-2 h-5 w-5" />
-            Find My People
-          </Button>
-        </div>
+
       </div>
     </div>
   );
