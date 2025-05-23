@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { getAIResponse } from '@/utils/aiUtils';
 import { Message, Conversation, ChatRole } from '@/types/chat';
@@ -23,15 +24,18 @@ export const useSmsConversation = () => {
       const newAiMessage: Message = {
         id: Date.now(), // Unique ID
         text: aiResponse,
-        sender: "ai"
+        sender: "ai" // Using literal "ai" type
       };
       
-      // Fix: Pass the new array directly instead of using a function
-      setMessages([...currentConversation.messages.map(msg => ({
+      // Convert conversation messages to Message[] type with proper sender literals
+      const mappedMessages: Message[] = currentConversation.messages.map(msg => ({
         id: msg.role === 'user' ? msg.content.length * 1000 : msg.content.length * 1001,
         text: msg.content,
-        sender: msg.role === 'user' ? 'user' : 'ai'
-      })), newAiMessage]);
+        sender: msg.role === 'user' ? 'user' : 'ai' as "user" | "ai" // Explicitly cast to union type
+      }));
+      
+      // Pass the new array directly
+      setMessages([...mappedMessages, newAiMessage]);
       
       // Update conversation state with AI response
       setConversation({
@@ -48,15 +52,18 @@ export const useSmsConversation = () => {
       const errorMessage: Message = {
         id: Date.now(),
         text: "Sorry, I couldn't process your message. Please try again.",
-        sender: "ai"
+        sender: "ai" // Using literal "ai" type
       };
       
-      // Fix: Pass the new array directly instead of using a function
-      setMessages([...currentConversation.messages.map(msg => ({
+      // Convert conversation messages to Message[] type with proper sender literals
+      const mappedMessages: Message[] = currentConversation.messages.map(msg => ({
         id: msg.role === 'user' ? msg.content.length * 1000 : msg.content.length * 1001,
         text: msg.content,
-        sender: msg.role === 'user' ? 'user' : 'ai'
-      })), errorMessage]);
+        sender: msg.role === 'user' ? 'user' : 'ai' as "user" | "ai" // Explicitly cast to union type
+      }));
+      
+      // Pass the new array directly
+      setMessages([...mappedMessages, errorMessage]);
     } finally {
       setIsTyping(false);
     }
