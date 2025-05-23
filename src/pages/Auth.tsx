@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Lock, User } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,9 +31,9 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
 
-  // If user is already logged in, redirect to home
+  // If user is already logged in, redirect to mirror page
   if (user && !isLoading) {
-    return <Navigate to="/" />;
+    return <Navigate to="/mirror" />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -53,7 +53,7 @@ const Auth = () => {
           title: "Login successful",
           description: "Welcome back!",
         });
-        navigate("/");
+        navigate("/mirror");
       }
     } finally {
       setIsLoginLoading(false);
@@ -134,7 +134,7 @@ const Auth = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold gradient-text">Twyne</h1>
-          <p className="text-muted-foreground mt-2">Connect with people who match your vibe</p>
+          <p className="text-muted-foreground mt-2">Connect with your authentic self</p>
         </div>
 
         <Tabs
@@ -186,7 +186,10 @@ const Auth = () => {
                         Signing in...
                       </>
                     ) : (
-                      "Sign in"
+                      <>
+                        <Lock className="mr-2 h-4 w-4" />
+                        Sign in
+                      </>
                     )}
                   </Button>
                   
@@ -285,7 +288,10 @@ const Auth = () => {
                         Creating account...
                       </>
                     ) : (
-                      "Create account"
+                      <>
+                        <User className="mr-2 h-4 w-4" />
+                        Create account
+                      </>
                     )}
                   </Button>
                   

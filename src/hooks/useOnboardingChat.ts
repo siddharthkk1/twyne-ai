@@ -119,17 +119,25 @@ export const useOnboardingChat = () => {
       role: "system" as ChatRole,
       content: systemPrompt
     };
+
+    // Add assistant guidance with user's name if available
+    const assistantGuidance = userName ? 
+      `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.` : 
+      '';
     
     // Use the properly typed message object
     setConversation({
-      messages: [initialMessage],
+      messages: [
+        initialMessage,
+        ...(assistantGuidance ? [{ role: "assistant" as ChatRole, content: assistantGuidance }] : [])
+      ],
       userAnswers: []
     });
     
     setCurrentQuestionIndex(0);
     
     // Initialize chat with AI greeting
-    initializeChat(systemPrompt).then(({ aiGreeting, updatedConversation }) => {
+    initializeChat(systemPrompt, userName).then(({ aiGreeting, updatedConversation }) => {
       // Add AI greeting to messages
       const greetingMessage: Message = {
         id: 1,
@@ -149,17 +157,23 @@ export const useOnboardingChat = () => {
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
     try {
-      const profile = await generateProfile(finalConversation);
+      // Update user profile with name before generating profile
+      setUserProfile(prev => ({ ...prev, name: userName }));
+      
+      const profile = await generateProfile(finalConversation, userName);
       
       // Update userName in case we have it in the profile
-      if (profile.name) {
+      if (profile.name && !userName) {
         setUserName(profile.name);
+      } else if (userName && !profile.name) {
+        // Make sure the profile has the name if userName is available
+        profile.name = userName;
       }
       
       setUserProfile(profile);
       setIsComplete(true);
       
-      // Save conversation to Supabase
+      // Save conversation to Supabase with user's name
       saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       
       return true;

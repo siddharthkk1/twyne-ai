@@ -1,6 +1,4 @@
-
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
@@ -12,7 +10,8 @@ import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompl
 import ChatContainer from "@/components/onboarding/ChatContainer";
 import InputContainer from "@/components/onboarding/InputContainer";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const OnboardingChat = () => {
   const {
@@ -62,12 +61,17 @@ const OnboardingChat = () => {
     }
   }, [showCreateAccountPrompt, userName]);
   
-  // When name is collected, show the help dialog
+  // When name is collected, show the help dialog if not shown before
   useEffect(() => {
-    if (!showNameCollectionStep && userName && !showHelpDialog && messages.length <= 1) {
+    // Check if the dialog was already shown in this session
+    const helpDialogShown = sessionStorage.getItem("helpDialogShown") === "true";
+    
+    if (!showNameCollectionStep && userName && !showHelpDialog && !helpDialogShown && messages.length <= 1) {
       // Short delay to make the sequence feel more natural
       const timer = setTimeout(() => {
         setShowHelpDialog(true);
+        // Mark dialog as shown for this session
+        sessionStorage.setItem("helpDialogShown", "true");
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -83,6 +87,8 @@ const OnboardingChat = () => {
   const handleCloseHelpDialog = () => {
     setShowHelpDialog(false);
     setShowGuidanceInfo(false);
+    // Ensure we mark that the dialog has been shown
+    sessionStorage.setItem("helpDialogShown", "true");
   };
   
   // Set up a ResizeObserver to handle window and content size changes
@@ -119,6 +125,13 @@ const OnboardingChat = () => {
     };
   }, [isComplete, messages.length, handleMessagePartVisible, scrollViewportRef]);
 
+  // Scroll dashboard to top after profile generation is complete
+  useEffect(() => {
+    if (isComplete && dashboardRef.current) {
+      dashboardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [isComplete, dashboardRef]);
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
@@ -133,6 +146,7 @@ const OnboardingChat = () => {
       {/* Help dialog - shown in the middle of the screen */}
       <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
         <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="sr-only">How This Conversation Works</DialogTitle>
           <div className="space-y-4 py-2">
             <h2 className="text-xl font-semibold">How This Conversation Works</h2>
             
@@ -214,7 +228,8 @@ const OnboardingChat = () => {
           <>          
             <div ref={dashboardRef} className="flex-1 p-4 scroll-smooth">
               <ProfileCompletionDashboard 
-                userProfile={userProfile} 
+                userProfile={userProfile}
+                isGeneratingProfile={isGeneratingProfile}
               />
             </div>
           </>

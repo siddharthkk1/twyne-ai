@@ -86,15 +86,14 @@ export const PLAYFUL_SEED_MESSAGES = [
   "ok, real question before we start||are you the kind of person who overshares to strangers, or do i have to work for it a little?"
 ];
 
-// Function to get AI response
-export const getAIResponse = async (conversation: Conversation, userMessage: string, assistantGuidance?: string): Promise<string> => {
+// Function to get AI response - Updated to accept a conversation object only
+export const getAIResponse = async (conversation: Conversation): Promise<string> => {
   try {
     // Prepare request data
     let requestData: {
       endpoint: string;
       data: {
         messages: any[];
-        assistantGuidance?: string;
       }
     } = {
       endpoint: "chat",
@@ -102,16 +101,6 @@ export const getAIResponse = async (conversation: Conversation, userMessage: str
         messages: [...conversation.messages]
       }
     };
-
-    // Add user message if provided (for normal conversation flow)
-    if (userMessage && userMessage.trim() !== "") {  
-      requestData.data.messages.push({ role: "user", content: userMessage });
-    }
-
-    // Add assistant guidance if provided
-    if (assistantGuidance) {
-      requestData.data.assistantGuidance = assistantGuidance;
-    }
 
     // Make API request to Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('ai-chat', {
@@ -159,7 +148,7 @@ export const evaluateCoverage = async (conversation: Conversation): Promise<any>
   }
 };
 
-// Function to generate AI profile
+// Function to generate AI profile - Updated to accept only one argument
 export const generateAIProfile = async (conversation: Conversation): Promise<UserProfile> => {
   try {
     const { data, error } = await supabase.functions.invoke('ai-chat', {
@@ -217,4 +206,43 @@ export const transcribeAudio = async (audioBlob: string, language?: string): Pro
 export const getRandomSeedMessage = (): string => {
   const randomIndex = Math.floor(Math.random() * PLAYFUL_SEED_MESSAGES.length);
   return PLAYFUL_SEED_MESSAGES[randomIndex];
+};
+
+// Function to get mirror chat response
+export const getMirrorChatResponse = async (conversation: Conversation): Promise<string> => {
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      throw new Error("No active session or access token found");
+    }
+
+    const { data, error } = await supabase.functions.invoke('mirror-chat', {
+      body: {
+        conversation,
+        updateType: "chat",
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (error) {
+      console.error("Error from mirror chat function:", error);
+      throw new Error(`API error: ${error.message}`);
+    }
+
+    if (data.error) {
+      console.error("Error in mirror chat response:", data.error);
+      throw new Error(`Mirror chat error: ${data.error}`);
+    }
+
+    return data.content || "I didn't catch that. Could you try again?";
+  } catch (err) {
+    console.error("Error getting mirror chat response:", err);
+    throw err;
+  }
 };
