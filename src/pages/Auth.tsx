@@ -57,13 +57,10 @@ const Auth = () => {
           navigate("/mirror");
         }
       } else {
-        // Sign up
+        // Sign up - simplified without metadata that was causing issues
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: undefined, // Disable email verification
-          },
         });
 
         if (error) {

@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, User, Lock, Edit3, Brain, Heart, Activity, RefreshCw } from "lucide-react";
+import { Send, User, Lock, Edit3, Brain, Heart, Activity, RefreshCw, Music, Youtube } from "lucide-react";
 import { getMirrorChatResponse } from "@/utils/aiUtils";
 import { Message, Conversation, ChatRole } from "@/types/chat";
 import { toast } from "@/components/ui/use-toast";
@@ -420,7 +420,7 @@ const Mirror = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 mb-8">
+          <TabsList className="grid grid-cols-5 mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -432,6 +432,10 @@ const Mirror = () => {
             <TabsTrigger value="inner-world" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
               <span className="hidden sm:inline">Inner World</span>
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Music className="h-4 w-4" />
+              <span className="hidden sm:inline">Integrations</span>
             </TabsTrigger>
             <TabsTrigger value="edit" className="flex items-center gap-2">
               <Edit3 className="h-4 w-4" />
@@ -679,6 +683,51 @@ const Mirror = () => {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* Integrations Tab */}
+          <TabsContent value="integrations" className="space-y-6">
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Connect Your Accounts</CardTitle>
+                <CardDescription>
+                  Connect your Spotify and YouTube accounts to share your music and video preferences with Twyne.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Spotify Integration */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Music className="h-8 w-8 text-green-500" />
+                    <div>
+                      <h3 className="font-semibold">Spotify</h3>
+                      <p className="text-sm text-muted-foreground">Share your music taste and listening habits</p>
+                    </div>
+                  </div>
+                  <Button variant="outline">
+                    Connect Spotify
+                  </Button>
+                </div>
+
+                {/* YouTube Integration */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Youtube className="h-8 w-8 text-red-500" />
+                    <div>
+                      <h3 className="font-semibold">YouTube</h3>
+                      <p className="text-sm text-muted-foreground">Share your video preferences and subscriptions</p>
+                    </div>
+                  </div>
+                  <Button variant="outline">
+                    Connect YouTube
+                  </Button>
+                </div>
+
+                <div className="text-center text-sm text-muted-foreground">
+                  <p>Your data will only be used to enhance your Twyne profile and improve matches.</p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Edit Tab with Chat Only */}

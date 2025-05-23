@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -89,19 +90,10 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
     setIsLoading(true);
 
     try {
-      // Prepare user metadata
-      const userData = {
-        has_onboarded: onboardingProfileData ? true : false,
-        profile_data: onboardingProfileData || {},
-      };
-
+      // Simplified signup without metadata that was causing issues
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: userData,
-          emailRedirectTo: undefined, // Disable email verification
-        },
       });
       
       if (error) {
@@ -146,7 +138,7 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: window.location.origin + '/mirror',
           queryParams: onboardingProfileData ? {
             from_onboarding: 'true'
           } : undefined

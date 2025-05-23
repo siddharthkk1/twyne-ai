@@ -7,72 +7,35 @@ import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompl
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { Card, CardContent } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import type { Json } from "@/integrations/supabase/types";
+import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 
 const OnboardingResults = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { userProfile } = useOnboardingChat();
-  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const { userProfile, userName } = useOnboardingChat();
+  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(false);
 
-  const handleCreateAccount = async () => {
-    setIsCreatingAccount(true);
-    
-    // Store onboarding data in localStorage temporarily
-    try {
-      localStorage.setItem('onboarding_profile_data', JSON.stringify(userProfile));
-      navigate("/auth");
-    } catch (error) {
-      console.error("Error storing onboarding data:", error);
-      navigate("/auth");
-    }
+  const handleCreateAccount = () => {
+    setShowCreateAccountPrompt(true);
   };
 
   const handleContinueWithoutAccount = () => {
     navigate("/");
   };
 
-  const handleGoToMirror = async () => {
-    if (user) {
-      // Save to user_data table if user is authenticated
-      try {
-        const { error } = await supabase
-          .from('user_data')
-          .insert({
-            user_id: user.id,
-            profile_data: userProfile as unknown as Json,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-
-        if (error) {
-          console.error("Error saving user data:", error);
-          toast({
-            title: "Error",
-            description: "Failed to save your profile data. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        toast({
-          title: "Profile Saved",
-          description: "Your profile has been saved successfully!",
-        });
-      } catch (error) {
-        console.error("Error saving user data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to save your profile data. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-    
+  const handleGoToMirror = () => {
     navigate("/mirror");
+  };
+
+  // Get the user's first name from the collected data
+  const getUserFirstName = () => {
+    if (userName) {
+      return userName.split(' ')[0];
+    }
+    if (userProfile?.name) {
+      return userProfile.name.split(' ')[0];
+    }
+    return "Your";
   };
 
   return (
@@ -81,7 +44,7 @@ const OnboardingResults = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Your Personal Insights Dashboard
+            {getUserFirstName()}'s Personal Insights Dashboard
           </h1>
           <p className="text-muted-foreground text-lg">
             Here's what we learned about you through our conversation
@@ -99,13 +62,12 @@ const OnboardingResults = () => {
                 <UserPlus className="h-12 w-12 text-primary mx-auto" />
                 <h3 className="text-xl font-semibold">Save Your Profile</h3>
                 <p className="text-muted-foreground">
-                  Create an account to save your insights and start meeting people who match your vibe.
+                  Create an account to save your insights and start using all of Twyne's features.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button 
                     onClick={handleCreateAccount}
                     className="bg-gradient-to-r from-primary to-accent text-white"
-                    disabled={isCreatingAccount}
                   >
                     Create Account to Save Data
                   </Button>
@@ -132,6 +94,13 @@ const OnboardingResults = () => {
           </div>
         )}
       </div>
+
+      {/* Create Account Prompt */}
+      <CreateAccountPrompt 
+        open={showCreateAccountPrompt}
+        onOpenChange={setShowCreateAccountPrompt}
+        onboardingProfileData={userProfile}
+      />
     </div>
   );
 };
