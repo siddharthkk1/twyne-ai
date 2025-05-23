@@ -29,6 +29,8 @@ serve(async (req) => {
   }
   
   try {
+    console.log("Mirror chat function called");
+    
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
@@ -39,6 +41,7 @@ serve(async (req) => {
     // Get the authorization header
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
+      console.log("No authorization header");
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
