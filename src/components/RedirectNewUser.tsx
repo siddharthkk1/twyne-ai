@@ -16,6 +16,7 @@ const RedirectNewUser = () => {
   ].includes(location.pathname);
 
   const isAuthPath = location.pathname === "/auth";
+  const isLandingPath = location.pathname === "/";
 
   useEffect(() => {
     if (isLoading) return;
@@ -26,19 +27,22 @@ const RedirectNewUser = () => {
     // If user is new and not in onboarding, redirect to onboarding
     if (isNewUser && !isOnboardingPath) {
       navigate("/onboarding");
+      return;
     }
     
     // If user is on auth page and already logged in, redirect to mirror page
-    if (isAuthPath && user) {
+    if ((isAuthPath || isLandingPath) && user) {
       navigate("/mirror");
+      return;
     }
     
     // If user is in onboarding but has already onboarded, redirect to mirror page
     if (isOnboardingPath && user && !isNewUser) {
       navigate("/mirror");
+      return;
     }
 
-  }, [user, isLoading, isNewUser, location.pathname]);
+  }, [user, isLoading, isNewUser, location.pathname, navigate]);
 
   return null;
 };
