@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Loader2, Lock, Mail } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, Conversation } from '@/types/chat';
+import type { Json } from '@/integrations/supabase/types';
 
 interface CreateAccountPromptProps {
   open: boolean;
@@ -86,12 +86,12 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
           try {
             const { error: saveError } = await supabase
               .from('user_data')
-              .insert([{
+              .insert({
                 user_id: data.user.id,
-                profile_data: onboardingProfileData,
-                conversation_data: onboardingConversationData || {},
+                profile_data: onboardingProfileData as unknown as Json,
+                conversation_data: (onboardingConversationData || {}) as unknown as Json,
                 prompt_mode: 'structured'
-              }]);
+              });
 
             if (saveError) {
               console.error("Error saving onboarding data:", saveError);
