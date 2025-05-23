@@ -16,7 +16,7 @@ const RedirectNewUser = () => {
   ].includes(location.pathname);
 
   const isAuthPath = location.pathname === "/auth";
-  const isLandingPath = location.pathname === "/";
+  const isLandingPath = location.pathname === "/" || location.pathname === "/landing-v2";
 
   useEffect(() => {
     if (isLoading) return;
