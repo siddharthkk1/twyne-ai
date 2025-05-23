@@ -86,12 +86,12 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
           try {
             const { error: saveError } = await supabase
               .from('user_data')
-              .insert({
+              .insert([{
                 user_id: data.user.id,
                 profile_data: onboardingProfileData,
                 conversation_data: onboardingConversationData || {},
                 prompt_mode: 'structured'
-              });
+              }]);
 
             if (saveError) {
               console.error("Error saving onboarding data:", saveError);
