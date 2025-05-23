@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import type { Json } from "@/integrations/supabase/types";
 
 const OnboardingResults = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const OnboardingResults = () => {
           .from('user_data')
           .insert({
             user_id: user.id,
-            profile_data: userProfile,
+            profile_data: userProfile as unknown as Json,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
