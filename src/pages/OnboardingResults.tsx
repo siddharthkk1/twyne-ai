@@ -1,19 +1,51 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
-import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { Card, CardContent } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
+import { UserProfile } from "@/types/chat";
 
 const OnboardingResults = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  const { userProfile, userName } = useOnboardingChat();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(false);
+  
+  // Get profile data from navigation state or localStorage
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userName, setUserName] = useState<string>("");
+
+  useEffect(() => {
+    // Try to get profile data from navigation state first
+    if (location.state?.userProfile) {
+      console.log("Got profile from navigation state:", location.state.userProfile);
+      setUserProfile(location.state.userProfile);
+      setUserName(location.state.userName || location.state.userProfile.name || "");
+    } else {
+      // Fallback: try to get from localStorage (for page refreshes)
+      try {
+        const savedProfile = localStorage.getItem('onboardingProfile');
+        const savedUserName = localStorage.getItem('onboardingUserName');
+        
+        if (savedProfile) {
+          const parsedProfile = JSON.parse(savedProfile);
+          console.log("Got profile from localStorage:", parsedProfile);
+          setUserProfile(parsedProfile);
+          setUserName(savedUserName || parsedProfile.name || "");
+        } else {
+          console.warn("No profile data found, redirecting to onboarding");
+          navigate("/onboarding");
+        }
+      } catch (error) {
+        console.error("Error parsing saved profile:", error);
+        navigate("/onboarding");
+      }
+    }
+  }, [location.state, navigate]);
 
   const handleCreateAccount = () => {
     setShowCreateAccountPrompt(true);
@@ -38,7 +70,19 @@ const OnboardingResults = () => {
     return "User";
   };
 
-  console.log("OnboardingResults - userName:", userName, "userProfile.name:", userProfile?.name);
+  // Show loading if no profile data yet
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Loading your profile...</h2>
+          <p className="text-muted-foreground">Please wait while we prepare your results.</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("OnboardingResults - userName:", userName, "userProfile:", userProfile);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
@@ -53,7 +97,7 @@ const OnboardingResults = () => {
           </p>
         </div>
 
-        {/* Dashboard - Pass userName explicitly */}
+        {/* Dashboard - Pass the profile data directly */}
         <ProfileCompletionDashboard 
           userProfile={userProfile} 
           userName={userName || userProfile?.name} 

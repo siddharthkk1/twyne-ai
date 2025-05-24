@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from '@/types/chat';
@@ -22,7 +21,15 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
   const displayName = userName || userProfile?.name || "User";
   const firstName = displayName.split(' ')[0];
   
-  console.log("ProfileCompletionDashboard - received userName:", userName, "userProfile.name:", userProfile?.name, "final displayName:", displayName);
+  // Add debugging
+  useEffect(() => {
+    console.log("ProfileCompletionDashboard received:");
+    console.log("- userName:", userName);
+    console.log("- userProfile:", userProfile);
+    console.log("- displayName:", displayName);
+    console.log("- userProfile.vibeSummary:", userProfile?.vibeSummary);
+    console.log("- userProfile.twyneTags:", userProfile?.twyneTags);
+  }, [userProfile, userName, displayName]);
   
   // Generate a color palette based on the user's name or interests
   const generateUserThemeColor = () => {

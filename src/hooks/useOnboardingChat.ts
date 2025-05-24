@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -207,7 +206,7 @@ export const useOnboardingChat = () => {
       setUserProfile(prev => ({ ...prev, name: userName }));
       
       const profile = await generateProfile(finalConversation, userName);
-      console.log("profile: ", profile);
+      console.log("Generated profile:", profile);
       
       // Update userName in case we have it in the profile
       if (profile.name && !userName) {
@@ -220,6 +219,11 @@ export const useOnboardingChat = () => {
       setUserProfile(profile);
       setIsComplete(true);
       
+      // Save profile data to localStorage for persistence across navigation
+      localStorage.setItem('onboardingProfile', JSON.stringify(profile));
+      localStorage.setItem('onboardingUserName', userName || profile.name || '');
+      localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
+      
       // Save conversation to Supabase with user's name
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       
@@ -228,8 +232,14 @@ export const useOnboardingChat = () => {
         // If user is logged in, go directly to mirror
         navigate("/mirror");
       } else {
-        // If not logged in, go to onboarding results page
-        navigate("/onboarding-results");
+        // If not logged in, go to onboarding results page with profile data
+        navigate("/onboarding-results", { 
+          state: { 
+            userProfile: profile, 
+            userName: userName || profile.name,
+            conversation: finalConversation 
+          } 
+        });
       }
       
       return true;
