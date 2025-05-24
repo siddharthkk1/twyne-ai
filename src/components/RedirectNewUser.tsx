@@ -1,44 +1,29 @@
-
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const RedirectNewUser = () => {
-  const { user, isLoading, isNewUser, clearNewUserFlag } = useAuth();
+  const { user, isNewUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isOnboardingPath = [
-    "/onboarding", 
-    "/onboarding-chat", 
-    "/onboarding-paste", 
-    "/onboarding-results"
-  ].includes(location.pathname);
-
-  const isAuthPath = location.pathname === "/auth";
-
   useEffect(() => {
-    if (isLoading) return;
-
-    // If user is not logged in and on protected route, Auth page will handle
-    if (!user) return;
-    
-    // If user is new and not in onboarding, redirect to onboarding
-    if (isNewUser && !isOnboardingPath) {
-      navigate("/onboarding");
+    // If the user is new, redirect them to onboarding
+    // This should happen only once after sign up/login
+    if (user && isNewUser) {
+      const onboardingRoutes = [
+        '/onboarding', 
+        '/onboarding-chat', 
+        '/onboarding-paste', 
+        '/onboarding-results'
+      ];
+      
+      // Only redirect if user is not already on an onboarding page
+      if (!onboardingRoutes.includes(location.pathname)) {
+        navigate('/onboarding');
+      }
     }
-    
-    // If user is on auth page and already logged in, redirect to mirror page
-    if (isAuthPath && user) {
-      navigate("/mirror");
-    }
-    
-    // If user is in onboarding but has already onboarded, redirect to mirror page
-    if (isOnboardingPath && user && !isNewUser) {
-      navigate("/mirror");
-    }
-
-  }, [user, isLoading, isNewUser, location.pathname]);
+  }, [user, isNewUser, navigate, location.pathname]);
 
   return null;
 };

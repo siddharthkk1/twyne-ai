@@ -21,7 +21,7 @@ export const useOnboardingAI = () => {
   });
 
   // Initialize chat with AI greeting
-  const initializeChat = async (systemPrompt: string, userName?: string) => {
+  const initializeChat = async (systemPrompt: string) => {
     setIsInitializing(true);
     setIsTyping(true);
     
@@ -32,43 +32,17 @@ export const useOnboardingAI = () => {
         userAnswers: []
       };
       
-      // If we have a userName, add guidance for the AI
-      if (userName) {
-        initialConversation.messages.push({
-          role: "assistant" as ChatRole,
-          content: `The user's name is ${userName}. Please personalize your responses accordingly.`
-        });
-      }
-      
       let aiGreeting: string;
       
       // Use a seed message if in playful mode, otherwise get from AI
       if (systemPrompt === SYSTEM_PROMPT_PLAYFUL) {
-        // Personalize greeting with name if available
-        aiGreeting = userName ? 
-          `Hey ${userName}! ${getRandomSeedMessage()}` :
-          getRandomSeedMessage();
+        aiGreeting = getRandomSeedMessage();
       } else {
-        // Get AI greeting with specific guidance to use the name if available
-        const nameGuidance = userName ? 
-          `The user's name is ${userName}. Start by greeting them by name and introducing yourself.` :
-          "Please introduce yourself and ask for the user's name in a conversational way.";
-          
-        // Update the conversation temporarily to include our guidance
-        const guidedConversation = {
-          ...initialConversation,
-          messages: [
-            ...initialConversation.messages,
-            { role: "user" as ChatRole, content: nameGuidance }
-          ]
-        };
-        
-        // Call getAIResponse with the single conversation argument
-        aiGreeting = await getAIResponse(guidedConversation);
-        
-        // Remove the guidance message as it was just for prompting
-        initialConversation.messages = initialConversation.messages.filter(
-          msg => msg.role !== "user" || msg.content !== nameGuidance
+        // Get AI greeting with specific guidance to ask for name
+        aiGreeting = await getAIResponse(
+          initialConversation, 
+          "", // Empty user message to trigger greeting
+          "Please introduce yourself and ask for the user's name in a conversational way."
         );
       }
       
@@ -89,13 +63,9 @@ export const useOnboardingAI = () => {
       let fallbackGreeting: string;
       
       if (systemPrompt === SYSTEM_PROMPT_PLAYFUL) {
-        fallbackGreeting = userName ? 
-          `Hey ${userName}! ${getRandomSeedMessage()}` :
-          getRandomSeedMessage();
+        fallbackGreeting = getRandomSeedMessage();
       } else {
-        fallbackGreeting = userName ?
-          `Hey ${userName}! I'm Twyne — let's chat and get to know you better.` :
-          "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?";
+        fallbackGreeting = "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?";
       }
       
       const fallbackConversation = {
@@ -113,18 +83,11 @@ export const useOnboardingAI = () => {
     }
   };
 
-  const generateProfile = async (finalConversation: Conversation, userName?: string) => {
+  const generateProfile = async (finalConversation: Conversation) => {
     setIsGeneratingProfile(true);
     
     try {
-      // Generate profile - since function now expects only one argument
       const profile = await generateAIProfile(finalConversation);
-      
-      // If we have a userName from the onboarding process, add it to the profile
-      if (userName && (!profile.name || profile.name === "")) {
-        profile.name = userName;
-      }
-      
       setIsGeneratingProfile(false);
       return profile;
     } catch (error) {

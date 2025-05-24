@@ -11,7 +11,7 @@ export interface InsightCardProps {
 export const InsightCard: React.FC<InsightCardProps> = ({ insight, index }) => {
   // Determine which icon to show based on index
   const getIcon = (index: number) => {
-    switch (index % 3) {
+    switch (index) {
       case 0:
         return <MessageCircle className="h-6 w-6 text-primary" />;
       case 1:

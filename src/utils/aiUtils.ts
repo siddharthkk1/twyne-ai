@@ -86,14 +86,15 @@ export const PLAYFUL_SEED_MESSAGES = [
   "ok, real question before we start||are you the kind of person who overshares to strangers, or do i have to work for it a little?"
 ];
 
-// Function to get AI response - Updated to accept a conversation object only
-export const getAIResponse = async (conversation: Conversation): Promise<string> => {
+// Function to get AI response
+export const getAIResponse = async (conversation: Conversation, userMessage: string, assistantGuidance?: string): Promise<string> => {
   try {
     // Prepare request data
     let requestData: {
       endpoint: string;
       data: {
         messages: any[];
+        assistantGuidance?: string;
       }
     } = {
       endpoint: "chat",
@@ -101,6 +102,16 @@ export const getAIResponse = async (conversation: Conversation): Promise<string>
         messages: [...conversation.messages]
       }
     };
+
+    // Add user message if provided (for normal conversation flow)
+    if (userMessage && userMessage.trim() !== "") {  
+      requestData.data.messages.push({ role: "user", content: userMessage });
+    }
+
+    // Add assistant guidance if provided
+    if (assistantGuidance) {
+      requestData.data.assistantGuidance = assistantGuidance;
+    }
 
     // Make API request to Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('ai-chat', {
@@ -148,7 +159,7 @@ export const evaluateCoverage = async (conversation: Conversation): Promise<any>
   }
 };
 
-// Function to generate AI profile - Updated to accept only one argument
+// Function to generate AI profile
 export const generateAIProfile = async (conversation: Conversation): Promise<UserProfile> => {
   try {
     const { data, error } = await supabase.functions.invoke('ai-chat', {
