@@ -21,12 +21,7 @@ export const useOnboardingScroll = (isComplete: boolean) => {
       top: scrollElement.scrollHeight,
       behavior: "smooth"
     });
-    
-    // Also use the messagesEndRef for additional scrolling support
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messagesEndRef, userHasScrolledUp]);
+  }, [userHasScrolledUp]);
 
   // Handle user scroll events to detect if they've scrolled up
   const handleScroll = useCallback(() => {
@@ -39,8 +34,8 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     const isScrollingUp = scrollTop < lastScrollTopRef.current;
     lastScrollTopRef.current = scrollTop;
     
-    // Calculate how close to bottom (within 100px)
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    // Calculate how close to bottom (within 50px for better UX)
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
     
     // If user is scrolling up and not near bottom, they're reading history
     if (isScrollingUp && !isNearBottom) {
@@ -48,7 +43,7 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     }
     
     // If user manually scrolls to bottom, reset the flag
-    if (isNearBottom) {
+    if (isNearBottom && !isScrollingUp) {
       setUserHasScrolledUp(false);
     }
   }, []);
@@ -63,19 +58,23 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     }
   }, [isComplete]);
   
-  // Handle message part becoming visible
+  // Handle message part becoming visible - only scroll if user hasn't scrolled up
   const handleMessagePartVisible = useCallback(() => {
-    requestAnimationFrame(() => {
-      if (!userHasScrolledUp) {
+    // Don't force scroll if user has scrolled up
+    if (!userHasScrolledUp) {
+      requestAnimationFrame(() => {
         scrollToBottom();
-      }
-    });
+      });
+    }
   }, [scrollToBottom, userHasScrolledUp]);
   
-  // Reset user scroll state
+  // Reset user scroll state - only call this when sending new messages
   const resetScrollState = useCallback(() => {
     setUserHasScrolledUp(false);
-    requestAnimationFrame(scrollToBottom);
+    // Small delay to ensure message is added to DOM first
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
   }, [scrollToBottom]);
 
   return {

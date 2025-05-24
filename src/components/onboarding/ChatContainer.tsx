@@ -81,7 +81,6 @@ const ChatContainer = ({
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
-      {/* Add the ConversationHeader back */}
       <ConversationHeader
         isGeneratingProfile={isGeneratingProfile}
         progress={getProgress()}
@@ -123,15 +122,20 @@ const ChatContainer = ({
             </>
           )}
           
-          {isTyping && !isInitializing && (
+          {/* Show typing indicator or profile generation indicator */}
+          {(isTyping || isGeneratingProfile) && !isInitializing && (
             <div>
               <TypingIndicator />
-              {/* Invisible element that helps with scrolling when typing indicator appears */}
+              {isGeneratingProfile && (
+                <div className="text-center text-sm text-muted-foreground mt-2">
+                  Generating your mirror...
+                </div>
+              )}
               <div className="h-16" />
             </div>
           )}
           
-          <div ref={messagesEndRef} className="h-4" /> {/* Add some height to ensure we can scroll past the last message */}
+          <div ref={messagesEndRef} className="h-4" />
         </div>
       </ScrollArea>
       

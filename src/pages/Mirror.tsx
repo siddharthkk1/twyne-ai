@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Edit, Settings } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Edit, Settings, MessageSquare, Music, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
 
 interface UserProfile {
@@ -63,6 +63,8 @@ const Mirror = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState<Array<{id: number, message: string, sender: 'user' | 'ai'}>>([]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -82,7 +84,6 @@ const Mirror = () => {
           console.error('Error fetching user profile:', error);
           setUserProfile(null);
         } else {
-          // Properly cast the Json type to UserProfile
           const profileData = data?.profile_data as UserProfile;
           setUserProfile(profileData || null);
         }
@@ -96,6 +97,29 @@ const Mirror = () => {
 
     fetchUserProfile();
   }, [user]);
+
+  const handleChatSubmit = () => {
+    if (!chatMessage.trim()) return;
+    
+    const newMessage = {
+      id: chatHistory.length + 1,
+      message: chatMessage,
+      sender: 'user' as const
+    };
+    
+    setChatHistory(prev => [...prev, newMessage]);
+    setChatMessage("");
+    
+    // Simulate AI response (you can connect to your AI endpoint here)
+    setTimeout(() => {
+      const aiResponse = {
+        id: chatHistory.length + 2,
+        message: "Thanks for the update! I'll help you refine your mirror with this new information.",
+        sender: 'ai' as const
+      };
+      setChatHistory(prev => [...prev, aiResponse]);
+    }, 1000);
+  };
 
   if (loading) {
     return (
@@ -212,7 +236,7 @@ const Mirror = () => {
 
           {/* Main Tabbed Interface */}
           <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-7 mb-8">
+            <TabsList className="grid grid-cols-8 mb-8">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -238,8 +262,12 @@ const Mirror = () => {
                 <span className="hidden sm:inline">Connection</span>
               </TabsTrigger>
               <TabsTrigger value="edit" className="flex items-center gap-2">
-                <Edit className="h-4 w-4" />
+                <MessageSquare className="h-4 w-4" />
                 <span className="hidden sm:inline">Edit</span>
+              </TabsTrigger>
+              <TabsTrigger value="integrations" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Connect</span>
               </TabsTrigger>
             </TabsList>
 
@@ -727,27 +755,111 @@ const Mirror = () => {
             <TabsContent value="edit" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl">Edit Your Mirror</CardTitle>
-                  <CardDescription>Update your profile information</CardDescription>
+                  <CardTitle className="text-xl">Chat with Your Mirror</CardTitle>
+                  <CardDescription>Tell your mirror about updates to your life, and it will help refine your profile</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Button variant="outline" className="w-full">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile Information
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Privacy Settings
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <Activity className="h-4 w-4 mr-2" />
-                      Update Interests
-                    </Button>
+                    {/* Chat History */}
+                    <div className="h-64 border rounded-lg p-4 overflow-y-auto bg-muted/20">
+                      {chatHistory.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-8">
+                          Start a conversation with your mirror! Tell it about recent changes in your life, new interests, or anything you'd like to update.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {chatHistory.map((chat) => (
+                            <div
+                              key={chat.id}
+                              className={`flex ${chat.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                            >
+                              <div
+                                className={`max-w-[80%] p-3 rounded-lg ${
+                                  chat.sender === 'user'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-background border'
+                                }`}
+                              >
+                                <p className="text-sm">{chat.message}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Chat Input */}
+                    <div className="flex space-x-2">
+                      <Textarea
+                        placeholder="Tell your mirror about updates to your life..."
+                        value={chatMessage}
+                        onChange={(e) => setChatMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleChatSubmit();
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button onClick={handleChatSubmit} disabled={!chatMessage.trim()}>
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Send
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-4">
-                    Editing features coming soon. Your mirror will be updatable through conversation or manual editing.
-                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* New Integrations Tab */}
+            <TabsContent value="integrations" className="space-y-6">
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Connect Your Accounts</CardTitle>
+                  <CardDescription>Link your music and video accounts to enhance your mirror</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Spotify Integration */}
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <Music className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">Spotify</h3>
+                          <p className="text-sm text-muted-foreground">Connect your music taste and listening habits</p>
+                        </div>
+                      </div>
+                      <Button variant="outline">
+                        Connect
+                      </Button>
+                    </div>
+
+                    {/* YouTube Integration */}
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-red-100 rounded-lg">
+                          <Video className="h-5 w-5 text-red-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">YouTube</h3>
+                          <p className="text-sm text-muted-foreground">Connect your video preferences and subscriptions</p>
+                        </div>
+                      </div>
+                      <Button variant="outline">
+                        Connect
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-muted/20 rounded-lg">
+                    <h4 className="font-medium mb-2">Coming Soon</h4>
+                    <p className="text-sm text-muted-foreground">
+                      More integrations like Instagram, Twitter, and Netflix are coming soon to make your mirror even more accurate.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

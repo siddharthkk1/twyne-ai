@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -146,6 +145,7 @@ export const useOnboardingChat = () => {
 
   // Handle name submission from the name collection step
   const handleNameSubmit = (name: string) => {
+    console.log("Name submitted:", name);
     setUserName(name);
     setUserProfile(prev => ({ ...prev, name }));
     setShowNameCollection(false);
@@ -210,19 +210,28 @@ export const useOnboardingChat = () => {
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
     try {
-      // Update user profile with name before generating profile
+      console.log("Completing onboarding with userName:", userName);
+      console.log("Final conversation:", finalConversation);
+      
+      // Ensure the profile has the user's name
       setUserProfile(prev => ({ ...prev, name: userName }));
       
       const profile = await generateProfile(finalConversation, userName);
       console.log("Generated profile:", profile);
       
-      // Update userName in case we have it in the profile
-      if (profile.name && !userName) {
+      // Make sure the profile has the name - prioritize userName over generated name
+      if (userName) {
+        profile.name = userName;
+      } else if (profile.name && !userName) {
         setUserName(profile.name);
-      } else if (userName && !profile.name) {
-        // Make sure the profile has the name if userName is available
+      }
+      
+      // Ensure the profile definitely has a name
+      if (!profile.name && userName) {
         profile.name = userName;
       }
+      
+      console.log("Final profile with name:", profile);
       
       setUserProfile(profile);
       setIsComplete(true);
@@ -237,10 +246,8 @@ export const useOnboardingChat = () => {
       
       // Updated redirect logic based on authentication status
       if (user) {
-        // If user is logged in, go directly to mirror
         navigate("/mirror");
       } else {
-        // If not logged in, go to onboarding results page with profile data
         navigate("/onboarding-results", { 
           state: { 
             userProfile: profile, 
@@ -261,12 +268,10 @@ export const useOnboardingChat = () => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
 
-    // Count only user messages for the message cap
     const userMessageCount = conversation.userAnswers.length;
     
     // Check if we've reached the message cap and need to ask for name
     if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
-      // Add user message to UI
       const newUserMessage: Message = {
         id: messages.length + 1,
         text: textToSend,
@@ -276,7 +281,6 @@ export const useOnboardingChat = () => {
       setMessages((prev) => [...prev, newUserMessage]);
       setInput("");
       
-      // Add the name request message
       const nameRequestMessage: Message = {
         id: messages.length + 2,
         text: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?",
@@ -287,7 +291,6 @@ export const useOnboardingChat = () => {
       setIsTyping(false);
       setAskingForName(true);
 
-      // Update conversation with user's message and name request
       const userMessageObj: { role: ChatRole; content: string } = { 
         role: "user" as ChatRole, 
         content: textToSend 
@@ -313,7 +316,6 @@ export const useOnboardingChat = () => {
 
     // If we're asking for name, this is the final message
     if (askingForName) {
-      // Add user's name message
       const nameMessage: Message = {
         id: messages.length + 1,
         text: textToSend,
@@ -323,11 +325,11 @@ export const useOnboardingChat = () => {
       setMessages((prev) => [...prev, nameMessage]);
       setInput("");
       
-      // Update the user's name
+      // Update the user's name immediately
+      console.log("Setting userName from final response:", textToSend);
       setUserName(textToSend);
       setUserProfile(prev => ({ ...prev, name: textToSend }));
       
-      // Add the "Generating your mirror" message
       const generatingMessage: Message = {
         id: messages.length + 2,
         text: "Generating your mirror...",
@@ -337,7 +339,6 @@ export const useOnboardingChat = () => {
       setMessages(prev => [...prev, generatingMessage]);
       setIsTyping(false);
 
-      // Update final conversation with the name
       const userNameObj: { role: ChatRole; content: string } = { 
         role: "user" as ChatRole, 
         content: textToSend 
@@ -357,6 +358,7 @@ export const useOnboardingChat = () => {
         userAnswers: [...conversation.userAnswers, textToSend]
       };
       
+      console.log("Final conversation before completion:", finalConversation);
       setConversation(finalConversation);
       
       // Complete the onboarding process
@@ -375,12 +377,9 @@ export const useOnboardingChat = () => {
     setInput("");
     setIsTyping(true);
     
-    // Reset scroll state when user sends a message
     resetScrollState();
 
-    // Update basic profile info for first user messages
     if (currentQuestionIndex === 0) {
-      // Don't update name from first question anymore since we're collecting it separately
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
       setUserProfile(prev => ({ ...prev, interests: [textToSend.trim()] }));
@@ -389,7 +388,6 @@ export const useOnboardingChat = () => {
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
 
-    // Prepare conversation data for API request - Fix typing here
     const userMessageObj: { role: ChatRole; content: string } = { 
       role: "user" as ChatRole, 
       content: textToSend 
@@ -400,7 +398,6 @@ export const useOnboardingChat = () => {
       userAnswers: [...conversation.userAnswers, textToSend]
     };
 
-    // If in SMS mode, handle sending messages via SMS
     if (conversationMode === "sms") {
       handleSmsResponse(
         textToSend, 
@@ -414,7 +411,6 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Standard conversation flow
     handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
   };
 
@@ -476,7 +472,6 @@ export const useOnboardingChat = () => {
     setUserName,
     showNameCollection,
     handleNameSubmit,
-    // Scroll-related
     scrollViewportRef,
     dashboardRef,
     handleScroll,
