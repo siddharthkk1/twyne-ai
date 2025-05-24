@@ -18,7 +18,7 @@ import {
 } from '@/utils/aiUtils';
 
 // Maximum number of user messages before asking for name and completing
-const MESSAGE_CAP = 20;
+const MESSAGE_CAP = 4;
 
 export const useOnboardingChat = () => {
   const navigate = useNavigate();
