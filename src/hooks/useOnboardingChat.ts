@@ -17,7 +17,7 @@ import {
 } from '@/utils/aiUtils';
 
 // Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 8; // Count only user messages, not AI messages
+const MESSAGE_CAP = 20; // Count only user messages, not AI messages
 
 export const useOnboardingChat = () => {
   const navigate = useNavigate();
