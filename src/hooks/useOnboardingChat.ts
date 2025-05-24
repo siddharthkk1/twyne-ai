@@ -9,7 +9,6 @@ import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
 import { useOnboardingScroll } from './useOnboardingScroll';
-import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
   SYSTEM_PROMPT_PLAYFUL,
@@ -20,7 +19,6 @@ import {
 const MESSAGE_CAP = 20; // Count only user messages, not AI messages
 
 export const useOnboardingChat = () => {
-  const navigate = useNavigate();
   const { promptMode, setPromptMode, showPromptSelection, setShowPromptSelection, handlePromptModeChange } = usePromptMode();
   const { 
     conversationMode, 
@@ -176,16 +174,7 @@ export const useOnboardingChat = () => {
       setIsComplete(true);
       
       // Save conversation to Supabase with user's name
-      await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
-      
-      // Updated redirect logic based on authentication status
-      if (user) {
-        // If user is logged in, go directly to mirror
-        navigate("/mirror");
-      } else {
-        // If not logged in, go to onboarding results page
-        navigate("/onboarding-results");
-      }
+      saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       
       return true;
     } catch (error) {

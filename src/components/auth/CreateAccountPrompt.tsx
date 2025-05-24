@@ -1,42 +1,33 @@
 
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { toast } from "@/components/ui/use-toast";
-import { Loader2, Lock, Mail } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/integrations/supabase/client";
-import { UserProfile, Conversation } from '@/types/chat';
-import type { Json } from '@/integrations/supabase/types';
+import { toast } from "@/components/ui/use-toast";
+import { Mail, Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 
 interface CreateAccountPromptProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onboardingProfileData?: UserProfile | null;
-  onboardingConversationData?: Conversation | null;
-  userName?: string;
 }
 
-export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
-  open,
-  onOpenChange,
-  onboardingProfileData,
-  onboardingConversationData,
-  userName
-}) => {
+export const CreateAccountPrompt = ({ open, onOpenChange }: CreateAccountPromptProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { signUp } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // If user is already logged in, don't show the dialog
+  if (user) {
+    return null;
+  }
+
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -48,83 +39,28 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
       return;
     }
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Only pass full_name if we have a valid value
-      const fullName = userName || onboardingProfileData?.name;
-      const signupOptions = fullName 
-        ? {
-            data: {
-              full_name: fullName,
-            }
-          }
-        : undefined;
-
-      console.log("Signing up with:", {
-        email,
-        password: "***",
-        full_name: fullName || "not provided"
-      });
-
-      // Sign up with minimal metadata to avoid trigger issues
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: signupOptions
       });
-
+      
       if (error) {
-        console.error("Signup error:", error);
         toast({
           title: "Sign up failed",
           description: error.message,
           variant: "destructive",
         });
-        return;
-      }
-
-      if (data.user) {
-        // If we have onboarding data, save it to user_data table
-        if (onboardingProfileData) {
-          try {
-            const { error: saveError } = await supabase
-              .from('user_data')
-              .insert({
-                user_id: data.user.id,
-                profile_data: onboardingProfileData as unknown as Json,
-                conversation_data: (onboardingConversationData || {}) as unknown as Json,
-                prompt_mode: 'structured'
-              });
-
-            if (saveError) {
-              console.error("Error saving onboarding data:", saveError);
-              // Don't show error to user as account creation succeeded
-            }
-          } catch (saveError) {
-            console.error("Error saving onboarding data:", saveError);
-          }
-        }
-
+      } else {
         toast({
-          title: "Account created successfully",
-          description: "Welcome to Twyne!",
+          title: "Account created",
+          description: "Please check your email for a confirmation link.",
         });
-        
         onOpenChange(false);
-        navigate("/mirror");
       }
     } catch (error: any) {
-      console.error("Signup error:", error);
       toast({
         title: "Error",
         description: error.message || "Something went wrong.",
@@ -135,14 +71,14 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/mirror'
+          redirectTo: window.location.origin
         }
       });
       
@@ -164,17 +100,21 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     }
   };
 
+  const handleSkip = () => {
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Your Account</DialogTitle>
-          <DialogDescription>
-            Save your profile and start connecting with others
+          <DialogTitle className="text-center">Create your account</DialogTitle>
+          <DialogDescription className="text-center">
+            Save your profile and unlock all Twyne features
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input 
@@ -192,37 +132,22 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
             <Input 
               id="password" 
               type="password" 
-              placeholder="••••••••" 
+              placeholder="******" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input 
-              id="confirmPassword" 
-              type="password" 
-              placeholder="••••••••" 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
 
           <div className="flex flex-col space-y-2">
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
+                  Creating Account...
                 </>
               ) : (
-                <>
-                  <Lock className="mr-2 h-4 w-4" />
-                  Create Account
-                </>
+                "Create Account"
               )}
             </Button>
             
@@ -238,7 +163,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
             <Button 
               type="button" 
               variant="outline" 
-              onClick={handleGoogleAuth} 
+              onClick={handleGoogleSignUp} 
               disabled={isGoogleLoading}
               className="w-full"
             >
@@ -249,13 +174,27 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
               )}
               Google
             </Button>
+            
+            <Button type="button" variant="outline" onClick={handleSkip} className="w-full mt-4">
+              Skip for now
+            </Button>
+
+            <div className="text-center text-xs text-muted-foreground pt-2">
+              <p>Already have an account? 
+                <Button variant="link" className="p-0 h-auto ml-1" onClick={() => onOpenChange(false)}>
+                  Log in instead
+                </Button>
+              </p>
+            </div>
           </div>
         </form>
         
-        <div className="flex items-center justify-center text-xs text-muted-foreground pt-4">
-          <Mail className="h-3 w-3 mr-1" />
-          <span>Your email is only used for account access</span>
-        </div>
+        <DialogFooter className="flex justify-center pt-2">
+          <div className="flex items-center text-xs text-muted-foreground">
+            <Mail className="h-3 w-3 mr-1" />
+            <span>Your email is only used for account access</span>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
