@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -21,16 +22,8 @@ const Mirror = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [isUpdating, setIsUpdating] = useState(false);
-  
-  // Form state for editing
-  const [formData, setFormData] = useState({
-    username: profile?.username || "",
-    full_name: profile?.full_name || "",
-    bio: profile?.bio || "",
-    location: profile?.location || "",
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
+  const [profileData, setProfileData] = useState<any>({});
+  const [isLoading, setIsLoading] = useState(true);
   
   const [conversation, setConversation] = useState<Conversation>({
     messages: [
@@ -43,21 +36,40 @@ const Mirror = () => {
   });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Get profile data from the database profile_data column or user metadata
-  const profileData = profile?.profile_data || user?.user_metadata?.profile_data || {};
 
+  // Load user profile data on component mount
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: userData } = await supabase
+          .from('user_data')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (userData?.profile_data) {
+          setProfileData(userData.profile_data);
+        }
+      } catch (error) {
+        console.error("Error loading profile data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfileData();
+  }, [user]);
+  
   // Get user's actual first name
   const getUserFirstName = () => {
-    // Try to get name from profile_data first
     if (profileData.name) {
       return profileData.name.split(' ')[0];
     }
-    // Fallback to full_name from profile
     if (profile?.full_name) {
       return profile.full_name.split(' ')[0];
     }
-    // Last resort fallback
     return user?.email?.split('@')[0] || "Your";
   };
 
@@ -88,22 +100,14 @@ const Mirror = () => {
     return value;
   };
 
-  // Default personality traits if none provided
-  const defaultTraits = {
-    extroversion: 60,
-    openness: 70,
-    empathy: 80,
-    structure: 50
-  };
-
   // Extract tags
   const getTags = () => {
-    return profileData.twyneTags || profileData.vibeWords || [];
+    return profileData.twyneTags || [];
   };
 
   const tags = getTags();
 
-  // Initialize with a greeting from the AI and reset conversation when switching to edit tab
+  // Initialize with a greeting from the AI when switching to edit tab
   useEffect(() => {
     const initializeConversation = async () => {
       if (activeTab !== "edit") return;
@@ -174,64 +178,16 @@ const Mirror = () => {
       }
     };
     
-    if (user) {
+    if (user && !isLoading) {
       initializeConversation();
     }
-  }, [user, activeTab]);
+  }, [user, activeTab, isLoading, profileData]);
   
   // Scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('user_data')
-        .update({
-          profile_data: {
-            ...profileData,
-            username: formData.username,
-            full_name: formData.full_name,
-            bio: formData.bio,
-            location: formData.location,
-          },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user?.id);
-
-      if (error) {
-        toast({
-          title: "Update failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Profile updated",
-          description: "Your information has been updated successfully",
-        });
-        setActiveTab("overview");
-      }
-    } catch (error: any) {
-      toast({
-        title: "Update failed",
-        description: error.message || "An error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   const handleSend = async () => {
     if (!input.trim()) return;
     
@@ -359,6 +315,9 @@ const Mirror = () => {
           description: "Your Mirror has been updated based on your conversation.",
         });
         
+        // Update local state
+        setProfileData(updatedProfileData);
+        
         // Reset conversation after successful update
         setMessages([]);
         setConversation({
@@ -373,9 +332,6 @@ const Mirror = () => {
         
         // Switch back to overview tab to see updates
         setActiveTab("overview");
-        
-        // Refresh the page to show updated data
-        window.location.reload();
       }
     } catch (error: any) {
       toast({
@@ -388,18 +344,30 @@ const Mirror = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Loading your mirror...</h2>
+          <p className="text-muted-foreground">Please wait while we prepare your profile.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <div className="flex flex-col gap-8">
-        {/* Header with personalized greeting */}
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
+      <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
+        {/* Header with personalized greeting - Glassmorphic styling */}
         <div 
-          className="text-center p-8 rounded-xl mb-4"
+          className="text-center p-8 rounded-xl mb-8 backdrop-blur-md bg-white/10 border border-white/20 shadow-lg"
           style={{ 
-            background: `linear-gradient(135deg, ${userTheme.light}, ${userTheme.medium})`,
-            borderBottom: `3px solid ${userTheme.dark}`
+            background: `linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))`,
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.2)'
           }}
         >
-          <h1 className="text-3xl font-bold mb-3" style={{ color: userTheme.dark }}>
+          <h1 className="text-3xl font-bold mb-3 text-foreground">
             {getUserFirstName()}'s Mirror
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -407,8 +375,8 @@ const Mirror = () => {
           </p>
         </div>
 
-        {/* Privacy Notice */}
-        <div className="bg-primary/5 rounded-lg p-4 border border-primary/10 max-w-3xl mx-auto">
+        {/* Privacy Notice - Glassmorphic styling */}
+        <div className="backdrop-blur-md bg-primary/5 rounded-lg p-4 border border-primary/20 max-w-3xl mx-auto mb-8 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="h-4 w-4 text-primary" />
             <h3 className="font-medium">Privacy Guarantee</h3>
@@ -418,9 +386,9 @@ const Mirror = () => {
           </p>
         </div>
 
-        {/* Main Tabbed Interface */}
+        {/* Main Tabbed Interface - Glassmorphic styling */}
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-5 mb-8">
+          <TabsList className="grid grid-cols-5 mb-8 backdrop-blur-md bg-white/10 border border-white/20">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -445,55 +413,23 @@ const Mirror = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Left column - Core info */}
-              <Card className="p-6 border border-border bg-card">
-                <CardHeader className="px-0 pt-0">
-                  <CardTitle className="text-xl">About You</CardTitle>
-                </CardHeader>
-                <CardContent className="px-0 pb-0 space-y-4">
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">Name</h3>
-                    <p className="font-semibold text-lg">{profile?.full_name || profile?.username || "Anonymous"}</p>
-                  </div>
-                  
-                  {profile?.location && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Location</h3>
-                      <p>{profile.location}</p>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">Email</h3>
-                    <p>{user?.email}</p>
-                  </div>
-                  
-                  {profile?.username && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Username</h3>
-                      <p>{profile.username}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              {/* Middle column - Vibe Summary */}
-              <Card className="col-span-2 border border-border bg-card">
+            {/* Vibe Summary - Glassmorphic Card */}
+            {profileData.vibeSummary && (
+              <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-xl">About</CardTitle>
+                  <CardTitle className="text-xl">Your Vibe</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{profile?.bio || profileData.vibeSummary || "No bio added yet"}</p>
+                  <p className="text-lg leading-relaxed">{profileData.vibeSummary}</p>
                   
                   {/* Twyne Tags */}
                   {tags.length > 0 && (
-                    <div className="mt-4">
-                      <h3 className="font-medium text-muted-foreground mb-2">#TwyneTags</h3>
+                    <div className="mt-6">
+                      <h3 className="font-medium text-muted-foreground mb-3">Twyne Tags</h3>
                       <div className="flex flex-wrap gap-2">
                         {tags.map((tag: string, i: number) => (
-                          <Badge key={i} variant="outline" className="bg-primary/5 text-primary">
-                            #{tag.replace(/\s+/g, '')}
+                          <Badge key={i} variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                            {tag}
                           </Badge>
                         ))}
                       </div>
@@ -501,29 +437,74 @@ const Mirror = () => {
                   )}
                 </CardContent>
               </Card>
-            </div>
-            
-            {/* Key Facts/Background */}
-            {profileData.keyFacts && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Key Facts & Background</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{profileData.keyFacts}</p>
-                </CardContent>
-              </Card>
             )}
 
-            {/* Personality Chart */}
-            {profileData.personalityTraits && (
-              <Card className="border border-border bg-card">
+            {/* Basic Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Key Facts */}
+              <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-xl">Your Social Style</CardTitle>
-                  <CardDescription>Based on our conversation, here's your social style and energy</CardDescription>
+                  <CardTitle className="text-lg">Key Facts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {profileData.name && (
+                    <div>
+                      <h4 className="font-medium text-muted-foreground">Name</h4>
+                      <p>{profileData.name}</p>
+                    </div>
+                  )}
+                  {profileData.location && (
+                    <div>
+                      <h4 className="font-medium text-muted-foreground">Location</h4>
+                      <p>{profileData.location}</p>
+                    </div>
+                  )}
+                  {profileData.job && (
+                    <div>
+                      <h4 className="font-medium text-muted-foreground">Work</h4>
+                      <p>{profileData.job}</p>
+                    </div>
+                  )}
+                  {profileData.age && (
+                    <div>
+                      <h4 className="font-medium text-muted-foreground">Age</h4>
+                      <p>{profileData.age}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Social Style */}
+              <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Social Style</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {profileData.socialStyle && (
+                    <div>
+                      <h4 className="font-medium text-muted-foreground">How You Connect</h4>
+                      <p>{profileData.socialStyle}</p>
+                    </div>
+                  )}
+                  {profileData.communicationStyle && (
+                    <div>
+                      <h4 className="font-medium text-muted-foreground">Communication Style</h4>
+                      <p>{profileData.communicationStyle}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Personality Chart */}
+            {profileData.bigFiveTraits && (
+              <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl">Personality Profile</CardTitle>
+                  <CardDescription>Your unique personality dimensions</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <PersonalityChart traits={profileData.personalityTraits || defaultTraits} />
+                  <PersonalityChart traits={profileData.bigFiveTraits} />
                 </CardContent>
               </Card>
             )}
@@ -531,49 +512,31 @@ const Mirror = () => {
 
           {/* Interests Tab */}
           <TabsContent value="interests" className="space-y-6">
-            <Card className="border border-border bg-card">
+            <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl">Interests & Passions</CardTitle>
+                <CardTitle className="text-xl">Interests & Lifestyle</CardTitle>
               </CardHeader>
-              <CardContent>
-                {profileData.interests && (
-                  <div className="flex flex-wrap gap-3">
-                    {ensureArray(profileData.interests).map((interest, i) => (
-                      <div 
-                        key={i} 
-                        className="px-4 py-3 rounded-lg text-sm font-medium"
-                        style={{ 
-                          backgroundColor: `${userTheme.light}`,
-                          color: `${userTheme.dark}`,
-                          border: `1px solid ${userTheme.medium}`
-                        }}
-                      >
-                        {interest}
-                      </div>
-                    ))}
+              <CardContent className="space-y-6">
+                {profileData.interestsAndPassions && (
+                  <div>
+                    <h3 className="font-medium text-lg mb-3">Interests & Passions</h3>
+                    <p>{profileData.interestsAndPassions}</p>
                   </div>
                 )}
                 
-                {profileData.weekendActivities && (
-                  <div className="mt-8">
-                    <h3 className="font-medium text-xl mb-4">How You Spend Your Time</h3>
-                    <p>{profileData.weekendActivities}</p>
+                {profileData.favoriteActivities && (
+                  <div>
+                    <h3 className="font-medium text-lg mb-3">Favorite Activities</h3>
+                    <p>{profileData.favoriteActivities}</p>
                   </div>
                 )}
                 
-                {profileData.mediaTastes && (
-                  <div className="mt-8">
-                    <h3 className="font-medium text-xl mb-4">Media & Cultural Tastes</h3>
-                    <p>{profileData.mediaTastes}</p>
-                  </div>
-                )}
-                
-                {profileData.talkingPoints && (
-                  <div className="mt-8">
-                    <h3 className="font-medium text-xl mb-4">Talking Points</h3>
+                {profileData.talkingPoints && profileData.talkingPoints.length > 0 && (
+                  <div>
+                    <h3 className="font-medium text-lg mb-3">Talking Points</h3>
                     <div className="flex flex-wrap gap-2">
                       {ensureArray(profileData.talkingPoints).map((point, i) => (
-                        <Badge key={i} variant="outline" className="bg-secondary/5 text-secondary">
+                        <Badge key={i} variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">
                           {point}
                         </Badge>
                       ))}
@@ -582,35 +545,12 @@ const Mirror = () => {
                 )}
               </CardContent>
             </Card>
-            
-            {profileData.lookingFor && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">What You're Looking For</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{profileData.lookingFor}</p>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           {/* Inner World Tab */}
           <TabsContent value="inner-world" className="space-y-6">
-            {profileData.personalityTraits && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Your Personality Profile</CardTitle>
-                  <CardDescription>A visual representation of your inner dimensions</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-8">
-                  <PersonalityChart traits={profileData.personalityTraits || defaultTraits} />
-                </CardContent>
-              </Card>
-            )}
-            
             {profileData.coreValues && (
-              <Card className="border border-border bg-card">
+              <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-xl">Core Values</CardTitle>
                 </CardHeader>
@@ -620,66 +560,24 @@ const Mirror = () => {
               </Card>
             )}
             
-            {(profileData.philosophy || profileData.lifePhilosophy) && (
-              <Card className="border border-border bg-card">
+            {profileData.lifePhilosophy && (
+              <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-xl">Philosophy & Beliefs</CardTitle>
+                  <CardTitle className="text-xl">Life Philosophy</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{profileData.philosophy || profileData.lifePhilosophy}</p>
+                  <p>{profileData.lifePhilosophy}</p>
                 </CardContent>
               </Card>
             )}
-            
-            {profileData.personalInsights && (
-              <Card className="border border-border bg-card">
+
+            {profileData.goals && (
+              <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-xl">Key Traits & Characteristics</CardTitle>
+                  <CardTitle className="text-xl">Goals & Aspirations</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {ensureArray(profileData.personalInsights).map((trait, i) => (
-                      <Badge key={i} variant="outline" className="bg-accent/5 text-accent">
-                        {trait}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          
-          {/* Connection Tab */}
-          <TabsContent value="connection" className="space-y-6">
-            {profileData.socialStyle && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Social Style</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{profileData.socialStyle}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {profileData.connectionPreferences && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Connection Preferences</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{profileData.connectionPreferences}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {profileData.lookingFor && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">What You're Looking For</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{profileData.lookingFor}</p>
+                  <p>{profileData.goals}</p>
                 </CardContent>
               </Card>
             )}
@@ -687,7 +585,7 @@ const Mirror = () => {
 
           {/* Integrations Tab */}
           <TabsContent value="integrations" className="space-y-6">
-            <Card className="border border-border bg-card">
+            <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-xl">Connect Your Accounts</CardTitle>
                 <CardDescription>
@@ -696,7 +594,7 @@ const Mirror = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Spotify Integration */}
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center justify-between p-4 border rounded-lg backdrop-blur-sm bg-white/5 border-white/10">
                   <div className="flex items-center gap-3">
                     <Music className="h-8 w-8 text-green-500" />
                     <div>
@@ -704,13 +602,13 @@ const Mirror = () => {
                       <p className="text-sm text-muted-foreground">Share your music taste and listening habits</p>
                     </div>
                   </div>
-                  <Button variant="outline">
+                  <Button variant="outline" className="bg-white/10 border-white/20">
                     Connect Spotify
                   </Button>
                 </div>
 
                 {/* YouTube Integration */}
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center justify-between p-4 border rounded-lg backdrop-blur-sm bg-white/5 border-white/10">
                   <div className="flex items-center gap-3">
                     <Youtube className="h-8 w-8 text-red-500" />
                     <div>
@@ -718,7 +616,7 @@ const Mirror = () => {
                       <p className="text-sm text-muted-foreground">Share your video preferences and subscriptions</p>
                     </div>
                   </div>
-                  <Button variant="outline">
+                  <Button variant="outline" className="bg-white/10 border-white/20">
                     Connect YouTube
                   </Button>
                 </div>
@@ -730,10 +628,9 @@ const Mirror = () => {
             </Card>
           </TabsContent>
 
-          {/* Edit Tab with Chat Only */}
+          {/* Edit Tab with Chat */}
           <TabsContent value="edit" className="space-y-6">
-            {/* Chat with Mirror */}
-            <Card className="border border-border bg-card">
+            <Card className="backdrop-blur-md bg-white/10 border border-white/20 shadow-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -768,10 +665,10 @@ const Mirror = () => {
                       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div 
-                        className={`max-w-[80%] rounded-lg p-3 ${
+                        className={`max-w-[80%] rounded-lg p-3 backdrop-blur-sm ${
                           message.sender === 'user' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted'
+                            ? 'bg-primary/80 text-primary-foreground' 
+                            : 'bg-white/10 border border-white/20'
                         }`}
                       >
                         {message.text}
@@ -780,7 +677,7 @@ const Mirror = () => {
                   ))}
                   {isTyping && (
                     <div className="flex justify-start">
-                      <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                      <div className="max-w-[80%] rounded-lg p-3 bg-white/10 border border-white/20 backdrop-blur-sm">
                         <div className="flex gap-1">
                           <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce"></div>
                           <div className="h-2 w-2 bg-muted-foreground/50 rounded-full animate-bounce delay-150"></div>
@@ -794,7 +691,7 @@ const Mirror = () => {
                 <div className="flex items-end gap-2">
                   <Textarea
                     placeholder="Tell me what you'd like to update about yourself..."
-                    className="resize-none"
+                    className="resize-none backdrop-blur-sm bg-white/10 border-white/20"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -809,6 +706,7 @@ const Mirror = () => {
                     size="icon" 
                     onClick={handleSend} 
                     disabled={isTyping || !input.trim()}
+                    className="bg-primary/80 hover:bg-primary"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

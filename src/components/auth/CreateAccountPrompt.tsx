@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
 import type { Json } from '@/integrations/supabase/types';
 import type { UserProfile, Conversation } from '@/types/chat';
 
@@ -33,6 +34,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { signIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,52 +91,62 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         return;
       }
 
-      if (data.user && onboardingProfileData) {
-        // Save onboarding data to user_data table
-        try {
-          const { error: userDataError } = await supabase
-            .from('user_data')
-            .insert({
-              user_id: data.user.id,
-              profile_data: onboardingProfileData as unknown as Json,
-              conversation_data: (onboardingConversationData || {}) as unknown as Json,
-              prompt_mode: 'structured'
-            });
+      if (data.user) {
+        // Auto sign in the user first
+        await signIn(email, password);
+        
+        // Wait a moment for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Now save onboarding data to user_data table if we have it
+        if (onboardingProfileData) {
+          try {
+            const { error: userDataError } = await supabase
+              .from('user_data')
+              .upsert({
+                user_id: data.user.id,
+                profile_data: onboardingProfileData as unknown as Json,
+                conversation_data: (onboardingConversationData || {}) as unknown as Json,
+                prompt_mode: 'structured',
+                updated_at: new Date().toISOString()
+              });
 
-          if (userDataError) {
-            console.error("Error saving user data:", userDataError);
-            // Don't block the signup process for this error, but notify the user
+            if (userDataError) {
+              console.error("Error saving user data:", userDataError);
+              toast({
+                title: "Account created",
+                description: "Account created successfully, but there was an issue saving your profile data. Please contact support if needed.",
+                variant: "default",
+              });
+            } else {
+              console.log("Successfully saved onboarding data to user_data table");
+              toast({
+                title: "Account created successfully!",
+                description: "Welcome to Twyne! Your profile has been saved.",
+              });
+              
+              // Navigate to mirror page after successful account creation and data save
+              navigate("/mirror");
+            }
+          } catch (dataError) {
+            console.error("Error saving onboarding data:", dataError);
             toast({
               title: "Account created",
-              description: "Account created successfully, but there was an issue saving your profile data. Please contact support if needed.",
+              description: "Account created successfully, but there was an issue saving your profile data.",
               variant: "default",
             });
-          } else {
-            console.log("Successfully saved onboarding data to user_data table");
-            toast({
-              title: "Account created successfully!",
-              description: "Welcome to Twyne! Your profile has been saved.",
-            });
+            navigate("/mirror");
           }
-        } catch (dataError) {
-          console.error("Error saving onboarding data:", dataError);
-          // Don't block the signup process
+        } else {
           toast({
-            title: "Account created",
-            description: "Account created successfully, but there was an issue saving your profile data.",
-            variant: "default",
+            title: "Account created successfully!",
+            description: "Welcome to Twyne! You can now access all features.",
           });
+          navigate("/mirror");
         }
-      } else {
-        toast({
-          title: "Account created successfully!",
-          description: "Welcome to Twyne! You can now access all features.",
-        });
-      }
 
-      // Auto sign in the user
-      await signIn(email, password);
-      onOpenChange(false);
+        onOpenChange(false);
+      }
     } catch (error) {
       console.error("Signup error:", error);
       toast({

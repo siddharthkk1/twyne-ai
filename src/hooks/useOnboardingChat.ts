@@ -39,66 +39,67 @@ export const useOnboardingChat = () => {
   const { user, clearNewUserFlag } = useAuth();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
+  const [showNameCollection, setShowNameCollection] = useState(true);
   
   // Initialize userProfile state
   const [userProfile, setUserProfile] = useState<UserProfile>({
-  // 🪞 Overview
-  "vibeSummary": "",
-  "oneLiner": "",
-  "twyneTags": [],
+    // 🪞 Overview
+    "vibeSummary": "",
+    "oneLiner": "",
+    "twyneTags": [],
 
-  // 📌 Key Facts / Background
-  "name": "",
-  "age": "",
-  "location": "",
-  "job": "",
-  "school": "",
-  "ethnicity": "",
-  "religion": "",
-  "hometown": "",
+    // 📌 Key Facts / Background
+    "name": "",
+    "age": "",
+    "location": "",
+    "job": "",
+    "school": "",
+    "ethnicity": "",
+    "religion": "",
+    "hometown": "",
 
-  // 🌱 Interests & Lifestyle
-  "lifestyle": "",
-  "favoriteProducts": "",
-  "style": "",
-  "interestsAndPassions": "",
-  "favoriteMoviesAndShows": "",
-  "favoriteMusic": "",
-  "favoriteBooks": "",
-  "favoritePodcastsOrYouTube": "",
-  "talkingPoints": [],
-  "favoriteActivities": "",
-  "favoriteSpots": "",
+    // 🌱 Interests & Lifestyle
+    "lifestyle": "",
+    "favoriteProducts": "",
+    "style": "",
+    "interestsAndPassions": "",
+    "favoriteMoviesAndShows": "",
+    "favoriteMusic": "",
+    "favoriteBooks": "",
+    "favoritePodcastsOrYouTube": "",
+    "talkingPoints": [],
+    "favoriteActivities": "",
+    "favoriteSpots": "",
 
-  // 🧘 Inner World
-  "coreValues": "",
-  "lifePhilosophy": "",
-  "goals": "",
-  "personalitySummary": "",
-  "bigFiveTraits": {
-    "openness": "",
-    "conscientiousness": "",
-    "extraversion": "",
-    "agreeableness": "",
-    "neuroticism": ""
-  },
-  "quirks": "",
-  "communicationStyle": "",
+    // 🧘 Inner World
+    "coreValues": "",
+    "lifePhilosophy": "",
+    "goals": "",
+    "personalitySummary": "",
+    "bigFiveTraits": {
+      "openness": "",
+      "conscientiousness": "",
+      "extraversion": "",
+      "agreeableness": "",
+      "neuroticism": ""
+    },
+    "quirks": "",
+    "communicationStyle": "",
 
-  // 📖 Story
-  "upbringing": "",
-  "majorTurningPoints": "",
-  "recentLifeContext": "",
+    // 📖 Story
+    "upbringing": "",
+    "majorTurningPoints": "",
+    "recentLifeContext": "",
 
-  // 🤝 Connection
-  "socialStyle": "",
-  "loveLanguageOrFriendStyle": "",
-  "socialNeeds": "",
-  "connectionPreferences": "",
-  "dealBreakers": "",
-  "boundariesAndPetPeeves": "",
-  "connectionActivities": ""
-});
+    // 🤝 Connection
+    "socialStyle": "",
+    "loveLanguageOrFriendStyle": "",
+    "socialNeeds": "",
+    "connectionPreferences": "",
+    "dealBreakers": "",
+    "boundariesAndPetPeeves": "",
+    "connectionActivities": ""
+  });
   
   // Import all the refactored hooks
   const { 
@@ -141,10 +142,17 @@ export const useOnboardingChat = () => {
     handleMessagePartVisible
   } = useOnboardingScroll(isComplete);
 
+  // Handle name submission from the name collection step
+  const handleNameSubmit = (name: string) => {
+    setUserName(name);
+    setUserProfile(prev => ({ ...prev, name }));
+    setShowNameCollection(false);
+  };
+
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
-    if (!userName) {
-      // If no userName is set, don't initialize the chat yet
+    if (!userName || showNameCollection) {
+      // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
 
@@ -165,16 +173,14 @@ export const useOnboardingChat = () => {
       content: systemPrompt
     };
 
-    // Add assistant guidance with user's name if available
-    const assistantGuidance = userName ? 
-      `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.` : 
-      '';
+    // Add assistant guidance with user's name
+    const assistantGuidance = `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.`;
     
     // Use the properly typed message object
     setConversation({
       messages: [
         initialMessage,
-        ...(assistantGuidance ? [{ role: "assistant" as ChatRole, content: assistantGuidance }] : [])
+        { role: "assistant" as ChatRole, content: assistantGuidance }
       ],
       userAnswers: []
     });
@@ -193,7 +199,7 @@ export const useOnboardingChat = () => {
       setMessages([greetingMessage]);
       setConversation(updatedConversation);
     });
-  }, [promptMode, userName]);
+  }, [promptMode, userName, showNameCollection]);
 
   useEffect(() => {
     scrollToBottom();
@@ -455,6 +461,8 @@ export const useOnboardingChat = () => {
     startSmsConversation,
     userName,
     setUserName,
+    showNameCollection,
+    handleNameSubmit,
     // Scroll-related
     scrollViewportRef,
     dashboardRef,
