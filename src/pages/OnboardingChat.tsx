@@ -5,6 +5,7 @@ import { HelpCircle } from "lucide-react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
+import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 import GuidanceInfo from "@/components/onboarding/GuidanceInfo";
 import ConversationHeader from "@/components/onboarding/ConversationHeader";
 import MessageBubble from "@/components/onboarding/MessageBubble";
@@ -13,10 +14,7 @@ import LoadingScreen from "@/components/onboarding/LoadingScreen";
 import QuickActionButtons from "@/components/onboarding/QuickActionButtons";
 import TextInput from "@/components/onboarding/TextInput";
 import VoiceInput from "@/components/onboarding/VoiceInput";
-import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
-import PromptModeSelector from "@/components/onboarding/PromptModeSelector";
-import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 
 const OnboardingChat = () => {
   const {
@@ -25,7 +23,6 @@ const OnboardingChat = () => {
     setInput,
     isComplete,
     isTyping,
-    isInitializing,
     isGeneratingProfile,
     userProfile,
     messagesEndRef,
@@ -36,9 +33,6 @@ const OnboardingChat = () => {
     conversationMode,
     setConversationMode,
     showModeSelection,
-    promptMode,
-    handlePromptModeChange,
-    phoneNumber,
     getProgress,
     handleModeSelection,
     getNameInitial,
@@ -64,36 +58,17 @@ const OnboardingChat = () => {
             showGuidanceInfo={showGuidanceInfo}
           />
           
-          {/* Chat content */}
+          {/* Chat content - added padding-top to avoid overlap with fixed header */}
           <div className="flex-1 p-4 pt-24 overflow-y-auto">
             <div className="space-y-4 pb-4 max-w-3xl mx-auto">
-              {/* Prompt Mode Selector */}
-              <div className="flex justify-end mb-2">
-                <PromptModeSelector 
-                  promptMode={promptMode} 
-                  onPromptModeChange={handlePromptModeChange}
-                  disabled={messages.length > 0 && !isInitializing}
+              {messages.map((message) => (
+                <MessageBubble 
+                  key={message.id}
+                  message={message} 
+                  nameInitial={getNameInitial()} 
                 />
-              </div>
-              
-              {/* Show initializing state if waiting for AI greeting */}
-              {isInitializing ? (
-                <div className="flex justify-center my-8">
-                  <TypingIndicator />
-                </div>
-              ) : (
-                <>
-                  {messages.map((message) => (
-                    <MessageBubble 
-                      key={message.id}
-                      message={message} 
-                      nameInitial={getNameInitial()} 
-                    />
-                  ))}
-                </>
-              )}
-              
-              {isTyping && !isInitializing && <TypingIndicator />}
+              ))}
+              {isTyping && <TypingIndicator />}
               {isGeneratingProfile && <LoadingScreen />}
               <div ref={messagesEndRef}></div>
             </div>
@@ -104,31 +79,25 @@ const OnboardingChat = () => {
               {/* Quick Action Buttons moved above the input */}
               <QuickActionButtons 
                 handleSend={handleSend} 
-                isDisabled={isTyping || isGeneratingProfile || isInitializing}
+                isDisabled={isTyping || isGeneratingProfile}
               />
               
-              {/* Input Field and Send Button */}
+              {/* Input Field and Send Button - Now with Voice Option */}
               <div className="flex items-end space-x-2">
                 {conversationMode === "text" ? (
                   <TextInput 
                     input={input}
                     setInput={setInput}
                     handleSend={() => handleSend()}
-                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
+                    isDisabled={isTyping || isGeneratingProfile}
                     switchToVoiceMode={() => setConversationMode("voice")}
                   />
-                ) : conversationMode === "voice" ? (
+                ) : (
                   <VoiceInput 
                     isListening={isListening}
                     toggleVoiceInput={toggleVoiceInput}
-                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
+                    isDisabled={isTyping || isGeneratingProfile}
                     isProcessing={isProcessing}
-                    switchToTextMode={() => setConversationMode("text")}
-                  />
-                ) : (
-                  <SmsInput 
-                    phoneNumber={phoneNumber}
-                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
                     switchToTextMode={() => setConversationMode("text")}
                   />
                 )}
@@ -153,10 +122,8 @@ const OnboardingChat = () => {
         </>
       ) : (
         <>          
-          <div className="flex-1 p-4">
-            <ProfileCompletionDashboard 
-              userProfile={userProfile} 
-            />
+          <div className="flex-1">
+            <ProfileCompletionDashboard userProfile={userProfile} />
           </div>
         </>
       )}

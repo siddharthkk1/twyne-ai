@@ -1,14 +1,14 @@
 
 import React from "react";
 
-export interface PersonalityTraits {
+interface PersonalityTraits {
   extroversion: number;
   openness: number;
   empathy: number;
   structure: number;
 }
 
-export interface PersonalityChartProps {
+interface PersonalityChartProps {
   traits: PersonalityTraits;
 }
 

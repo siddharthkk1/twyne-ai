@@ -5,7 +5,7 @@ import { TopNavBar } from "./TopNavBar";
 
 const Layout = () => {
   const location = useLocation();
-  const hideNav = ['/dashboard', '/onboarding', '/onboarding-chat'].includes(location.pathname);
+  const hideNav = ['/dashboard', '/onboarding'].includes(location.pathname);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

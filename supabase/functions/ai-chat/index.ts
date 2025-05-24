@@ -9,44 +9,16 @@ if (!OPENAI_API_KEY) {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Content-Type': 'application/json',
 };
 
-// Handle all requests
 serve(async (req) => {
-  console.log("Request received:", req.method);
-  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log("Handling OPTIONS preflight request");
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Incoming request method:", req.method);
-    console.log("Incoming request headers:", [...req.headers.entries()]);
-    
-    const rawBody = await req.text();
-    console.log("Raw request body length:", rawBody.length);
-    
-    let endpoint, data;
-    try {
-      ({ endpoint, data } = JSON.parse(rawBody));
-    } catch (err) {
-      console.error("JSON parse error:", err.message);
-      return new Response(
-        JSON.stringify({
-          error: "Invalid JSON body",
-          content: "The request body couldn't be understood. Please check your format."
-        }),
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
+    const { endpoint, data } = await req.json();
     console.log(`Processing ${endpoint} request with data keys:`, Object.keys(data));
 
     if (endpoint === "chat") {
@@ -63,11 +35,14 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in AI chat function:", error);
     return new Response(
-      JSON.stringify({
-        error: error.message || "Unknown error",
-        content: "I'm having trouble responding right now. Please try again in a moment."
+      JSON.stringify({ 
+        error: error.message,
+        content: "I'm having trouble processing your request. Let's try again in a moment."
       }),
-      { status: 200, headers: corsHeaders }
+      {
+        status: 200, // Using 200 to ensure the error message is displayed to the user
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
     );
   }
 });
@@ -101,6 +76,20 @@ async function handleChatRequest(data) {
     );
   }
   
+  if (messages.length === 0) {
+    console.error("Empty messages array provided");
+    return new Response(
+      JSON.stringify({ 
+        error: "Empty messages array", 
+        content: "I didn't receive your message clearly. Could you share your thoughts again?" 
+      }),
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+  
   // Log message count and first/last message for debugging
   console.log(`Processing chat request with ${messages.length} messages`);
   if (messages.length > 0) {
@@ -109,24 +98,10 @@ async function handleChatRequest(data) {
   }
   
   // Use messages as provided and optionally append assistantGuidance
-  let finalMessages = [...messages];
-  
-  // Add assistant guidance as a system message if provided
-  if (assistantGuidance) {
-    finalMessages.push({ role: "system", content: assistantGuidance });
-  }
-  
-  // If the last message isn't from a user, and we're generating an initial greeting
-  const lastMessage = messages[messages.length - 1];
-  const isInitialGreeting = lastMessage && lastMessage.role === "system";
-  
-  // If this is a greeting request, add a special instruction
-  if (isInitialGreeting) {
-    finalMessages.push({ 
-      role: "system", 
-      content: "Generate a friendly greeting to start the conversation. Ask for the user's name in a casual, conversational way." 
-    });
-  }
+  const finalMessages = [
+    ...messages,
+    ...(assistantGuidance ? [{ role: "system", content: assistantGuidance }] : [])
+  ];
 
   try {
     console.log(`Sending request to OpenAI with ${finalMessages.length} messages`);
@@ -146,7 +121,7 @@ async function handleChatRequest(data) {
         model: "gpt-4o-mini",
         messages: finalMessages,
         temperature: 0.7,
-        max_tokens: 300 // Kept at 300 for normal responses
+        max_tokens: 150
       }),
       signal: controller.signal
     }).finally(() => clearTimeout(timeoutId));
@@ -482,21 +457,15 @@ async function handleTranscribeRequest(data) {
     throw new Error("OPENAI_API_KEY is not set");
   }
 
-  const { audioBlob, language } = data;
+  const { audioBlob } = data;
   
   if (!audioBlob) {
     throw new Error("No audio data provided");
   }
   
   try {
-    // Extract the base64 data part
-    const base64Data = audioBlob.split(',')[1];
-    if (!base64Data) {
-      throw new Error("Invalid audio data format");
-    }
-    
     // Convert base64 to blob
-    const byteString = atob(base64Data);
+    const byteString = atob(audioBlob.split(',')[1]);
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) {
@@ -508,15 +477,6 @@ async function handleTranscribeRequest(data) {
     formData.append('file', new Blob([ab], {type: 'audio/webm'}), 'audio.webm');
     formData.append('model', 'whisper-1');
     
-    // Add language specification if provided
-    if (language) {
-      formData.append('language', language);
-    }
-    
-    console.log("Sending audio data to OpenAI for transcription");
-    console.log("Audio data size:", ab.byteLength, "bytes");
-    console.log("Language specified:", language || "auto-detect");
-    
     const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
       method: "POST",
       headers: {
@@ -526,13 +486,12 @@ async function handleTranscribeRequest(data) {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("OpenAI transcription API error:", errorText);
-      throw new Error(`API error: ${response.status} - ${errorText}`);
+      const errorData = await response.json();
+      console.error("OpenAI transcription API error:", errorData);
+      throw new Error(`API error: ${errorData.error?.message || response.status}`);
     }
     
     const result = await response.json();
-    console.log("Successfully received transcription from OpenAI:", result.text ? "Text received" : "No text");
     
     return new Response(
       JSON.stringify({ text: result.text }),
@@ -540,15 +499,6 @@ async function handleTranscribeRequest(data) {
     );
   } catch (error) {
     console.error("Error in transcription:", error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message || "Unknown transcription error",
-        text: null
-      }),
-      { 
-        status: 200, // Return 200 with error in body to prevent cascading failures
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    throw new Error(`Transcription error: ${error.message}`);
   }
 }

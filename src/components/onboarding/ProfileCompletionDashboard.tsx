@@ -1,12 +1,13 @@
 
-import React from 'react';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { UserProfile } from '@/types/chat';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import InsightCard from './InsightCard';
-import ValueCard from './ValueCard';
-import PersonalityChart from './PersonalityChart';
+import { UserProfile } from "@/types/chat";
+import { Check, ChevronRight } from "lucide-react";
+import { ValueCard } from "./ValueCard";
+import { InsightCard } from "./InsightCard";
+import { PersonalityChart } from "./PersonalityChart";
 
 interface ProfileCompletionDashboardProps {
   userProfile: UserProfile;
@@ -15,142 +16,171 @@ interface ProfileCompletionDashboardProps {
 export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProps> = ({ userProfile }) => {
   const navigate = useNavigate();
   
-  // Fixed tag colors - using dark text for tags
-  const tagColors = [
-    "bg-primary-light text-primary-dark",  
-    "bg-accent-light text-accent-dark",
-    "bg-secondary-light text-secondary-dark",
-    "bg-yellow-100 text-yellow-800",    
-    "bg-green-100 text-green-800",     
-    "bg-blue-100 text-blue-800",       
-    "bg-purple-100 text-purple-800",   
-    "bg-pink-100 text-pink-800"       
-  ];
+  // Ensure we have arrays even if the API returns null or a string
+  const interests = Array.isArray(userProfile?.interests) 
+    ? userProfile.interests 
+    : userProfile?.interests ? [userProfile.interests] : [];
   
-  // Function to get random but consistent color for a tag
-  const getTagColor = (index: number) => {
-    return tagColors[index % tagColors.length];
-  };
-
-  // Helper function to ensure interests and personalInsights are arrays
-  const ensureArray = (value: string[] | string | undefined): string[] => {
-    if (!value) return [];
-    if (typeof value === 'string') return [value];
-    return value;
-  };
-
-  // Default personality traits if none provided
-  const defaultTraits = {
-    extroversion: 60,
-    openness: 70,
-    empathy: 80,
-    structure: 50
-  };
+  // Check if vibeWords exists, otherwise use empty array
+  const vibeWords = userProfile?.vibeWords || [];
+  const twyneTags = userProfile?.twyneTags || [];
+  const personalInsights = userProfile?.personalInsights || [];
+  const talkingPoints = userProfile?.talkingPoints || [];
+  
+  // Get first name only
+  const firstName = userProfile?.name?.split(' ')[0] || '';
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <div className="flex flex-col gap-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-3">Your Twyne Profile</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Here's what we learned about you from our conversation. This helps us find great connections that match your vibe.
-          </p>
+    <div className="max-w-4xl mx-auto pt-6 pb-16 px-4">
+      <div className="text-center mb-8">
+        <div className="bg-green-500/10 text-green-600 font-medium px-3 py-1 rounded-full text-sm inline-flex items-center mb-3">
+          <Check className="w-4 h-4 mr-1" />
+          Profile Complete
         </div>
+        <h1 className="text-3xl font-bold mb-2">{firstName}'s Twyne Dashboard</h1>
+        <p className="text-muted-foreground max-w-lg mx-auto">
+          Here's what we've learned about you. This helps us connect you with people who match your vibe.
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left column - Core info */}
-          <Card className="p-6 border border-border bg-card col-span-2 md:col-span-1">
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-xl">About You</CardTitle>
-            </CardHeader>
-            <CardContent className="px-0 pb-0 space-y-4">
-              <div>
-                <h3 className="font-medium text-muted-foreground">Name</h3>
-                <p className="font-semibold text-lg">{userProfile.name || "Anonymous"}</p>
-              </div>
-              
-              {userProfile.location && (
-                <div>
-                  <h3 className="font-medium text-muted-foreground">Location</h3>
-                  <p>{userProfile.location}</p>
-                </div>
-              )}
-              
-              {/* Interests and Passions */}
-              <div>
-                <h3 className="font-medium text-muted-foreground mb-2">Interests & Passions</h3>
-                <div className="flex flex-wrap gap-2">
-                  {ensureArray(userProfile.interests).slice(0, 6).map((interest, i) => (
-                    <span 
-                      key={i} 
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(i)}`}
-                    >
-                      {interest}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Keywords that describe you */}
-              {userProfile.personalInsights?.length > 0 && (
-                <div>
-                  <h3 className="font-medium text-muted-foreground mb-2">Keywords That Describe You</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {ensureArray(userProfile.personalInsights).slice(0, 5).map((trait, i) => (
-                      <span 
-                        key={i} 
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(i + 3)}`}
-                      >
-                        {trait}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          {/* Right column - Personality and insights */}
-          <div className="col-span-2 space-y-6">
-            {/* Personality Chart */}
-            <Card className="border border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-xl">Your Social Style</CardTitle>
-                <CardDescription>Based on our conversation, here's your social style and energy</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
-              </CardContent>
-            </Card>
-            
-            {/* Social Style */}
-            {userProfile.socialStyle && (
-              <InsightCard 
-                insight={userProfile.socialStyle}
-                index={0}
-              />
-            )}
-            
-            {/* Connection Preferences */}
-            {userProfile.connectionPreferences && (
-              <InsightCard 
-                insight={userProfile.connectionPreferences}
-                index={1}
-              />
-            )}
+      {/* Summary Section */}
+      <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-6 rounded-xl mb-6 shadow-sm border">
+        <h2 className="font-semibold text-xl mb-3">Your Vibe Summary</h2>
+        <p className="text-muted-foreground">{userProfile?.vibeSummary}</p>
+      </div>
+
+      {/* Vibe Words */}
+      {vibeWords && vibeWords.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Key Vibe Words</h3>
+          <div className="flex flex-wrap gap-2">
+            {vibeWords.map((word, index) => (
+              <Badge 
+                key={index} 
+                variant="outline"
+                className="text-sm py-1 px-3 bg-primary/10 text-primary-foreground hover:bg-primary/20"
+              >
+                {word}
+              </Badge>
+            ))}
           </div>
         </div>
-        
-        <div className="flex justify-center mt-6">
-          <Button 
-            onClick={() => navigate('/connections')}
-            className="px-8 py-6 text-lg"
-          >
-            Find My People
-          </Button>
+      )}
+
+      {/* Twyne Tags */}
+      {twyneTags && twyneTags.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Twyne Tags</h3>
+          <div className="flex flex-wrap gap-2">
+            {twyneTags.map((tag, index) => (
+              <Badge 
+                key={index}
+                className="text-sm py-1 px-3 bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Interests Grid */}
+      {interests && interests.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Your Interests & Activities</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {interests.map((interest, index) => (
+              <div 
+                key={index}
+                className="bg-background p-3 rounded-md border text-sm"
+              >
+                {interest}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Personal Values */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {userProfile?.values && Array.isArray(userProfile.values) && userProfile.values.map((value, index) => (
+          <ValueCard key={index} value={value} index={index} />
+        ))}
+        {(!userProfile?.values || !Array.isArray(userProfile.values)) && (
+          <>
+            <ValueCard value={userProfile?.socialStyle || "Authentic communicator"} index={0} />
+            <ValueCard value={userProfile?.coreValues || "Deep connections"} index={1} />
+            <ValueCard value={userProfile?.connectionPreferences || "Meaningful interactions"} index={2} />
+          </>
+        )}
+      </div>
+
+      {/* Personality Charts */}
+      <div className="mb-8">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Your Personality Dimensions</h3>
+        <PersonalityChart traits={{
+          extroversion: 65,
+          openness: 80,
+          empathy: 75,
+          structure: 60
+        }} />
+      </div>
+
+      {/* Insights */}
+      <div className="mb-10">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Personal Insights</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.isArray(personalInsights) && personalInsights.length > 0 ? (
+            personalInsights.map((insight, index) => (
+              <InsightCard key={index} insight={insight} index={index} />
+            ))
+          ) : (
+            <>
+              <InsightCard insight="Your unique perspective adds depth to conversations and helps others see things differently." index={0} />
+              <InsightCard insight="You value authentic connections where both people can be themselves without judgment." index={1} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Talking Points */}
+      {talkingPoints && talkingPoints.length > 0 && (
+        <div className="mb-10">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase mb-3">Great Conversation Topics For You</h3>
+          <div className="bg-background rounded-lg border p-4">
+            <ul className="space-y-2">
+              {talkingPoints.map((topic, index) => (
+                <li key={index} className="flex items-start">
+                  <ChevronRight className="h-5 w-5 text-primary shrink-0 mr-2" />
+                  <span>{topic}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Next Steps */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+        <Button 
+          variant="default" 
+          size="lg" 
+          onClick={() => navigate('/connections')}
+          className="min-w-[180px]"
+        >
+          Explore Connections
+        </Button>
+        <Button 
+          variant="outline" 
+          size="lg"
+          onClick={() => navigate('/dashboard')}
+          className="min-w-[180px]"
+        >
+          View Your Dashboard
+        </Button>
       </div>
     </div>
   );
 };
+
+export default ProfileCompletionDashboard;

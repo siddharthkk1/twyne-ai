@@ -9,36 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      onboarding_data: {
-        Row: {
-          conversation_data: Json
-          created_at: string
-          id: string
-          is_anonymous: boolean
-          profile_data: Json
-          prompt_mode: string | null
-          user_id: string
-        }
-        Insert: {
-          conversation_data: Json
-          created_at?: string
-          id?: string
-          is_anonymous?: boolean
-          profile_data: Json
-          prompt_mode?: string | null
-          user_id: string
-        }
-        Update: {
-          conversation_data?: Json
-          created_at?: string
-          id?: string
-          is_anonymous?: boolean
-          profile_data?: Json
-          prompt_mode?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null

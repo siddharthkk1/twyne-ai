@@ -18,14 +18,6 @@ export interface Conversation {
   userAnswers: string[];
 }
 
-// Personality traits type
-export interface PersonalityTraits {
-  extroversion: number;
-  openness: number;
-  empathy: number;
-  structure: number;
-}
-
 // User profile type
 export interface UserProfile {
   name: string;
@@ -44,7 +36,7 @@ export interface UserProfile {
   mediaTastes?: string;
   dealBreakers?: string;
   lookingFor?: string;
-  values?: string[] | string; // Updated to accept both string array and string
+  values?: string[];
   misunderstood?: string;
   lifeStory?: string;
   background?: string;
@@ -61,8 +53,4 @@ export interface UserProfile {
   coreValues?: string;
   lifeContext?: string;
   vibeWords?: string[]; // Added missing vibeWords property
-  job?: string;
-  ethnicity?: string;
-  religion?: string;
-  personalityTraits?: PersonalityTraits; // Added personality traits
 }
