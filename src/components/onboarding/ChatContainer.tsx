@@ -5,6 +5,7 @@ import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
 import InputContainer from "./InputContainer";
+import ConversationHeader from "./ConversationHeader";
 import { Message } from "@/types/chat";
 
 interface ChatContainerProps {
@@ -32,7 +33,7 @@ interface ChatContainerProps {
   getProgress: () => number;
   handleModeSelection: (mode: any, phoneNumber?: string) => void;
   getNameInitial: () => string;
-  handleSend: (message?: string) => void;
+  onSend: (message?: string) => void;
   startSmsConversation: (phoneNumber: string) => void;
   userName: string;
   setUserName: (value: string) => void;
@@ -68,7 +69,7 @@ const ChatContainer = ({
   getProgress,
   handleModeSelection,
   getNameInitial,
-  handleSend,
+  onSend,
   startSmsConversation,
   userName,
   setUserName,
@@ -80,6 +81,14 @@ const ChatContainer = ({
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
+      {/* Add the ConversationHeader back */}
+      <ConversationHeader
+        isGeneratingProfile={isGeneratingProfile}
+        progress={getProgress()}
+        setShowGuidanceInfo={setShowGuidanceInfo}
+        showGuidanceInfo={showGuidanceInfo}
+      />
+      
       <ScrollArea 
         className="flex-1 p-4 pt-24 overflow-hidden" 
         viewportRef={scrollViewportRef}
@@ -129,7 +138,7 @@ const ChatContainer = ({
       <InputContainer
         input={input}
         setInput={setInput}
-        onSend={handleSend}
+        onSend={onSend}
         conversationMode={conversationMode}
         setConversationMode={setConversationMode}
         showModeSelection={showModeSelection}
