@@ -230,6 +230,8 @@ export const evaluateCoverage = async (conversation: Conversation): Promise<any>
 // Function to generate AI profile using the new prompt
 export const generateAIProfile = async (conversation: Conversation): Promise<any> => {
   try {
+    console.log("Calling generate-profile edge function with conversation:", conversation);
+    
     const { data, error } = await supabase.functions.invoke('generate-profile', {
       body: { conversation }
     });
@@ -239,6 +241,7 @@ export const generateAIProfile = async (conversation: Conversation): Promise<any
       throw new Error(`API error: ${error.message}`);
     }
 
+    console.log("Profile generation response:", data);
     return data;
   } catch (err) {
     console.error("Error generating profile:", err);
