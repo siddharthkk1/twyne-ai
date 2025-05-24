@@ -20,9 +20,11 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   
-  // Use the passed userName or fall back to userProfile.name
-  const displayName = userName || userProfile.name || "Twyne User";
+  // Use the passed userName first, then fall back to userProfile.name, then default
+  const displayName = userName || userProfile?.name || "User";
   const firstName = displayName.split(' ')[0];
+  
+  console.log("ProfileCompletionDashboard - received userName:", userName, "userProfile.name:", userProfile?.name, "final displayName:", displayName);
   
   // Generate a color palette based on the user's name or interests
   const generateUserThemeColor = () => {

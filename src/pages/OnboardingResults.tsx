@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,6 +37,8 @@ const OnboardingResults = () => {
     return "User";
   };
 
+  console.log("OnboardingResults - userName:", userName, "userProfile.name:", userProfile?.name);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
       <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
@@ -51,8 +52,11 @@ const OnboardingResults = () => {
           </p>
         </div>
 
-        {/* Dashboard */}
-        <ProfileCompletionDashboard userProfile={userProfile} userName={userName} />
+        {/* Dashboard - Pass userName explicitly */}
+        <ProfileCompletionDashboard 
+          userProfile={userProfile} 
+          userName={userName || userProfile?.name} 
+        />
 
         {/* Action buttons */}
         {!user && (
@@ -101,7 +105,7 @@ const OnboardingResults = () => {
         onOpenChange={setShowCreateAccountPrompt}
         onboardingProfileData={userProfile}
         onboardingConversationData={null}
-        userName={userName}
+        userName={userName || userProfile?.name}
       />
     </div>
   );

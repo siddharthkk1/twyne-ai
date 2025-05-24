@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -59,15 +60,27 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     setIsLoading(true);
 
     try {
+      // Only pass full_name if we have a valid value
+      const fullName = userName || onboardingProfileData?.name;
+      const signupOptions = fullName 
+        ? {
+            data: {
+              full_name: fullName,
+            }
+          }
+        : undefined;
+
+      console.log("Signing up with:", {
+        email,
+        password: "***",
+        full_name: fullName || "not provided"
+      });
+
       // Sign up with minimal metadata to avoid trigger issues
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: userName || onboardingProfileData?.name || '',
-          }
-        }
+        options: signupOptions
       });
 
       if (error) {

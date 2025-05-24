@@ -57,13 +57,23 @@ const Auth = () => {
           navigate("/mirror");
         }
       } else {
+        // For signup from auth page, we don't have onboarding data
+        // Only pass full_name if we can derive it from email
+        const emailPrefix = email.split('@')[0];
+        
+        console.log("Signing up with:", {
+          email,
+          password: "***",
+          full_name: emailPrefix
+        });
+
         // Sign up with minimal data to avoid trigger issues
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              full_name: email.split('@')[0], // Use email prefix as default name
+              full_name: emailPrefix,
             }
           }
         });
