@@ -195,7 +195,8 @@ export const useOnboardingChat = () => {
     });
     
     setCurrentQuestionIndex(0);
-    
+
+    const effectiveName = userName || "friend";
     // Initialize chat with AI greeting, passing the promptMode
     initializeChat(systemPrompt, userName, promptMode).then(({ aiGreeting, updatedConversation }) => {
       setIsInitializing(false);
