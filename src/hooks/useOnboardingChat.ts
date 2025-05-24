@@ -182,8 +182,8 @@ export const useOnboardingChat = () => {
     
     setCurrentQuestionIndex(0);
     
-    // Initialize chat with AI greeting
-    initializeChat(systemPrompt, userName).then(({ aiGreeting, updatedConversation }) => {
+    // Initialize chat with AI greeting, passing the promptMode
+    initializeChat(systemPrompt, userName, promptMode).then(({ aiGreeting, updatedConversation }) => {
       // Add AI greeting to messages
       const greetingMessage: Message = {
         id: 1,

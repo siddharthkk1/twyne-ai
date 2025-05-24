@@ -15,7 +15,7 @@ export const useOnboardingAI = () => {
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
 
   // Initialize chat with AI greeting
-  const initializeChat = async (systemPrompt: string, userName?: string): Promise<{ aiGreeting: string; updatedConversation: Conversation }> => {
+  const initializeChat = async (systemPrompt: string, userName?: string, promptMode?: string): Promise<{ aiGreeting: string; updatedConversation: Conversation }> => {
     setIsInitializing(true);
     
     try {
@@ -32,9 +32,14 @@ export const useOnboardingAI = () => {
         userAnswers: []
       };
       
-      // Get AI greeting
-      const response = await getAIResponse(initialConversation);
-      aiGreeting = response;
+      // Use seed message for playful mode, otherwise get AI greeting
+      if (promptMode === "playful") {
+        aiGreeting = getRandomSeedMessage();
+      } else {
+        // Get AI greeting for other modes
+        const response = await getAIResponse(initialConversation);
+        aiGreeting = response;
+      }
       
       // Add AI greeting to conversation
       const updatedConversation: Conversation = {
