@@ -1,8 +1,8 @@
 
 import React from "react";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
-import { LoadingScreen } from "@/components/onboarding/LoadingScreen";
-import { ChatContainer } from "@/components/onboarding/ChatContainer";
+import LoadingScreen from "@/components/onboarding/LoadingScreen";
+import ChatContainer from "@/components/onboarding/ChatContainer";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
 
