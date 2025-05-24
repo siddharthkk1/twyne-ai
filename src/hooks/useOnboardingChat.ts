@@ -43,19 +43,63 @@ export const useOnboardingChat = () => {
   
   // Initialize userProfile state
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: "",
-    location: "",
-    interests: [],
-    socialStyle: "",
-    connectionPreferences: "",
-    personalInsights: [],
-    personalityTraits: {
-      extroversion: 50,
-      openness: 50,
-      empathy: 50,
-      structure: 50
-    }
-  });
+  // 🪞 Overview
+  "vibeSummary": "",
+  "oneLiner": "",
+  "twyneTags": [],
+
+  // 📌 Key Facts / Background
+  "name": "",
+  "age": "",
+  "location": "",
+  "job": "",
+  "school": "",
+  "ethnicity": "",
+  "religion": "",
+  "hometown": "",
+
+  // 🌱 Interests & Lifestyle
+  "lifestyle": "",
+  "favoriteProducts": "",
+  "style": "",
+  "interestsAndPassions": "",
+  "favoriteMoviesAndShows": "",
+  "favoriteMusic": "",
+  "favoriteBooks": "",
+  "favoritePodcastsOrYouTube": "",
+  "talkingPoints": [],
+  "favoriteActivities": "",
+  "favoriteSpots": "",
+
+  // 🧘 Inner World
+  "coreValues": "",
+  "lifePhilosophy": "",
+  "goals": "",
+  "personalitySummary": "",
+  "bigFiveTraits": {
+    "openness": "",
+    "conscientiousness": "",
+    "extraversion": "",
+    "agreeableness": "",
+    "neuroticism": ""
+  },
+  "quirks": "",
+  "communicationStyle": "",
+
+  // 📖 Story
+  "upbringing": "",
+  "majorTurningPoints": "",
+  "recentLifeContext": "",
+
+  // 🤝 Connection
+  "socialStyle": "",
+  "loveLanguageOrFriendStyle": "",
+  "socialNeeds": "",
+  "connectionPreferences": "",
+  "dealBreakers": "",
+  "boundariesAndPetPeeves": "",
+  "connectionActivities": ""
+});
   
   // Import all the refactored hooks
   const { 
