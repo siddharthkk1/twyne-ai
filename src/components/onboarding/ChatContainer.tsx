@@ -88,8 +88,8 @@ const ChatContainer = ({
         showGuidanceInfo={showGuidanceInfo}
       />
       
-      <ScrollArea 
-        className="flex-1 p-4 pt-24 overflow-hidden"
+      <div 
+        className="flex-1 overflow-y-auto px-4 pt-4 ma-w-3xl mx-auto w-full"
         viewportRef={scrollViewportRef}
         onViewportScroll={handleScroll}
       >
@@ -137,6 +137,8 @@ const ChatContainer = ({
           
           <div ref={messagesEndRef} className="h-4" />
         </div>
+      </div>
+      <div className="border-t p-4 w-full max-w-3xl mx-auto">
       <InputContainer
         input={input}
         setInput={setInput}
@@ -160,7 +162,7 @@ const ChatContainer = ({
         startSmsConversation={startSmsConversation}
         disabled={isTyping || isGeneratingProfile}
       />
-      </ScrollArea>
+      </div>
     </div>
   );
 };
