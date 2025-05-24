@@ -9,6 +9,7 @@ import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
 import { useOnboardingScroll } from './useOnboardingScroll';
+import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
   SYSTEM_PROMPT_PLAYFUL,
@@ -16,9 +17,10 @@ import {
 } from '@/utils/aiUtils';
 
 // Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 20; // Count only user messages, not AI messages
+const MESSAGE_CAP = 8; // Count only user messages, not AI messages
 
 export const useOnboardingChat = () => {
+  const navigate = useNavigate();
   const { promptMode, setPromptMode, showPromptSelection, setShowPromptSelection, handlePromptModeChange } = usePromptMode();
   const { 
     conversationMode, 
@@ -119,17 +121,25 @@ export const useOnboardingChat = () => {
       role: "system" as ChatRole,
       content: systemPrompt
     };
+
+    // Add assistant guidance with user's name if available
+    const assistantGuidance = userName ? 
+      `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.` : 
+      '';
     
     // Use the properly typed message object
     setConversation({
-      messages: [initialMessage],
+      messages: [
+        initialMessage,
+        ...(assistantGuidance ? [{ role: "assistant" as ChatRole, content: assistantGuidance }] : [])
+      ],
       userAnswers: []
     });
     
     setCurrentQuestionIndex(0);
     
     // Initialize chat with AI greeting
-    initializeChat(systemPrompt).then(({ aiGreeting, updatedConversation }) => {
+    initializeChat(systemPrompt, userName).then(({ aiGreeting, updatedConversation }) => {
       // Add AI greeting to messages
       const greetingMessage: Message = {
         id: 1,
@@ -149,18 +159,33 @@ export const useOnboardingChat = () => {
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
     try {
-      const profile = await generateProfile(finalConversation);
+      // Update user profile with name before generating profile
+      setUserProfile(prev => ({ ...prev, name: userName }));
+      
+      const profile = await generateProfile(finalConversation, userName);
       
       // Update userName in case we have it in the profile
-      if (profile.name) {
+      if (profile.name && !userName) {
         setUserName(profile.name);
+      } else if (userName && !profile.name) {
+        // Make sure the profile has the name if userName is available
+        profile.name = userName;
       }
       
       setUserProfile(profile);
       setIsComplete(true);
       
-      // Save conversation to Supabase
-      saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
+      // Save conversation to Supabase with user's name
+      await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
+      
+      // Updated redirect logic based on authentication status
+      if (user) {
+        // If user is logged in, go directly to mirror
+        navigate("/mirror");
+      } else {
+        // If not logged in, go to onboarding results page
+        navigate("/onboarding-results");
+      }
       
       return true;
     } catch (error) {

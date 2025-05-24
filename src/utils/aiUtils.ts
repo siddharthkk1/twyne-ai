@@ -77,6 +77,85 @@ Ask open-ended questions that encourage self-expression, and be a good listener.
 Keep the conversation casual and authentic.
 `;
 
+export const PROFILE_GENERATION_PROMPT = `
+You are Twyne — a warm, emotionally intelligent AI that helps people feel seen, understood, and meaningfully connected.
+
+Below is a conversation between you and a user. Based on what you learned, generate a structured "Twyne Dashboard" that captures who they are. This is more than a profile — it's a vivid, human reflection of their essence: how they move through life, what lights them up, what they care about, and how they connect with others.
+
+Use a kind, thoughtful tone. Write in full, warm sentences (not short fragments). Be specific, never generic. When something is uncertain, gently infer using phrases like "They seem to..." or "It sounds like...".
+
+Raw Conversation:
+[CONVERSATION]
+
+🧱 Output Format:
+Return a single valid JSON object in the following structure. All fields must be included, even if empty ("" or []).
+
+{
+  // 🪞 Overview
+  "vibeSummary": "",
+  "oneLiner": "",
+  "twyneTags": [],
+
+  // 📌 Key Facts / Background
+  "name": "",
+  "age": "",
+  "location": "",
+  "job": "",
+  "school": "",
+  "ethnicity": "",
+  "religion": "",
+  "hometown": "",
+
+  // 🌱 Interests & Lifestyle
+  "lifestyle": "",
+  "favoriteProducts": "",
+  "style": "",
+  "interestsAndPassions": "",
+  "favoriteMoviesAndShows": "",
+  "favoriteMusic": "",
+  "favoriteBooks": "",
+  "favoritePodcastsOrYouTube": "",
+  "talkingPoints": [],
+  "favoriteActivities": "",
+  "favoriteSpots": "",
+
+  // 🧘 Inner World
+  "coreValues": "",
+  "lifePhilosophy": "",
+  "goals": "",
+  "personalitySummary": "",
+  "bigFiveTraits": {
+    "openness": "",
+    "conscientiousness": "",
+    "extraversion": "",
+    "agreeableness": "",
+    "neuroticism": ""
+  },
+  "quirks": "",
+  "communicationStyle": "",
+
+  // 📖 Story
+  "upbringing": "",
+  "majorTurningPoints": "",
+  "recentLifeContext": "",
+
+  // 🤝 Connection
+  "socialStyle": "",
+  "loveLanguageOrFriendStyle": "",
+  "socialNeeds": "",
+  "connectionPreferences": "",
+  "dealBreakers": "",
+  "boundariesAndPetPeeves": "",
+  "connectionActivities": ""
+}
+
+🧠 Guidelines:
+- Use full, thoughtful sentences. Never write just 1–2 words unless it's a list.
+- Avoid generic summaries. Make every detail feel specific and grounded in the user's story.
+- Don't make things up. If something is unclear, gently infer or acknowledge the gap.
+- Always return valid JSON and include all fields.
+`;
+
 // Seed messages for playful conversation mode
 export const PLAYFUL_SEED_MESSAGES = [
   "yo.||not gonna hit you with the corporate welcome speech||just curious — what kind of energy are you walking around with lately?",
@@ -86,15 +165,14 @@ export const PLAYFUL_SEED_MESSAGES = [
   "ok, real question before we start||are you the kind of person who overshares to strangers, or do i have to work for it a little?"
 ];
 
-// Function to get AI response
-export const getAIResponse = async (conversation: Conversation, userMessage: string, assistantGuidance?: string): Promise<string> => {
+// Function to get AI response - Updated to accept a conversation object only
+export const getAIResponse = async (conversation: Conversation): Promise<string> => {
   try {
     // Prepare request data
     let requestData: {
       endpoint: string;
       data: {
         messages: any[];
-        assistantGuidance?: string;
       }
     } = {
       endpoint: "chat",
@@ -102,16 +180,6 @@ export const getAIResponse = async (conversation: Conversation, userMessage: str
         messages: [...conversation.messages]
       }
     };
-
-    // Add user message if provided (for normal conversation flow)
-    if (userMessage && userMessage.trim() !== "") {  
-      requestData.data.messages.push({ role: "user", content: userMessage });
-    }
-
-    // Add assistant guidance if provided
-    if (assistantGuidance) {
-      requestData.data.assistantGuidance = assistantGuidance;
-    }
 
     // Make API request to Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('ai-chat', {
@@ -159,29 +227,16 @@ export const evaluateCoverage = async (conversation: Conversation): Promise<any>
   }
 };
 
-// Function to generate AI profile
-export const generateAIProfile = async (conversation: Conversation): Promise<UserProfile> => {
+// Function to generate AI profile using the new prompt
+export const generateAIProfile = async (conversation: Conversation): Promise<any> => {
   try {
-    const { data, error } = await supabase.functions.invoke('ai-chat', {
-      body: {
-        endpoint: "profile",
-        data: { conversation }
-      }
+    const { data, error } = await supabase.functions.invoke('generate-profile', {
+      body: { conversation }
     });
 
     if (error) {
       console.error("Error from AI profile function:", error);
       throw new Error(`API error: ${error.message}`);
-    }
-
-    // Ensure personalityTraits exist
-    if (!data.personalityTraits) {
-      data.personalityTraits = {
-        extroversion: 50,
-        openness: 50,
-        empathy: 50,
-        structure: 50
-      };
     }
 
     return data;
@@ -217,4 +272,43 @@ export const transcribeAudio = async (audioBlob: string, language?: string): Pro
 export const getRandomSeedMessage = (): string => {
   const randomIndex = Math.floor(Math.random() * PLAYFUL_SEED_MESSAGES.length);
   return PLAYFUL_SEED_MESSAGES[randomIndex];
+};
+
+// Function to get mirror chat response
+export const getMirrorChatResponse = async (conversation: Conversation): Promise<string> => {
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      throw new Error("No active session or access token found");
+    }
+
+    const { data, error } = await supabase.functions.invoke('mirror-chat', {
+      body: {
+        conversation,
+        updateType: "chat",
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (error) {
+      console.error("Error from mirror chat function:", error);
+      throw new Error(`API error: ${error.message}`);
+    }
+
+    if (data.error) {
+      console.error("Error in mirror chat response:", data.error);
+      throw new Error(`Mirror chat error: ${data.error}`);
+    }
+
+    return data.content || "I didn't catch that. Could you try again?";
+  } catch (err) {
+    console.error("Error getting mirror chat response:", err);
+    throw err;
+  }
 };
