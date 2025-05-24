@@ -26,68 +26,101 @@ export interface PersonalityTraits {
   structure: number;
 }
 
-// User profile type with enhanced properties
+// Big Five Traits type for AI-generated profiles
+export interface BigFiveTraits {
+  openness: string;
+  conscientiousness: string;
+  extraversion: string;
+  agreeableness: string;
+  neuroticism: string;
+}
+
+// User profile type with enhanced properties matching AI generation format
 export interface UserProfile {
+  // Overview
+  vibeSummary?: string;
+  oneLiner?: string;
+  twyneTags?: string[];
+
+  // Key Facts / Background
   name: string;
-  location: string;
-  interests: string[] | string; // Can be string or array
-  socialStyle: string;
-  connectionPreferences: string;
-  personalInsights: string[];
   age?: string;
+  location: string;
+  job?: string;
+  school?: string;
+  ethnicity?: string;
+  religion?: string;
   hometown?: string;
-  timeInCurrentCity?: string;
+
+  // Interests & Lifestyle
+  lifestyle?: string;
+  favoriteProducts?: string;
+  style?: string;
+  interestsAndPassions?: string;
+  favoriteMoviesAndShows?: string;
+  favoriteMusic?: string;
+  favoriteBooks?: string;
+  favoritePodcastsOrYouTube?: string;
   talkingPoints?: string[];
+  favoriteActivities?: string;
+  favoriteSpots?: string;
+
+  // Inner World
+  coreValues?: string;
+  lifePhilosophy?: string;
+  goals?: string;
+  personalitySummary?: string;
+  bigFiveTraits?: BigFiveTraits;
+  quirks?: string;
+  communicationStyle?: string;
+
+  // Story
+  upbringing?: string;
+  majorTurningPoints?: string;
+  recentLifeContext?: string;
+
+  // Connection
+  socialStyle?: string;
+  loveLanguageOrFriendStyle?: string;
+  socialNeeds?: string;
+  connectionPreferences?: string;
+  dealBreakers?: string;
+  boundariesAndPetPeeves?: string;
+  connectionActivities?: string;
+
+  // Legacy fields for backward compatibility - made optional
+  interests?: string[] | string;
+  personalInsights?: string[];
+  personalityTraits?: PersonalityTraits;
+  timeInCurrentCity?: string;
   friendshipPace?: string;
   socialEnergy?: string;
   weekendActivities?: string;
   mediaTastes?: string;
-  dealBreakers?: string;
   lookingFor?: string;
-  values?: string[] | string; // Can be string or array
+  values?: string[] | string;
   misunderstood?: string;
   lifeStory?: string;
   background?: string;
   careerOrEducation?: string;
   creativePursuits?: string;
   meaningfulAchievements?: string;
-  lifePhilosophy?: string;
   challengesOvercome?: string;
   growthJourney?: string;
   emotionalIntelligence?: string;
-  twyneTags?: string[];
-  vibeSummary?: string;
-  socialNeeds?: string;
-  coreValues?: string;
   lifeContext?: string;
   vibeWords?: string[];
-  job?: string;
-  ethnicity?: string;
-  religion?: string;
-  personalityTraits?: PersonalityTraits;
-  // New fields from the reference image
   keyFacts?: string;
-  favoriteActivities?: string;
-  school?: string; // School they are in or went to
   philosophy?: string;
   beliefSystem?: string;
   spirituality?: string;
-  goals?: string[];
   aspirations?: string[];
   personalityQuirks?: string[];
-  communicationStyle?: string;
   boundaries?: string;
   petPeeves?: string;
-  upbringing?: string;
   majorEvents?: string[];
   turningPoints?: string[];
-  recentLifeContext?: string;
   loveLanguage?: string;
   friendsStyle?: string;
-  // New or existing fields organized as per the image
-  // Overview section
   oneLinerSummary?: string;
-  // Inner world section
-  // Story section
-  // Connection section
 }
