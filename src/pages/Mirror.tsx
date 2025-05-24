@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -170,15 +169,18 @@ const Mirror = () => {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('user_data')
         .update({
-          username: formData.username,
-          full_name: formData.full_name,
-          bio: formData.bio,
-          location: formData.location,
+          profile_data: {
+            ...profileData,
+            username: formData.username,
+            full_name: formData.full_name,
+            bio: formData.bio,
+            location: formData.location,
+          },
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user?.id);
+        .eq('user_id', user?.id);
 
       if (error) {
         toast({

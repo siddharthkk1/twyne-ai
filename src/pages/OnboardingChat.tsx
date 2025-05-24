@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
@@ -9,6 +8,7 @@ import LoadingScreen from "@/components/onboarding/LoadingScreen";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
 import { ProfileCompletionDashboard } from "@/pages/Dashboard";
 import ChatContainer from "@/components/onboarding/ChatContainer";
+import InputContainer from "@/components/onboarding/InputContainer";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -191,7 +191,7 @@ const OnboardingChat = () => {
               showGuidanceInfo={showGuidanceInfo}
             />
             
-            {/* Chat content with input container */}
+            {/* Chat content */}
             <ChatContainer 
               messages={messages}
               isTyping={isTyping}
@@ -205,10 +205,15 @@ const OnboardingChat = () => {
               promptMode={promptMode}
               handlePromptModeChange={handlePromptModeChange}
               userName={userName}
+            />
+
+            {/* Input container */}
+            <InputContainer 
               conversationMode={conversationMode}
               input={input}
               setInput={setInput}
               handleSend={handleSend}
+              isDisabled={isTyping || isGeneratingProfile || isInitializing}
               switchToVoiceMode={() => setConversationMode("voice")}
               switchToTextMode={() => setConversationMode("text")}
               isListening={isListening}
