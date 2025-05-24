@@ -57,9 +57,9 @@ const OnboardingChat = () => {
   //}
 
   // Show loading screen while initializing
-  if (isInitializing) {
-    return <LoadingScreen />;
-  }
+  //if (isInitializing) {
+  //  return <LoadingScreen />;
+  //}
 
   // Show results when complete
   if (isComplete) {
