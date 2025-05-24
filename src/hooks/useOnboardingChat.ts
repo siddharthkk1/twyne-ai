@@ -158,7 +158,7 @@ export const useOnboardingChat = () => {
 
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
-    if (!userName || isComplete || isGeneratingProfile) {
+    if (isComplete || isGeneratingProfile) {
       // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
