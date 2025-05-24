@@ -158,10 +158,12 @@ export const useOnboardingChat = () => {
 
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
-    if (!userName || showNameCollection || isComplete || isGeneratingProfile) {
+    if (!userName || isComplete || isGeneratingProfile) {
       // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
+
+    setIsInitializing(true);
 
     let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
     
@@ -196,6 +198,7 @@ export const useOnboardingChat = () => {
     
     // Initialize chat with AI greeting, passing the promptMode
     initializeChat(systemPrompt, userName, promptMode).then(({ aiGreeting, updatedConversation }) => {
+      setIsInitializing(false);
       // Add AI greeting to messages
       const greetingMessage: Message = {
         id: 1,
