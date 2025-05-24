@@ -7,6 +7,7 @@ import PromptModeSelector from "./PromptModeSelector";
 import InputContainer from "./InputContainer";
 import ConversationHeader from "./ConversationHeader";
 import { Message } from "@/types/chat";
+import { Loader } from 'lucide-react';
 
 interface ChatContainerProps {
   messages: Message[];
