@@ -18,6 +18,7 @@ import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
 import Index from "./pages/Index";
+import LandingV2 from "./pages/LandingV2";
 import { useAuth } from "./contexts/AuthContext";
 import Settings from "./pages/Settings";
 
@@ -53,6 +54,7 @@ const App = () => (
           <RedirectNewUser />
           <Routes>
             <Route path="/" element={<HomeWrapper />} />
+            <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             {/* Onboarding routes without authentication protection */}

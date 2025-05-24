@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, Send } from "lucide-react";
@@ -19,16 +19,37 @@ const TextInput: React.FC<TextInputProps> = ({
   isDisabled, 
   switchToVoiceMode 
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const prevIsDisabledRef = useRef(isDisabled);
+
+  // Auto-focus when component becomes enabled (after sending message)
+  useEffect(() => {
+    if (prevIsDisabledRef.current && !isDisabled && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+    prevIsDisabledRef.current = isDisabled;
+  }, [isDisabled]);
+
+  // Focus on mount
+  useEffect(() => {
+    if (textareaRef.current && !isDisabled) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
   return (
     <>
       <Textarea
+        ref={textareaRef}
         placeholder="Type a message..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            handleSend();
+            if (!isDisabled && input.trim()) {
+              handleSend();
+            }
           }
         }}
         disabled={isDisabled}

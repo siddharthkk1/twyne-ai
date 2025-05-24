@@ -1,35 +1,42 @@
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Mail, Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, Mail } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+import type { Json } from '@/integrations/supabase/types';
+import type { UserProfile, Conversation } from '@/types/chat';
 
 interface CreateAccountPromptProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onboardingProfileData?: any;
+  onboardingProfileData?: UserProfile;
+  onboardingConversationData?: Conversation;
+  userName?: string;
 }
 
-export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData }: CreateAccountPromptProps) => {
+export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
+  open,
+  onOpenChange,
+  onboardingProfileData,
+  onboardingConversationData,
+  userName
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { user } = useAuth();
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
 
-  // If user is already logged in, don't show the dialog
-  if (user) {
-    return null;
-  }
-
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -41,7 +48,6 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
       return;
     }
 
-    // Check if passwords match
     if (password !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -54,37 +60,98 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
     setIsLoading(true);
 
     try {
-      // Prepare user metadata including onboarding data if available
-      const userData = {
-        has_onboarded: onboardingProfileData ? true : false,
-        profile_data: onboardingProfileData || {},
-      };
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData,
-        },
-      });
+      // Only add full_name if we have a valid non-empty value
+      const nameToUse = userName || onboardingProfileData?.name;
+      const signupData: any = { email, password };
       
+      // Only add metadata if we have a valid name
+      if (nameToUse && nameToUse.trim() !== '') {
+        signupData.options = {
+          data: {
+            full_name: nameToUse.trim()
+          }
+        };
+      }
+
+      console.log("Signing up with:", {
+        email,
+        password: "***",
+        full_name: nameToUse || "not provided"
+      });
+
+      const { data, error } = await supabase.auth.signUp(signupData);
+
       if (error) {
+        console.error("Signup error:", error);
         toast({
-          title: "Sign up failed",
-          description: error.message,
+          title: "Error creating account",
+          description: error.message || "Failed to create account. Please try again.",
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Account created",
-          description: "Please check your email for a confirmation link.",
-        });
+        return;
+      }
+
+      if (data.user) {
+        // Auto sign in the user first
+        await signIn(email, password);
+        
+        // Wait a moment for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Now save onboarding data to user_data table if we have it
+        if (onboardingProfileData) {
+          try {
+            const { error: userDataError } = await supabase
+              .from('user_data')
+              .upsert({
+                user_id: data.user.id,
+                profile_data: onboardingProfileData as unknown as Json,
+                conversation_data: (onboardingConversationData || {}) as unknown as Json,
+                prompt_mode: 'structured',
+                updated_at: new Date().toISOString()
+              });
+
+            if (userDataError) {
+              console.error("Error saving user data:", userDataError);
+              toast({
+                title: "Account created",
+                description: "Account created successfully, but there was an issue saving your profile data. Please contact support if needed.",
+                variant: "default",
+              });
+            } else {
+              console.log("Successfully saved onboarding data to user_data table");
+              toast({
+                title: "Account created successfully!",
+                description: "Welcome to Twyne! Your profile has been saved.",
+              });
+              
+              // Navigate to mirror page after successful account creation and data save
+              navigate("/mirror");
+            }
+          } catch (dataError) {
+            console.error("Error saving onboarding data:", dataError);
+            toast({
+              title: "Account created",
+              description: "Account created successfully, but there was an issue saving your profile data.",
+              variant: "default",
+            });
+            navigate("/mirror");
+          }
+        } else {
+          toast({
+            title: "Account created successfully!",
+            description: "Welcome to Twyne! You can now access all features.",
+          });
+          navigate("/mirror");
+        }
+
         onOpenChange(false);
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error("Signup error:", error);
       toast({
         title: "Error",
-        description: error.message || "Something went wrong.",
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -92,18 +159,14 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
     }
   };
 
-  const handleGoogleSignUp = async () => {
+  const handleGoogleAuth = async () => {
     setIsGoogleLoading(true);
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
-          queryParams: onboardingProfileData ? {
-            // Pass a flag that this is from onboarding
-            from_onboarding: 'true'
-          } : undefined
+          redirectTo: window.location.origin + '/mirror'
         }
       });
       
@@ -125,63 +188,61 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
     }
   };
 
-  const handleSkip = () => {
-    onOpenChange(false);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-center">Create your account</DialogTitle>
-          <DialogDescription className="text-center">
-            Save your profile and unlock all Twyne features
-          </DialogDescription>
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-2xl font-bold">
+            Create your account
+          </DialogTitle>
+          <p className="text-muted-foreground">
+            Join Twyne to start connecting
+          </p>
         </DialogHeader>
         
-        <form onSubmit={handleSignUp} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="your@email.com" 
+            <Input
+              id="email"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
               required
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              placeholder="******" 
+            <Input
+              id="password"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
               required
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input 
-              id="confirmPassword" 
-              type="password" 
-              placeholder="******" 
+            <Input
+              id="confirmPassword"
+              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
               required
             />
           </div>
 
           <div className="flex flex-col space-y-2">
-            <Button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90">
+            <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
+                  Creating account...
                 </>
               ) : (
                 <>
@@ -203,7 +264,7 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
             <Button 
               type="button" 
               variant="outline" 
-              onClick={handleGoogleSignUp} 
+              onClick={handleGoogleAuth} 
               disabled={isGoogleLoading}
               className="w-full"
             >
@@ -215,26 +276,12 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
               Google
             </Button>
             
-            <Button type="button" variant="outline" onClick={handleSkip} className="w-full mt-4">
-              Skip for now
-            </Button>
-
-            <div className="text-center text-xs text-muted-foreground pt-2">
-              <p>Already have an account? 
-                <Button variant="link" className="p-0 h-auto ml-1" onClick={() => onOpenChange(false)}>
-                  Log in instead
-                </Button>
-              </p>
+            <div className="flex items-center justify-center text-xs text-muted-foreground pt-4">
+              <Mail className="h-3 w-3 mr-1" />
+              <span>Your email is only used for account access</span>
             </div>
           </div>
         </form>
-        
-        <DialogFooter className="flex justify-center pt-2">
-          <div className="flex items-center text-xs text-muted-foreground">
-            <Mail className="h-3 w-3 mr-1" />
-            <span>Your email is only used for account access</span>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

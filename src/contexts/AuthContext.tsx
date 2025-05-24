@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event);
         setSession(session);
         setUser(session?.user ?? null);
@@ -44,26 +44,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsNewUser(true);
         }
         
-        // Check for Google OAuth with onboarding data
-        if (event === 'SIGNED_IN' && session?.user?.app_metadata?.provider === 'google') {
-          // Check URL parameters for onboarding flag
-          const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get('from_onboarding') === 'true') {
-            // Get onboarding data from localStorage if available
-            const onboardingData = localStorage.getItem('onboarding_profile_data');
-            if (onboardingData) {
-              try {
-                const parsedData = JSON.parse(onboardingData);
-                setTimeout(() => {
-                  updateUserData({
-                    has_onboarded: true,
-                    profile_data: parsedData
-                  });
-                  localStorage.removeItem('onboarding_profile_data');
-                }, 0);
-              } catch (e) {
-                console.error("Could not parse onboarding data:", e);
+        // Handle transferring onboarding data after sign in/up
+        if (event === 'SIGNED_IN' && session?.user) {
+          const onboardingData = localStorage.getItem('onboarding_profile_data');
+          if (onboardingData) {
+            try {
+              const parsedData = JSON.parse(onboardingData);
+              console.log("Found onboarding data, transferring to user_data table");
+              
+              // Save to user_data table
+              const { error } = await supabase
+                .from('user_data')
+                .insert({
+                  user_id: session.user.id,
+                  profile_data: parsedData,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                });
+
+              if (error) {
+                console.error("Error transferring onboarding data:", error);
+              } else {
+                console.log("Successfully transferred onboarding data");
+                localStorage.removeItem('onboarding_profile_data');
+                toast({
+                  title: "Profile Saved",
+                  description: "Your onboarding data has been saved to your account!",
+                });
               }
+            } catch (e) {
+              console.error("Could not parse onboarding data:", e);
+              localStorage.removeItem('onboarding_profile_data');
             }
           }
         }
@@ -101,16 +112,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      // Try to get profile from user_data table
+      const { data: userData, error: userDataError } = await supabase
+        .from('user_data')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-      } else {
-        setProfile(data);
+      if (!userDataError && userData) {
+        setProfile({
+          ...userData,
+          profile_data: userData.profile_data
+        });
+        return;
+      }
+
+      // If no user_data found, try to create a basic profile entry
+      if (userDataError || !userData) {
+        console.log('No user_data found, profile will be null');
+        setProfile(null);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
