@@ -172,44 +172,36 @@ export const useOnboardingChat = () => {
     } else if (promptMode === "young-adult") {
       systemPrompt = SYSTEM_PROMPT_YOUNG_ADULT;
     }
-    
-    // Reset messages and conversation
-    setMessages([]);
-    
-    // Fix: Create a properly typed message object
+
+        // Fix: Create a properly typed message object
     const initialMessage: { role: ChatRole; content: string } = {
       role: "system" as ChatRole,
       content: systemPrompt
     };
-
-    // Add assistant guidance with user's name
-    const assistantGuidance = `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.`;
     
-    // Use the properly typed message object
+    // Reset messages and conversation
+    setMessages([]);
+        // Use the properly typed message object
     setConversation({
-      messages: [
-        initialMessage,
-        { role: "assistant" as ChatRole, content: assistantGuidance }
-      ],
+      messages: [initialMessage],
       userAnswers: []
     });
     
+
+
+    // Add assistant guidance with user's name (if needed at beginning)
+    //const assistantGuidance = `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.`;
+    
+
     setCurrentQuestionIndex(0);
 
     const effectiveName = userName || "friend";
     // Initialize chat with AI greeting, passing the promptMode
-    initializeChat(systemPrompt, userName, promptMode).then(({ aiGreeting, updatedConversation }) => {
-      setIsInitializing(false);
-      // Add AI greeting to messages
-      const greetingMessage: Message = {
-        id: 1,
-        text: aiGreeting,
-        sender: "ai"
-      };
-      
-      setMessages([greetingMessage]);
-      setConversation(updatedConversation);
-    });
+    initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
+    setIsInitializing(false);
+    setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
+    setConversation(updatedConversation);
+  });
   }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile]);
 
   // Complete onboarding and generate profile
