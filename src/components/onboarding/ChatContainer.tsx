@@ -137,8 +137,9 @@ const ChatContainer = ({
           
           <div ref={messagesEndRef} className="h-4" />
         </div>
-
-      <InputContainer
+      </ScrollArea>
+    </div>
+    <InputContainer
         input={input}
         setInput={setInput}
         onSend={onSend}
@@ -161,10 +162,6 @@ const ChatContainer = ({
         startSmsConversation={startSmsConversation}
         disabled={isTyping || isGeneratingProfile}
       />
-      </ScrollArea>
-      
-      
-    </div>
   );
 };
 
