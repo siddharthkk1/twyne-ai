@@ -9,11 +9,13 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   // Track if user is near the bottom - start as true so initial messages auto-scroll
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   
-  // Define a function to scroll to bottom - simplified since ResizeObserver handles timing
+  // Define a function to scroll to bottom with stable layout using requestAnimationFrame
   const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    requestAnimationFrame(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    });
   }, []);
 
   // Handle user scroll events to track if they're near bottom
@@ -47,8 +49,10 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   // Reset user scroll state and scroll to bottom - call this when sending new messages
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
-    // Simple immediate scroll since ResizeObserver will handle proper timing
-    scrollToBottom();
+    // Use requestAnimationFrame to ensure message is added to DOM first
+    requestAnimationFrame(() => {
+      scrollToBottom();
+    });
   }, [scrollToBottom]);
 
   return {

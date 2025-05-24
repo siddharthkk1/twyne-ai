@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -9,7 +8,6 @@ import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
 import { useOnboardingScroll } from './useOnboardingScroll';
-import { useAutoScroll } from './useAutoScroll';
 import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
@@ -145,9 +143,6 @@ export const useOnboardingChat = () => {
     handleMessagePartVisible
   } = useOnboardingScroll(isComplete);
 
-  // Use the new auto-scroll hook instead of manual useEffect
-  useAutoScroll(messagesEndRef, scrollViewportRef, messages, isUserNearBottom);
-
   // Handle name submission from the name collection step
   const handleNameSubmit = (name: string) => {
     console.log("Name submitted:", name);
@@ -207,6 +202,22 @@ export const useOnboardingChat = () => {
       setConversation(updatedConversation);
     });
   }, [promptMode, userName, showNameCollection]);
+
+  // Only auto-scroll when user is near bottom and new messages arrive
+  useEffect(() => {
+    if (isUserNearBottom && messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length, isUserNearBottom, scrollToBottom]);
+
+  // Guard scroll on init with small delay to avoid jank on mount
+  useEffect(() => {
+    if (isUserNearBottom && messages.length > 0) {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+    }
+  }, [isInitializing, isUserNearBottom, messages.length, scrollToBottom]);
 
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
