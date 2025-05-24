@@ -207,6 +207,7 @@ export const useOnboardingChat = () => {
       setUserProfile(prev => ({ ...prev, name: userName }));
       
       const profile = await generateProfile(finalConversation, userName);
+      console.log("profile: ", profile);
       
       // Update userName in case we have it in the profile
       if (profile.name && !userName) {
