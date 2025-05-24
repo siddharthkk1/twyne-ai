@@ -25,14 +25,8 @@ const RedirectNewUser = () => {
     const hasCompletedOnboarding = profile?.profile_data && 
       Object.keys(profile.profile_data).length > 0;
     
-    // If user is on auth page and already logged in with completed onboarding
-    if (isAuthPath && user && hasCompletedOnboarding) {
-      navigate("/mirror");
-      return;
-    }
-    
-    // If user is on landing-v2 and already logged in with completed onboarding
-    if (location.pathname === "/landing-v2" && user && hasCompletedOnboarding) {
+    // If user is on auth page or landing pages and already logged in with completed onboarding
+    if ((isAuthPath || location.pathname === "/landing-v2") && user && hasCompletedOnboarding) {
       navigate("/mirror");
       return;
     }

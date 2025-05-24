@@ -9,8 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Mail, Loader2, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { useNavigate } from "react-router-dom";
-import type { Json } from "@/integrations/supabase/types";
 
 interface CreateAccountPromptProps {
   open: boolean;
@@ -25,46 +23,11 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   // If user is already logged in, don't show the dialog
   if (user) {
     return null;
   }
-
-  const saveOnboardingDataToUserTable = async (userId: string) => {
-    if (!onboardingProfileData) return;
-
-    try {
-      console.log("Saving onboarding data to user_data table:", onboardingProfileData);
-      
-      const { error } = await supabase
-        .from('user_data')
-        .insert({
-          user_id: userId,
-          profile_data: onboardingProfileData as unknown as Json,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) {
-        console.error("Error saving onboarding data to user_data:", error);
-        toast({
-          title: "Warning",
-          description: "Account created but profile data couldn't be saved. You can complete onboarding again.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Successfully saved onboarding data to user_data table");
-        toast({
-          title: "Account created & Profile saved",
-          description: "Your account has been created and your profile data has been saved!",
-        });
-      }
-    } catch (error) {
-      console.error("Error saving onboarding data:", error);
-    }
-  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +41,7 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
       return;
     }
 
+    // Check if passwords match
     if (password !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -90,13 +54,13 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
     setIsLoading(true);
 
     try {
-      // Prepare user metadata
+      // Prepare user metadata including onboarding data if available
       const userData = {
         has_onboarded: onboardingProfileData ? true : false,
         profile_data: onboardingProfileData || {},
       };
 
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -111,18 +75,10 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
           variant: "destructive",
         });
       } else {
-        // If user is immediately available (no email confirmation), save data now
-        if (data.user && !data.user.email_confirmed_at) {
-          toast({
-            title: "Account created",
-            description: "Please check your email for a confirmation link.",
-          });
-        } else if (data.user) {
-          // Save onboarding data to user_data table
-          await saveOnboardingDataToUserTable(data.user.id);
-          // Redirect to mirror page
-          navigate("/mirror");
-        }
+        toast({
+          title: "Account created",
+          description: "Please check your email for a confirmation link.",
+        });
         onOpenChange(false);
       }
     } catch (error: any) {
@@ -140,16 +96,12 @@ export const CreateAccountPrompt = ({ open, onOpenChange, onboardingProfileData 
     setIsGoogleLoading(true);
     
     try {
-      // Store onboarding data in localStorage temporarily for Google OAuth flow
-      if (onboardingProfileData) {
-        localStorage.setItem('onboarding_profile_data', JSON.stringify(onboardingProfileData));
-      }
-
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin,
           queryParams: onboardingProfileData ? {
+            // Pass a flag that this is from onboarding
             from_onboarding: 'true'
           } : undefined
         }

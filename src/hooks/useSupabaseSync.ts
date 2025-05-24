@@ -18,22 +18,20 @@ export const useSupabaseSync = () => {
       console.log("User auth state:", user ? "Logged in" : "Anonymous");
       
       if (user) {
-        // User is logged in - save to user_data table
-        console.log("Saving to user_data table for authenticated user:", user.id);
+        // User is logged in - save to profiles table
+        console.log("Saving to profiles table for authenticated user:", user.id);
         
-        const { error: userDataError } = await supabase
-          .from('user_data')
-          .upsert({
-            user_id: user.id,
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
             profile_data: profile as unknown as Json,
-            conversation_data: convoData as unknown as Json,
-            prompt_mode: promptMode,
             updated_at: new Date().toISOString(),
-          });
+          })
+          .eq('id', user.id);
         
-        if (userDataError) {
-          console.error("Error saving to user_data table:", userDataError);
-          throw new Error(`Failed to save profile data: ${userDataError.message}`);
+        if (profileError) {
+          console.error("Error saving to profiles table:", profileError);
+          throw new Error(`Failed to save profile data: ${profileError.message}`);
         }
         
         // Also update user metadata

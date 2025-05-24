@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,7 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Try to get profile from user_data table
+      // Try to get profile from user_data table first
       const { data: userData, error: userDataError } = await supabase
         .from('user_data')
         .select('*')
@@ -127,10 +126,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      // If no user_data found, try to create a basic profile entry
-      if (userDataError || !userData) {
-        console.log('No user_data found, profile will be null');
-        setProfile(null);
+      // Fallback to profiles table
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        setProfile(data);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
