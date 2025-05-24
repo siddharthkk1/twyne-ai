@@ -7,7 +7,7 @@ import type { Json } from '@/integrations/supabase/types';
 
 export const useSupabaseSync = () => {
   const saveOnboardingData = async (
-    profile: UserProfile, 
+    profile: any, 
     convoData: Conversation, 
     promptMode: PromptModeType,
     user: any | null,
@@ -78,11 +78,6 @@ export const useSupabaseSync = () => {
         
         console.log("Data saved successfully for anonymous user");
       }
-      
-      toast({
-        title: "Profile Saved",
-        description: "Your profile has been saved successfully!",
-      });
 
       return true;
     } catch (error) {

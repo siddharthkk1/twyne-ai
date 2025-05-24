@@ -117,10 +117,10 @@ export const useOnboardingAI = () => {
     setIsGeneratingProfile(true);
     
     try {
-      // Generate profile - since function now expects only one argument
+      // Generate profile using the new edge function
       const profile = await generateAIProfile(finalConversation);
       
-      // If we have a userName from the onboarding process, add it to the profile
+      // If we have a userName from the onboarding process, ensure it's in the profile
       if (userName && (!profile.name || profile.name === "")) {
         profile.name = userName;
       }
