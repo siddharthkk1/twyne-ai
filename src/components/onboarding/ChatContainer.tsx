@@ -1,7 +1,6 @@
 
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
@@ -92,7 +91,7 @@ const ChatContainer = ({
       <div 
         className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         ref={scrollViewportRef}
-        onScroll={handleScroll}
+        oneScroll={handleScroll}
       >
         <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
