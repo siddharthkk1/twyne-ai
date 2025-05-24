@@ -41,18 +41,15 @@ const Profile = () => {
 
     try {
       const { error } = await supabase
-        .from('user_data')
+        .from('profiles')
         .update({
-          profile_data: {
-            ...profile?.profile_data,
-            username: formData.username,
-            full_name: formData.full_name,
-            bio: formData.bio,
-            location: formData.location,
-          },
+          username: formData.username,
+          full_name: formData.full_name,
+          bio: formData.bio,
+          location: formData.location,
           updated_at: new Date().toISOString(),
         })
-        .eq('user_id', user?.id);
+        .eq('id', user?.id);
 
       if (error) {
         toast({

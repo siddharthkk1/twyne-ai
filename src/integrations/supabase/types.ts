@@ -42,27 +42,39 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           full_name: string | null
           id: string
+          latitude: number | null
+          location: string | null
+          longitude: number | null
           profile_data: Json | null
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
           profile_data?: Json | null
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
           profile_data?: Json | null
           updated_at?: string
           username?: string | null
