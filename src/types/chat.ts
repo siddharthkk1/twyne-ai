@@ -88,9 +88,9 @@ export interface UserProfile {
   boundariesAndPetPeeves?: string;
   connectionActivities?: string;
 
-  // Legacy fields for backward compatibility
-  interests: string[] | string;
-  personalInsights: string[];
+  // Legacy fields for backward compatibility - made optional
+  interests?: string[] | string;
+  personalInsights?: string[];
   personalityTraits?: PersonalityTraits;
   timeInCurrentCity?: string;
   friendshipPace?: string;

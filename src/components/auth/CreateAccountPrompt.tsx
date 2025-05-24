@@ -10,12 +10,13 @@ import { toast } from "@/components/ui/use-toast";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import type { Json } from '@/integrations/supabase/types';
+import type { UserProfile, Conversation } from '@/types/chat';
 
 interface CreateAccountPromptProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onboardingProfileData?: any;
-  onboardingConversationData?: any;
+  onboardingProfileData?: UserProfile;
+  onboardingConversationData?: Conversation;
   userName?: string;
 }
 
@@ -88,38 +89,38 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         return;
       }
 
-      if (data.user) {
-        // Save onboarding data to user_data table if we have it
-        if (onboardingProfileData) {
-          try {
-            const { error: userDataError } = await supabase
-              .from('user_data')
-              .insert({
-                user_id: data.user.id,
-                profile_data: onboardingProfileData as unknown as Json,
-                conversation_data: (onboardingConversationData || {}) as unknown as Json,
-                prompt_mode: 'structured'
-              });
+      if (data.user && onboardingProfileData) {
+        // Save onboarding data to user_data table
+        try {
+          const { error: userDataError } = await supabase
+            .from('user_data')
+            .insert({
+              user_id: data.user.id,
+              profile_data: onboardingProfileData as unknown as Json,
+              conversation_data: (onboardingConversationData || {}) as unknown as Json,
+              prompt_mode: 'structured'
+            });
 
-            if (userDataError) {
-              console.error("Error saving user data:", userDataError);
-              // Don't block the signup process for this error
-            }
-          } catch (dataError) {
-            console.error("Error saving onboarding data:", dataError);
-            // Don't block the signup process
+          if (userDataError) {
+            console.error("Error saving user data:", userDataError);
+            // Don't block the signup process for this error
+          } else {
+            console.log("Successfully saved onboarding data to user_data table");
           }
+        } catch (dataError) {
+          console.error("Error saving onboarding data:", dataError);
+          // Don't block the signup process
         }
-
-        toast({
-          title: "Account created successfully!",
-          description: "Welcome to Twyne! You can now access all features.",
-        });
-
-        // Auto sign in the user
-        await signIn(email, password);
-        onOpenChange(false);
       }
+
+      toast({
+        title: "Account created successfully!",
+        description: "Welcome to Twyne! You can now access all features.",
+      });
+
+      // Auto sign in the user
+      await signIn(email, password);
+      onOpenChange(false);
     } catch (error) {
       console.error("Signup error:", error);
       toast({
