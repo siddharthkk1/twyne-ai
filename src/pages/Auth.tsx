@@ -58,7 +58,7 @@ const Auth = () => {
         }
       } else {
         // For signup from auth page, we don't have onboarding data
-        // Only pass full_name if we can derive it from email
+        // Only pass metadata if we have a proper name
         const emailPrefix = email.split('@')[0];
         
         console.log("Signing up with:", {
@@ -67,16 +67,19 @@ const Auth = () => {
           full_name: emailPrefix
         });
 
-        // Sign up with minimal data to avoid trigger issues
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
+        // Create signup data object
+        const signupData: any = { email, password };
+        
+        // Only add metadata if emailPrefix is valid
+        if (emailPrefix && emailPrefix.trim() !== '') {
+          signupData.options = {
             data: {
-              full_name: emailPrefix,
+              full_name: emailPrefix.trim()
             }
-          }
-        });
+          };
+        }
+
+        const { data, error } = await supabase.auth.signUp(signupData);
 
         if (error) {
           console.error("Signup error:", error);

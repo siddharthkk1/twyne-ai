@@ -57,16 +57,11 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     setIsLoading(true);
 
     try {
-      console.log("Signing up with:", {
-        email,
-        password: "***",
-        full_name: userName || onboardingProfileData?.name || ''
-      });
-
       // Only add full_name if we have a valid non-empty value
       const nameToUse = userName || onboardingProfileData?.name;
       const signupData: any = { email, password };
       
+      // Only add metadata if we have a valid name
       if (nameToUse && nameToUse.trim() !== '') {
         signupData.options = {
           data: {
@@ -74,6 +69,12 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
           }
         };
       }
+
+      console.log("Signing up with:", {
+        email,
+        password: "***",
+        full_name: nameToUse || "not provided"
+      });
 
       const { data, error } = await supabase.auth.signUp(signupData);
 
