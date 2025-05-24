@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -15,8 +16,8 @@ import {
   SYSTEM_PROMPT_YOUNG_ADULT
 } from '@/utils/aiUtils';
 
-// Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 8; // Count only user messages, not AI messages
+// Maximum number of user messages before asking for name and completing
+const MESSAGE_CAP = 20;
 
 export const useOnboardingChat = () => {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export const useOnboardingChat = () => {
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
   const [showNameCollection, setShowNameCollection] = useState(true);
+  const [askingForName, setAskingForName] = useState(false);
   
   // Initialize userProfile state
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -259,11 +261,11 @@ export const useOnboardingChat = () => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
 
-    // Check if we've reached the message cap
     // Count only user messages for the message cap
     const userMessageCount = conversation.userAnswers.length;
     
-    if (userMessageCount >= MESSAGE_CAP - 1) { // -1 to account for the new user message we're about to add
+    // Check if we've reached the message cap and need to ask for name
+    if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
       // Add user message to UI
       const newUserMessage: Message = {
         id: messages.length + 1,
@@ -274,17 +276,18 @@ export const useOnboardingChat = () => {
       setMessages((prev) => [...prev, newUserMessage]);
       setInput("");
       
-      // Add closing message
-      const closingMessage: Message = {
+      // Add the name request message
+      const nameRequestMessage: Message = {
         id: messages.length + 2,
-        text: "Thanks for sharing! I think I've got enough to understand your vibe. Building your personal dashboard now...",
+        text: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?",
         sender: "ai",
       };
 
-      setMessages(prev => [...prev, closingMessage]);
+      setMessages(prev => [...prev, nameRequestMessage]);
       setIsTyping(false);
+      setAskingForName(true);
 
-      // Update conversation with user's final message - Fix typing here
+      // Update conversation with user's message and name request
       const userMessageObj: { role: ChatRole; content: string } = { 
         role: "user" as ChatRole, 
         content: textToSend 
@@ -292,14 +295,64 @@ export const useOnboardingChat = () => {
       
       const assistantMessageObj: { role: ChatRole; content: string } = { 
         role: "assistant" as ChatRole, 
-        content: closingMessage.text 
+        content: nameRequestMessage.text 
+      };
+
+      const updatedConversation = {
+        messages: [
+          ...conversation.messages, 
+          userMessageObj,
+          assistantMessageObj
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
+      };
+      
+      setConversation(updatedConversation);
+      return;
+    }
+
+    // If we're asking for name, this is the final message
+    if (askingForName) {
+      // Add user's name message
+      const nameMessage: Message = {
+        id: messages.length + 1,
+        text: textToSend,
+        sender: "user",
+      };
+
+      setMessages((prev) => [...prev, nameMessage]);
+      setInput("");
+      
+      // Update the user's name
+      setUserName(textToSend);
+      setUserProfile(prev => ({ ...prev, name: textToSend }));
+      
+      // Add the "Generating your mirror" message
+      const generatingMessage: Message = {
+        id: messages.length + 2,
+        text: "Generating your mirror...",
+        sender: "ai",
+      };
+
+      setMessages(prev => [...prev, generatingMessage]);
+      setIsTyping(false);
+
+      // Update final conversation with the name
+      const userNameObj: { role: ChatRole; content: string } = { 
+        role: "user" as ChatRole, 
+        content: textToSend 
+      };
+      
+      const assistantFinalObj: { role: ChatRole; content: string } = { 
+        role: "assistant" as ChatRole, 
+        content: generatingMessage.text 
       };
 
       const finalConversation = {
         messages: [
           ...conversation.messages, 
-          userMessageObj,
-          assistantMessageObj
+          userNameObj,
+          assistantFinalObj
         ],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
@@ -361,48 +414,8 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Check if we should complete the conversation based on message count
-    const updatedUserMessageCount = draftConversation.userAnswers.length;
-    
-    // If we've had a substantial conversation and it's time to wrap up
-    if (updatedUserMessageCount >= 15 && updatedUserMessageCount % 5 === 0 && updatedUserMessageCount >= MESSAGE_CAP - 10) {
-      // There's a chance we should end the conversation here
-      const shouldEnd = Math.random() > 0.7; // 30% chance to end if we're in the range
-      
-      if (shouldEnd) {
-        // Handle conversation completion
-        const closingMessage: Message = {
-          id: messages.length + 2,
-          text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
-          sender: "ai",
-        };
-
-        setMessages(prev => [...prev, closingMessage]);
-        setIsTyping(false);
-
-        // Update final conversation state with closing message - Fix typing here
-        const assistantMessageObj: { role: ChatRole; content: string } = { 
-          role: "assistant" as ChatRole, 
-          content: closingMessage.text 
-        };
-        
-        const finalConversation = {
-          messages: [...draftConversation.messages, assistantMessageObj],
-          userAnswers: draftConversation.userAnswers
-        };
-        
-        setConversation(finalConversation);
-        
-        // Complete the onboarding process
-        completeOnboarding(finalConversation);
-      } else {
-        // Continue normal conversation flow
-        handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
-      }
-    } else {
-      // Standard conversation flow
-      handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
-    }
+    // Standard conversation flow
+    handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
   };
 
   // Get progress percent based on conversation length
