@@ -6,46 +6,26 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
   
-  // Track if user has manually scrolled up
-  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
-  
-  // Store the last scroll position to determine scroll direction
-  const lastScrollTopRef = useRef<number>(0);
+  // Track if user is near the bottom - start as true so initial messages auto-scroll
+  const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   
   // Define a function to scroll to bottom with smooth animation
   const scrollToBottom = useCallback(() => {
-    if (!scrollViewportRef.current || userHasScrolledUp) return;
+    if (!messagesEndRef.current) return;
     
-    const scrollElement = scrollViewportRef.current;
-    scrollElement.scrollTo({
-      top: scrollElement.scrollHeight,
-      behavior: "smooth"
-    });
-  }, [userHasScrolledUp]);
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
-  // Handle user scroll events to detect if they've scrolled up
+  // Handle user scroll events to track if they're near bottom
   const handleScroll = useCallback(() => {
-    if (!scrollViewportRef.current) return;
+    const scrollEl = scrollViewportRef.current;
+    if (!scrollEl) return;
     
-    const scrollElement = scrollViewportRef.current;
-    const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+    const { scrollTop, scrollHeight, clientHeight } = scrollEl;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
     
-    // Detect scroll direction
-    const isScrollingUp = scrollTop < lastScrollTopRef.current;
-    lastScrollTopRef.current = scrollTop;
-    
-    // Calculate how close to bottom (within 50px for better UX)
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
-    
-    // If user is scrolling up and not near bottom, they're reading history
-    if (isScrollingUp && !isNearBottom) {
-      setUserHasScrolledUp(true);
-    }
-    
-    // If user manually scrolls to bottom, reset the flag
-    if (isNearBottom && !isScrollingUp) {
-      setUserHasScrolledUp(false);
-    }
+    // User is near bottom if within 100px - you can tune this number
+    setIsUserNearBottom(distanceFromBottom < 100);
   }, []);
   
   // Scroll to top when profile is complete
@@ -58,19 +38,18 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     }
   }, [isComplete]);
   
-  // Handle message part becoming visible - only scroll if user hasn't scrolled up
+  // Handle message part becoming visible - only scroll if user is near bottom
   const handleMessagePartVisible = useCallback(() => {
-    // Don't force scroll if user has scrolled up
-    if (!userHasScrolledUp) {
+    if (isUserNearBottom) {
       requestAnimationFrame(() => {
         scrollToBottom();
       });
     }
-  }, [scrollToBottom, userHasScrolledUp]);
+  }, [scrollToBottom, isUserNearBottom]);
   
-  // Reset user scroll state - only call this when sending new messages
+  // Reset user scroll state and scroll to bottom - call this when sending new messages
   const resetScrollState = useCallback(() => {
-    setUserHasScrolledUp(false);
+    setIsUserNearBottom(true);
     // Small delay to ensure message is added to DOM first
     setTimeout(() => {
       scrollToBottom();
@@ -81,8 +60,8 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     messagesEndRef,
     scrollViewportRef,
     dashboardRef,
-    userHasScrolledUp,
-    setUserHasScrolledUp,
+    isUserNearBottom,
+    setIsUserNearBottom,
     scrollToBottom,
     handleScroll,
     resetScrollState,

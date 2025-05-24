@@ -135,8 +135,8 @@ export const useOnboardingChat = () => {
     messagesEndRef,
     scrollViewportRef,
     dashboardRef,
-    userHasScrolledUp,
-    setUserHasScrolledUp,
+    isUserNearBottom,
+    setIsUserNearBottom,
     scrollToBottom,
     handleScroll,
     resetScrollState,
@@ -202,6 +202,13 @@ export const useOnboardingChat = () => {
       setConversation(updatedConversation);
     });
   }, [promptMode, userName, showNameCollection]);
+
+  // Only auto-scroll when user is near bottom and new messages arrive
+  useEffect(() => {
+    if (isUserNearBottom) {
+      scrollToBottom();
+    }
+  }, [messages, isUserNearBottom, scrollToBottom]);
 
   useEffect(() => {
     scrollToBottom();
@@ -311,6 +318,7 @@ export const useOnboardingChat = () => {
       };
       
       setConversation(updatedConversation);
+      resetScrollState();
       return;
     }
 
@@ -363,6 +371,7 @@ export const useOnboardingChat = () => {
       
       // Complete the onboarding process
       completeOnboarding(finalConversation);
+      resetScrollState();
       return;
     }
 
@@ -377,6 +386,7 @@ export const useOnboardingChat = () => {
     setInput("");
     setIsTyping(true);
     
+    // Always scroll to bottom when user sends a message
     resetScrollState();
 
     if (currentQuestionIndex === 0) {
