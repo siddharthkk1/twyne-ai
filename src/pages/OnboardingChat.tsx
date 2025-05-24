@@ -40,7 +40,6 @@ const OnboardingChat = () => {
     handleSend,
     userName,
     setUserName,
-    // Scroll-related
     scrollViewportRef,
     dashboardRef,
     handleScroll,
@@ -48,84 +47,63 @@ const OnboardingChat = () => {
   } = useOnboardingChat();
 
   const { isListening, isProcessing, toggleVoiceInput } = useVoiceRecording(handleSend);
-  
-  // Add state for name collection step
+
   const [showNameCollectionStep, setShowNameCollectionStep] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
-  
-  // Control flow of onboarding steps
+
   useEffect(() => {
-    // When create account prompt closes and user hasn't entered name yet, show name collection
     if (!showCreateAccountPrompt && !userName) {
       setShowNameCollectionStep(true);
     }
   }, [showCreateAccountPrompt, userName]);
-  
-  // When name is collected, show the help dialog if not shown before
+
   useEffect(() => {
-    // Check if the dialog was already shown in this session
     const helpDialogShown = sessionStorage.getItem("helpDialogShown") === "true";
-    
     if (!showNameCollectionStep && userName && !showHelpDialog && !helpDialogShown && messages.length <= 1) {
-      // Short delay to make the sequence feel more natural
       const timer = setTimeout(() => {
         setShowHelpDialog(true);
-        // Mark dialog as shown for this session
         sessionStorage.setItem("helpDialogShown", "true");
       }, 500);
       return () => clearTimeout(timer);
     }
   }, [showNameCollectionStep, userName, showHelpDialog, messages.length]);
 
-  // Handle name submission
   const handleNameSubmission = (name: string) => {
     setUserName(name);
     setShowNameCollectionStep(false);
   };
-  
-  // Handle closing the help dialog
+
   const handleCloseHelpDialog = () => {
     setShowHelpDialog(false);
     setShowGuidanceInfo(false);
-    // Ensure we mark that the dialog has been shown
     sessionStorage.setItem("helpDialogShown", "true");
   };
-  
-  // Set up a ResizeObserver to handle window and content size changes
+
   useEffect(() => {
     if (!scrollViewportRef.current || isComplete) return;
-    
-    // Create both a resize observer and mutation observer
     const resizeObserver = new ResizeObserver(() => {
       if (messages.length > 0) {
         handleMessagePartVisible();
       }
     });
-    
     const mutationObserver = new MutationObserver(() => {
       if (messages.length > 0) {
         handleMessagePartVisible();
       }
     });
-    
-    // Start observing
-    if (scrollViewportRef.current) {
-      resizeObserver.observe(scrollViewportRef.current);
-      mutationObserver.observe(scrollViewportRef.current, {
-        childList: true, 
-        subtree: true,
-        attributes: true,
-        characterData: true
-      });
-    }
-    
+    resizeObserver.observe(scrollViewportRef.current);
+    mutationObserver.observe(scrollViewportRef.current, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true
+    });
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
     };
   }, [isComplete, messages.length, handleMessagePartVisible, scrollViewportRef]);
 
-  // Scroll dashboard to top after profile generation is complete
   useEffect(() => {
     if (isComplete && dashboardRef.current) {
       dashboardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -135,21 +113,18 @@ const OnboardingChat = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
-      
-      {/* Name collection step */}
+
       {showNameCollectionStep && (
         <div className="flex-1 flex items-center justify-center">
           <NameCollectionStep onSubmit={handleNameSubmission} />
         </div>
       )}
-      
-      {/* Help dialog - shown in the middle of the screen */}
+
       <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogTitle className="sr-only">How This Conversation Works</DialogTitle>
           <div className="space-y-4 py-2">
             <h2 className="text-xl font-semibold">How This Conversation Works</h2>
-            
             <div className="space-y-3 text-muted-foreground">
               <p className="flex items-start gap-2">
                 <span className="text-primary font-medium">•</span>
@@ -168,7 +143,6 @@ const OnboardingChat = () => {
                 <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
               </p>
             </div>
-            
             <div className="pt-4">
               <Button onClick={handleCloseHelpDialog} className="w-full">
                 Got it
@@ -177,22 +151,19 @@ const OnboardingChat = () => {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <GuidanceInfo showGuidanceInfo={showGuidanceInfo} setShowGuidanceInfo={setShowGuidanceInfo} />
-      
+
       {(!showNameCollectionStep && !showModeSelection) ? (
         !isComplete ? (
           <>
-            {/* Fixed header with back button and progress indicator */}
-            <ConversationHeader 
+            <ConversationHeader
               isGeneratingProfile={isGeneratingProfile}
               progress={getProgress()}
               setShowGuidanceInfo={setShowGuidanceInfo}
               showGuidanceInfo={showGuidanceInfo}
             />
-            
-            {/* Chat content */}
-            <ChatContainer 
+            <ChatContainer
               messages={messages}
               isTyping={isTyping}
               isInitializing={isInitializing}
@@ -206,9 +177,7 @@ const OnboardingChat = () => {
               handlePromptModeChange={handlePromptModeChange}
               userName={userName}
             />
-
-            {/* Input container */}
-            <InputContainer 
+            <InputContainer
               conversationMode={conversationMode}
               input={input}
               setInput={setInput}
@@ -225,13 +194,9 @@ const OnboardingChat = () => {
             />
           </>
         ) : (
-          <>          
-            <div ref={dashboardRef} className="flex-1 p-4 scroll-smooth">
-              <ProfileCompletionDashboard 
-                userProfile={userProfile}
-              />
-            </div>
-          </>
+          <div ref={dashboardRef} className="flex-1 p-4 scroll-smooth">
+            <ProfileCompletionDashboard userProfile={userProfile} />
+          </div>
         )
       ) : showModeSelection ? (
         <ConversationModeSelector handleModeSelection={handleModeSelection} />
