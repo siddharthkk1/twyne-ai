@@ -339,16 +339,12 @@ export const useOnboardingChat = () => {
         content: textToSend 
       };
       
-      const assistantFinalObj: { role: ChatRole; content: string } = { 
-        role: "assistant" as ChatRole, 
-        content: generatingMessage.text 
-      };
+
 
       const finalConversation = {
         messages: [
           ...conversation.messages, 
           userNameObj,
-          assistantFinalObj
         ],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
