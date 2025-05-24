@@ -89,7 +89,7 @@ const ChatContainer = ({
       />
       
       <ScrollArea 
-        className="flex-1 p-4 pt-24"
+        className="flex-1 p-4 pt-24 overflow-hidden"
         viewportRef={scrollViewportRef}
         onViewportScroll={handleScroll}
       >
