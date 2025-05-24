@@ -332,13 +332,6 @@ export const useOnboardingChat = () => {
       setUserName(textToSend);
       setUserProfile(prev => ({ ...prev, name: textToSend }));
       
-      const generatingMessage: Message = {
-        id: messages.length + 2,
-        text: "Generating your mirror...",
-        sender: "ai",
-      };
-
-      setMessages(prev => [...prev, generatingMessage]);
       setIsTyping(false);
 
       const userNameObj: { role: ChatRole; content: string } = { 
