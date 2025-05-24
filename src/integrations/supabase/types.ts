@@ -9,42 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
+      onboarding_data: {
         Row: {
-          avatar_url: string | null
-          bio: string | null
+          conversation_data: Json
           created_at: string
-          full_name: string | null
           id: string
-          latitude: number | null
-          location: string | null
-          longitude: number | null
-          updated_at: string
-          username: string | null
+          is_anonymous: boolean
+          profile_data: Json
+          prompt_mode: string | null
+          user_id: string
         }
         Insert: {
-          avatar_url?: string | null
-          bio?: string | null
+          conversation_data: Json
           created_at?: string
-          full_name?: string | null
-          id: string
-          latitude?: number | null
-          location?: string | null
-          longitude?: number | null
-          updated_at?: string
-          username?: string | null
+          id?: string
+          is_anonymous?: boolean
+          profile_data: Json
+          prompt_mode?: string | null
+          user_id: string
         }
         Update: {
-          avatar_url?: string | null
-          bio?: string | null
+          conversation_data?: Json
           created_at?: string
-          full_name?: string | null
           id?: string
-          latitude?: number | null
-          location?: string | null
-          longitude?: number | null
+          is_anonymous?: boolean
+          profile_data?: Json
+          prompt_mode?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_data: {
+        Row: {
+          conversation_data: Json | null
+          created_at: string
+          id: string
+          profile_data: Json
+          prompt_mode: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_data?: Json | null
+          created_at?: string
+          id?: string
+          profile_data?: Json
+          prompt_mode?: string | null
           updated_at?: string
-          username?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_data?: Json | null
+          created_at?: string
+          id?: string
+          profile_data?: Json
+          prompt_mode?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

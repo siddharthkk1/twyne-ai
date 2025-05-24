@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 type AuthContextType = {
   session: Session | null;
@@ -13,6 +14,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   clearNewUserFlag: () => void;
+  updateUserData: (data: any) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -29,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event);
         setSession(session);
         setUser(session?.user ?? null);
@@ -40,6 +42,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             session.user.user_metadata?.has_onboarded === false) {
           console.log("Setting user as new");
           setIsNewUser(true);
+        }
+        
+        // Handle transferring onboarding data after sign in/up
+        if (event === 'SIGNED_IN' && session?.user) {
+          const onboardingData = localStorage.getItem('onboarding_profile_data');
+          if (onboardingData) {
+            try {
+              const parsedData = JSON.parse(onboardingData);
+              console.log("Found onboarding data, transferring to user_data table");
+              
+              // Save to user_data table
+              const { error } = await supabase
+                .from('user_data')
+                .insert({
+                  user_id: session.user.id,
+                  profile_data: parsedData,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                });
+
+              if (error) {
+                console.error("Error transferring onboarding data:", error);
+              } else {
+                console.log("Successfully transferred onboarding data");
+                localStorage.removeItem('onboarding_profile_data');
+                toast({
+                  title: "Profile Saved",
+                  description: "Your onboarding data has been saved to your account!",
+                });
+              }
+            } catch (e) {
+              console.error("Could not parse onboarding data:", e);
+              localStorage.removeItem('onboarding_profile_data');
+            }
+          }
         }
         
         // Fetch profile if user is logged in
@@ -75,16 +112,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      // Try to get profile from user_data table
+      const { data: userData, error: userDataError } = await supabase
+        .from('user_data')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-      } else {
-        setProfile(data);
+      if (!userDataError && userData) {
+        setProfile({
+          ...userData,
+          profile_data: userData.profile_data
+        });
+        return;
+      }
+
+      // If no user_data found, try to create a basic profile entry
+      if (userDataError || !userData) {
+        console.log('No user_data found, profile will be null');
+        setProfile(null);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -110,7 +156,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             username: userData.username,
             full_name: userData.fullName,
             avatar_url: userData.avatarUrl,
-            has_onboarded: false,
+            has_onboarded: userData.has_onboarded || false,
+            profile_data: userData.profile_data || {},
           },
         },
       });
@@ -127,6 +174,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const updateUserData = async (data: any) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: data
+      });
+
+      if (error) {
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Profile updated",
+          description: "Your profile data has been updated",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Update error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    }
   };
 
   const clearNewUserFlag = () => {
@@ -146,6 +220,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signOut,
         clearNewUserFlag,
+        updateUserData,
       }}
     >
       {children}

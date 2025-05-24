@@ -1,42 +1,112 @@
-
-import React from "react";
-import { useLocation, useNavigate, Navigate } from "react-router-dom";
-import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import TwyneOrb from "@/components/ui/TwyneOrb";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
+import { useOnboardingChat } from "@/hooks/useOnboardingChat";
+import { Card, CardContent } from "@/components/ui/card";
+import { UserPlus } from "lucide-react";
+import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 
 const OnboardingResults = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  
-  // Get the userProfile from location state
-  const userProfile = location.state?.userProfile;
-  
-  // If no userProfile is provided, redirect to onboarding selection
-  if (!userProfile) {
-    return <Navigate to="/onboarding" />;
-  }
-  
+  const { user } = useAuth();
+  const { userProfile, userName } = useOnboardingChat();
+  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(false);
+
+  const handleCreateAccount = () => {
+    setShowCreateAccountPrompt(true);
+  };
+
+  const handleContinueWithoutAccount = () => {
+    navigate("/");
+  };
+
+  const handleGoToMirror = () => {
+    navigate("/mirror");
+  };
+
+  // Get the user's first name from the collected data
+  const getUserFirstName = () => {
+    if (userName) {
+      return userName.split(' ')[0];
+    }
+    if (userProfile?.name) {
+      return userProfile.name.split(' ')[0];
+    }
+    return "User";
+  };
+
+  console.log("OnboardingResults - userName:", userName, "userProfile.name:", userProfile?.name);
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
-      {/* Add back button with fixed positioning */}
-      <div className="fixed top-0 left-0 right-0 z-10 backdrop-blur-lg bg-background/80 border-b">
-        <div className="container mx-auto px-4 pt-6 pb-2">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/onboarding")}
-            className="text-sm flex items-center gap-1"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            Back to options
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
+      <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            {getUserFirstName()}'s Mirror
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Here's what we learned about you through our conversation
+          </p>
         </div>
+
+        {/* Dashboard - Pass userName explicitly */}
+        <ProfileCompletionDashboard 
+          userProfile={userProfile} 
+          userName={userName || userProfile?.name} 
+        />
+
+        {/* Action buttons */}
+        {!user && (
+          <Card className="mt-8">
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <UserPlus className="h-12 w-12 text-primary mx-auto" />
+                <h3 className="text-xl font-semibold">Save Your Profile</h3>
+                <p className="text-muted-foreground">
+                  Create an account to save your insights and start using all of Twyne's features.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button 
+                    onClick={handleCreateAccount}
+                    className="bg-gradient-to-r from-primary to-accent text-white"
+                  >
+                    Create Account to Save Data
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={handleContinueWithoutAccount}
+                  >
+                    Continue Without Account
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {user && (
+          <div className="text-center mt-8">
+            <Button 
+              onClick={handleGoToMirror}
+              className="bg-gradient-to-r from-primary to-accent text-white"
+            >
+              Go to Your Mirror
+            </Button>
+          </div>
+        )}
       </div>
-      
-      <div className="flex-1 pt-16">
-        <ProfileCompletionDashboard userProfile={userProfile} />
-      </div>
+
+      {/* Create Account Prompt */}
+      <CreateAccountPrompt 
+        open={showCreateAccountPrompt}
+        onOpenChange={setShowCreateAccountPrompt}
+        onboardingProfileData={userProfile}
+        onboardingConversationData={null}
+        userName={userName || userProfile?.name}
+      />
     </div>
   );
 };

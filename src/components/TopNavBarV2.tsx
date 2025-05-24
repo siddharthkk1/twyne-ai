@@ -1,22 +1,20 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { WaitlistForm } from "@/components/landing/WaitlistForm";
-import { WaitlistFollowUpForm } from "@/components/landing/WaitlistFollowUpForm";
 
-export const TopNavBar = () => {
+export const TopNavBarV2 = () => {
   const { user } = useAuth();
-  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
-  const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
-  const [submittedUserData, setSubmittedUserData] = useState<{email: string, location: string, phoneNumber?: string} | null>(null);
+  const navigate = useNavigate();
   
-  const handleWaitlistSubmit = (userData: {email: string, location: string, phoneNumber?: string}) => {
-    setSubmittedUserData(userData);
-    setIsWaitlistOpen(false);
-    setIsFollowUpOpen(true);
+  const handleGetStarted = () => {
+    navigate("/onboarding");
+  };
+
+  const handleLogin = () => {
+    navigate("/auth");
   };
   
   return (
@@ -41,27 +39,22 @@ export const TopNavBar = () => {
                 About
               </Link>
               <Button 
-                onClick={() => setIsWaitlistOpen(true)}
+                variant="outline"
+                onClick={handleLogin}
+                className="text-sm md:text-base"
+              >
+                Login
+              </Button>
+              <Button 
+                onClick={handleGetStarted}
                 className="bg-gradient-to-r from-primary to-accent text-white border-none rounded-full px-3 py-1 md:px-4 md:py-2 text-sm md:text-base"
               >
-                Join Waitlist
+                Get Started
               </Button>
             </div>
           )}
         </div>
       </div>
-      
-      <WaitlistForm 
-        open={isWaitlistOpen} 
-        onOpenChange={setIsWaitlistOpen} 
-        onSubmitSuccess={handleWaitlistSubmit}
-      />
-      
-      <WaitlistFollowUpForm
-        open={isFollowUpOpen}
-        onOpenChange={setIsFollowUpOpen}
-        userData={submittedUserData}
-      />
     </nav>
   );
 };
