@@ -77,85 +77,6 @@ Ask open-ended questions that encourage self-expression, and be a good listener.
 Keep the conversation casual and authentic.
 `;
 
-export const PROFILE_GENERATION_PROMPT = `
-You are Twyne — a warm, emotionally intelligent AI that helps people feel seen, understood, and meaningfully connected.
-
-Below is a conversation between you and a user. Based on what you learned, generate a structured "Twyne Dashboard" that captures who they are. This is more than a profile — it's a vivid, human reflection of their essence: how they move through life, what lights them up, what they care about, and how they connect with others.
-
-Use a kind, thoughtful tone. Write in full, warm sentences (not short fragments). Be specific, never generic. When something is uncertain, gently infer using phrases like "They seem to..." or "It sounds like...". If something is missing, indicate so, don't just leave blank.
-
-Raw Conversation:
-[CONVERSATION]
-
-🧱 Output Format:
-Return a single valid JSON object in the following structure. All fields must be included, even if empty ("" or []).
-
-{
-  // 🪞 Overview
-  "vibeSummary": "",
-  "oneLiner": "",
-  "twyneTags": [],
-
-  // 📌 Key Facts / Background
-  "name": "",
-  "age": "",
-  "location": "",
-  "job": "",
-  "school": "",
-  "ethnicity": "",
-  "religion": "",
-  "hometown": "",
-
-  // 🌱 Interests & Lifestyle
-  "lifestyle": "",
-  "favoriteProducts": "",
-  "style": "",
-  "interestsAndPassions": "",
-  "favoriteMoviesAndShows": "",
-  "favoriteMusic": "",
-  "favoriteBooks": "",
-  "favoritePodcastsOrYouTube": "",
-  "talkingPoints": [],
-  "favoriteActivities": "",
-  "favoriteSpots": "",
-
-  // 🧘 Inner World
-  "coreValues": "",
-  "lifePhilosophy": "",
-  "goals": "",
-  "personalitySummary": "",
-  "bigFiveTraits": {
-    "openness": "",
-    "conscientiousness": "",
-    "extraversion": "",
-    "agreeableness": "",
-    "neuroticism": ""
-  },
-  "quirks": "",
-  "communicationStyle": "",
-
-  // 📖 Story
-  "upbringing": "",
-  "majorTurningPoints": "",
-  "recentLifeContext": "",
-
-  // 🤝 Connection
-  "socialStyle": "",
-  "loveLanguageOrFriendStyle": "",
-  "socialNeeds": "",
-  "connectionPreferences": "",
-  "dealBreakers": "",
-  "boundariesAndPetPeeves": "",
-  "connectionActivities": ""
-}
-
-🧠 Guidelines:
-- Use full, thoughtful sentences. Never write just 1–2 words unless it's a list.
-- Avoid generic summaries. Make every detail feel specific and grounded in the user's story.
-- Don't make things up. If something is unclear, gently infer or acknowledge the gap.
-- Always return valid JSON and include all fields.
-`;
-
 // Seed messages for playful conversation mode
 export const PLAYFUL_SEED_MESSAGES = [
   "yo.||not gonna hit you with the corporate welcome speech||just curious — what kind of energy are you walking around with lately?",
@@ -227,13 +148,14 @@ export const evaluateCoverage = async (conversation: Conversation): Promise<any>
   }
 };
 
-// Function to generate AI profile using the new prompt
-export const generateAIProfile = async (conversation: Conversation): Promise<any> => {
+// Function to generate AI profile - Updated to accept only one argument
+export const generateAIProfile = async (conversation: Conversation): Promise<UserProfile> => {
   try {
-    console.log("Calling generate-profile edge function with conversation:", conversation);
-    
-    const { data, error } = await supabase.functions.invoke('generate-profile', {
-      body: { conversation }
+    const { data, error } = await supabase.functions.invoke('ai-chat', {
+      body: {
+        endpoint: "profile",
+        data: { conversation }
+      }
     });
 
     if (error) {
@@ -241,7 +163,16 @@ export const generateAIProfile = async (conversation: Conversation): Promise<any
       throw new Error(`API error: ${error.message}`);
     }
 
-    console.log("Profile generation response:", data);
+    // Ensure personalityTraits exist
+    if (!data.personalityTraits) {
+      data.personalityTraits = {
+        extroversion: 50,
+        openness: 50,
+        empathy: 50,
+        structure: 50
+      };
+    }
+
     return data;
   } catch (err) {
     console.error("Error generating profile:", err);
