@@ -442,6 +442,23 @@ export const useOnboardingChat = () => {
     return userName ? userName.charAt(0).toUpperCase() : "?";
   };
 
+  // Use minimal auto-scroll logic that only triggers when user is near bottom
+  useEffect(() => {
+    const scrollEl = scrollViewportRef.current;
+    const endEl = messagesEndRef.current;
+
+    if (!scrollEl || !endEl) return;
+
+    const isAtBottom =
+      scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < 100;
+
+    if (isAtBottom) {
+      requestAnimationFrame(() => {
+        endEl.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  }, [messages.length]);
+
   return {
     messages,
     input,
