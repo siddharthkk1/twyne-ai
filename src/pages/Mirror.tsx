@@ -82,7 +82,9 @@ const Mirror = () => {
           console.error('Error fetching user profile:', error);
           setUserProfile(null);
         } else {
-          setUserProfile(data?.profile_data || null);
+          // Properly cast the Json type to UserProfile
+          const profileData = data?.profile_data as UserProfile;
+          setUserProfile(profileData || null);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
