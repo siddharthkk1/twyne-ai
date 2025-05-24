@@ -6,7 +6,7 @@ import GuidanceInfo from "@/components/onboarding/GuidanceInfo";
 import ConversationHeader from "@/components/onboarding/ConversationHeader";
 import LoadingScreen from "@/components/onboarding/LoadingScreen";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
-import { ProfileCompletionDashboard } from "@/pages/Dashboard";
+import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 import ChatContainer from "@/components/onboarding/ChatContainer";
 import InputContainer from "@/components/onboarding/InputContainer";
 import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
@@ -229,6 +229,7 @@ const OnboardingChat = () => {
             <div ref={dashboardRef} className="flex-1 p-4 scroll-smooth">
               <ProfileCompletionDashboard 
                 userProfile={userProfile}
+                isGeneratingProfile={isGeneratingProfile}
               />
             </div>
           </>
