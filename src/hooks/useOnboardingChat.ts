@@ -1,45 +1,29 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
-import { PromptModeType, usePromptMode } from './usePromptMode';
-import { ConversationModeType, useConversationMode } from './useConversationMode';
-import { useSmsConversation } from './useSmsConversation';
-import { useSupabaseSync } from './useSupabaseSync';
-import { useOnboardingAI } from './useOnboardingAI';
-import { useOnboardingMessages } from './useOnboardingMessages';
-import { useOnboardingScroll } from './useOnboardingScroll';
-import { 
-  SYSTEM_PROMPT_STRUCTURED,
-  SYSTEM_PROMPT_PLAYFUL,
-  SYSTEM_PROMPT_YOUNG_ADULT
-} from '@/utils/aiUtils';
+import { SYSTEM_PROMPT_STRUCTURED, SYSTEM_PROMPT_PLAYFUL, SYSTEM_PROMPT_YOUNG_ADULT } from '@/utils/aiUtils';
+import { getAIResponse, generateAIProfile } from '@/utils/aiUtils';
 
 // Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 20; // Count only user messages, not AI messages
+const MESSAGE_CAP = 34;
+
+export type PromptModeType = "structured" | "playful" | "young-adult";
 
 export const useOnboardingChat = () => {
-  const { promptMode, setPromptMode, showPromptSelection, setShowPromptSelection, handlePromptModeChange } = usePromptMode();
-  const { 
-    conversationMode, 
-    setConversationMode, 
-    showModeSelection, 
-    setShowModeSelection, 
-    phoneNumber, 
-    setPhoneNumber, 
-    isSmsVerified, 
-    handleModeSelection, 
-    startSmsConversation 
-  } = useConversationMode();
-  const { handleSmsResponse } = useSmsConversation();
-  const { saveOnboardingData } = useSupabaseSync();
-  
+  const [promptMode, setPromptMode] = useState<PromptModeType>("playful"); // Default to playful
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
   const [isComplete, setIsComplete] = useState(false);
-  const { user, clearNewUserFlag } = useAuth();
-  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
-  const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
-  
-  // Initialize userProfile state
+  const [isTyping, setIsTyping] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
+  const [conversation, setConversation] = useState<Conversation>({
+    messages: [{ role: "system" as ChatRole, content: SYSTEM_PROMPT_PLAYFUL }], // Default to playful
+    userAnswers: []
+  });
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: "",
     location: "",
@@ -54,55 +38,21 @@ export const useOnboardingChat = () => {
       structure: 50
     }
   });
-  
-  // Import all the refactored hooks
-  const { 
-    conversation, 
-    setConversation, 
-    isTyping, 
-    setIsTyping, 
-    isInitializing,
-    setIsInitializing,
-    isGeneratingProfile, 
-    initializeChat,
-    generateProfile
-  } = useOnboardingAI();
-  
-  // Expose userName and setUserName from the messages hook
-  const {
-    messages,
-    setMessages,
-    input,
-    setInput,
-    handleAIResponse,
-    userName,
-    setUserName,
-    currentQuestionIndex,
-    setCurrentQuestionIndex
-  } = useOnboardingMessages(
-    (name: string) => setUserProfile(prev => ({ ...prev, name })),
-    MESSAGE_CAP
-  );
-  
-  const {
-    messagesEndRef,
-    scrollViewportRef,
-    dashboardRef,
-    userHasScrolledUp,
-    setUserHasScrolledUp,
-    scrollToBottom,
-    handleScroll,
-    resetScrollState,
-    handleMessagePartVisible
-  } = useOnboardingScroll(isComplete);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user, clearNewUserFlag } = useAuth();
+  const navigate = useNavigate();
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
+  const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
+  const [conversationMode, setConversationMode] = useState<"text" | "voice" | "sms">("text");
+  const [showModeSelection, setShowModeSelection] = useState(false);
+  const [showPromptSelection, setShowPromptSelection] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isSmsVerified, setIsSmsVerified] = useState(false);
+  const [userName, setUserName] = useState<string>(""); // Store name separately
 
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
-    if (!userName) {
-      // If no userName is set, don't initialize the chat yet
-      return;
-    }
-
     let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
     
     if (promptMode === "playful") {
@@ -113,31 +63,35 @@ export const useOnboardingChat = () => {
     
     // Reset messages and conversation
     setMessages([]);
-    
-    // Fix: Create a properly typed message object
-    const initialMessage: { role: ChatRole; content: string } = {
-      role: "system" as ChatRole,
-      content: systemPrompt
-    };
-
-    // Add assistant guidance with user's name if available
-    const assistantGuidance = userName ? 
-      `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.` : 
-      '';
-    
-    // Use the properly typed message object
     setConversation({
-      messages: [
-        initialMessage,
-        ...(assistantGuidance ? [{ role: "assistant" as ChatRole, content: assistantGuidance }] : [])
-      ],
+      messages: [{ role: "system" as ChatRole, content: systemPrompt }],
       userAnswers: []
     });
-    
     setCurrentQuestionIndex(0);
     
     // Initialize chat with AI greeting
-    initializeChat(systemPrompt, userName).then(({ aiGreeting, updatedConversation }) => {
+    initializeChat(systemPrompt);
+  }, [promptMode]);
+
+  // Initialize chat with AI greeting
+  const initializeChat = async (systemPrompt: string) => {
+    setIsInitializing(true);
+    setIsTyping(true);
+    
+    try {
+      // Create initial conversation with just the system prompt
+      const initialConversation: Conversation = {
+        messages: [{ role: "system", content: systemPrompt }],
+        userAnswers: []
+      };
+      
+      // Get AI greeting
+      const aiGreeting = await getAIResponse(
+        initialConversation, 
+        "", // Empty user message to trigger greeting
+        "Please introduce yourself and ask for the user's name in a conversational way."
+      );
+      
       // Add AI greeting to messages
       const greetingMessage: Message = {
         id: 1,
@@ -146,40 +100,66 @@ export const useOnboardingChat = () => {
       };
       
       setMessages([greetingMessage]);
-      setConversation(updatedConversation);
-    });
-  }, [promptMode, userName]);
+      
+      // Update conversation with AI greeting
+      setConversation({
+        messages: [
+          ...initialConversation.messages,
+          { role: "assistant", content: aiGreeting }
+        ],
+        userAnswers: []
+      });
+      
+    } catch (error) {
+      console.error("Failed to initialize chat:", error);
+      
+      // Fallback greeting if AI fails
+      const fallbackGreeting: Message = {
+        id: 1,
+        text: "Hey there! I'm Twyne — let's chat and get to know you better. What's your name?",
+        sender: "ai"
+      };
+      
+      setMessages([fallbackGreeting]);
+      
+      // Update conversation with fallback greeting
+      setConversation({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "assistant", content: fallbackGreeting.text }
+        ],
+        userAnswers: []
+      });
+    } finally {
+      setIsInitializing(false);
+      setIsTyping(false);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Complete onboarding and generate profile
-  const completeOnboarding = async (finalConversation: Conversation) => {
-    try {
-      // Update user profile with name before generating profile
-      setUserProfile(prev => ({ ...prev, name: userName }));
-      
-      const profile = await generateProfile(finalConversation, userName);
-      
-      // Update userName in case we have it in the profile
-      if (profile.name && !userName) {
-        setUserName(profile.name);
-      } else if (userName && !profile.name) {
-        // Make sure the profile has the name if userName is available
-        profile.name = userName;
-      }
-      
-      setUserProfile(profile);
-      setIsComplete(true);
-      
-      // Save conversation to Supabase with user's name
-      saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
-      
-      return true;
-    } catch (error) {
-      console.error("Error in profile generation:", error);
-      return false;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handlePromptModeChange = (mode: PromptModeType) => {
+    // Only change the prompt mode if we're at the beginning of the conversation
+    if (currentQuestionIndex === 0) {
+      setPromptMode(mode);
+      toast({
+        title: "Conversation style changed",
+        description: `You've switched to ${mode === "structured" ? "Guided Conversation" : mode === "playful" ? "Playful Chat" : "Chill Talk"} mode.`,
+        duration: 3000,
+      });
+    } else {
+      // If conversation already started, show warning
+      toast({
+        title: "Cannot change conversation style",
+        description: "You can only change the conversation style at the beginning of the chat.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -188,10 +168,7 @@ export const useOnboardingChat = () => {
     if (!textToSend.trim()) return;
 
     // Check if we've reached the message cap
-    // Count only user messages for the message cap
-    const userMessageCount = conversation.userAnswers.length;
-    
-    if (userMessageCount >= MESSAGE_CAP - 1) { // -1 to account for the new user message we're about to add
+    if (messages.length >= MESSAGE_CAP - 1) { // -1 to account for the new user message we're about to add
       // Add user message to UI
       const newUserMessage: Message = {
         id: messages.length + 1,
@@ -211,31 +188,40 @@ export const useOnboardingChat = () => {
 
       setMessages(prev => [...prev, closingMessage]);
       setIsTyping(false);
+      setIsGeneratingProfile(true);
 
-      // Update conversation with user's final message - Fix typing here
-      const userMessageObj: { role: ChatRole; content: string } = { 
-        role: "user" as ChatRole, 
-        content: textToSend 
-      };
-      
-      const assistantMessageObj: { role: ChatRole; content: string } = { 
-        role: "assistant" as ChatRole, 
-        content: closingMessage.text 
-      };
-
+      // Update conversation with user's final message
       const finalConversation = {
         messages: [
           ...conversation.messages, 
-          userMessageObj,
-          assistantMessageObj
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: closingMessage.text }
         ],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
       
       setConversation(finalConversation);
+
+      // Generate profile and complete onboarding
+      generateAIProfile(finalConversation)
+        .then(profile => {
+          setUserProfile(profile);
+          setIsGeneratingProfile(false);
+          setIsComplete(true);
+          
+          // Save conversation to Supabase
+          saveOnboardingData(profile, finalConversation);
+        })
+        .catch(error => {
+          console.error("Error generating profile at message cap:", error);
+          setIsGeneratingProfile(false);
+          toast({
+            title: "Error generating profile",
+            description: "We encountered an issue creating your profile.",
+            variant: "destructive",
+          });
+        });
       
-      // Complete the onboarding process
-      completeOnboarding(finalConversation);
       return;
     }
 
@@ -249,51 +235,71 @@ export const useOnboardingChat = () => {
     setMessages((prev) => [...prev, newUserMessage]);
     setInput("");
     setIsTyping(true);
-    
-    // Reset scroll state when user sends a message
-    resetScrollState();
 
-    // Update basic profile info for first user messages
+    // Update basic profile info for first question - extract name
     if (currentQuestionIndex === 0) {
-      // Don't update name from first question anymore since we're collecting it separately
-      setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
+      setUserName(textToSend.trim());
+      setUserProfile(prev => ({ ...prev, name: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, interests: [textToSend.trim()] }));
+      setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
     }
 
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
 
-    // Prepare conversation data for API request - Fix typing here
-    const userMessageObj: { role: ChatRole; content: string } = { 
-      role: "user" as ChatRole, 
-      content: textToSend 
-    };
-    
+    // Prepare conversation data for API request
     const draftConversation: Conversation = {
-      messages: [...conversation.messages, userMessageObj],
+      messages: [...conversation.messages, { role: "user" as ChatRole, content: textToSend }],
       userAnswers: [...conversation.userAnswers, textToSend]
     };
 
     // If in SMS mode, handle sending messages via SMS
     if (conversationMode === "sms") {
-      handleSmsResponse(
-        textToSend, 
-        draftConversation, 
-        conversation, 
-        setMessages, 
-        setConversation, 
-        setIsTyping, 
-        phoneNumber
-      );
+      // In a real implementation, this would send the message to the SMS edge function
+      handleSmsResponse(textToSend, draftConversation);
       return;
     }
 
-    // Check if we should complete the conversation based on message count
-    const updatedUserMessageCount = draftConversation.userAnswers.length;
+    // Function to handle AI response and update UI
+    const handleContinue = (aiResponse: string) => {
+      // Add error checking for empty or invalid responses
+      if (!aiResponse || aiResponse.trim() === "") {
+        console.error("Empty AI response received");
+        setIsTyping(false);
+        toast({
+          title: "Connection issue",
+          description: "We're having trouble connecting to our AI. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const newAiMessage: Message = {
+        id: messages.length + 2,
+        text: aiResponse,
+        sender: "ai",
+      };
+
+      const updatedConversation: Conversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user" as ChatRole, content: textToSend },
+          { role: "assistant" as ChatRole, content: aiResponse }
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
+      };
+
+      setMessages(prev => [...prev, newAiMessage]);
+      setConversation(updatedConversation);
+      setIsTyping(false);
+    };
+
+    // Removing coverage checks as requested, but keeping a simplified approach
+    // to determine when to end the conversation
+    const userMessageCount = draftConversation.userAnswers.length;
     
     // If we've had a substantial conversation and it's time to wrap up
-    if (updatedUserMessageCount >= 15 && updatedUserMessageCount % 5 === 0 && updatedUserMessageCount >= MESSAGE_CAP - 10) {
+    if (userMessageCount >= 15 && userMessageCount % 5 === 0 && userMessageCount >= MESSAGE_CAP - 10) {
       // There's a chance we should end the conversation here
       const shouldEnd = Math.random() > 0.7; // 30% chance to end if we're in the range
       
@@ -307,29 +313,248 @@ export const useOnboardingChat = () => {
 
         setMessages(prev => [...prev, closingMessage]);
         setIsTyping(false);
+        setIsGeneratingProfile(true);
 
-        // Update final conversation state with closing message - Fix typing here
-        const assistantMessageObj: { role: ChatRole; content: string } = { 
-          role: "assistant" as ChatRole, 
-          content: closingMessage.text 
-        };
-        
-        const finalConversation = {
-          messages: [...draftConversation.messages, assistantMessageObj],
-          userAnswers: draftConversation.userAnswers
-        };
-        
-        setConversation(finalConversation);
-        
-        // Complete the onboarding process
-        completeOnboarding(finalConversation);
+        try {
+          generateAIProfile(draftConversation)
+            .then(profile => {
+              // Profile is now guaranteed to have all fields with default values from the edge function
+              setUserProfile(profile);
+              setIsGeneratingProfile(false);
+              setIsComplete(true);
+              
+              // Update final conversation state with closing message
+              const finalConversation = {
+                messages: [...draftConversation.messages, { role: "assistant" as ChatRole, content: closingMessage.text }],
+                userAnswers: draftConversation.userAnswers
+              };
+              setConversation(finalConversation);
+              
+              // Save conversation to Supabase
+              saveOnboardingData(profile, finalConversation);
+            })
+            .catch(error => {
+              console.error("Error in profile generation:", error);
+              // Handle error with fallback
+              setIsGeneratingProfile(false);
+              toast({
+                title: "Error generating profile",
+                description: "We encountered an issue creating your profile. Let's continue our conversation.",
+                variant: "destructive",
+              });
+              // Continue conversation instead
+              getAIResponse(conversation, textToSend)
+                .then(handleContinue)
+                .catch(error => {
+                  console.error("Failed to get AI response after profile error:", error);
+                  setIsTyping(false);
+                });
+            });
+        } catch (error) {
+          console.error("Error in profile generation:", error);
+          setIsGeneratingProfile(false);
+          getAIResponse(conversation, textToSend)
+            .then(handleContinue)
+            .catch(error => {
+              console.error("Failed to get AI response:", error);
+              setIsTyping(false);
+            });
+        }
       } else {
-        // Continue normal conversation flow
-        handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
+        // Continue normal conversation
+        getAIResponse(conversation, textToSend)
+          .then(handleContinue)
+          .catch(error => {
+            console.error("Failed to get AI response:", error);
+            setIsTyping(false);
+            handleContinue("I'm having a moment. Could you share that thought again?");
+          });
       }
     } else {
       // Standard conversation flow
-      handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
+      getAIResponse(conversation, textToSend)
+        .then(handleContinue)
+        .catch(error => {
+          console.error("Failed to get AI response:", error);
+          setIsTyping(false);
+          handleContinue("Sorry for the hiccup. Please continue - I'm listening.");
+        });
+    }
+  };
+
+  // Updated saveOnboardingData function to use the new table name and include name field
+  const saveOnboardingData = async (profile: UserProfile, convoData: Conversation) => {
+    try {
+      console.log("Starting saveOnboardingData function");
+      console.log("User auth state:", user ? "Logged in" : "Anonymous");
+      
+      // Get a unique ID for anonymous users
+      const anonymousId = localStorage.getItem('anonymous_twyne_id') || crypto.randomUUID();
+      
+      // If this is a new anonymous user, save the ID
+      if (!localStorage.getItem('anonymous_twyne_id')) {
+        localStorage.setItem('anonymous_twyne_id', anonymousId);
+      }
+      
+      // If user is logged in, save with user ID, otherwise use anonymous ID
+      const userId = user?.id || anonymousId;
+      console.log("Using ID for save:", userId);
+      console.log("Is anonymous:", !user);
+      
+      // Extract name - use the first user message or "N/A"
+      const extractedName = userName || "N/A";
+      console.log("Extracted name for saving:", extractedName);
+      
+      // Debug profile and conversation data
+      console.log("Profile data to save:", profile);
+      console.log("Conversation data length:", convoData.messages.length);
+      
+      try {
+        // First attempt - Using direct REST API approach to avoid type issues
+        console.log("Attempting to save data with REST API to onboarding_test_data table");
+        const response = await fetch(`https://lzwkccarbwokfxrzffjd.supabase.co/rest/v1/onboarding_test_data`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+            'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6d2tjY2FyYndva2Z4cnpmZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NzgyMjUsImV4cCI6MjA2MjI1NDIyNX0.dB8yx1yF6aF6AqSRxzcn5RIgMZpA1mkzN3jBeoG1FeE`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            is_anonymous: !user,
+            profile_data: profile,
+            conversation_data: convoData,
+            prompt_mode: promptMode,
+            name: extractedName
+          })
+        });
+        
+        console.log("REST API response status:", response.status);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Error saving with REST API:", errorData);
+          
+          // Try alternate fallback method - but we need to use directly from the exception without type checking
+          // This approach circumvents TypeScript errors when the database schema has changed but types haven't been updated
+          console.log("Trying raw SQL approach via the service role");
+          
+          // Create a custom error message without trying another Supabase client approach
+          throw new Error(`Failed to save data: ${errorData}`);
+        } else {
+          console.log("Data saved successfully with REST API");
+        }
+        
+        // If user is logged in, update their metadata
+        if (user) {
+          markUserAsOnboarded(profile);
+        }
+        
+        // Show success message to user
+        toast({
+          title: "Profile Saved",
+          description: "Your profile has been saved successfully!",
+        });
+      } catch (innerError) {
+        console.error("Error in save operation:", innerError);
+        
+        // Show error toast for save operation failure
+        toast({
+          title: "Error",
+          description: "Failed to save your profile data. Please try again or contact support.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error in saveOnboardingData:", error);
+      
+      // Show generic error message for uncaught exceptions
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving your data.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // New function to handle SMS conversation
+  const handleSmsResponse = async (userMessage: string, draftConversation: Conversation) => {
+    try {
+      // In a real implementation, this would call the SMS edge function
+      console.log(`Would send SMS to ${phoneNumber} with message: ${userMessage}`);
+      
+      // For the demo, we'll simulate the SMS flow with the regular AI response
+      const aiResponse = await getAIResponse(conversation, userMessage);
+      
+      // Log the simulated SMS response
+      console.log(`Would receive SMS response: ${aiResponse}`);
+      
+      // Update UI as if we got the response via SMS
+      const newAiMessage: Message = {
+        id: messages.length + 2,
+        text: aiResponse,
+        sender: "ai",
+      };
+
+      const updatedConversation: Conversation = {
+        messages: [
+          ...conversation.messages,
+          { role: "user" as ChatRole, content: userMessage },
+          { role: "assistant" as ChatRole, content: aiResponse }
+        ],
+        userAnswers: [...conversation.userAnswers, userMessage]
+      };
+
+      setMessages(prev => [...prev, newAiMessage]);
+      setConversation(updatedConversation);
+      setIsTyping(false);
+      
+      // Here you would typically store the phone number and SMS conversation state
+      // For the demo, we'll just set the phone number in the state
+      setPhoneNumber(phoneNumber);
+      
+    } catch (error) {
+      console.error("Error in SMS conversation:", error);
+      setIsTyping(false);
+      
+      // Show error toast
+      toast({
+        title: "SMS service error",
+        description: "We encountered an issue with the SMS service. Please try again or choose a different conversation mode.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const markUserAsOnboarded = async (profile: UserProfile) => {
+    if (user) {
+      try {
+        console.log("Attempting to mark user as onboarded");
+        // Save user profile data to user metadata
+        const { error } = await supabase.auth.updateUser({
+          data: { 
+            has_onboarded: true,
+            profile_data: profile,
+            conversation_data: conversation
+          }
+        });
+        
+        if (error) {
+          console.error("Error updating user metadata:", error);
+          toast({
+            title: "Error",
+            description: "Failed to update your profile. Please try again.",
+            variant: "destructive",
+          });
+        } else {
+          // Clear the new user flag after successful onboarding
+          clearNewUserFlag();
+          console.log("User has been marked as onboarded");
+        }
+      } catch (error) {
+        console.error("Error marking user as onboarded:", error);
+      }
     }
   };
 
@@ -341,10 +566,11 @@ export const useOnboardingChat = () => {
     if (isGeneratingProfile) return 95;
     
     const baseProgress = 10;
-    // We count only user messages
-    const userMessageCount = conversation.userAnswers.length;
+    // We subtract 2 to account for the initial AI messages
+    const userMessageCount = messages.filter(msg => msg.sender === "user").length;
     
     // Progress increases with each message, but at a decreasing rate
+    // This creates the feeling of progress without giving exact timing
     const progressPerMessage = Math.max(5, 70 / Math.max(1, userMessageCount + 5));
     
     // Calculate progress but cap it at 90%
@@ -353,9 +579,61 @@ export const useOnboardingChat = () => {
     return calculatedProgress;
   };
 
+  // Function to handle conversation mode selection (text, voice, or sms)
+  const handleModeSelection = (mode: "text" | "voice" | "sms", phoneNumberInput?: string) => {
+    setConversationMode(mode);
+    
+    if (mode === "sms" && phoneNumberInput) {
+      setPhoneNumber(phoneNumberInput);
+      
+      // In a real implementation, we would verify the phone number here
+      // and send an initial message to start the conversation
+      toast({
+        title: "SMS conversation started",
+        description: `We've sent an initial message to ${phoneNumberInput}. Reply to continue the conversation.`,
+      });
+    }
+    
+    setShowModeSelection(false);
+  };
+
   // Function to get the first letter of the user's name for avatar
   const getNameInitial = () => {
-    return userName ? userName.charAt(0).toUpperCase() : "?";
+    return userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?";
+  };
+
+  // New function to handle SMS verification
+  const startSmsConversation = async (phoneNumberInput: string) => {
+    try {
+      setIsTyping(true);
+      
+      // In a real implementation, this would:
+      // 1. Validate the phone number format
+      // 2. Send a verification code via SMS
+      // 3. Wait for the user to enter the code
+      // 4. Start the conversation
+      
+      // For now, we'll simulate success
+      setPhoneNumber(phoneNumberInput);
+      setIsSmsVerified(true);
+      setConversationMode("sms");
+      setShowModeSelection(false);
+      setIsTyping(false);
+      
+      toast({
+        title: "SMS conversation started",
+        description: "You can now continue the conversation via SMS. Replies will appear here as well.",
+      });
+    } catch (error) {
+      console.error("Error starting SMS conversation:", error);
+      setIsTyping(false);
+      
+      toast({
+        title: "Error",
+        description: "Failed to start SMS conversation. Please try again or choose a different option.",
+        variant: "destructive",
+      });
+    }
   };
 
   return {
@@ -378,6 +656,7 @@ export const useOnboardingChat = () => {
     showPromptSelection,
     setShowPromptSelection,
     promptMode,
+    setPromptMode,
     handlePromptModeChange,
     phoneNumber,
     setPhoneNumber,
@@ -387,13 +666,6 @@ export const useOnboardingChat = () => {
     getNameInitial,
     handleSend,
     startSmsConversation,
-    userName,
-    setUserName,
-    // Scroll-related
-    scrollViewportRef,
-    dashboardRef,
-    handleScroll,
-    resetScrollState,
-    handleMessagePartVisible
+    userName
   };
 };

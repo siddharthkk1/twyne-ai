@@ -8,7 +8,7 @@ interface VoiceInputProps {
   isListening: boolean;
   toggleVoiceInput: () => void;
   isDisabled: boolean;
-  isProcessing: boolean; 
+  isProcessing: boolean; // Added prop
   switchToTextMode: () => void;
 }
 
@@ -16,7 +16,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
   isListening, 
   toggleVoiceInput, 
   isDisabled,
-  isProcessing,
+  isProcessing, // Added param
   switchToTextMode
 }) => {
   return (

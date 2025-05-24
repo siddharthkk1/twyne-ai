@@ -1,88 +1,156 @@
 
-import React from "react";
-import { UserProfile } from "@/types/chat";
-import InsightCard from "./InsightCard";
-import PersonalityChart from "./PersonalityChart";
-import ValueCard from "./ValueCard";
-import { Loader } from "lucide-react";
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { UserProfile } from '@/types/chat';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import InsightCard from './InsightCard';
+import ValueCard from './ValueCard';
+import PersonalityChart from './PersonalityChart';
 
 interface ProfileCompletionDashboardProps {
   userProfile: UserProfile;
-  isGeneratingProfile?: boolean;
 }
 
-export const ProfileCompletionDashboard = ({ 
-  userProfile,
-  isGeneratingProfile = false
-}: ProfileCompletionDashboardProps) => {
-  if (isGeneratingProfile) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 min-h-[50vh] animate-fade-in">
-        <Loader className="h-12 w-12 text-primary animate-spin mb-4" />
-        <h2 className="text-xl font-medium mb-2">Building your dashboard...</h2>
-        <p className="text-muted-foreground text-center max-w-md">
-          We're creating your personalized profile dashboard based on our conversation.
-          This will only take a moment.
-        </p>
-      </div>
-    );
-  }
+export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProps> = ({ userProfile }) => {
+  const navigate = useNavigate();
+  
+  // Fixed tag colors - using dark text for tags
+  const tagColors = [
+    "bg-primary-light text-primary-dark",  
+    "bg-accent-light text-accent-dark",
+    "bg-secondary-light text-secondary-dark",
+    "bg-yellow-100 text-yellow-800",    
+    "bg-green-100 text-green-800",     
+    "bg-blue-100 text-blue-800",       
+    "bg-purple-100 text-purple-800",   
+    "bg-pink-100 text-pink-800"       
+  ];
+  
+  // Function to get random but consistent color for a tag
+  const getTagColor = (index: number) => {
+    return tagColors[index % tagColors.length];
+  };
 
-  // Extract profile data for rendering
-  const { 
-    name, 
-    personalityTraits, 
-    personalInsights = [],
-    coreValues = [] 
-  } = userProfile;
+  // Helper function to ensure interests and personalInsights are arrays
+  const ensureArray = (value: string[] | string | undefined): string[] => {
+    if (!value) return [];
+    if (typeof value === 'string') return [value];
+    return value;
+  };
 
-  // Convert coreValues to array if it's a string
-  const coreValuesArray = typeof coreValues === 'string' 
-    ? [coreValues] 
-    : (Array.isArray(coreValues) ? coreValues : []);
+  // Default personality traits if none provided
+  const defaultTraits = {
+    extroversion: 60,
+    openness: 70,
+    empathy: 80,
+    structure: 50
+  };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-24 animate-fade-in">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          {name ? `${name}'s Dashboard` : 'Your Dashboard'}
-        </h1>
-        <p className="text-muted-foreground">
-          Based on our conversation, here's what we've learned about you
-        </p>
+    <div className="container mx-auto py-8 px-4 max-w-5xl">
+      <div className="flex flex-col gap-8">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-3">Your Twyne Profile</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Here's what we learned about you from our conversation. This helps us find great connections that match your vibe.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left column - Core info */}
+          <Card className="p-6 border border-border bg-card col-span-2 md:col-span-1">
+            <CardHeader className="px-0 pt-0">
+              <CardTitle className="text-xl">About You</CardTitle>
+            </CardHeader>
+            <CardContent className="px-0 pb-0 space-y-4">
+              <div>
+                <h3 className="font-medium text-muted-foreground">Name</h3>
+                <p className="font-semibold text-lg">{userProfile.name || "Anonymous"}</p>
+              </div>
+              
+              {userProfile.location && (
+                <div>
+                  <h3 className="font-medium text-muted-foreground">Location</h3>
+                  <p>{userProfile.location}</p>
+                </div>
+              )}
+              
+              {/* Interests and Passions */}
+              <div>
+                <h3 className="font-medium text-muted-foreground mb-2">Interests & Passions</h3>
+                <div className="flex flex-wrap gap-2">
+                  {ensureArray(userProfile.interests).slice(0, 6).map((interest, i) => (
+                    <span 
+                      key={i} 
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(i)}`}
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Keywords that describe you */}
+              {userProfile.personalInsights?.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-muted-foreground mb-2">Keywords That Describe You</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {ensureArray(userProfile.personalInsights).slice(0, 5).map((trait, i) => (
+                      <span 
+                        key={i} 
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(i + 3)}`}
+                      >
+                        {trait}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Right column - Personality and insights */}
+          <div className="col-span-2 space-y-6">
+            {/* Personality Chart */}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Your Social Style</CardTitle>
+                <CardDescription>Based on our conversation, here's your social style and energy</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
+              </CardContent>
+            </Card>
+            
+            {/* Social Style */}
+            {userProfile.socialStyle && (
+              <InsightCard 
+                insight={userProfile.socialStyle}
+                index={0}
+              />
+            )}
+            
+            {/* Connection Preferences */}
+            {userProfile.connectionPreferences && (
+              <InsightCard 
+                insight={userProfile.connectionPreferences}
+                index={1}
+              />
+            )}
+          </div>
+        </div>
+        
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={() => navigate('/connections')}
+            className="px-8 py-6 text-lg"
+          >
+            Find My People
+          </Button>
+        </div>
       </div>
-
-      {/* Personality Traits Radar Chart */}
-      {personalityTraits && (
-        <div className="bg-background rounded-xl shadow-sm border p-6">
-          <h2 className="text-xl font-medium mb-4">Your Personality Dimensions</h2>
-          <PersonalityChart traits={personalityTraits} />
-        </div>
-      )}
-
-      {/* Core Values */}
-      {coreValuesArray.length > 0 && (
-        <div className="bg-background rounded-xl shadow-sm border p-6">
-          <h2 className="text-xl font-medium mb-4">Your Core Values</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {coreValuesArray.map((value, index) => (
-              <ValueCard key={index} value={value} index={index} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Personal Insights */}
-      {personalInsights && personalInsights.length > 0 && (
-        <div className="bg-background rounded-xl shadow-sm border p-6">
-          <h2 className="text-xl font-medium mb-4">Personal Insights</h2>
-          <div className="grid grid-cols-1 gap-4">
-            {personalInsights.map((insight, index) => (
-              <InsightCard key={index} insight={insight} index={index} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

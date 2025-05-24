@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from "react";
+
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 import GuidanceInfo from "@/components/onboarding/GuidanceInfo";
 import ConversationHeader from "@/components/onboarding/ConversationHeader";
+import MessageBubble from "@/components/onboarding/MessageBubble";
+import TypingIndicator from "@/components/onboarding/TypingIndicator";
 import LoadingScreen from "@/components/onboarding/LoadingScreen";
+import QuickActionButtons from "@/components/onboarding/QuickActionButtons";
+import TextInput from "@/components/onboarding/TextInput";
+import VoiceInput from "@/components/onboarding/VoiceInput";
+import SmsInput from "@/components/onboarding/SmsInput";
 import ConversationModeSelector from "@/components/onboarding/ConversationModeSelector";
+import PromptModeSelector from "@/components/onboarding/PromptModeSelector";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
-import ChatContainer from "@/components/onboarding/ChatContainer";
-import InputContainer from "@/components/onboarding/InputContainer";
-import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 
 const OnboardingChat = () => {
   const {
@@ -37,206 +42,124 @@ const OnboardingChat = () => {
     getProgress,
     handleModeSelection,
     getNameInitial,
-    handleSend,
-    userName,
-    setUserName,
-    // Scroll-related
-    scrollViewportRef,
-    dashboardRef,
-    handleScroll,
-    handleMessagePartVisible
+    handleSend
   } = useOnboardingChat();
 
   const { isListening, isProcessing, toggleVoiceInput } = useVoiceRecording(handleSend);
-  
-  // Add state for name collection step
-  const [showNameCollectionStep, setShowNameCollectionStep] = useState(false);
-  const [showHelpDialog, setShowHelpDialog] = useState(false);
-  
-  // Control flow of onboarding steps
-  useEffect(() => {
-    // When create account prompt closes and user hasn't entered name yet, show name collection
-    if (!showCreateAccountPrompt && !userName) {
-      setShowNameCollectionStep(true);
-    }
-  }, [showCreateAccountPrompt, userName]);
-  
-  // When name is collected, show the help dialog if not shown before
-  useEffect(() => {
-    // Check if the dialog was already shown in this session
-    const helpDialogShown = sessionStorage.getItem("helpDialogShown") === "true";
-    
-    if (!showNameCollectionStep && userName && !showHelpDialog && !helpDialogShown && messages.length <= 1) {
-      // Short delay to make the sequence feel more natural
-      const timer = setTimeout(() => {
-        setShowHelpDialog(true);
-        // Mark dialog as shown for this session
-        sessionStorage.setItem("helpDialogShown", "true");
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [showNameCollectionStep, userName, showHelpDialog, messages.length]);
-
-  // Handle name submission
-  const handleNameSubmission = (name: string) => {
-    setUserName(name);
-    setShowNameCollectionStep(false);
-  };
-  
-  // Handle closing the help dialog
-  const handleCloseHelpDialog = () => {
-    setShowHelpDialog(false);
-    setShowGuidanceInfo(false);
-    // Ensure we mark that the dialog has been shown
-    sessionStorage.setItem("helpDialogShown", "true");
-  };
-  
-  // Set up a ResizeObserver to handle window and content size changes
-  useEffect(() => {
-    if (!scrollViewportRef.current || isComplete) return;
-    
-    // Create both a resize observer and mutation observer
-    const resizeObserver = new ResizeObserver(() => {
-      if (messages.length > 0) {
-        handleMessagePartVisible();
-      }
-    });
-    
-    const mutationObserver = new MutationObserver(() => {
-      if (messages.length > 0) {
-        handleMessagePartVisible();
-      }
-    });
-    
-    // Start observing
-    if (scrollViewportRef.current) {
-      resizeObserver.observe(scrollViewportRef.current);
-      mutationObserver.observe(scrollViewportRef.current, {
-        childList: true, 
-        subtree: true,
-        attributes: true,
-        characterData: true
-      });
-    }
-    
-    return () => {
-      resizeObserver.disconnect();
-      mutationObserver.disconnect();
-    };
-  }, [isComplete, messages.length, handleMessagePartVisible, scrollViewportRef]);
-
-  // Scroll dashboard to top after profile generation is complete
-  useEffect(() => {
-    if (isComplete && dashboardRef.current) {
-      dashboardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [isComplete, dashboardRef]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
       <CreateAccountPrompt open={showCreateAccountPrompt} onOpenChange={setShowCreateAccountPrompt} />
-      
-      {/* Name collection step */}
-      {showNameCollectionStep && (
-        <div className="flex-1 flex items-center justify-center">
-          <NameCollectionStep onSubmit={handleNameSubmission} />
-        </div>
-      )}
-      
-      {/* Help dialog - shown in the middle of the screen */}
-      <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogTitle className="sr-only">How This Conversation Works</DialogTitle>
-          <div className="space-y-4 py-2">
-            <h2 className="text-xl font-semibold">How This Conversation Works</h2>
-            
-            <div className="space-y-3 text-muted-foreground">
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>This is <span className="font-medium text-foreground">private</span> — just between you and Twyne.</span>
-              </p>
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>You'll decide later what (if anything) gets shared with others.</span>
-              </p>
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>Not sure about something? It's totally fine to say "idk," "skip," or ask to talk about something else.</span>
-              </p>
-              <p className="flex items-start gap-2">
-                <span className="text-primary font-medium">•</span>
-                <span>What you choose to go into (or not) helps Twyne get your vibe — no pressure either way.</span>
-              </p>
-            </div>
-            
-            <div className="pt-4">
-              <Button onClick={handleCloseHelpDialog} className="w-full">
-                Got it
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
       <GuidanceInfo showGuidanceInfo={showGuidanceInfo} setShowGuidanceInfo={setShowGuidanceInfo} />
       
-      {(!showNameCollectionStep && !showModeSelection) ? (
-        !isComplete ? (
-          <>
-            {/* Fixed header with back button and progress indicator */}
-            <ConversationHeader 
-              isGeneratingProfile={isGeneratingProfile}
-              progress={getProgress()}
-              setShowGuidanceInfo={setShowGuidanceInfo}
-              showGuidanceInfo={showGuidanceInfo}
-            />
-            
-            {/* Chat content */}
-            <ChatContainer 
-              messages={messages}
-              isTyping={isTyping}
-              isInitializing={isInitializing}
-              isGeneratingProfile={isGeneratingProfile}
-              getNameInitial={getNameInitial}
-              handleMessagePartVisible={handleMessagePartVisible}
-              scrollViewportRef={scrollViewportRef}
-              handleScroll={handleScroll}
-              messagesEndRef={messagesEndRef}
-              promptMode={promptMode}
-              handlePromptModeChange={handlePromptModeChange}
-              userName={userName}
-            />
-
-            {/* Input container */}
-            <InputContainer 
-              conversationMode={conversationMode}
-              input={input}
-              setInput={setInput}
-              handleSend={handleSend}
-              isDisabled={isTyping || isGeneratingProfile || isInitializing}
-              switchToVoiceMode={() => setConversationMode("voice")}
-              switchToTextMode={() => setConversationMode("text")}
-              isListening={isListening}
-              toggleVoiceInput={toggleVoiceInput}
-              isProcessing={isProcessing}
-              phoneNumber={phoneNumber}
-              showGuidanceInfo={showGuidanceInfo}
-              setShowGuidanceInfo={setShowGuidanceInfo}
-            />
-          </>
-        ) : (
-          <>          
-            <div ref={dashboardRef} className="flex-1 p-4 scroll-smooth">
-              <ProfileCompletionDashboard 
-                userProfile={userProfile}
-                isGeneratingProfile={isGeneratingProfile}
-              />
-            </div>
-          </>
-        )
-      ) : showModeSelection ? (
+      {showModeSelection ? (
         <ConversationModeSelector handleModeSelection={handleModeSelection} />
-      ) : null}
+      ) : !isComplete ? (
+        <>
+          {/* Fixed header with back button and progress indicator */}
+          <ConversationHeader 
+            isGeneratingProfile={isGeneratingProfile}
+            progress={getProgress()}
+            setShowGuidanceInfo={setShowGuidanceInfo}
+            showGuidanceInfo={showGuidanceInfo}
+          />
+          
+          {/* Chat content */}
+          <div className="flex-1 p-4 pt-24 overflow-y-auto">
+            <div className="space-y-4 pb-4 max-w-3xl mx-auto">
+              {/* Prompt Mode Selector */}
+              <div className="flex justify-end mb-2">
+                <PromptModeSelector 
+                  promptMode={promptMode} 
+                  onPromptModeChange={handlePromptModeChange}
+                  disabled={messages.length > 0 && !isInitializing}
+                />
+              </div>
+              
+              {/* Show initializing state if waiting for AI greeting */}
+              {isInitializing ? (
+                <div className="flex justify-center my-8">
+                  <TypingIndicator />
+                </div>
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <MessageBubble 
+                      key={message.id}
+                      message={message} 
+                      nameInitial={getNameInitial()} 
+                    />
+                  ))}
+                </>
+              )}
+              
+              {isTyping && !isInitializing && <TypingIndicator />}
+              {isGeneratingProfile && <LoadingScreen />}
+              <div ref={messagesEndRef}></div>
+            </div>
+          </div>
+
+          <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0">
+            <div className="max-w-3xl mx-auto">
+              {/* Quick Action Buttons moved above the input */}
+              <QuickActionButtons 
+                handleSend={handleSend} 
+                isDisabled={isTyping || isGeneratingProfile || isInitializing}
+              />
+              
+              {/* Input Field and Send Button */}
+              <div className="flex items-end space-x-2">
+                {conversationMode === "text" ? (
+                  <TextInput 
+                    input={input}
+                    setInput={setInput}
+                    handleSend={() => handleSend()}
+                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
+                    switchToVoiceMode={() => setConversationMode("voice")}
+                  />
+                ) : conversationMode === "voice" ? (
+                  <VoiceInput 
+                    isListening={isListening}
+                    toggleVoiceInput={toggleVoiceInput}
+                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
+                    isProcessing={isProcessing}
+                    switchToTextMode={() => setConversationMode("text")}
+                  />
+                ) : (
+                  <SmsInput 
+                    phoneNumber={phoneNumber}
+                    isDisabled={isTyping || isGeneratingProfile || isInitializing}
+                    switchToTextMode={() => setConversationMode("text")}
+                  />
+                )}
+              </div>
+              
+              {/* Show guidance toggle reminder */}
+              {!showGuidanceInfo && (
+                <div className="mt-3 text-center">
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowGuidanceInfo(true)}
+                  >
+                    <HelpCircle className="h-3 w-3 mr-1" />
+                    Need help? How this conversation works
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        <>          
+          <div className="flex-1 p-4">
+            <ProfileCompletionDashboard 
+              userProfile={userProfile} 
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };

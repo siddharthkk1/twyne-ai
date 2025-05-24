@@ -26,11 +26,11 @@ export interface PersonalityTraits {
   structure: number;
 }
 
-// User profile type with enhanced properties
+// User profile type
 export interface UserProfile {
   name: string;
   location: string;
-  interests: string[] | string; // Can be string or array
+  interests: string[] | string; // Updated to accept both string and array
   socialStyle: string;
   connectionPreferences: string;
   personalInsights: string[];
@@ -44,7 +44,7 @@ export interface UserProfile {
   mediaTastes?: string;
   dealBreakers?: string;
   lookingFor?: string;
-  values?: string[] | string; // Can be string or array
+  values?: string[] | string; // Updated to accept both string array and string
   misunderstood?: string;
   lifeStory?: string;
   background?: string;
@@ -60,34 +60,9 @@ export interface UserProfile {
   socialNeeds?: string;
   coreValues?: string;
   lifeContext?: string;
-  vibeWords?: string[];
+  vibeWords?: string[]; // Added missing vibeWords property
   job?: string;
   ethnicity?: string;
   religion?: string;
-  personalityTraits?: PersonalityTraits;
-  // New fields from the reference image
-  keyFacts?: string;
-  favoriteActivities?: string;
-  school?: string; // School they are in or went to
-  philosophy?: string;
-  beliefSystem?: string;
-  spirituality?: string;
-  goals?: string[];
-  aspirations?: string[];
-  personalityQuirks?: string[];
-  communicationStyle?: string;
-  boundaries?: string;
-  petPeeves?: string;
-  upbringing?: string;
-  majorEvents?: string[];
-  turningPoints?: string[];
-  recentLifeContext?: string;
-  loveLanguage?: string;
-  friendsStyle?: string;
-  // New or existing fields organized as per the image
-  // Overview section
-  oneLinerSummary?: string;
-  // Inner world section
-  // Story section
-  // Connection section
+  personalityTraits?: PersonalityTraits; // Added personality traits
 }
