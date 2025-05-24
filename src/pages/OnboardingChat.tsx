@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect } from "react";
 import { useOnboardingChat } from "@/hooks/useOnboardingChat";
 import LoadingScreen from "@/components/onboarding/LoadingScreen";
 import ChatContainer from "@/components/onboarding/ChatContainer";
@@ -47,7 +46,21 @@ const OnboardingChat = () => {
     handleMessagePartVisible
   } = useOnboardingChat();
 
-  // Show name collection step first
+  useEffect(() => {
+    const scrollEl = scrollViewportRef.current;
+    const endEl = messagesEndRef.current;
+    if (!scrollEl || !endEl) return;
+
+    const isAtBottom =
+      scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < 100;
+
+    if (isAtBottom) {
+      requestAnimationFrame(() => {
+        endEl.scrollIntoView({ behavior: "smooth" });
+      });
+    }
+  }, [messages.length]);
+
   if (showNameCollection) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -56,26 +69,23 @@ const OnboardingChat = () => {
     );
   }
 
-  // Show loading screen while initializing
   if (isInitializing) {
     return <LoadingScreen />;
   }
 
-  // Show results when complete
   if (isComplete) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
         <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
-          <ProfileCompletionDashboard 
-            userProfile={userProfile} 
-            userName={userName} 
+          <ProfileCompletionDashboard
+            userProfile={userProfile}
+            userName={userName}
           />
         </div>
       </div>
     );
   }
 
-  // Show chat interface
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <ChatContainer
@@ -83,34 +93,33 @@ const OnboardingChat = () => {
         input={input}
         setInput={setInput}
         isTyping={isTyping}
+        isInitializing={isInitializing}
         isGeneratingProfile={isGeneratingProfile}
         messagesEndRef={messagesEndRef}
-        showCreateAccountPrompt={showCreateAccountPrompt}
-        setShowCreateAccountPrompt={setShowCreateAccountPrompt}
-        showGuidanceInfo={showGuidanceInfo}
-        setShowGuidanceInfo={setShowGuidanceInfo}
+        scrollViewportRef={scrollViewportRef}
+        handleScroll={handleScroll}
+        getNameInitial={getNameInitial}
+        handleMessagePartVisible={handleMessagePartVisible}
+        promptMode={promptMode}
+        handlePromptModeChange={handlePromptModeChange}
+        userName={userName}
         conversationMode={conversationMode}
         setConversationMode={setConversationMode}
         showModeSelection={showModeSelection}
         showPromptSelection={showPromptSelection}
         setShowPromptSelection={setShowPromptSelection}
-        promptMode={promptMode}
-        handlePromptModeChange={handlePromptModeChange}
         phoneNumber={phoneNumber}
         setPhoneNumber={setPhoneNumber}
         isSmsVerified={isSmsVerified}
         getProgress={getProgress}
         handleModeSelection={handleModeSelection}
-        getNameInitial={getNameInitial}
-        onSend={handleSend}
+        showCreateAccountPrompt={showCreateAccountPrompt}
+        setShowCreateAccountPrompt={setShowCreateAccountPrompt}
+        showGuidanceInfo={showGuidanceInfo}
+        setShowGuidanceInfo={setShowGuidanceInfo}
         startSmsConversation={startSmsConversation}
-        userName={userName}
-        setUserName={setUserName}
-        scrollViewportRef={scrollViewportRef}
-        dashboardRef={dashboardRef}
-        handleScroll={handleScroll}
-        resetScrollState={resetScrollState}
-        handleMessagePartVisible={handleMessagePartVisible}
+        onSend={handleSend}
+        disabled={isTyping || isGeneratingProfile}
       />
     </div>
   );
