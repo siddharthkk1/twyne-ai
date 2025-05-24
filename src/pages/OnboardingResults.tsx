@@ -59,17 +59,6 @@ const OnboardingResults = () => {
     navigate("/mirror");
   };
 
-  // Get the user's first name from the collected data
-  const getUserFirstName = () => {
-    if (userName) {
-      return userName.split(' ')[0];
-    }
-    if (userProfile?.name) {
-      return userProfile.name.split(' ')[0];
-    }
-    return "User";
-  };
-
   // Show loading if no profile data yet
   if (!userProfile) {
     return (
@@ -87,16 +76,6 @@ const OnboardingResults = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
       <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            {getUserFirstName()}'s Mirror
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Here's what we learned about you through our conversation
-          </p>
-        </div>
-
         {/* Dashboard - Pass the profile data directly */}
         <ProfileCompletionDashboard 
           userProfile={userProfile} 

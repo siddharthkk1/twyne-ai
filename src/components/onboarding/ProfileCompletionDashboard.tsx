@@ -5,7 +5,7 @@ import { UserProfile } from '@/types/chat';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles } from "lucide-react";
 import PersonalityChart from './PersonalityChart';
 
 interface ProfileCompletionDashboardProps {
@@ -105,10 +105,14 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
 
         {/* Main Tabbed Interface */}
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-5 mb-8">
+          <TabsList className="grid grid-cols-6 mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="vibe" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Vibe</span>
             </TabsTrigger>
             <TabsTrigger value="interests" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
@@ -131,36 +135,32 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Vibe Summary */}
-            {userProfile.vibeSummary && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Vibe Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.vibeSummary}</p>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Vibe Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{userProfile.vibeSummary || "We don't have info on that yet."}</p>
+              </CardContent>
+            </Card>
 
             {/* One Liner */}
-            {userProfile.oneLiner && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">One Liner</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-medium">{userProfile.oneLiner}</p>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">One Liner</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg font-medium">{userProfile.oneLiner || "We don't have info on that yet."}</p>
+              </CardContent>
+            </Card>
 
             {/* Twyne Tags */}
-            {tags.length > 0 && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Twyne Tags</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Twyne Tags</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tags.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {tags.map((tag, i) => (
                       <Badge key={i} variant="outline" className="bg-primary/5 text-primary">
@@ -168,9 +168,11 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                       </Badge>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <p>We don't have info on that yet.</p>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Key Facts & Background */}
             <Card className="border border-border bg-card">
@@ -179,62 +181,146 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {displayName && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Name</h3>
-                      <p className="font-semibold">{displayName}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Name</h3>
+                    <p className="font-semibold">{displayName || "We don't have info on that yet."}</p>
+                  </div>
                   
-                  {userProfile.age && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Age</h3>
-                      <p>{userProfile.age}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Age</h3>
+                    <p>{userProfile.age || "We don't have info on that yet."}</p>
+                  </div>
                   
-                  {userProfile.location && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Location</h3>
-                      <p>{userProfile.location}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Location</h3>
+                    <p>{userProfile.location || "We don't have info on that yet."}</p>
+                  </div>
                   
-                  {userProfile.job && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Job</h3>
-                      <p>{userProfile.job}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Job</h3>
+                    <p>{userProfile.job || "We don't have info on that yet."}</p>
+                  </div>
                   
-                  {userProfile.school && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">School</h3>
-                      <p>{userProfile.school}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">School</h3>
+                    <p>{userProfile.school || "We don't have info on that yet."}</p>
+                  </div>
                   
-                  {userProfile.ethnicity && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Ethnicity</h3>
-                      <p>{userProfile.ethnicity}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Ethnicity</h3>
+                    <p>{userProfile.ethnicity || "We don't have info on that yet."}</p>
+                  </div>
                   
-                  {userProfile.religion && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Religion</h3>
-                      <p>{userProfile.religion}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Religion</h3>
+                    <p>{userProfile.religion || "We don't have info on that yet."}</p>
+                  </div>
                   
-                  {userProfile.hometown && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">Hometown</h3>
-                      <p>{userProfile.hometown}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Hometown</h3>
+                    <p>{userProfile.hometown || "We don't have info on that yet."}</p>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Vibe Tab */}
+          <TabsContent value="vibe" className="space-y-6">
+            {/* Personality Summary */}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Personality Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{userProfile.personalitySummary || "We don't have info on that yet."}</p>
+              </CardContent>
+            </Card>
+
+            {/* Big Five Traits */}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Big Five Traits</CardTitle>
+                <CardDescription>Your personality dimensions mapped across the Big Five model</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {userProfile.bigFiveTraits?.openness ? (
+                  <div>
+                    <h3 className="font-medium mb-2">Openness</h3>
+                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.openness}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="font-medium mb-2">Openness</h3>
+                    <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
+                  </div>
+                )}
+                
+                {userProfile.bigFiveTraits?.conscientiousness ? (
+                  <div>
+                    <h3 className="font-medium mb-2">Conscientiousness</h3>
+                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.conscientiousness}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="font-medium mb-2">Conscientiousness</h3>
+                    <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
+                  </div>
+                )}
+                
+                {userProfile.bigFiveTraits?.extraversion ? (
+                  <div>
+                    <h3 className="font-medium mb-2">Extraversion</h3>
+                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.extraversion}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="font-medium mb-2">Extraversion</h3>
+                    <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
+                  </div>
+                )}
+                
+                {userProfile.bigFiveTraits?.agreeableness ? (
+                  <div>
+                    <h3 className="font-medium mb-2">Agreeableness</h3>
+                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.agreeableness}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="font-medium mb-2">Agreeableness</h3>
+                    <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
+                  </div>
+                )}
+                
+                {userProfile.bigFiveTraits?.neuroticism ? (
+                  <div>
+                    <h3 className="font-medium mb-2">Neuroticism</h3>
+                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.neuroticism}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="font-medium mb-2">Neuroticism</h3>
+                    <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
+                  </div>
+                )}
+
+                {/* Visual representation if we have numeric personality traits */}
+                {userProfile.personalityTraits && (
+                  <div className="mt-6">
+                    <h3 className="font-medium mb-4">Personality Visualization</h3>
+                    <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Style */}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Style</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{userProfile.style || "We don't have info on that yet."}</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -259,17 +345,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.favoriteProducts}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {userProfile.style && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Style</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.style}</p>
                 </CardContent>
               </Card>
             )}
@@ -415,69 +490,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
               </Card>
             )}
 
-            {userProfile.personalitySummary && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Personality Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.personalitySummary}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Big Five Traits */}
-            <Card className="border border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-xl">Big Five Traits</CardTitle>
-                <CardDescription>Your personality dimensions mapped across the Big Five model</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {userProfile.bigFiveTraits?.openness && (
-                  <div>
-                    <h3 className="font-medium mb-2">Openness</h3>
-                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.openness}</p>
-                  </div>
-                )}
-                
-                {userProfile.bigFiveTraits?.conscientiousness && (
-                  <div>
-                    <h3 className="font-medium mb-2">Conscientiousness</h3>
-                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.conscientiousness}</p>
-                  </div>
-                )}
-                
-                {userProfile.bigFiveTraits?.extraversion && (
-                  <div>
-                    <h3 className="font-medium mb-2">Extraversion</h3>
-                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.extraversion}</p>
-                  </div>
-                )}
-                
-                {userProfile.bigFiveTraits?.agreeableness && (
-                  <div>
-                    <h3 className="font-medium mb-2">Agreeableness</h3>
-                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.agreeableness}</p>
-                  </div>
-                )}
-                
-                {userProfile.bigFiveTraits?.neuroticism && (
-                  <div>
-                    <h3 className="font-medium mb-2">Neuroticism</h3>
-                    <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.neuroticism}</p>
-                  </div>
-                )}
-
-                {/* Visual representation if we have numeric personality traits */}
-                {userProfile.personalityTraits && (
-                  <div className="mt-6">
-                    <h3 className="font-medium mb-4">Personality Visualization</h3>
-                    <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {userProfile.quirks && (
               <Card className="border border-border bg-card">
                 <CardHeader>
@@ -503,38 +515,32 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
 
           {/* Story Tab */}
           <TabsContent value="story" className="space-y-6">
-            {userProfile.upbringing && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Upbringing</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.upbringing}</p>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Upbringing</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{userProfile.upbringing || "We don't have info on that yet."}</p>
+              </CardContent>
+            </Card>
 
-            {userProfile.majorTurningPoints && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Major Turning Points</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.majorTurningPoints}</p>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Major Turning Points</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{userProfile.majorTurningPoints || userProfile.majorEvents?.join(", ") || userProfile.turningPoints?.join(", ") || "We don't have info on that yet."}</p>
+              </CardContent>
+            </Card>
 
-            {userProfile.recentLifeContext && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Recent Life Context</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.recentLifeContext}</p>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="border border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-xl">Recent Life Context</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{userProfile.recentLifeContext || "We don't have info on that yet."}</p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Connection Tab */}

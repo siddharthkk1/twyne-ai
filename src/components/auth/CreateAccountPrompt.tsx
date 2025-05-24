@@ -103,20 +103,34 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
 
           if (userDataError) {
             console.error("Error saving user data:", userDataError);
-            // Don't block the signup process for this error
+            // Don't block the signup process for this error, but notify the user
+            toast({
+              title: "Account created",
+              description: "Account created successfully, but there was an issue saving your profile data. Please contact support if needed.",
+              variant: "default",
+            });
           } else {
             console.log("Successfully saved onboarding data to user_data table");
+            toast({
+              title: "Account created successfully!",
+              description: "Welcome to Twyne! Your profile has been saved.",
+            });
           }
         } catch (dataError) {
           console.error("Error saving onboarding data:", dataError);
           // Don't block the signup process
+          toast({
+            title: "Account created",
+            description: "Account created successfully, but there was an issue saving your profile data.",
+            variant: "default",
+          });
         }
+      } else {
+        toast({
+          title: "Account created successfully!",
+          description: "Welcome to Twyne! You can now access all features.",
+        });
       }
-
-      toast({
-        title: "Account created successfully!",
-        description: "Welcome to Twyne! You can now access all features.",
-      });
 
       // Auto sign in the user
       await signIn(email, password);
