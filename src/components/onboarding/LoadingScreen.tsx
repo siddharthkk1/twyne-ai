@@ -10,7 +10,7 @@ const LoadingScreen: React.FC = () => (
         <span className="h-4 w-4 bg-background rounded-full block"></span>
       </div>
     </div>
-    <h2 className="text-xl font-medium">Creating Your Dashboard</h2>
+    <h2 className="text-xl font-medium">Generating your insights</h2>
     <p className="text-muted-foreground text-center max-w-md">
       Building your personal insights based on our conversation. This helps Twyne match you with meaningful connections.
     </p>
