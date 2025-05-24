@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from "./MessageBubble";
@@ -50,7 +49,7 @@ const ChatContainer = ({
             disabled={messages.length > 0 && !isInitializing}
           />
         </div>
-        
+
         {/* Show initializing state if waiting for AI greeting */}
         {isInitializing ? (
           <div className="flex justify-center my-8">
@@ -69,7 +68,7 @@ const ChatContainer = ({
             ))}
           </>
         )}
-        
+
         {isTyping && !isInitializing && (
           <div>
             <TypingIndicator />
@@ -77,7 +76,7 @@ const ChatContainer = ({
             <div className="h-16" />
           </div>
         )}
-        
+
         <div ref={messagesEndRef} className="h-4" /> {/* Add some height to ensure we can scroll past the last message */}
       </div>
     </ScrollArea>
