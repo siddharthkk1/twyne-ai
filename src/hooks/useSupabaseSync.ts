@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
 import { UserProfile, Conversation } from '@/types/chat';
 import { PromptModeType } from './usePromptMode';
 import type { Json } from '@/integrations/supabase/types';
@@ -8,92 +7,65 @@ import type { Json } from '@/integrations/supabase/types';
 export const useSupabaseSync = () => {
   const saveOnboardingData = async (
     profile: UserProfile, 
-    convoData: Conversation, 
+    conversation: Conversation, 
     promptMode: PromptModeType,
-    user: any | null,
+    user: any,
     clearNewUserFlag: () => void
   ) => {
+    console.log("Starting saveOnboardingData function");
+    
     try {
-      console.log("Starting saveOnboardingData function");
-      console.log("User auth state:", user ? "Logged in" : "Anonymous");
-      
       if (user) {
-        // User is logged in - save to profiles table
-        console.log("Saving to profiles table for authenticated user:", user.id);
+        console.log("User auth state: Authenticated, saving to user_data table");
         
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
+        // For authenticated users, save to user_data table
+        const { error } = await supabase
+          .from('user_data')
+          .insert({
+            user_id: user.id,
             profile_data: profile as unknown as Json,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', user.id);
-        
-        if (profileError) {
-          console.error("Error saving to profiles table:", profileError);
-          throw new Error(`Failed to save profile data: ${profileError.message}`);
+            conversation_data: conversation as unknown as Json,
+            prompt_mode: promptMode || 'structured'
+          });
+
+        if (error) {
+          console.error("Error saving user data:", error);
+          throw error;
         }
-        
-        // Also update user metadata
-        const { error: metaError } = await supabase.auth.updateUser({
-          data: { 
-            has_onboarded: true,
-            profile_data: profile,
-            conversation_data: convoData
-          }
-        });
-        
-        if (metaError) {
-          console.error("Error updating user metadata:", metaError);
-        }
-        
+
+        console.log("User data saved successfully for authenticated user");
         clearNewUserFlag();
-        console.log("Profile data saved successfully for authenticated user");
       } else {
-        // User is anonymous - save to onboarding_data table
-        const anonymousId = localStorage.getItem('anonymous_twyne_id') || crypto.randomUUID();
+        console.log("User auth state: Anonymous");
         
-        if (!localStorage.getItem('anonymous_twyne_id')) {
-          localStorage.setItem('anonymous_twyne_id', anonymousId);
-        }
-        
-        console.log("Saving to onboarding_data table for anonymous user:", anonymousId);
-        
+        // For anonymous users, generate a temporary ID and save to onboarding_data
+        const tempUserId = crypto.randomUUID();
+        console.log("Saving to onboarding_data table for anonymous user:", tempUserId);
+
         const { error } = await supabase
           .from('onboarding_data')
           .insert({
-            user_id: anonymousId,
-            is_anonymous: true,
+            user_id: tempUserId,
             profile_data: profile as unknown as Json,
-            conversation_data: convoData as unknown as Json,
-            prompt_mode: promptMode,
+            conversation_data: conversation as unknown as Json,
+            prompt_mode: promptMode || 'structured',
+            is_anonymous: true
           });
-        
+
         if (error) {
-          console.error("Error saving to onboarding_data table:", error);
-          throw new Error(`Failed to save data: ${error.message}`);
+          console.error("Error saving onboarding data:", error);
+          throw error;
         }
-        
+
         console.log("Data saved successfully for anonymous user");
       }
-      
-      toast({
-        title: "Profile Saved",
-        description: "Your profile has been saved successfully!",
-      });
-
-      return true;
     } catch (error) {
       console.error("Error in saveOnboardingData:", error);
-      
-      toast({
-        title: "Error",
-        description: "Failed to save your profile data. Please try again or contact support.",
-        variant: "destructive",
-      });
-      return false;
+      throw error;
     }
   };
 
-  return { saveOnboardingData };
+  return {
+    saveOnboardingData
+  };
 };

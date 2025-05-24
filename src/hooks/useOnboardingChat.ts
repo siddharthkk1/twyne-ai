@@ -9,16 +9,19 @@ import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
 import { useOnboardingScroll } from './useOnboardingScroll';
+import { useAutoScroll } from './useAutoScroll';
+import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
   SYSTEM_PROMPT_PLAYFUL,
   SYSTEM_PROMPT_YOUNG_ADULT
 } from '@/utils/aiUtils';
 
-// Maximum number of messages before automatically completing the onboarding
-const MESSAGE_CAP = 20; // Count only user messages, not AI messages
+// Maximum number of user messages before asking for name and completing
+const MESSAGE_CAP = 20;
 
 export const useOnboardingChat = () => {
+  const navigate = useNavigate();
   const { promptMode, setPromptMode, showPromptSelection, setShowPromptSelection, handlePromptModeChange } = usePromptMode();
   const { 
     conversationMode, 
@@ -38,21 +41,67 @@ export const useOnboardingChat = () => {
   const { user, clearNewUserFlag } = useAuth();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
+  const [showNameCollection, setShowNameCollection] = useState(true);
+  const [askingForName, setAskingForName] = useState(false);
   
   // Initialize userProfile state
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: "",
-    location: "",
-    interests: [],
-    socialStyle: "",
-    connectionPreferences: "",
-    personalInsights: [],
-    personalityTraits: {
-      extroversion: 50,
-      openness: 50,
-      empathy: 50,
-      structure: 50
-    }
+    // 🪞 Overview
+    "vibeSummary": "",
+    "oneLiner": "",
+    "twyneTags": [],
+
+    // 📌 Key Facts / Background
+    "name": "",
+    "age": "",
+    "location": "",
+    "job": "",
+    "school": "",
+    "ethnicity": "",
+    "religion": "",
+    "hometown": "",
+
+    // 🌱 Interests & Lifestyle
+    "lifestyle": "",
+    "favoriteProducts": "",
+    "style": "",
+    "interestsAndPassions": "",
+    "favoriteMoviesAndShows": "",
+    "favoriteMusic": "",
+    "favoriteBooks": "",
+    "favoritePodcastsOrYouTube": "",
+    "talkingPoints": [],
+    "favoriteActivities": "",
+    "favoriteSpots": "",
+
+    // 🧘 Inner World
+    "coreValues": "",
+    "lifePhilosophy": "",
+    "goals": "",
+    "personalitySummary": "",
+    "bigFiveTraits": {
+      "openness": "",
+      "conscientiousness": "",
+      "extraversion": "",
+      "agreeableness": "",
+      "neuroticism": ""
+    },
+    "quirks": "",
+    "communicationStyle": "",
+
+    // 📖 Story
+    "upbringing": "",
+    "majorTurningPoints": "",
+    "recentLifeContext": "",
+
+    // 🤝 Connection
+    "socialStyle": "",
+    "loveLanguageOrFriendStyle": "",
+    "socialNeeds": "",
+    "connectionPreferences": "",
+    "dealBreakers": "",
+    "boundariesAndPetPeeves": "",
+    "connectionActivities": ""
   });
   
   // Import all the refactored hooks
@@ -88,18 +137,29 @@ export const useOnboardingChat = () => {
     messagesEndRef,
     scrollViewportRef,
     dashboardRef,
-    userHasScrolledUp,
-    setUserHasScrolledUp,
+    isUserNearBottom,
+    setIsUserNearBottom,
     scrollToBottom,
     handleScroll,
     resetScrollState,
     handleMessagePartVisible
   } = useOnboardingScroll(isComplete);
 
+  // Use the new auto-scroll hook instead of manual useEffect
+  useAutoScroll(messagesEndRef, scrollViewportRef, messages, isUserNearBottom);
+
+  // Handle name submission from the name collection step
+  const handleNameSubmit = (name: string) => {
+    console.log("Name submitted:", name);
+    setUserName(name);
+    setUserProfile(prev => ({ ...prev, name }));
+    setShowNameCollection(false);
+  };
+
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
-    if (!userName) {
-      // If no userName is set, don't initialize the chat yet
+    if (!userName || showNameCollection) {
+      // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
 
@@ -120,24 +180,22 @@ export const useOnboardingChat = () => {
       content: systemPrompt
     };
 
-    // Add assistant guidance with user's name if available
-    const assistantGuidance = userName ? 
-      `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.` : 
-      '';
+    // Add assistant guidance with user's name
+    const assistantGuidance = `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.`;
     
     // Use the properly typed message object
     setConversation({
       messages: [
         initialMessage,
-        ...(assistantGuidance ? [{ role: "assistant" as ChatRole, content: assistantGuidance }] : [])
+        { role: "assistant" as ChatRole, content: assistantGuidance }
       ],
       userAnswers: []
     });
     
     setCurrentQuestionIndex(0);
     
-    // Initialize chat with AI greeting
-    initializeChat(systemPrompt, userName).then(({ aiGreeting, updatedConversation }) => {
+    // Initialize chat with AI greeting, passing the promptMode
+    initializeChat(systemPrompt, userName, promptMode).then(({ aiGreeting, updatedConversation }) => {
       // Add AI greeting to messages
       const greetingMessage: Message = {
         id: 1,
@@ -148,33 +206,57 @@ export const useOnboardingChat = () => {
       setMessages([greetingMessage]);
       setConversation(updatedConversation);
     });
-  }, [promptMode, userName]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  }, [promptMode, userName, showNameCollection]);
 
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
     try {
-      // Update user profile with name before generating profile
+      console.log("Completing onboarding with userName:", userName);
+      console.log("Final conversation:", finalConversation);
+      
+      // Ensure the profile has the user's name
       setUserProfile(prev => ({ ...prev, name: userName }));
       
       const profile = await generateProfile(finalConversation, userName);
+      console.log("Generated profile:", profile);
       
-      // Update userName in case we have it in the profile
-      if (profile.name && !userName) {
+      // Make sure the profile has the name - prioritize userName over generated name
+      if (userName) {
+        profile.name = userName;
+      } else if (profile.name && !userName) {
         setUserName(profile.name);
-      } else if (userName && !profile.name) {
-        // Make sure the profile has the name if userName is available
+      }
+      
+      // Ensure the profile definitely has a name
+      if (!profile.name && userName) {
         profile.name = userName;
       }
+      
+      console.log("Final profile with name:", profile);
       
       setUserProfile(profile);
       setIsComplete(true);
       
+      // Save profile data to localStorage for persistence across navigation
+      localStorage.setItem('onboardingProfile', JSON.stringify(profile));
+      localStorage.setItem('onboardingUserName', userName || profile.name || '');
+      localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
+      
       // Save conversation to Supabase with user's name
-      saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
+      await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
+      
+      // Updated redirect logic based on authentication status
+      if (user) {
+        navigate("/mirror");
+      } else {
+        navigate("/onboarding-results", { 
+          state: { 
+            userProfile: profile, 
+            userName: userName || profile.name,
+            conversation: finalConversation 
+          } 
+        });
+      }
       
       return true;
     } catch (error) {
@@ -187,12 +269,10 @@ export const useOnboardingChat = () => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
 
-    // Check if we've reached the message cap
-    // Count only user messages for the message cap
     const userMessageCount = conversation.userAnswers.length;
     
-    if (userMessageCount >= MESSAGE_CAP - 1) { // -1 to account for the new user message we're about to add
-      // Add user message to UI
+    // Check if we've reached the message cap and need to ask for name
+    if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
       const newUserMessage: Message = {
         id: messages.length + 1,
         text: textToSend,
@@ -202,17 +282,16 @@ export const useOnboardingChat = () => {
       setMessages((prev) => [...prev, newUserMessage]);
       setInput("");
       
-      // Add closing message
-      const closingMessage: Message = {
+      const nameRequestMessage: Message = {
         id: messages.length + 2,
-        text: "Thanks for sharing! I think I've got enough to understand your vibe. Building your personal dashboard now...",
+        text: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?",
         sender: "ai",
       };
 
-      setMessages(prev => [...prev, closingMessage]);
+      setMessages(prev => [...prev, nameRequestMessage]);
       setIsTyping(false);
+      setAskingForName(true);
 
-      // Update conversation with user's final message - Fix typing here
       const userMessageObj: { role: ChatRole; content: string } = { 
         role: "user" as ChatRole, 
         content: textToSend 
@@ -220,10 +299,10 @@ export const useOnboardingChat = () => {
       
       const assistantMessageObj: { role: ChatRole; content: string } = { 
         role: "assistant" as ChatRole, 
-        content: closingMessage.text 
+        content: nameRequestMessage.text 
       };
 
-      const finalConversation = {
+      const updatedConversation = {
         messages: [
           ...conversation.messages, 
           userMessageObj,
@@ -232,10 +311,61 @@ export const useOnboardingChat = () => {
         userAnswers: [...conversation.userAnswers, textToSend]
       };
       
+      setConversation(updatedConversation);
+      resetScrollState();
+      return;
+    }
+
+    // If we're asking for name, this is the final message
+    if (askingForName) {
+      const nameMessage: Message = {
+        id: messages.length + 1,
+        text: textToSend,
+        sender: "user",
+      };
+
+      setMessages((prev) => [...prev, nameMessage]);
+      setInput("");
+      
+      // Update the user's name immediately
+      console.log("Setting userName from final response:", textToSend);
+      setUserName(textToSend);
+      setUserProfile(prev => ({ ...prev, name: textToSend }));
+      
+      const generatingMessage: Message = {
+        id: messages.length + 2,
+        text: "Generating your mirror...",
+        sender: "ai",
+      };
+
+      setMessages(prev => [...prev, generatingMessage]);
+      setIsTyping(false);
+
+      const userNameObj: { role: ChatRole; content: string } = { 
+        role: "user" as ChatRole, 
+        content: textToSend 
+      };
+      
+      const assistantFinalObj: { role: ChatRole; content: string } = { 
+        role: "assistant" as ChatRole, 
+        content: generatingMessage.text 
+      };
+
+      const finalConversation = {
+        messages: [
+          ...conversation.messages, 
+          userNameObj,
+          assistantFinalObj
+        ],
+        userAnswers: [...conversation.userAnswers, textToSend]
+      };
+      
+      console.log("Final conversation before completion:", finalConversation);
       setConversation(finalConversation);
       
       // Complete the onboarding process
       completeOnboarding(finalConversation);
+      resetScrollState();
       return;
     }
 
@@ -250,12 +380,10 @@ export const useOnboardingChat = () => {
     setInput("");
     setIsTyping(true);
     
-    // Reset scroll state when user sends a message
+    // Always scroll to bottom when user sends a message
     resetScrollState();
 
-    // Update basic profile info for first user messages
     if (currentQuestionIndex === 0) {
-      // Don't update name from first question anymore since we're collecting it separately
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
       setUserProfile(prev => ({ ...prev, interests: [textToSend.trim()] }));
@@ -264,7 +392,6 @@ export const useOnboardingChat = () => {
     const newIndex = currentQuestionIndex + 1;
     setCurrentQuestionIndex(newIndex);
 
-    // Prepare conversation data for API request - Fix typing here
     const userMessageObj: { role: ChatRole; content: string } = { 
       role: "user" as ChatRole, 
       content: textToSend 
@@ -275,7 +402,6 @@ export const useOnboardingChat = () => {
       userAnswers: [...conversation.userAnswers, textToSend]
     };
 
-    // If in SMS mode, handle sending messages via SMS
     if (conversationMode === "sms") {
       handleSmsResponse(
         textToSend, 
@@ -289,48 +415,7 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Check if we should complete the conversation based on message count
-    const updatedUserMessageCount = draftConversation.userAnswers.length;
-    
-    // If we've had a substantial conversation and it's time to wrap up
-    if (updatedUserMessageCount >= 15 && updatedUserMessageCount % 5 === 0 && updatedUserMessageCount >= MESSAGE_CAP - 10) {
-      // There's a chance we should end the conversation here
-      const shouldEnd = Math.random() > 0.7; // 30% chance to end if we're in the range
-      
-      if (shouldEnd) {
-        // Handle conversation completion
-        const closingMessage: Message = {
-          id: messages.length + 2,
-          text: "Thanks for sharing all that 🙏 Building your personal dashboard now...",
-          sender: "ai",
-        };
-
-        setMessages(prev => [...prev, closingMessage]);
-        setIsTyping(false);
-
-        // Update final conversation state with closing message - Fix typing here
-        const assistantMessageObj: { role: ChatRole; content: string } = { 
-          role: "assistant" as ChatRole, 
-          content: closingMessage.text 
-        };
-        
-        const finalConversation = {
-          messages: [...draftConversation.messages, assistantMessageObj],
-          userAnswers: draftConversation.userAnswers
-        };
-        
-        setConversation(finalConversation);
-        
-        // Complete the onboarding process
-        completeOnboarding(finalConversation);
-      } else {
-        // Continue normal conversation flow
-        handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
-      }
-    } else {
-      // Standard conversation flow
-      handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
-    }
+    handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
   };
 
   // Get progress percent based on conversation length
@@ -389,7 +474,8 @@ export const useOnboardingChat = () => {
     startSmsConversation,
     userName,
     setUserName,
-    // Scroll-related
+    showNameCollection,
+    handleNameSubmit,
     scrollViewportRef,
     dashboardRef,
     handleScroll,

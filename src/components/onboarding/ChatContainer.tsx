@@ -5,66 +5,91 @@ import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
 import InputContainer from "./InputContainer";
+import ConversationHeader from "./ConversationHeader";
 import { Message } from "@/types/chat";
 
 interface ChatContainerProps {
   messages: Message[];
-  isTyping: boolean;
-  isInitializing: boolean;
-  isGeneratingProfile: boolean;
-  getNameInitial: () => string;
-  handleMessagePartVisible: () => void;
-  scrollViewportRef: React.RefObject<HTMLDivElement>;
-  handleScroll: () => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  promptMode: string;
-  handlePromptModeChange: (mode: any) => void;
-  userName: string;
-  // Input container props
-  conversationMode: string;
   input: string;
   setInput: (value: string) => void;
-  handleSend: () => void;
-  switchToVoiceMode: () => void;
-  switchToTextMode: () => void;
-  isListening?: boolean;
-  toggleVoiceInput?: () => void;
-  isProcessing?: boolean;
-  phoneNumber?: string;
+  isTyping: boolean;
+  isInitializing?: boolean;
+  isGeneratingProfile: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+  showCreateAccountPrompt: boolean;
+  setShowCreateAccountPrompt: (value: boolean) => void;
   showGuidanceInfo: boolean;
   setShowGuidanceInfo: (value: boolean) => void;
+  conversationMode: string;
+  setConversationMode: (value: any) => void;
+  showModeSelection: boolean;
+  showPromptSelection: boolean;
+  setShowPromptSelection: (value: boolean) => void;
+  promptMode: string;
+  handlePromptModeChange: (mode: any) => void;
+  phoneNumber: string;
+  setPhoneNumber: (value: string) => void;
+  isSmsVerified: boolean;
+  getProgress: () => number;
+  handleModeSelection: (mode: any, phoneNumber?: string) => void;
+  getNameInitial: () => string;
+  onSend: (message?: string) => void;
+  startSmsConversation: (phoneNumber: string) => void;
+  userName: string;
+  setUserName: (value: string) => void;
+  scrollViewportRef: React.RefObject<HTMLDivElement>;
+  dashboardRef?: React.RefObject<HTMLDivElement>;
+  handleScroll: () => void;
+  resetScrollState: () => void;
+  handleMessagePartVisible: () => void;
 }
 
 const ChatContainer = ({
   messages,
-  isTyping,
-  isInitializing,
-  isGeneratingProfile,
-  getNameInitial,
-  handleMessagePartVisible,
-  scrollViewportRef,
-  handleScroll,
-  messagesEndRef,
-  promptMode,
-  handlePromptModeChange,
-  userName,
-  conversationMode,
   input,
   setInput,
-  handleSend,
-  switchToVoiceMode,
-  switchToTextMode,
-  isListening = false,
-  toggleVoiceInput = () => {},
-  isProcessing = false,
-  phoneNumber = "",
+  isTyping,
+  isInitializing = false,
+  isGeneratingProfile,
+  messagesEndRef,
+  showCreateAccountPrompt,
+  setShowCreateAccountPrompt,
   showGuidanceInfo,
-  setShowGuidanceInfo
+  setShowGuidanceInfo,
+  conversationMode,
+  setConversationMode,
+  showModeSelection,
+  showPromptSelection,
+  setShowPromptSelection,
+  promptMode,
+  handlePromptModeChange,
+  phoneNumber,
+  setPhoneNumber,
+  isSmsVerified,
+  getProgress,
+  handleModeSelection,
+  getNameInitial,
+  onSend,
+  startSmsConversation,
+  userName,
+  setUserName,
+  scrollViewportRef,
+  dashboardRef,
+  handleScroll,
+  resetScrollState,
+  handleMessagePartVisible
 }: ChatContainerProps) => {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-screen">
+      <ConversationHeader
+        isGeneratingProfile={isGeneratingProfile}
+        progress={getProgress()}
+        setShowGuidanceInfo={setShowGuidanceInfo}
+        showGuidanceInfo={showGuidanceInfo}
+      />
+      
       <ScrollArea 
-        className="flex-1 p-4 pt-24 overflow-hidden" 
+        className="flex-1 p-4 pt-24 overflow-hidden"
         viewportRef={scrollViewportRef}
         onViewportScroll={handleScroll}
       >
@@ -97,33 +122,45 @@ const ChatContainer = ({
             </>
           )}
           
-          {isTyping && !isInitializing && (
+          {/* Show typing indicator or profile generation indicator */}
+          {(isTyping || isGeneratingProfile) && !isInitializing && (
             <div>
               <TypingIndicator />
-              {/* Invisible element that helps with scrolling when typing indicator appears */}
+              {isGeneratingProfile && (
+                <div className="text-center text-sm text-muted-foreground mt-2">
+                  Generating your mirror...
+                </div>
+              )}
               <div className="h-16" />
             </div>
           )}
           
-          <div ref={messagesEndRef} className="h-4" /> {/* Add some height to ensure we can scroll past the last message */}
+          <div ref={messagesEndRef} className="h-4" />
         </div>
       </ScrollArea>
-
-      {/* Input container */}
-      <InputContainer 
-        conversationMode={conversationMode}
+      
+      <InputContainer
         input={input}
         setInput={setInput}
-        handleSend={handleSend}
-        isDisabled={isTyping || isGeneratingProfile || isInitializing}
-        switchToVoiceMode={switchToVoiceMode}
-        switchToTextMode={switchToTextMode}
-        isListening={isListening}
-        toggleVoiceInput={toggleVoiceInput}
-        isProcessing={isProcessing}
+        onSend={onSend}
+        conversationMode={conversationMode}
+        setConversationMode={setConversationMode}
+        showModeSelection={showModeSelection}
+        showPromptSelection={showPromptSelection}
+        setShowPromptSelection={setShowPromptSelection}
+        promptMode={promptMode}
+        handlePromptModeChange={handlePromptModeChange}
         phoneNumber={phoneNumber}
+        setPhoneNumber={setPhoneNumber}
+        isSmsVerified={isSmsVerified}
+        getProgress={getProgress}
+        handleModeSelection={handleModeSelection}
+        showCreateAccountPrompt={showCreateAccountPrompt}
+        setShowCreateAccountPrompt={setShowCreateAccountPrompt}
         showGuidanceInfo={showGuidanceInfo}
         setShowGuidanceInfo={setShowGuidanceInfo}
+        startSmsConversation={startSmsConversation}
+        disabled={isTyping || isGeneratingProfile}
       />
     </div>
   );
