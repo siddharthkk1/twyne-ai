@@ -3,22 +3,14 @@ import React, { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { IntroCardsGrid } from "./IntroCardsGrid";
-import { Button } from "@/components/ui/button";
-import { useNavigate, useLocation } from "react-router-dom";
 import { initialIntros, additionalIntros } from "./intros-data";
 import { IntroCard } from "./types";
 
 interface WarmIntrosSectionProps {
-  onOpenWaitlist?: () => void;
+  onOpenWaitlist: () => void;
 }
 
 export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Check if we're on the v2 landing page
-  const isLandingV2 = location.pathname === '/landing-v2';
-
   // Initialize with all cards and track the next card to show
   const [intros, setIntros] = useState<IntroCard[]>([...initialIntros, ...additionalIntros]);
   const [nextHiddenCardIndex, setNextHiddenCardIndex] = useState(0);
@@ -162,21 +154,7 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
       }))
     );
   }, [isMobile]);
-
-  const handleButtonClick = () => {
-    if (isLandingV2) {
-      navigate("/onboarding");
-    } else if (onOpenWaitlist) {
-      onOpenWaitlist();
-    }
-  };
-
-  const handleOpenWaitlist = () => {
-    if (onOpenWaitlist) {
-      onOpenWaitlist();
-    }
-  };
-
+  
   return (
     <section className="py-16 bg-white relative">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
@@ -192,18 +170,8 @@ export const WarmIntrosSection = ({ onOpenWaitlist }: WarmIntrosSectionProps) =>
         
         <IntroCardsGrid 
           intros={intros}
-          onOpenWaitlist={handleOpenWaitlist}
+          onOpenWaitlist={onOpenWaitlist}
         />
-        
-        <div className="text-center mt-12">
-          <Button 
-            onClick={handleButtonClick}
-            className="rounded-full px-8 hover-scale" 
-            size="lg"
-          >
-            {isLandingV2 ? 'Get Started' : 'Join Waitlist'}
-          </Button>
-        </div>
       </div>
     </section>
   );

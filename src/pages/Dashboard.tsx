@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -9,8 +10,7 @@ import PersonalityChart from '@/components/onboarding/PersonalityChart';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, UserPlus, Lightbulb, Brain } from "lucide-react";
-import { CreateAccountPrompt } from '@/components/auth/CreateAccountPrompt';
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Share2, Lightbulb, Brain } from "lucide-react";
 
 interface ProfileCompletionDashboardProps {
   userProfile: UserProfile;
@@ -19,7 +19,6 @@ interface ProfileCompletionDashboardProps {
 export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProps> = ({ userProfile }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  const [showCreateAccount, setShowCreateAccount] = useState(false);
   
   // Generate a color palette based on the user's name or interests
   const generateUserThemeColor = () => {
@@ -655,39 +654,20 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
           </TabsContent>
         </Tabs>
         
-        {/* Create Account Section - replaces Find My People button */}
         <div className="flex justify-center mt-6">
-          <Card className="max-w-md w-full">
-            <CardContent className="p-6">
-              <div className="text-center space-y-4">
-                <UserPlus className="h-12 w-12 text-primary mx-auto" />
-                <h3 className="text-xl font-semibold">Save Your Profile</h3>
-                <p className="text-muted-foreground">
-                  Create an account to save your insights and access all Twyne features.
-                </p>
-                <Button 
-                  onClick={() => setShowCreateAccount(true)}
-                  className="w-full"
-                  style={{ 
-                    backgroundColor: userTheme.primary,
-                    color: "white"
-                  }}
-                >
-                  <UserPlus className="mr-2 h-5 w-5" />
-                  Create Account to Save Data
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <Button 
+            onClick={() => navigate('/connections')}
+            className="px-8 py-6 text-lg"
+            style={{ 
+              backgroundColor: userTheme.primary,
+              color: "white"
+            }}
+          >
+            <Share2 className="mr-2 h-5 w-5" />
+            Find My People
+          </Button>
         </div>
       </div>
-
-      {/* Create Account Dialog */}
-      <CreateAccountPrompt 
-        open={showCreateAccount} 
-        onOpenChange={setShowCreateAccount}
-        onboardingProfileData={userProfile}
-      />
     </div>
   );
 };

@@ -6,25 +6,51 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
   
-  // Track if user is near the bottom - start as true so initial messages auto-scroll
-  const [isUserNearBottom, setIsUserNearBottom] = useState(true);
+  // Track if user has manually scrolled up
+  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
   
-  // Define a function to scroll to bottom - simplified since ResizeObserver handles timing
+  // Store the last scroll position to determine scroll direction
+  const lastScrollTopRef = useRef<number>(0);
+  
+  // Define a function to scroll to bottom with smooth animation
   const scrollToBottom = useCallback(() => {
+    if (!scrollViewportRef.current || userHasScrolledUp) return;
+    
+    const scrollElement = scrollViewportRef.current;
+    scrollElement.scrollTo({
+      top: scrollElement.scrollHeight,
+      behavior: "smooth"
+    });
+    
+    // Also use the messagesEndRef for additional scrolling support
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, []);
+  }, [messagesEndRef, userHasScrolledUp]);
 
-  // Handle user scroll events to track if they're near bottom
+  // Handle user scroll events to detect if they've scrolled up
   const handleScroll = useCallback(() => {
-    const el = scrollViewportRef.current;
-    if (!el) return;
+    if (!scrollViewportRef.current) return;
     
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const scrollElement = scrollViewportRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = scrollElement;
     
-    // User is near bottom if within 100px - you can tune this number
-    setIsUserNearBottom(distanceFromBottom < 100);
+    // Detect scroll direction
+    const isScrollingUp = scrollTop < lastScrollTopRef.current;
+    lastScrollTopRef.current = scrollTop;
+    
+    // Calculate how close to bottom (within 100px)
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    
+    // If user is scrolling up and not near bottom, they're reading history
+    if (isScrollingUp && !isNearBottom) {
+      setUserHasScrolledUp(true);
+    }
+    
+    // If user manually scrolls to bottom, reset the flag
+    if (isNearBottom) {
+      setUserHasScrolledUp(false);
+    }
   }, []);
   
   // Scroll to top when profile is complete
@@ -37,26 +63,27 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     }
   }, [isComplete]);
   
-  // Handle message part becoming visible - only scroll if user is near bottom
+  // Handle message part becoming visible
   const handleMessagePartVisible = useCallback(() => {
-    if (isUserNearBottom) {
-      scrollToBottom();
-    }
-  }, [scrollToBottom, isUserNearBottom]);
+    requestAnimationFrame(() => {
+      if (!userHasScrolledUp) {
+        scrollToBottom();
+      }
+    });
+  }, [scrollToBottom, userHasScrolledUp]);
   
-  // Reset user scroll state and scroll to bottom - call this when sending new messages
+  // Reset user scroll state
   const resetScrollState = useCallback(() => {
-    setIsUserNearBottom(true);
-    // Simple immediate scroll since ResizeObserver will handle proper timing
-    scrollToBottom();
+    setUserHasScrolledUp(false);
+    requestAnimationFrame(scrollToBottom);
   }, [scrollToBottom]);
 
   return {
     messagesEndRef,
     scrollViewportRef,
     dashboardRef,
-    isUserNearBottom,
-    setIsUserNearBottom,
+    userHasScrolledUp,
+    setUserHasScrolledUp,
     scrollToBottom,
     handleScroll,
     resetScrollState,

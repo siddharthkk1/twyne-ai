@@ -8,64 +8,43 @@ import VoiceInput from "./VoiceInput";
 import SmsInput from "./SmsInput";
 
 interface InputContainerProps {
+  conversationMode: string;
   input: string;
   setInput: (value: string) => void;
-  onSend: (message?: string) => void;
-  conversationMode: string;
-  setConversationMode: (value: any) => void;
-  showModeSelection: boolean;
-  showPromptSelection: boolean;
-  setShowPromptSelection: (value: boolean) => void;
-  promptMode: string;
-  handlePromptModeChange: (mode: any) => void;
-  phoneNumber: string;
-  setPhoneNumber: (value: string) => void;
-  isSmsVerified: boolean;
-  getProgress: () => number;
-  handleModeSelection: (mode: any, phoneNumber?: string) => void;
-  showCreateAccountPrompt: boolean;
-  setShowCreateAccountPrompt: (value: boolean) => void;
+  handleSend: () => void;
+  isDisabled: boolean;
+  switchToVoiceMode: () => void;
+  switchToTextMode: () => void;
+  isListening?: boolean;
+  toggleVoiceInput?: () => void;
+  isProcessing?: boolean;
+  phoneNumber?: string;
   showGuidanceInfo: boolean;
   setShowGuidanceInfo: (value: boolean) => void;
-  startSmsConversation: (phoneNumber: string) => void;
-  disabled: boolean;
 }
 
 const InputContainer = ({
+  conversationMode,
   input,
   setInput,
-  onSend,
-  conversationMode,
-  setConversationMode,
-  showModeSelection,
-  showPromptSelection,
-  setShowPromptSelection,
-  promptMode,
-  handlePromptModeChange,
-  phoneNumber,
-  setPhoneNumber,
-  isSmsVerified,
-  getProgress,
-  handleModeSelection,
-  showCreateAccountPrompt,
-  setShowCreateAccountPrompt,
+  handleSend,
+  isDisabled,
+  switchToVoiceMode,
+  switchToTextMode,
+  isListening = false,
+  toggleVoiceInput = () => {},
+  isProcessing = false,
+  phoneNumber = "",
   showGuidanceInfo,
-  setShowGuidanceInfo,
-  startSmsConversation,
-  disabled
+  setShowGuidanceInfo
 }: InputContainerProps) => {
-  
-  // Helper functions for mode switching
-  const switchToVoiceMode = () => setConversationMode("voice");
-  const switchToTextMode = () => setConversationMode("text");
-
   return (
     <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0 z-10">
       <div className="max-w-3xl mx-auto">
         {/* Quick Action Buttons moved above the input */}
         <QuickActionButtons 
-          handleSend={onSend} 
-          isDisabled={disabled}
+          handleSend={handleSend} 
+          isDisabled={isDisabled}
         />
         
         {/* Input Field and Send Button */}
@@ -74,22 +53,22 @@ const InputContainer = ({
             <TextInput 
               input={input}
               setInput={setInput}
-              handleSend={onSend}
-              isDisabled={disabled}
+              handleSend={handleSend}
+              isDisabled={isDisabled}
               switchToVoiceMode={switchToVoiceMode}
             />
           ) : conversationMode === "voice" ? (
             <VoiceInput 
-              isListening={false}
-              toggleVoiceInput={() => {}}
-              isDisabled={disabled}
-              isProcessing={false}
+              isListening={isListening}
+              toggleVoiceInput={toggleVoiceInput}
+              isDisabled={isDisabled}
+              isProcessing={isProcessing}
               switchToTextMode={switchToTextMode}
             />
           ) : (
             <SmsInput 
               phoneNumber={phoneNumber}
-              isDisabled={disabled}
+              isDisabled={isDisabled}
               switchToTextMode={switchToTextMode}
             />
           )}

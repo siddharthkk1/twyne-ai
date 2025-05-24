@@ -1,135 +1,132 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserProfile, Conversation } from "@/types/chat";
+import { PromptModeType } from "@/hooks/usePromptMode";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
-import { Card, CardContent } from "@/components/ui/card";
-import { UserPlus } from "lucide-react";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
-import { UserProfile } from "@/types/chat";
+import { toast } from "@/components/ui/use-toast";
+import { useSupabaseSync } from "@/hooks/useSupabaseSync";
+
+interface LocationState {
+  profile?: UserProfile;
+  conversation?: Conversation;
+  promptMode?: PromptModeType;
+}
 
 const OnboardingResults = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, clearNewUserFlag } = useAuth();
+  const { saveOnboardingData } = useSupabaseSync();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(false);
   
-  // Get profile data from navigation state or localStorage
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [userName, setUserName] = useState<string>("");
-
-  useEffect(() => {
-    // Try to get profile data from navigation state first
-    if (location.state?.userProfile) {
-      console.log("Got profile from navigation state:", location.state.userProfile);
-      setUserProfile(location.state.userProfile);
-      setUserName(location.state.userName || location.state.userProfile.name || "");
-    } else {
-      // Fallback: try to get from localStorage (for page refreshes)
-      try {
-        const savedProfile = localStorage.getItem('onboardingProfile');
-        const savedUserName = localStorage.getItem('onboardingUserName');
-        
-        if (savedProfile) {
-          const parsedProfile = JSON.parse(savedProfile);
-          console.log("Got profile from localStorage:", parsedProfile);
-          setUserProfile(parsedProfile);
-          setUserName(savedUserName || parsedProfile.name || "");
-        } else {
-          console.warn("No profile data found, redirecting to onboarding");
-          navigate("/onboarding");
-        }
-      } catch (error) {
-        console.error("Error parsing saved profile:", error);
-        navigate("/onboarding");
-      }
+  // Use state from location or default values with complete UserProfile type
+  const state = location.state as LocationState;
+  const profile: UserProfile = state?.profile || {
+    name: "",
+    location: "",
+    interests: [],
+    socialStyle: "",
+    connectionPreferences: "",
+    personalInsights: [],
+    personalityTraits: {
+      extroversion: 50,
+      openness: 50,
+      empathy: 50,
+      structure: 50
     }
-  }, [location.state, navigate]);
+  };
+  
+  const conversation = state?.conversation;
+  const promptMode = state?.promptMode || "playful";
+  
+  // Store profile data in localStorage for OAuth flow
+  useEffect(() => {
+    if (profile) {
+      localStorage.setItem('onboarding_profile_data', JSON.stringify(profile));
+    }
+  }, [profile]);
+  
+  // If we have both user and profile data but no state, we were likely redirected
+  // after signing up with OAuth. Redirect to mirror.
+  useEffect(() => {
+    if (user && !state?.profile && localStorage.getItem('onboarding_profile_data')) {
+      navigate("/mirror");
+    }
+  }, [user, state]);
 
   const handleCreateAccount = () => {
     setShowCreateAccountPrompt(true);
   };
 
-  const handleContinueWithoutAccount = () => {
-    navigate("/");
+  const handleContinueWithoutAccount = async () => {
+    try {
+      // Save data as anonymous user
+      const saveResult = await saveOnboardingData(
+        profile, 
+        conversation || { messages: [], userAnswers: [] }, 
+        promptMode,
+        null,
+        clearNewUserFlag
+      );
+      
+      if (saveResult) {
+        toast({
+          title: "Profile saved",
+          description: "Your profile has been saved anonymously. Create an account anytime to access it.",
+        });
+        navigate("/mirror");
+      }
+    } catch (error) {
+      console.error("Error saving anonymous data:", error);
+      toast({
+        title: "Error",
+        description: "There was an error saving your data. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
-
-  const handleGoToMirror = () => {
-    navigate("/mirror");
-  };
-
-  // Show loading if no profile data yet
-  if (!userProfile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Loading your profile...</h2>
-          <p className="text-muted-foreground">Please wait while we prepare your results.</p>
-        </div>
-      </div>
-    );
-  }
-
-  console.log("OnboardingResults - userName:", userName, "userProfile:", userProfile);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
-      <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
-        {/* Dashboard - Pass the profile data directly */}
-        <ProfileCompletionDashboard 
-          userProfile={userProfile} 
-          userName={userName || userProfile?.name} 
-        />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
+      <div className="container mx-auto p-4 pb-20">
+        <div className="text-center py-6">
+          <h1 className="text-3xl font-bold">Your Mirror is Ready</h1>
+          <p className="text-muted-foreground mt-2">
+            Based on our conversation, here's what we've learned about you
+          </p>
+        </div>
 
-        {/* Action buttons */}
-        {!user && (
-          <Card className="mt-8">
-            <CardContent className="p-6">
-              <div className="text-center space-y-4">
-                <UserPlus className="h-12 w-12 text-primary mx-auto" />
-                <h3 className="text-xl font-semibold">Save Your Profile</h3>
-                <p className="text-muted-foreground">
-                  Create an account to save your insights and start using all of Twyne's features.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button 
-                    onClick={handleCreateAccount}
-                    className="bg-gradient-to-r from-primary to-accent text-white"
-                  >
-                    Create Account to Save Data
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={handleContinueWithoutAccount}
-                  >
-                    Continue Without Account
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Profile Dashboard */}
+        <ProfileCompletionDashboard userProfile={profile} />
 
-        {user && (
-          <div className="text-center mt-8">
-            <Button 
-              onClick={handleGoToMirror}
-              className="bg-gradient-to-r from-primary to-accent text-white"
-            >
-              Go to Your Mirror
-            </Button>
-          </div>
-        )}
+        {/* Action Buttons */}
+        <div className="flex flex-col items-center max-w-md mx-auto mt-8 space-y-4">
+          <Button 
+            onClick={handleCreateAccount} 
+            className="w-full"
+          >
+            Create an account to save your mirror
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleContinueWithoutAccount}
+            className="w-full"
+          >
+            Continue without an account
+          </Button>
+        </div>
       </div>
 
-      {/* Create Account Prompt */}
+      {/* Create Account Modal */}
       <CreateAccountPrompt 
-        open={showCreateAccountPrompt}
+        open={showCreateAccountPrompt} 
         onOpenChange={setShowCreateAccountPrompt}
-        onboardingProfileData={userProfile}
-        onboardingConversationData={null}
-        userName={userName || userProfile?.name}
+        onboardingProfileData={profile}
       />
     </div>
   );

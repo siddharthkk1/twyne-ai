@@ -39,33 +39,42 @@ export type Database = {
         }
         Relationships: []
       }
-      user_data: {
+      profiles: {
         Row: {
-          conversation_data: Json | null
+          avatar_url: string | null
+          bio: string | null
           created_at: string
+          full_name: string | null
           id: string
-          profile_data: Json
-          prompt_mode: string | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
           updated_at: string
-          user_id: string
+          username: string | null
         }
         Insert: {
-          conversation_data?: Json | null
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
-          id?: string
-          profile_data?: Json
-          prompt_mode?: string | null
+          full_name?: string | null
+          id: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
           updated_at?: string
-          user_id: string
+          username?: string | null
         }
         Update: {
-          conversation_data?: Json | null
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          full_name?: string | null
           id?: string
-          profile_data?: Json
-          prompt_mode?: string | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
           updated_at?: string
-          user_id?: string
+          username?: string | null
         }
         Relationships: []
       }

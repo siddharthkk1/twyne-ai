@@ -82,48 +82,23 @@ serve(async (req) => {
 
     console.log("Processing conversation with", conversation.messages.length, "messages");
 
-    // Get current user profile data from user_data table first, then fallback to profiles
-    let profileData = {};
-    let profileName = 'Not set';
-    let profileBio = 'Not set';
-    let profileLocation = 'Not set';
-    let profileUsername = 'Not set';
-
-    const { data: userData } = await supabase
-      .from('user_data')
+    // Get current user profile data
+    const { data: profile } = await supabase
+      .from('profiles')
       .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
+      .eq('id', user.id)
+      .single();
 
-    if (userData?.profile_data) {
-      profileData = userData.profile_data;
-      profileName = userData.profile_data.name || profileName;
-      profileLocation = userData.profile_data.location || profileLocation;
-    } else {
-      // Fallback to profiles table
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profile) {
-        profileData = profile.profile_data || {};
-        profileName = profile.full_name || profileName;
-        profileBio = profile.bio || profileBio;
-        profileLocation = profile.location || profileLocation;
-        profileUsername = profile.username || profileUsername;
-      }
-    }
+    const profileData = user.user_metadata?.profile_data || {};
 
     // Enhanced system prompt for mirror chat
     const systemPrompt = `You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values.
 
 Current user profile:
-- Name: ${profileName}
-- Bio: ${profileBio}
-- Location: ${profileLocation}
-- Username: ${profileUsername}
+- Name: ${profile?.full_name || 'Not set'}
+- Bio: ${profile?.bio || 'Not set'}
+- Location: ${profile?.location || 'Not set'}
+- Username: ${profile?.username || 'Not set'}
 
 Current profile insights from onboarding:
 ${JSON.stringify(profileData, null, 2)}
