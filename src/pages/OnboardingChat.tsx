@@ -102,7 +102,7 @@ const OnboardingChat = () => {
         getProgress={getProgress}
         handleModeSelection={handleModeSelection}
         getNameInitial={getNameInitial}
-        handleSend={handleSend}
+        onSend={handleSend}
         startSmsConversation={startSmsConversation}
         userName={userName}
         setUserName={setUserName}
