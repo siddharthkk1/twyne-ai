@@ -9,20 +9,21 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   // Track if user is near the bottom - start as true so initial messages auto-scroll
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   
-  // Define a function to scroll to bottom with smooth animation
+  // Define a function to scroll to bottom with stable layout using requestAnimationFrame
   const scrollToBottom = useCallback(() => {
-    if (!messagesEndRef.current) return;
-    
-    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    requestAnimationFrame(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    });
   }, []);
 
   // Handle user scroll events to track if they're near bottom
   const handleScroll = useCallback(() => {
-    const scrollEl = scrollViewportRef.current;
-    if (!scrollEl) return;
+    const el = scrollViewportRef.current;
+    if (!el) return;
     
-    const { scrollTop, scrollHeight, clientHeight } = scrollEl;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     
     // User is near bottom if within 100px - you can tune this number
     setIsUserNearBottom(distanceFromBottom < 100);
@@ -41,19 +42,17 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   // Handle message part becoming visible - only scroll if user is near bottom
   const handleMessagePartVisible = useCallback(() => {
     if (isUserNearBottom) {
-      requestAnimationFrame(() => {
-        scrollToBottom();
-      });
+      scrollToBottom();
     }
   }, [scrollToBottom, isUserNearBottom]);
   
   // Reset user scroll state and scroll to bottom - call this when sending new messages
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
-    // Small delay to ensure message is added to DOM first
-    setTimeout(() => {
+    // Use requestAnimationFrame to ensure message is added to DOM first
+    requestAnimationFrame(() => {
       scrollToBottom();
-    }, 100);
+    });
   }, [scrollToBottom]);
 
   return {

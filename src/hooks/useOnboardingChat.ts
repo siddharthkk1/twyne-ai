@@ -205,14 +205,19 @@ export const useOnboardingChat = () => {
 
   // Only auto-scroll when user is near bottom and new messages arrive
   useEffect(() => {
-    if (isUserNearBottom) {
+    if (isUserNearBottom && messages.length > 0) {
       scrollToBottom();
     }
-  }, [messages, isUserNearBottom, scrollToBottom]);
+  }, [messages.length, isUserNearBottom, scrollToBottom]);
 
+  // Guard scroll on init with small delay to avoid jank on mount
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isUserNearBottom && messages.length > 0) {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+    }
+  }, [isInitializing, isUserNearBottom, messages.length, scrollToBottom]);
 
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {

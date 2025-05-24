@@ -1,6 +1,5 @@
 
 import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
@@ -88,10 +87,10 @@ const ChatContainer = ({
         showGuidanceInfo={showGuidanceInfo}
       />
       
-      <ScrollArea 
-        className="flex-1 p-4 pt-24 overflow-y-auto scroll-smooth" 
-        viewportRef={scrollViewportRef}
-        onViewportScroll={handleScroll}
+      <div
+        ref={scrollViewportRef}
+        onScroll={handleScroll}
+        className="flex-1 p-4 pt-24 overflow-y-auto scroll-smooth"
       >
         <div className="space-y-4 pb-24 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
@@ -137,7 +136,7 @@ const ChatContainer = ({
           
           <div ref={messagesEndRef} className="h-4" />
         </div>
-      </ScrollArea>
+      </div>
       
       <InputContainer
         input={input}
