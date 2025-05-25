@@ -132,10 +132,9 @@ export const useOnboardingChat = () => {
     MESSAGE_CAP
   );
   
-  // Use the simplified scroll manager
+  // Use the simplified scroll manager - remove messagesEndRef
   const {
     scrollContainerRef,
-    messagesEndRef,
     isUserNearBottom,
     handleScroll,
     scrollToBottom,
@@ -254,7 +253,7 @@ export const useOnboardingChat = () => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
 
-    // Prepare scroll BEFORE adding user message
+    // Pre-position scroll BEFORE adding user message to DOM
     prepareForNewMessage(true);
 
     const userMessageCount = conversation.userAnswers.length;
@@ -412,7 +411,6 @@ export const useOnboardingChat = () => {
     isInitializing,
     isGeneratingProfile,
     userProfile,
-    messagesEndRef,
     showCreateAccountPrompt,
     setShowCreateAccountPrompt,
     showGuidanceInfo,

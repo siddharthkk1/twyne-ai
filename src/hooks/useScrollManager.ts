@@ -4,12 +4,11 @@ import { Message } from '@/types/chat';
 
 export const useScrollManager = (messages: Message[]) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
-  const lastMessageCountRef = useRef(0);
   const userScrolledAwayRef = useRef(false);
   const lastUserScrollTimeRef = useRef(0);
   const isAutoScrollingRef = useRef(false);
+  const lastMessageCountRef = useRef(0);
 
   // Check if user is near bottom (within 100px)
   const checkIfNearBottom = useCallback(() => {
@@ -21,22 +20,23 @@ export const useScrollManager = (messages: Message[]) => {
     return distanceFromBottom <= 100;
   }, []);
 
-  // Force scroll to bottom immediately and synchronously
-  const forceScrollToBottom = useCallback(() => {
+  // Scroll to bottom immediately and synchronously
+  const scrollToBottom = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     isAutoScrollingRef.current = true;
     container.scrollTop = container.scrollHeight;
     
-    // Reset flag after a brief moment
-    setTimeout(() => {
+    // Reset auto-scroll flag after DOM settles
+    requestAnimationFrame(() => {
       isAutoScrollingRef.current = false;
-    }, 100);
+    });
   }, []);
 
   // Handle manual scroll events
   const handleScroll = useCallback(() => {
+    // Ignore if we're auto-scrolling
     if (isAutoScrollingRef.current) return;
     
     lastUserScrollTimeRef.current = Date.now();
@@ -51,46 +51,49 @@ export const useScrollManager = (messages: Message[]) => {
     }
   }, [checkIfNearBottom]);
 
-  // Pre-scroll before new messages appear
+  // Pre-position for new messages - this is the key to iMessage-like behavior
   const prepareForNewMessage = useCallback((isUserMessage: boolean) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
     if (isUserMessage) {
-      // For user messages: ALWAYS scroll to bottom immediately
+      // For user messages: ALWAYS pre-scroll to bottom BEFORE message is added
       setIsUserNearBottom(true);
       userScrolledAwayRef.current = false;
-      
-      // Scroll BEFORE the message is added to DOM
-      requestAnimationFrame(() => {
-        forceScrollToBottom();
-      });
+      scrollToBottom();
     } else {
       // For AI messages: only if user is anchored and hasn't scrolled recently
       const timeSinceUserScroll = Date.now() - lastUserScrollTimeRef.current;
       const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceUserScroll > 1000;
       
       if (shouldAutoScroll) {
-        requestAnimationFrame(() => {
-          forceScrollToBottom();
-        });
+        scrollToBottom();
       }
     }
-  }, [forceScrollToBottom, isUserNearBottom]);
+  }, [isUserNearBottom, scrollToBottom]);
 
-  // Handle new messages being added
+  // Handle message parts appearing (for AI message chunks)
+  const handleMessagePartVisible = useCallback(() => {
+    const timeSinceUserScroll = Date.now() - lastUserScrollTimeRef.current;
+    const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceUserScroll > 1000;
+    
+    if (shouldAutoScroll) {
+      // Scroll immediately when new parts appear
+      scrollToBottom();
+    }
+  }, [isUserNearBottom, scrollToBottom]);
+
+  // Monitor message changes and handle scrolling
   useEffect(() => {
     const currentMessageCount = messages.length;
     const previousMessageCount = lastMessageCountRef.current;
     
     if (currentMessageCount > previousMessageCount) {
-      const newMessage = messages[messages.length - 1];
+      const newMessage = messages[currentMessageCount - 1];
       
       if (newMessage?.sender === 'user') {
-        // User message: immediate scroll
+        // User message: pre-position immediately
         prepareForNewMessage(true);
-        
-        // Double-ensure after DOM update
-        setTimeout(() => {
-          forceScrollToBottom();
-        }, 50);
       } else if (newMessage?.sender === 'ai') {
         // AI message: conditional scroll
         prepareForNewMessage(false);
@@ -98,35 +101,21 @@ export const useScrollManager = (messages: Message[]) => {
     }
     
     lastMessageCountRef.current = currentMessageCount;
-  }, [messages.length, prepareForNewMessage, forceScrollToBottom]);
+  }, [messages.length, prepareForNewMessage]);
 
-  // Handle AI message parts appearing (for MessageBubble animation)
-  const handleMessagePartVisible = useCallback(() => {
-    const timeSinceUserScroll = Date.now() - lastUserScrollTimeRef.current;
-    const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceUserScroll > 1000;
-    
-    if (shouldAutoScroll) {
-      // Use layout effect timing for message parts
-      requestAnimationFrame(() => {
-        forceScrollToBottom();
-      });
-    }
-  }, [forceScrollToBottom, isUserNearBottom]);
-
-  // Reset scroll state
+  // Reset scroll state (for conversation resets)
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
     userScrolledAwayRef.current = false;
     lastUserScrollTimeRef.current = 0;
-    forceScrollToBottom();
-  }, [forceScrollToBottom]);
+    scrollToBottom();
+  }, [scrollToBottom]);
 
   return {
     scrollContainerRef,
-    messagesEndRef,
     isUserNearBottom,
     handleScroll,
-    scrollToBottom: forceScrollToBottom,
+    scrollToBottom,
     resetScrollState,
     handleMessagePartVisible,
     prepareForNewMessage

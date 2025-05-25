@@ -16,7 +16,6 @@ const OnboardingChat = () => {
     isInitializing,
     isGeneratingProfile,
     userProfile,
-    messagesEndRef,
     showCreateAccountPrompt,
     setShowCreateAccountPrompt,
     showGuidanceInfo,
@@ -71,7 +70,6 @@ const OnboardingChat = () => {
         setInput={setInput}
         isTyping={isTyping}
         isGeneratingProfile={isGeneratingProfile}
-        messagesEndRef={messagesEndRef}
         showCreateAccountPrompt={showCreateAccountPrompt}
         setShowCreateAccountPrompt={setShowCreateAccountPrompt}
         showGuidanceInfo={showGuidanceInfo}

@@ -16,7 +16,6 @@ interface ChatContainerProps {
   isTyping: boolean;
   isInitializing?: boolean;
   isGeneratingProfile: boolean;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
   showCreateAccountPrompt: boolean;
   setShowCreateAccountPrompt: (value: boolean) => void;
   showGuidanceInfo: boolean;
@@ -53,7 +52,6 @@ const ChatContainer = ({
   isTyping,
   isInitializing = false,
   isGeneratingProfile,
-  messagesEndRef,
   showCreateAccountPrompt,
   setShowCreateAccountPrompt,
   showGuidanceInfo,
@@ -76,7 +74,6 @@ const ChatContainer = ({
   userName,
   setUserName,
   scrollContainerRef,
-  dashboardRef,
   handleScroll,
   resetScrollState,
   isUserNearBottom = true,
@@ -93,16 +90,23 @@ const ChatContainer = ({
       
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-scroll px-4 pt-4 max-w-3xl mx-auto w-full chat-scroll-container"
+        className="flex-1 overflow-y-scroll px-4 pt-4 max-w-3xl mx-auto w-full"
         onScroll={handleScroll}
         style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          scrollbarWidth: isUserNearBottom ? 'none' : 'thin',
+          msOverflowStyle: isUserNearBottom ? 'none' : 'auto'
         }}
       >
         <style>{`
-          .chat-scroll-container::-webkit-scrollbar {
-            display: none;
+          .chat-container::-webkit-scrollbar {
+            width: ${isUserNearBottom ? '0px' : '8px'};
+          }
+          .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .chat-container::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
           }
         `}</style>
         
@@ -151,7 +155,8 @@ const ChatContainer = ({
             </div>
           )}
           
-          <div ref={messagesEndRef} className="h-1" />
+          {/* Bottom padding to ensure last message is fully visible */}
+          <div className="h-4" />
         </div>
       </div>
       
