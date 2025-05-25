@@ -142,7 +142,7 @@ export const useOnboardingChat = () => {
     handleScroll,
     resetScrollState,
     handleMessagePartVisible
-  } = useOnboardingScroll(isComplete);
+  } = useOnboardingScroll(isComplete, messages);
 
   // Use the new auto-scroll hook instead of manual useEffect
   useAutoScroll(messagesEndRef, scrollViewportRef, messages, isUserNearBottom);
