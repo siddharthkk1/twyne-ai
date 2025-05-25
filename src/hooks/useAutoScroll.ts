@@ -12,7 +12,7 @@ export const useAutoScroll = (
 
     // Wait until layout settles, then scroll
     requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto, block: "end" });
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
     });
   }, [messages.length, isUserNearBottom]);
 };
