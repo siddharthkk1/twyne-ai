@@ -1,6 +1,5 @@
 
 import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
@@ -39,11 +38,10 @@ interface ChatContainerProps {
   startSmsConversation: (phoneNumber: string) => void;
   userName: string;
   setUserName: (value: string) => void;
-  scrollViewportRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement>;
   dashboardRef?: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
-  resetScrollState: () => void;
-  handleMessagePartVisible: () => void;
+  handleNewMessage: () => void;
 }
 
 const ChatContainer = ({
@@ -75,11 +73,10 @@ const ChatContainer = ({
   startSmsConversation,
   userName,
   setUserName,
-  scrollViewportRef,
+  scrollContainerRef,
   dashboardRef,
   handleScroll,
-  resetScrollState,
-  handleMessagePartVisible
+  handleNewMessage
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
@@ -91,12 +88,15 @@ const ChatContainer = ({
       />
       
       <div
-        ref={scrollViewportRef}
+        ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
-        style={{ overflowAnchor: "auto" }}
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-hide"
+        style={{ 
+          overflowAnchor: "auto",
+          scrollBehavior: "smooth"
+        }}
       >
-        <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
+        <div className="space-y-4 pt-8 pb-4 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 
@@ -118,7 +118,7 @@ const ChatContainer = ({
                   key={message.id}
                   message={message} 
                   nameInitial={getNameInitial()}
-                  onMessagePartVisible={handleMessagePartVisible}
+                  onMessagePartVisible={handleNewMessage}
                   userName={userName}
                 />
               ))}
@@ -141,7 +141,8 @@ const ChatContainer = ({
             </div>
           )}
           
-          <div ref={messagesEndRef} style={{ overflowAnchor: "none" }} className="h-1" />
+          {/* Messages end anchor */}
+          <div ref={messagesEndRef} className="h-1" />
         </div>
       </div>
       

@@ -7,8 +7,7 @@ import { useSmsConversation } from './useSmsConversation';
 import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
-import { useOnboardingScroll } from './useOnboardingScroll';
-import { useAutoScroll } from './useAutoScroll';
+import { useChatScroll } from './useChatScroll';
 import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
@@ -39,7 +38,7 @@ export const useOnboardingChat = () => {
   const [isComplete, setIsComplete] = useState(false);
   const { user, clearNewUserFlag } = useAuth();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
-  const [showGuidanceInfo, setShowGuidanceInfo] = useState(true); // Changed to start as true
+  const [showGuidanceInfo, setShowGuidanceInfo] = useState(true);
   const [showNameCollection, setShowNameCollection] = useState(true);
   const [askingForName, setAskingForName] = useState(false);
   
@@ -132,24 +131,21 @@ export const useOnboardingChat = () => {
     MESSAGE_CAP
   );
   
+  // Use the new chat scroll system
   const {
+    scrollContainerRef,
     messagesEndRef,
-    scrollViewportRef,
-    dashboardRef,
     isUserNearBottom,
-    setIsUserNearBottom,
-    scrollToBottom,
+    hasUserScrolled,
     handleScroll,
-    resetScrollState,
-    handleMessagePartVisible
-  } = useOnboardingScroll(isComplete);
-
-  // Use the new auto-scroll hook instead of manual useEffect
-  useAutoScroll(messagesEndRef, scrollViewportRef, messages, isUserNearBottom);
+    handleNewMessage,
+    handleUserMessage,
+    scrollToBottom
+  } = useChatScroll();
 
   // Hide guidance info after user sends first message
   useEffect(() => {
-    if (messages.length > 1) { // More than just the initial AI greeting
+    if (messages.length > 1) {
       const hasUserMessages = messages.some(msg => msg.sender === "user");
       if (hasUserMessages && showGuidanceInfo) {
         setShowGuidanceInfo(false);
@@ -182,35 +178,25 @@ export const useOnboardingChat = () => {
       systemPrompt = SYSTEM_PROMPT_YOUNG_ADULT;
     }
 
-        // Fix: Create a properly typed message object
     const initialMessage: { role: ChatRole; content: string } = {
       role: "system" as ChatRole,
       content: systemPrompt
     };
     
-    // Reset messages and conversation
     setMessages([]);
-        // Use the properly typed message object
     setConversation({
       messages: [initialMessage],
       userAnswers: []
     });
-    
-
-
-    // Add assistant guidance with user's name (if needed at beginning)
-    //const assistantGuidance = `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.`;
-    
 
     setCurrentQuestionIndex(0);
 
     const effectiveName = userName || "friend";
-    // Initialize chat with AI greeting, passing the promptMode
     initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
-    setIsInitializing(false);
-    setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
-    setConversation(updatedConversation);
-  });
+      setIsInitializing(false);
+      setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
+      setConversation(updatedConversation);
+    });
   }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile]);
 
   // Complete onboarding and generate profile
@@ -219,20 +205,17 @@ export const useOnboardingChat = () => {
       console.log("Completing onboarding with userName:", userName);
       console.log("Final conversation:", finalConversation);
       
-      // Ensure the profile has the user's name
       setUserProfile(prev => ({ ...prev, name: userName }));
       
       const profile = await generateProfile(finalConversation, userName);
       console.log("Generated profile:", profile);
       
-      // Make sure the profile has the name - prioritize userName over generated name
       if (userName) {
         profile.name = userName;
       } else if (profile.name && !userName) {
         setUserName(profile.name);
       }
       
-      // Ensure the profile definitely has a name
       if (!profile.name && userName) {
         profile.name = userName;
       }
@@ -242,15 +225,12 @@ export const useOnboardingChat = () => {
       setUserProfile(profile);
       setIsComplete(true);
       
-      // Save profile data to localStorage for persistence across navigation
       localStorage.setItem('onboardingProfile', JSON.stringify(profile));
       localStorage.setItem('onboardingUserName', userName || profile.name || '');
       localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
       
-      // Save conversation to Supabase with user's name
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       
-      // Updated redirect logic based on authentication status
       if (user) {
         navigate("/mirror");
       } else {
@@ -287,6 +267,9 @@ export const useOnboardingChat = () => {
       setMessages((prev) => [...prev, newUserMessage]);
       setInput("");
       
+      // Handle user message scroll
+      handleUserMessage();
+      
       const nameRequestMessage: Message = {
         id: messages.length + 2,
         text: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?",
@@ -317,7 +300,6 @@ export const useOnboardingChat = () => {
       };
       
       setConversation(updatedConversation);
-      resetScrollState();
       return;
     }
 
@@ -332,7 +314,9 @@ export const useOnboardingChat = () => {
       setMessages((prev) => [...prev, nameMessage]);
       setInput("");
       
-      // Update the user's name immediately
+      // Handle user message scroll
+      handleUserMessage();
+      
       console.log("Setting userName from final response:", textToSend);
       setUserName(textToSend);
       setUserProfile(prev => ({ ...prev, name: textToSend }));
@@ -343,8 +327,6 @@ export const useOnboardingChat = () => {
         role: "user" as ChatRole, 
         content: textToSend 
       };
-      
-
 
       const finalConversation = {
         messages: [
@@ -357,9 +339,7 @@ export const useOnboardingChat = () => {
       console.log("Final conversation before completion:", finalConversation);
       setConversation(finalConversation);
       
-      // Complete the onboarding process
       completeOnboarding(finalConversation);
-      resetScrollState();
       return;
     }
 
@@ -374,8 +354,8 @@ export const useOnboardingChat = () => {
     setInput("");
     setIsTyping(true);
     
-    // Always scroll to bottom when user sends a message
-    resetScrollState();
+    // Handle user message scroll
+    handleUserMessage();
 
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
@@ -414,19 +394,14 @@ export const useOnboardingChat = () => {
 
   // Get progress percent based on conversation length
   const getProgress = (): number => {
-    // Start at 10%, increase based on number of messages
-    // Cap at 90% until final profile generation
     if (isComplete) return 100;
     if (isGeneratingProfile) return 95;
     
     const baseProgress = 10;
-    // We count only user messages
     const userMessageCount = conversation.userAnswers.length;
     
-    // Progress increases with each message, but at a decreasing rate
     const progressPerMessage = Math.max(5, 70 / Math.max(1, userMessageCount + 5));
     
-    // Calculate progress but cap it at 90%
     const calculatedProgress = Math.min(90, baseProgress + (userMessageCount * progressPerMessage));
     
     return calculatedProgress;
@@ -470,10 +445,9 @@ export const useOnboardingChat = () => {
     setUserName,
     showNameCollection,
     handleNameSubmit,
-    scrollViewportRef,
-    dashboardRef,
+    scrollContainerRef,
+    dashboardRef: undefined,
     handleScroll,
-    resetScrollState,
-    handleMessagePartVisible
+    handleNewMessage
   };
 };
