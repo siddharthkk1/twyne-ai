@@ -7,8 +7,8 @@ export const useOnboardingScroll = (isComplete: boolean) => {
 
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
+    messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
   }, []);
 
   const handleScroll = useCallback(() => {
@@ -21,22 +21,22 @@ export const useOnboardingScroll = (isComplete: boolean) => {
 
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
-    scrollToBottom(); // immediate scroll
+    scrollToBottom("auto"); // instant scroll
   }, [scrollToBottom]);
 
-  const handleMessagePartVisible = useCallback(() => {
-  if (!scrollViewportRef.current || !messagesEndRef.current) return;
+    const handleMessagePartVisible = useCallback(() => {
+    const el = scrollViewportRef.current;
+    if (!el || !messagesEndRef.current) return;
+  
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+  
+    if (distanceFromBottom < 100) {
+      requestAnimationFrame(() => {
+        scrollToBottom("smooth"); // gentle scroll
+      });
+    }
+}, [scrollToBottom]);
 
-  const el = scrollViewportRef.current;
-  const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-
-  // Only scroll if we're near the bottom already (within 100px)
-  if (distanceFromBottom < 100) {
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    });
-  }
-}, []);
 
 
   useEffect(() => {

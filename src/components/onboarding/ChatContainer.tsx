@@ -93,7 +93,7 @@ const ChatContainer = ({
       <div
         ref={scrollViewportRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-hide"
         style={{ overflowAnchor: "auto" }}
       >
         <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
