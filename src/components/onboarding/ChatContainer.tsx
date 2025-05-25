@@ -42,6 +42,7 @@ interface ChatContainerProps {
   dashboardRef?: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
   resetScrollState: () => void;
+  isUserNearBottom?: boolean;
 }
 
 const ChatContainer = ({
@@ -76,7 +77,8 @@ const ChatContainer = ({
   scrollContainerRef,
   dashboardRef,
   handleScroll,
-  resetScrollState
+  resetScrollState,
+  isUserNearBottom = true
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
@@ -92,17 +94,25 @@ const ChatContainer = ({
         className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         onScroll={handleScroll}
         style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          scrollbarWidth: isUserNearBottom ? 'none' : 'thin',
+          msOverflowStyle: isUserNearBottom ? 'none' : 'auto'
         }}
       >
         <style>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            display: none;
+          .chat-container::-webkit-scrollbar {
+            display: ${isUserNearBottom ? 'none' : 'block'};
+            width: 6px;
+          }
+          .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .chat-container::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
           }
         `}</style>
         
-        <div className="space-y-4 pt-8 pb-6 max-w-3xl mx-auto">
+        <div className="space-y-4 pt-8 pb-6 max-w-3xl mx-auto chat-container">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 

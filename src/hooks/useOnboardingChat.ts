@@ -434,6 +434,7 @@ export const useOnboardingChat = () => {
     scrollContainerRef,
     dashboardRef: useRef<HTMLDivElement>(null),
     handleScroll,
-    resetScrollState
+    resetScrollState,
+    isUserNearBottom
   };
 };
