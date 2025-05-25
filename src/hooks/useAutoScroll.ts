@@ -7,9 +7,11 @@ export const useAutoScroll = (
   messages: Message[]
 ) => {
   useEffect(() => {
-    if (!messagesEndRef.current) return;
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    });
-  }, [messages.length]);
+  if (!messagesEndRef.current || !scrollViewportRef.current) return;
+
+  requestAnimationFrame(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  });
+}, [messages.length]);
+
 };

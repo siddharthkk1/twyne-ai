@@ -142,6 +142,7 @@ const ChatContainer = ({
           )}
           
           <div ref={messagesEndRef} style={{ overflowAnchor: "none" }} className="h-1" />
+
         </div>
       </div>
       
