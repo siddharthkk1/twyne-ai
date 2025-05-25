@@ -14,9 +14,13 @@ export const useAutoScroll = (
     const lastMessage = messages[messages.length - 1];
     const isUserMessage = lastMessage?.sender === "user";
 
-    // Always scroll to bottom when user sends a message
-    // OR when user is near bottom and AI responds
-    if (isUserMessage || isUserNearBottom) {
+    // Always anchor user at bottom when they send a message (instant scroll)
+    // OR when user is near bottom and AI responds (smooth scroll)
+    if (isUserMessage) {
+      // Instant scroll to bottom for user messages
+      messagesEndRef.current.scrollIntoView({ behavior: "auto", block: "end" });
+    } else if (isUserNearBottom) {
+      // Smooth scroll for AI responses when user is near bottom
       requestAnimationFrame(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
       });
