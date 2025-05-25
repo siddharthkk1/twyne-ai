@@ -59,10 +59,6 @@ const InputContainer = ({
   const switchToVoiceMode = () => setConversationMode("voice");
   const switchToTextMode = () => setConversationMode("text");
 
-  const handleHelpClick = () => {
-    setShowGuidanceInfo(!showGuidanceInfo);
-  };
-
   return (
     <div className="p-4 backdrop-blur-lg bg-background/80 border-t sticky bottom-0 z-10">
       <div className="max-w-3xl mx-auto">
@@ -100,21 +96,19 @@ const InputContainer = ({
         </div>
         
         {/* Show guidance toggle reminder */}
-        <div className="mt-3 text-center">
-          <Button 
-            variant="link" 
-            size="sm" 
-            className={`text-xs ${
-              showGuidanceInfo 
-                ? 'text-primary' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-            onClick={handleHelpClick}
-          >
-            <HelpCircle className="h-3 w-3 mr-1" />
-            Need help? How this conversation works
-          </Button>
-        </div>
+        {!showGuidanceInfo && (
+          <div className="mt-3 text-center">
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setShowGuidanceInfo(true)}
+            >
+              <HelpCircle className="h-3 w-3 mr-1" />
+              Need help? How this conversation works
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
 import InputContainer from "./InputContainer";
 import ConversationHeader from "./ConversationHeader";
-import GuidanceInfo from "./GuidanceInfo";
 import { Message } from "@/types/chat";
 import { Loader } from 'lucide-react';
 
@@ -93,7 +92,7 @@ const ChatContainer = ({
       <div 
         className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         ref={scrollViewportRef}
-        onScroll={handleScroll}
+        oneScroll={handleScroll}
       >
         <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
@@ -143,38 +142,31 @@ const ChatContainer = ({
           <div ref={messagesEndRef} className="h-4" />
         </div>
       </div>
-      
       <div className="border-t p-4 w-full max-w-3xl mx-auto">
-        <InputContainer
-          input={input}
-          setInput={setInput}
-          onSend={onSend}
-          conversationMode={conversationMode}
-          setConversationMode={setConversationMode}
-          showModeSelection={showModeSelection}
-          showPromptSelection={showPromptSelection}
-          setShowPromptSelection={setShowPromptSelection}
-          promptMode={promptMode}
-          handlePromptModeChange={handlePromptModeChange}
-          phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
-          isSmsVerified={isSmsVerified}
-          getProgress={getProgress}
-          handleModeSelection={handleModeSelection}
-          showCreateAccountPrompt={showCreateAccountPrompt}
-          setShowCreateAccountPrompt={setShowCreateAccountPrompt}
-          showGuidanceInfo={showGuidanceInfo}
-          setShowGuidanceInfo={setShowGuidanceInfo}
-          startSmsConversation={startSmsConversation}
-          disabled={isTyping || isGeneratingProfile}
-        />
-      </div>
-      
-      {/* Guidance Info Popup */}
-      <GuidanceInfo 
+      <InputContainer
+        input={input}
+        setInput={setInput}
+        onSend={onSend}
+        conversationMode={conversationMode}
+        setConversationMode={setConversationMode}
+        showModeSelection={showModeSelection}
+        showPromptSelection={showPromptSelection}
+        setShowPromptSelection={setShowPromptSelection}
+        promptMode={promptMode}
+        handlePromptModeChange={handlePromptModeChange}
+        phoneNumber={phoneNumber}
+        setPhoneNumber={setPhoneNumber}
+        isSmsVerified={isSmsVerified}
+        getProgress={getProgress}
+        handleModeSelection={handleModeSelection}
+        showCreateAccountPrompt={showCreateAccountPrompt}
+        setShowCreateAccountPrompt={setShowCreateAccountPrompt}
         showGuidanceInfo={showGuidanceInfo}
         setShowGuidanceInfo={setShowGuidanceInfo}
+        startSmsConversation={startSmsConversation}
+        disabled={isTyping || isGeneratingProfile}
       />
+      </div>
     </div>
   );
 };

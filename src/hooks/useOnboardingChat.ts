@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -17,7 +18,7 @@ import {
 } from '@/utils/aiUtils';
 
 // Maximum number of user messages before asking for name and completing
-const MESSAGE_CAP = 15;
+const MESSAGE_CAP = 4;
 
 export const useOnboardingChat = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export const useOnboardingChat = () => {
   const [isComplete, setIsComplete] = useState(false);
   const { user, clearNewUserFlag } = useAuth();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
-  const [showGuidanceInfo, setShowGuidanceInfo] = useState(true); // Changed to start as true
+  const [showGuidanceInfo, setShowGuidanceInfo] = useState(false);
   const [showNameCollection, setShowNameCollection] = useState(true);
   const [askingForName, setAskingForName] = useState(false);
   
@@ -146,16 +147,6 @@ export const useOnboardingChat = () => {
 
   // Use the new auto-scroll hook instead of manual useEffect
   useAutoScroll(messagesEndRef, scrollViewportRef, messages, isUserNearBottom);
-
-  // Hide guidance info after user sends first message
-  useEffect(() => {
-    if (messages.length > 1) { // More than just the initial AI greeting
-      const hasUserMessages = messages.some(msg => msg.sender === "user");
-      if (hasUserMessages && showGuidanceInfo) {
-        setShowGuidanceInfo(false);
-      }
-    }
-  }, [messages, showGuidanceInfo]);
 
   // Handle name submission from the name collection step
   const handleNameSubmit = (name: string) => {
