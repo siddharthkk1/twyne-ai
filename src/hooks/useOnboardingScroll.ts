@@ -19,12 +19,16 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     setIsUserNearBottom(distanceFromBottom < 100); // 100px leeway
   }, []);
 
-  const resetScrollState = useCallback(() => {
-    setIsUserNearBottom(true);
-    setTimeout(() => {
-      scrollToBottom("auto");
-    }, 0); // or 50ms if needed
-}, [scrollToBottom]);
+  useEffect(() => {
+  if (!scrollViewportRef.current || !messagesEndRef.current) return;
+
+  // Only scroll if user is near the bottom
+  if (isUserNearBottom) {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+    });
+  }
+}, [isUserNearBottom, messages.length]);
 
 
 
@@ -57,7 +61,7 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     setIsUserNearBottom,
     scrollToBottom,
     handleScroll,
-    resetScrollState,
+    //resetScrollState,
     handleMessagePartVisible,
   };
 };
