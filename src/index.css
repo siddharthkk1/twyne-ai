@@ -4,13 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
-.no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
+.scrollbar-hide {
   scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
 }
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/WebKit */
 }
 
 @layer base {

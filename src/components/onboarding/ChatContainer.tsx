@@ -93,10 +93,10 @@ const ChatContainer = ({
       <div
         ref={scrollViewportRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto no-scrollbar px-4 pt-4 max-w-3xl mx-auto w-full"
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         style={{ overflowAnchor: "auto" }}
       >
-        <div className="flex flex-col-reverse gap-4 pb-8">
+        <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 
@@ -113,7 +113,7 @@ const ChatContainer = ({
             </div>
           ) : (
             <>
-              {messages.slice().reverse().map((message) => (
+              {messages.map((message) => (
                 <MessageBubble 
                   key={message.id}
                   message={message} 
