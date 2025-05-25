@@ -1,5 +1,6 @@
 
 import React from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
@@ -16,6 +17,7 @@ interface ChatContainerProps {
   isTyping: boolean;
   isInitializing?: boolean;
   isGeneratingProfile: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
   showCreateAccountPrompt: boolean;
   setShowCreateAccountPrompt: (value: boolean) => void;
   showGuidanceInfo: boolean;
@@ -37,12 +39,11 @@ interface ChatContainerProps {
   startSmsConversation: (phoneNumber: string) => void;
   userName: string;
   setUserName: (value: string) => void;
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  scrollViewportRef: React.RefObject<HTMLDivElement>;
   dashboardRef?: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
   resetScrollState: () => void;
-  isUserNearBottom?: boolean;
-  handleMessagePartVisible?: () => void;
+  handleMessagePartVisible: () => void;
 }
 
 const ChatContainer = ({
@@ -52,6 +53,7 @@ const ChatContainer = ({
   isTyping,
   isInitializing = false,
   isGeneratingProfile,
+  messagesEndRef,
   showCreateAccountPrompt,
   setShowCreateAccountPrompt,
   showGuidanceInfo,
@@ -73,10 +75,10 @@ const ChatContainer = ({
   startSmsConversation,
   userName,
   setUserName,
-  scrollContainerRef,
+  scrollViewportRef,
+  dashboardRef,
   handleScroll,
   resetScrollState,
-  isUserNearBottom = true,
   handleMessagePartVisible
 }: ChatContainerProps) => {
   return (
@@ -88,29 +90,13 @@ const ChatContainer = ({
         showGuidanceInfo={showGuidanceInfo}
       />
       
-      <div 
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
+      <div
+        ref={scrollViewportRef}
         onScroll={handleScroll}
-        style={{
-          scrollbarWidth: isUserNearBottom ? 'none' : 'thin',
-          msOverflowStyle: isUserNearBottom ? 'none' : 'auto'
-        }}
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
+        style={{ overflowAnchor: "auto" }}
       >
-        <style>{`
-          .chat-container::-webkit-scrollbar {
-            width: ${isUserNearBottom ? '0px' : '8px'};
-          }
-          .chat-container::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .chat-container::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.1);
-            border-radius: 4px;
-          }
-        `}</style>
-        
-        <div className="space-y-4 pt-8 pb-24 max-w-3xl mx-auto">
+        <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 
@@ -132,8 +118,8 @@ const ChatContainer = ({
                   key={message.id}
                   message={message} 
                   nameInitial={getNameInitial()}
-                  userName={userName}
                   onMessagePartVisible={handleMessagePartVisible}
+                  userName={userName}
                 />
               ))}
             </>
@@ -154,6 +140,8 @@ const ChatContainer = ({
               </p>
             </div>
           )}
+          
+          <div ref={messagesEndRef} style={{ overflowAnchor: "none" }} className="h-1" />
         </div>
       </div>
       
