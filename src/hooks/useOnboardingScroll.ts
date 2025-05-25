@@ -13,14 +13,16 @@ export const useOnboardingScroll = (isComplete: boolean, messages: Message[]) =>
     const viewport = scrollViewportRef.current;
     if (!viewport) return;
 
-    if (behavior === "auto") {
-      viewport.scrollTop = viewport.scrollHeight;
-    } else {
-      viewport.scrollTo({
-        top: viewport.scrollHeight,
-        behavior: behavior
-      });
-    }
+    requestAnimationFrame(() => {
+      if (behavior === "auto") {
+        viewport.scrollTop = viewport.scrollHeight;
+      } else {
+        viewport.scrollTo({
+          top: viewport.scrollHeight,
+          behavior: behavior
+        });
+      }
+    });
   }, []);
 
   const handleScroll = useCallback(() => {
@@ -38,9 +40,14 @@ export const useOnboardingScroll = (isComplete: boolean, messages: Message[]) =>
     const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
   
     if (distanceFromBottom < 100) {
-      scrollToBottom("smooth");
+      requestAnimationFrame(() => {
+        viewport.scrollTo({
+          top: viewport.scrollHeight,
+          behavior: 'smooth'
+        });
+      });
     }
-  }, [scrollToBottom]);
+  }, []);
 
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
