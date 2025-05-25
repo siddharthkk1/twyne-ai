@@ -12,8 +12,12 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   }, []);
 
   const handleScroll = useCallback(() => {
-    const el = scrollViewportRef.current;
-    if (!el) return;
+  const el = scrollViewportRef.current;
+  if (!el) return;
+
+  const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+  setIsUserNearBottom(distanceFromBottom < 100); // ✅ threshold is good
+}, []);
 
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     setIsUserNearBottom(distanceFromBottom < 100); // 100px leeway

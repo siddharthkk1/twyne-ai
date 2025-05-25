@@ -28,32 +28,33 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   };
 
   useEffect(() => {
-    if (message.sender === "ai") {
-      setVisibleParts([0]);
-      onMessagePartVisible?.();
+  if (message.sender === "ai") {
+    setVisibleParts([0]);
 
-      messageParts.forEach((_, index) => {
-        if (index > 0) {
-          const baseDelay = 500 + Math.floor(Math.random() * 200);
-          const incrementDelay = 500 + Math.floor(Math.random() * 200);
-          const delay = baseDelay + (index * incrementDelay);
+    const base = 500;
+    const increment = 500;
 
-          setTimeout(() => {
-            setVisibleParts(prev => {
-              const updated = [...prev, index];
-              requestAnimationFrame(() => {
-                onMessagePartVisible?.();
-              });
-              return updated;
+    messageParts.forEach((_, index) => {
+      if (index > 0) {
+        const delay = base + increment * index;
+
+        setTimeout(() => {
+          setVisibleParts(prev => [...prev, index]);
+
+          if (index === messageParts.length - 1) {
+            requestAnimationFrame(() => {
+              onMessagePartVisible?.(); // only scroll on last part
             });
-          }, delay);
-        }
-      });
-    } else {
-      setVisibleParts([...Array(messageParts.length).keys()]);
-      onMessagePartVisible?.();
-    }
-  }, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
+          }
+        }, delay);
+      }
+    });
+  } else {
+    setVisibleParts([...Array(messageParts.length).keys()]);
+    onMessagePartVisible?.(); // Show all at once for user message
+  }
+}, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
+
 
   const allMessageParts = messageParts.map((part, index) => {
   const isVisible = visibleParts.includes(index);
