@@ -57,7 +57,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const allMessageParts = messageParts.map((part, index) => {
   const isVisible = visibleParts.includes(index);
-  if (!isVisible) return null; // 🚨 Only render if visible
+  if (!isVisible) return null; // ✅ Only render when visible
 
   const personalizedText = message.sender === "ai" ? personalizeMessage(part) : part;
 
@@ -97,6 +97,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     </div>
   );
 });
+
 
   return <>{allMessageParts}</>;
 };
