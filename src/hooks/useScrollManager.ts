@@ -7,13 +7,11 @@ export const useScrollManager = (messages: Message[]) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   const lastMessageCountRef = useRef(0);
-  const lastMessageContentRef = useRef<string>('');
-  const isScrollingRef = useRef(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   const userScrolledAwayRef = useRef(false);
   const lastUserScrollTimeRef = useRef(0);
+  const isAutoScrollingRef = useRef(false);
 
-  // Check if user is near bottom
+  // Check if user is near bottom (within 100px)
   const checkIfNearBottom = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return false;
@@ -23,138 +21,97 @@ export const useScrollManager = (messages: Message[]) => {
     return distanceFromBottom <= 100;
   }, []);
 
-  // Debounced scroll handler
-  const handleScroll = useCallback(() => {
-    if (isScrollingRef.current) return;
-    
-    // Track when user manually scrolled
-    lastUserScrollTimeRef.current = Date.now();
-    
-    // Clear existing timeout
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    
-    // Debounce the scroll check
-    scrollTimeoutRef.current = setTimeout(() => {
-      const nearBottom = checkIfNearBottom();
-      setIsUserNearBottom(nearBottom);
-      
-      // Track if user manually scrolled away from bottom
-      if (!nearBottom) {
-        userScrolledAwayRef.current = true;
-      } else {
-        userScrolledAwayRef.current = false;
-      }
-    }, 50);
-  }, [checkIfNearBottom]);
-
-  // Force scroll to bottom - immediate and synchronous
+  // Force scroll to bottom immediately and synchronously
   const forceScrollToBottom = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    isScrollingRef.current = true;
+    isAutoScrollingRef.current = true;
     container.scrollTop = container.scrollHeight;
     
-    // Reset scrolling flag immediately
-    requestAnimationFrame(() => {
-      isScrollingRef.current = false;
-    });
+    // Reset flag after a brief moment
+    setTimeout(() => {
+      isAutoScrollingRef.current = false;
+    }, 100);
   }, []);
 
-  // Handle new messages (when message count increases)
+  // Handle manual scroll events
+  const handleScroll = useCallback(() => {
+    if (isAutoScrollingRef.current) return;
+    
+    lastUserScrollTimeRef.current = Date.now();
+    
+    const nearBottom = checkIfNearBottom();
+    setIsUserNearBottom(nearBottom);
+    
+    if (!nearBottom) {
+      userScrolledAwayRef.current = true;
+    } else {
+      userScrolledAwayRef.current = false;
+    }
+  }, [checkIfNearBottom]);
+
+  // Pre-scroll before new messages appear
+  const prepareForNewMessage = useCallback((isUserMessage: boolean) => {
+    if (isUserMessage) {
+      // For user messages: ALWAYS scroll to bottom immediately
+      setIsUserNearBottom(true);
+      userScrolledAwayRef.current = false;
+      
+      // Scroll BEFORE the message is added to DOM
+      requestAnimationFrame(() => {
+        forceScrollToBottom();
+      });
+    } else {
+      // For AI messages: only if user is anchored and hasn't scrolled recently
+      const timeSinceUserScroll = Date.now() - lastUserScrollTimeRef.current;
+      const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceUserScroll > 1000;
+      
+      if (shouldAutoScroll) {
+        requestAnimationFrame(() => {
+          forceScrollToBottom();
+        });
+      }
+    }
+  }, [forceScrollToBottom, isUserNearBottom]);
+
+  // Handle new messages being added
   useEffect(() => {
     const currentMessageCount = messages.length;
     const previousMessageCount = lastMessageCountRef.current;
     
     if (currentMessageCount > previousMessageCount) {
-      const lastMessage = messages[messages.length - 1];
+      const newMessage = messages[messages.length - 1];
       
-      if (lastMessage?.sender === 'user') {
-        // For user messages: Always instantly scroll to bottom
-        setIsUserNearBottom(true);
-        userScrolledAwayRef.current = false;
-        lastUserScrollTimeRef.current = 0;
+      if (newMessage?.sender === 'user') {
+        // User message: immediate scroll
+        prepareForNewMessage(true);
         
-        // Force immediate scroll - no conditions
-        forceScrollToBottom();
-        
-        // Double-ensure after render
-        requestAnimationFrame(() => {
+        // Double-ensure after DOM update
+        setTimeout(() => {
           forceScrollToBottom();
-        });
-      } else if (lastMessage?.sender === 'ai') {
-        // For AI messages: Only scroll if user is near bottom and hasn't manually scrolled recently
-        const timeSinceLastUserScroll = Date.now() - lastUserScrollTimeRef.current;
-        const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceLastUserScroll > 1000;
-        
-        if (shouldAutoScroll) {
-          // Pre-scroll before AI message renders
-          requestAnimationFrame(() => {
-            forceScrollToBottom();
-          });
-        }
+        }, 50);
+      } else if (newMessage?.sender === 'ai') {
+        // AI message: conditional scroll
+        prepareForNewMessage(false);
       }
     }
     
     lastMessageCountRef.current = currentMessageCount;
-  }, [messages.length, forceScrollToBottom, isUserNearBottom]);
+  }, [messages.length, prepareForNewMessage, forceScrollToBottom]);
 
-  // Handle AI message content changes (for message parts)
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      const currentContent = lastMessage?.text || '';
-      const previousContent = lastMessageContentRef.current;
-      
-      // Only handle if content actually changed and it's an AI message
-      if (currentContent !== previousContent && lastMessage?.sender === 'ai') {
-        const currentParts = currentContent.split("||").length;
-        const previousParts = previousContent.split("||").length;
-        
-        // New message part appeared
-        if (currentParts > previousParts) {
-          const timeSinceLastUserScroll = Date.now() - lastUserScrollTimeRef.current;
-          const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceLastUserScroll > 1000;
-          
-          if (shouldAutoScroll) {
-            // Immediately scroll for each new part
-            requestAnimationFrame(() => {
-              forceScrollToBottom();
-            });
-          }
-        }
-      }
-      
-      lastMessageContentRef.current = currentContent;
-    }
-  }, [messages, forceScrollToBottom, isUserNearBottom]);
-
-  // Smooth scroll to bottom for manual calls
-  const scrollToBottomSmooth = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    // Only scroll if user hasn't manually scrolled recently
-    const timeSinceLastUserScroll = Date.now() - lastUserScrollTimeRef.current;
-    if (timeSinceLastUserScroll < 1000) return;
-
-    // Only scroll if user is near bottom and hasn't manually scrolled away
-    if (isUserNearBottom && !userScrolledAwayRef.current) {
-      isScrollingRef.current = true;
-      
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth'
+  // Handle AI message parts appearing (for MessageBubble animation)
+  const handleMessagePartVisible = useCallback(() => {
+    const timeSinceUserScroll = Date.now() - lastUserScrollTimeRef.current;
+    const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceUserScroll > 1000;
+    
+    if (shouldAutoScroll) {
+      // Use layout effect timing for message parts
+      requestAnimationFrame(() => {
+        forceScrollToBottom();
       });
-      
-      // Reset scrolling flag after animation
-      setTimeout(() => {
-        isScrollingRef.current = false;
-      }, 300);
     }
-  }, [isUserNearBottom]);
+  }, [forceScrollToBottom, isUserNearBottom]);
 
   // Reset scroll state
   const resetScrollState = useCallback(() => {
@@ -164,21 +121,14 @@ export const useScrollManager = (messages: Message[]) => {
     forceScrollToBottom();
   }, [forceScrollToBottom]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
-
   return {
     scrollContainerRef,
     messagesEndRef,
     isUserNearBottom,
     handleScroll,
-    scrollToBottom: scrollToBottomSmooth,
-    resetScrollState
+    scrollToBottom: forceScrollToBottom,
+    resetScrollState,
+    handleMessagePartVisible,
+    prepareForNewMessage
   };
 };

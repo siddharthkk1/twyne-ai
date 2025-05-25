@@ -139,7 +139,9 @@ export const useOnboardingChat = () => {
     isUserNearBottom,
     handleScroll,
     scrollToBottom,
-    resetScrollState
+    resetScrollState,
+    handleMessagePartVisible,
+    prepareForNewMessage
   } = useScrollManager(messages);
 
   // Hide guidance info after user sends first message
@@ -251,6 +253,9 @@ export const useOnboardingChat = () => {
   const handleSend = (message?: string) => {
     const textToSend = message || input;
     if (!textToSend.trim()) return;
+
+    // Prepare scroll BEFORE adding user message
+    prepareForNewMessage(true);
 
     const userMessageCount = conversation.userAnswers.length;
     
@@ -435,6 +440,7 @@ export const useOnboardingChat = () => {
     dashboardRef: useRef<HTMLDivElement>(null),
     handleScroll,
     resetScrollState,
-    isUserNearBottom
+    isUserNearBottom,
+    handleMessagePartVisible
   };
 };

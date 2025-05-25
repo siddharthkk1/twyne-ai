@@ -8,12 +8,14 @@ interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
   userName?: string;
+  onMessagePartVisible?: () => void;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ 
   message, 
   nameInitial,
-  userName
+  userName,
+  onMessagePartVisible
 }) => {
   const messageParts = message.sender === "ai" 
     ? message.text.split("||") 
@@ -37,7 +39,19 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         if (index > 0) {
           const delay = base + increment * index;
           setTimeout(() => {
-            setVisibleParts(prev => [...prev, index]);
+            setVisibleParts(prev => {
+              const newParts = [...prev, index];
+              
+              // Trigger scroll for each new part
+              if (onMessagePartVisible) {
+                // Use requestAnimationFrame to ensure DOM is updated
+                requestAnimationFrame(() => {
+                  onMessagePartVisible();
+                });
+              }
+              
+              return newParts;
+            });
           }, delay);
         }
       });
@@ -45,7 +59,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       // For user messages, show all parts immediately
       setVisibleParts([...Array(messageParts.length).keys()]);
     }
-  }, [message.id, messageParts.length, message.sender]);
+  }, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
 
   const allMessageParts = messageParts.map((part, index) => {
     const isVisible = visibleParts.includes(index);

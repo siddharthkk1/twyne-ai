@@ -43,6 +43,7 @@ interface ChatContainerProps {
   handleScroll: () => void;
   resetScrollState: () => void;
   isUserNearBottom?: boolean;
+  handleMessagePartVisible?: () => void;
 }
 
 const ChatContainer = ({
@@ -78,7 +79,8 @@ const ChatContainer = ({
   dashboardRef,
   handleScroll,
   resetScrollState,
-  isUserNearBottom = true
+  isUserNearBottom = true,
+  handleMessagePartVisible
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
@@ -91,28 +93,20 @@ const ChatContainer = ({
       
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
+        className="flex-1 overflow-y-scroll px-4 pt-4 max-w-3xl mx-auto w-full chat-scroll-container"
         onScroll={handleScroll}
         style={{
-          scrollbarWidth: isUserNearBottom ? 'none' : 'thin',
-          msOverflowStyle: isUserNearBottom ? 'none' : 'auto'
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
         }}
       >
         <style>{`
-          .chat-container::-webkit-scrollbar {
-            display: ${isUserNearBottom ? 'none' : 'block'};
-            width: 6px;
-          }
-          .chat-container::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .chat-container::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.2);
-            border-radius: 3px;
+          .chat-scroll-container::-webkit-scrollbar {
+            display: none;
           }
         `}</style>
         
-        <div className="space-y-4 pt-8 pb-6 max-w-3xl mx-auto chat-container">
+        <div className="space-y-4 pt-8 pb-6 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 
@@ -135,6 +129,7 @@ const ChatContainer = ({
                   message={message} 
                   nameInitial={getNameInitial()}
                   userName={userName}
+                  onMessagePartVisible={handleMessagePartVisible}
                 />
               ))}
             </>
