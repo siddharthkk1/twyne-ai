@@ -98,7 +98,7 @@ const ChatContainer = ({
           msOverflowStyle: 'none'
         }}
       >
-        <style jsx>{`
+        <style>{`
           .custom-scrollbar::-webkit-scrollbar {
             display: none;
           }
