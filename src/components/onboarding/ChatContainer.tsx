@@ -96,7 +96,7 @@ const ChatContainer = ({
         className="flex-1 overflow-y-auto no-scrollbar px-4 pt-4 max-w-3xl mx-auto w-full"
         style={{ overflowAnchor: "auto" }}
       >
-        <div className="flex flex-col-reverse gap-4 pb-8">
+        <div className="flex flex-col gap-4 pb-8">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 
