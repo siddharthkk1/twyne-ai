@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Message } from '@/types/chat';
 
@@ -10,14 +11,15 @@ export const useAutoScroll = (
   useEffect(() => {
     if (!scrollViewportRef.current || !messagesEndRef.current) return;
 
-    // Only scroll if user is near bottom AND the last message is from the user
     const lastMessage = messages[messages.length - 1];
     const isUserMessage = lastMessage?.sender === "user";
 
-    if (isUserNearBottom || isUserMessage) {
+    // Always scroll to bottom when user sends a message
+    // OR when user is near bottom and AI responds
+    if (isUserMessage || isUserNearBottom) {
       requestAnimationFrame(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
       });
     }
-  }, [messages.length]);
+  }, [messages.length, isUserNearBottom]);
 };
