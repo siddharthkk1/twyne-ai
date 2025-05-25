@@ -18,11 +18,14 @@ export const useAutoScroll = (
     // OR when user is near bottom and AI responds (smooth scroll)
     if (isUserMessage) {
       // Instant scroll to bottom for user messages
-      messagesEndRef.current.scrollIntoView({ behavior: "auto", block: "end" });
+      const viewport = scrollViewportRef.current;
+      viewport.scrollTop = viewport.scrollHeight;
     } else if (isUserNearBottom) {
       // Smooth scroll for AI responses when user is near bottom
-      requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      const viewport = scrollViewportRef.current;
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: 'smooth'
       });
     }
   }, [messages.length, isUserNearBottom]);

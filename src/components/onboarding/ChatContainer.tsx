@@ -90,11 +90,10 @@ const ChatContainer = ({
         showGuidanceInfo={showGuidanceInfo}
       />
       
-      <div
-        ref={scrollViewportRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-hide"
-        style={{ overflowAnchor: "auto" }}
+      <ScrollArea 
+        className="flex-1 px-4 pt-4 max-w-3xl mx-auto w-full"
+        viewportRef={scrollViewportRef}
+        onViewportScroll={handleScroll}
       >
         <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
@@ -141,9 +140,9 @@ const ChatContainer = ({
             </div>
           )}
           
-          <div ref={messagesEndRef} style={{ overflowAnchor: "none" }} className="h-1" />
+          <div ref={messagesEndRef} className="h-1" />
         </div>
-      </div>
+      </ScrollArea>
       
       <div className="border-t p-4 w-full max-w-3xl mx-auto">
         <InputContainer
