@@ -12,6 +12,7 @@ export const useScrollManager = (messages: Message[]) => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   const userScrolledAwayRef = useRef(false);
   const lastUserScrollTimeRef = useRef(0);
+  const lastAIMessagePartsRef = useRef(0);
 
   // Check if user is near bottom
   const checkIfNearBottom = useCallback(() => {
@@ -49,7 +50,7 @@ export const useScrollManager = (messages: Message[]) => {
     }, 50);
   }, [checkIfNearBottom]);
 
-  // Instant scroll to bottom for user messages and AI message preparation
+  // Instant scroll to bottom - synchronous
   const scrollToBottomInstant = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -63,8 +64,8 @@ export const useScrollManager = (messages: Message[]) => {
     }, 10);
   }, []);
 
-  // Pre-scroll for AI messages to ensure they appear in view
-  const preScrollForAIMessage = useCallback(() => {
+  // Pre-scroll before AI message appears - this ensures message renders in correct position
+  const preScrollBeforeAIMessage = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -73,17 +74,99 @@ export const useScrollManager = (messages: Message[]) => {
     if (isUserNearBottom && !userScrolledAwayRef.current && timeSinceLastUserScroll > 500) {
       isScrollingRef.current = true;
       
-      // Add extra space to account for incoming message
-      const extraSpace = 200; // Estimated message height
+      // Scroll to bottom plus some extra space for the incoming message
+      const extraSpace = 300; // Buffer for new message
       container.scrollTop = container.scrollHeight + extraSpace;
       
-      setTimeout(() => {
+      // Use requestAnimationFrame to ensure this happens before render
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
         isScrollingRef.current = false;
-      }, 10);
+      });
     }
   }, [isUserNearBottom]);
 
-  // Smooth scroll to bottom for AI messages after they appear
+  // Handle new messages (count changes) - this fires when message count increases
+  useEffect(() => {
+    const currentMessageCount = messages.length;
+    const previousMessageCount = lastMessageCountRef.current;
+    
+    if (currentMessageCount > previousMessageCount) {
+      const lastMessage = messages[messages.length - 1];
+      
+      if (lastMessage?.sender === 'user') {
+        // For user messages: instantly scroll and anchor at bottom
+        setIsUserNearBottom(true);
+        userScrolledAwayRef.current = false;
+        lastUserScrollTimeRef.current = 0;
+        
+        // Immediate scroll for user messages
+        scrollToBottomInstant();
+        
+        // Ensure we stay at bottom after message renders
+        requestAnimationFrame(() => {
+          scrollToBottomInstant();
+        });
+      } else if (lastMessage?.sender === 'ai') {
+        // For AI messages: pre-scroll BEFORE the message renders
+        preScrollBeforeAIMessage();
+        
+        // Reset AI message parts counter for new message
+        lastAIMessagePartsRef.current = 0;
+        const currentParts = lastMessage.text.split("||").length;
+        lastAIMessagePartsRef.current = currentParts;
+        
+        // Ensure proper positioning after render
+        requestAnimationFrame(() => {
+          const container = scrollContainerRef.current;
+          if (container && isUserNearBottom && !userScrolledAwayRef.current) {
+            const timeSinceLastUserScroll = Date.now() - lastUserScrollTimeRef.current;
+            if (timeSinceLastUserScroll > 500) {
+              container.scrollTop = container.scrollHeight;
+            }
+          }
+        });
+      }
+    }
+    
+    lastMessageCountRef.current = currentMessageCount;
+  }, [messages.length, scrollToBottomInstant, preScrollBeforeAIMessage, isUserNearBottom]);
+
+  // Handle AI message content changes (for message parts) - this fires when AI message content changes
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      const currentContent = lastMessage?.text || '';
+      const previousContent = lastMessageContentRef.current;
+      
+      // Only handle if content actually changed and it's an AI message
+      if (currentContent !== previousContent && lastMessage?.sender === 'ai') {
+        const currentParts = currentContent.split("||").length;
+        const previousParts = previousContent.split("||").length;
+        
+        // New message part appeared
+        if (currentParts > previousParts) {
+          // Pre-scroll before new part renders
+          preScrollBeforeAIMessage();
+          
+          // Ensure proper positioning after new part renders
+          requestAnimationFrame(() => {
+            const container = scrollContainerRef.current;
+            if (container && isUserNearBottom && !userScrolledAwayRef.current) {
+              const timeSinceLastUserScroll = Date.now() - lastUserScrollTimeRef.current;
+              if (timeSinceLastUserScroll > 500) {
+                container.scrollTop = container.scrollHeight;
+              }
+            }
+          });
+        }
+      }
+      
+      lastMessageContentRef.current = currentContent;
+    }
+  }, [messages, preScrollBeforeAIMessage, isUserNearBottom]);
+
+  // Smooth scroll to bottom for manual calls
   const scrollToBottomSmooth = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -107,67 +190,6 @@ export const useScrollManager = (messages: Message[]) => {
       }, 300);
     }
   }, [isUserNearBottom]);
-
-  // Handle new messages (count changes)
-  useEffect(() => {
-    const currentMessageCount = messages.length;
-    const previousMessageCount = lastMessageCountRef.current;
-    
-    if (currentMessageCount > previousMessageCount) {
-      const lastMessage = messages[messages.length - 1];
-      
-      if (lastMessage?.sender === 'user') {
-        // For user messages: instantly scroll and anchor at bottom
-        setIsUserNearBottom(true);
-        userScrolledAwayRef.current = false;
-        lastUserScrollTimeRef.current = 0;
-        
-        // Pre-scroll before message renders
-        scrollToBottomInstant();
-        
-        // Ensure we stay at bottom after message renders
-        setTimeout(() => {
-          scrollToBottomInstant();
-        }, 10);
-      } else if (lastMessage?.sender === 'ai') {
-        // For AI messages: pre-scroll immediately, then smooth scroll after render
-        preScrollForAIMessage();
-        
-        // Use requestAnimationFrame to ensure scroll happens before paint
-        requestAnimationFrame(() => {
-          scrollToBottomSmooth();
-        });
-      }
-    }
-    
-    lastMessageCountRef.current = currentMessageCount;
-  }, [messages.length, scrollToBottomInstant, preScrollForAIMessage, scrollToBottomSmooth]);
-
-  // Handle AI message content changes (for message parts)
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      const currentContent = lastMessage?.text || '';
-      const previousContent = lastMessageContentRef.current;
-      
-      // Only scroll if content actually changed and it's an AI message
-      if (currentContent !== previousContent && lastMessage?.sender === 'ai') {
-        // Only scroll if user is near bottom and hasn't manually scrolled away recently
-        const timeSinceLastUserScroll = Date.now() - lastUserScrollTimeRef.current;
-        if (isUserNearBottom && !userScrolledAwayRef.current && timeSinceLastUserScroll > 500) {
-          // Pre-scroll for new message part
-          preScrollForAIMessage();
-          
-          // Use requestAnimationFrame to ensure scroll happens before paint
-          requestAnimationFrame(() => {
-            scrollToBottomSmooth();
-          });
-        }
-      }
-      
-      lastMessageContentRef.current = currentContent;
-    }
-  }, [messages, preScrollForAIMessage, scrollToBottomSmooth, isUserNearBottom]);
 
   // Reset scroll state
   const resetScrollState = useCallback(() => {
