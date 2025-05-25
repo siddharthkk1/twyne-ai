@@ -20,9 +20,12 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   }, []);
 
   const resetScrollState = useCallback(() => {
-    setIsUserNearBottom(true);
-    scrollToBottom("auto"); // instant scroll
-  }, [scrollToBottom]);
+  setIsUserNearBottom(true);
+  requestAnimationFrame(() => {
+    scrollToBottom("auto"); // anchors to bottom after render
+  });
+}, [scrollToBottom]);
+
 
     const handleMessagePartVisible = useCallback(() => {
     const el = scrollViewportRef.current;
