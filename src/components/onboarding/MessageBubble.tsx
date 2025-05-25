@@ -56,46 +56,47 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   }, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
 
   const allMessageParts = messageParts.map((part, index) => {
-    const isVisible = visibleParts.includes(index);
-    const personalizedText = message.sender === "ai" ? personalizeMessage(part) : part;
+  const isVisible = visibleParts.includes(index);
+  if (!isVisible) return null; // 🚨 Only render if visible
 
-    return (
-      <div
-        key={`${message.id}-${index}`}
-        className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
-      >
-        {message.sender === "ai" && (
-          <div className="mr-2 mt-1 flex-shrink-0">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="text-primary text-xs font-medium p-0">
-                <TwyneOrb size={24} />
-              </AvatarFallback>
-            </Avatar>
-          </div>
-        )}
-        <div
-          className={`
-            ${message.sender === "user"
-              ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto shadow-lg"
-              : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
-            }
-            rounded-2xl p-4 max-w-[85%] md:max-w-[70%]
-            transition-opacity duration-300
-            ${isVisible ? "opacity-100 visible" : "opacity-0 invisible"}
-          `}
-        >
-          {personalizedText.trim()}
+  const personalizedText = message.sender === "ai" ? personalizeMessage(part) : part;
+
+  return (
+    <div
+      key={`${message.id}-${index}`}
+      className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
+    >
+      {message.sender === "ai" && (
+        <div className="mr-2 mt-1 flex-shrink-0">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="text-primary text-xs font-medium p-0">
+              <TwyneOrb size={24} />
+            </AvatarFallback>
+          </Avatar>
         </div>
-        {message.sender === "user" && (
-          <div className="ml-2 mt-1 flex-shrink-0">
-            <Avatar className="h-8 w-8 bg-muted">
-              <AvatarFallback>{nameInitial}</AvatarFallback>
-            </Avatar>
-          </div>
-        )}
+      )}
+      <div
+        className={`
+          ${message.sender === "user"
+            ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto shadow-lg"
+            : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
+          }
+          rounded-2xl p-4 max-w-[85%] md:max-w-[70%]
+          transition-opacity duration-300 opacity-100
+        `}
+      >
+        {personalizedText.trim()}
       </div>
-    );
-  });
+      {message.sender === "user" && (
+        <div className="ml-2 mt-1 flex-shrink-0">
+          <Avatar className="h-8 w-8 bg-muted">
+            <AvatarFallback>{nameInitial}</AvatarFallback>
+          </Avatar>
+        </div>
+      )}
+    </div>
+  );
+});
 
   return <>{allMessageParts}</>;
 };
