@@ -57,16 +57,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const allMessageParts = messageParts.map((part, index) => {
   const isVisible = visibleParts.includes(index);
-  if (!isVisible) return null; // ✅ Only render when visible
+  if (!isVisible) return null;
 
   const personalizedText = message.sender === "ai" ? personalizeMessage(part) : part;
+
+  const showAvatar = message.sender === "ai" && index === 0; // ✅ Only show avatar once
 
   return (
     <div
       key={`${message.id}-${index}`}
       className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
     >
-      {message.sender === "ai" && (
+      {showAvatar && (
         <div className="mr-2 mt-1 flex-shrink-0">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="text-primary text-xs font-medium p-0">
@@ -87,7 +89,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       >
         {personalizedText.trim()}
       </div>
-      {message.sender === "user" && (
+      {message.sender === "user" && index === 0 && (
         <div className="ml-2 mt-1 flex-shrink-0">
           <Avatar className="h-8 w-8 bg-muted">
             <AvatarFallback>{nameInitial}</AvatarFallback>

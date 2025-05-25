@@ -4,15 +4,12 @@ import { Message } from '@/types/chat';
 export const useAutoScroll = (
   messagesEndRef: React.RefObject<HTMLDivElement>,
   scrollViewportRef: React.RefObject<HTMLDivElement>,
-  messages: Message[],
-  isUserNearBottom: boolean
+  messages: Message[]
 ) => {
   useEffect(() => {
-    if (!scrollViewportRef.current || !messagesEndRef.current || !isUserNearBottom) return;
-
-    // Wait until layout settles, then scroll
+    if (!messagesEndRef.current) return;
     requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     });
-  }, [messages.length, isUserNearBottom]);
+  }, [messages.length]);
 };
