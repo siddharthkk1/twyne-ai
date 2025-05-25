@@ -8,11 +8,16 @@ export const useAutoScroll = (
   isUserNearBottom: boolean
 ) => {
   useEffect(() => {
-    if (!scrollViewportRef.current || !messagesEndRef.current || !isUserNearBottom) return;
+    if (!scrollViewportRef.current || !messagesEndRef.current) return;
 
-    // Wait until layout settles, then scroll
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
-    });
-  }, [messages.length, isUserNearBottom]);
+    // Only scroll if user is near bottom AND the last message is from the user
+    const lastMessage = messages[messages.length - 1];
+    const isUserMessage = lastMessage?.sender === "user";
+
+    if (isUserNearBottom || isUserMessage) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    }
+  }, [messages.length]);
 };
