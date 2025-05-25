@@ -113,7 +113,7 @@ const ChatContainer = ({
             </div>
           ) : (
             <>
-              {messages.slice().reverse().map((message) => (
+              {messages.map((message) => (
                 <MessageBubble 
                   key={message.id}
                   message={message} 
