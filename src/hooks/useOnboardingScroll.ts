@@ -25,10 +25,19 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   }, [scrollToBottom]);
 
   const handleMessagePartVisible = useCallback(() => {
-    if (isUserNearBottom) {
-      scrollToBottom();
-    }
-  }, [scrollToBottom, isUserNearBottom]);
+  if (!scrollViewportRef.current || !messagesEndRef.current) return;
+
+  const el = scrollViewportRef.current;
+  const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+  // Only scroll if we're near the bottom already (within 100px)
+  if (distanceFromBottom < 100) {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+  }
+}, []);
+
 
   useEffect(() => {
     if (isComplete && dashboardRef.current) {
