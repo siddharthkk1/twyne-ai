@@ -31,6 +31,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   useEffect(() => {
     if (message.sender === "ai") {
       setVisibleParts([0]);
+      
+      // Trigger scroll for the first part immediately
+      setTimeout(() => {
+        onMessagePartVisible?.();
+      }, 100);
 
       const base = 500;
       const increment = 500;
@@ -42,21 +47,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           setTimeout(() => {
             setVisibleParts(prev => [...prev, index]);
 
-            // Call onMessagePartVisible after each part becomes visible
-            // This will trigger smooth scrolling for each new part
-            requestAnimationFrame(() => {
+            // Trigger scroll for each new part with a small delay to ensure DOM update
+            setTimeout(() => {
               onMessagePartVisible?.();
-            });
+            }, 50);
           }, delay);
         }
       });
     } else {
       // For user messages, show all parts immediately
       setVisibleParts([...Array(messageParts.length).keys()]);
-      // Trigger scroll immediately for user messages
-      requestAnimationFrame(() => {
-        onMessagePartVisible?.();
-      });
+      // No need to trigger scroll here - the auto-scroll hook handles user messages
     }
   }, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
 

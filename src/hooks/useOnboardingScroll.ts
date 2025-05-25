@@ -8,6 +8,7 @@ export const useOnboardingScroll = (isComplete: boolean, messages: Message[]) =>
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
     const viewport = scrollViewportRef.current;
@@ -29,17 +30,27 @@ export const useOnboardingScroll = (isComplete: boolean, messages: Message[]) =>
     const viewport = scrollViewportRef.current;
     if (!viewport) return;
 
-    const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
-    setIsUserNearBottom(distanceFromBottom < 100); // 100px leeway
+    const { scrollTop, scrollHeight, clientHeight } = viewport;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    
+    // Consider "near bottom" if within 50px of bottom
+    const nearBottom = distanceFromBottom < 50;
+    setIsUserNearBottom(nearBottom);
+    
+    // If user manually scrolled up significantly, disable auto-scroll
+    if (distanceFromBottom > 100) {
+      setShouldAutoScroll(false);
+    } else if (nearBottom) {
+      setShouldAutoScroll(true);
+    }
   }, []);
 
   const handleMessagePartVisible = useCallback(() => {
-    const viewport = scrollViewportRef.current;
-    if (!viewport) return;
-  
-    const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
-  
-    if (distanceFromBottom < 100) {
+    // Only auto-scroll if user is near bottom and hasn't disabled auto-scroll
+    if (shouldAutoScroll && isUserNearBottom) {
+      const viewport = scrollViewportRef.current;
+      if (!viewport) return;
+
       requestAnimationFrame(() => {
         viewport.scrollTo({
           top: viewport.scrollHeight,
@@ -47,10 +58,11 @@ export const useOnboardingScroll = (isComplete: boolean, messages: Message[]) =>
         });
       });
     }
-  }, []);
+  }, [shouldAutoScroll, isUserNearBottom]);
 
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
+    setShouldAutoScroll(true);
   }, []);
 
   useEffect(() => {
@@ -65,6 +77,8 @@ export const useOnboardingScroll = (isComplete: boolean, messages: Message[]) =>
     dashboardRef,
     isUserNearBottom,
     setIsUserNearBottom,
+    shouldAutoScroll,
+    setShouldAutoScroll,
     scrollToBottom,
     handleScroll,
     resetScrollState,

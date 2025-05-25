@@ -138,14 +138,16 @@ export const useOnboardingChat = () => {
     dashboardRef,
     isUserNearBottom,
     setIsUserNearBottom,
+    shouldAutoScroll,
+    setShouldAutoScroll,
     scrollToBottom,
     handleScroll,
     resetScrollState,
     handleMessagePartVisible
   } = useOnboardingScroll(isComplete, messages);
 
-  // Use the new auto-scroll hook instead of manual useEffect
-  useAutoScroll(messagesEndRef, scrollViewportRef, messages, isUserNearBottom);
+  // Use the new auto-scroll hook with shouldAutoScroll instead of isUserNearBottom
+  useAutoScroll(messagesEndRef, scrollViewportRef, messages, shouldAutoScroll);
 
   // Hide guidance info after user sends first message
   useEffect(() => {
@@ -317,7 +319,8 @@ export const useOnboardingChat = () => {
       };
       
       setConversation(updatedConversation);
-      resetScrollState();
+      // Ensure auto-scroll is enabled for this flow
+      setShouldAutoScroll(true);
       return;
     }
 
@@ -343,8 +346,6 @@ export const useOnboardingChat = () => {
         role: "user" as ChatRole, 
         content: textToSend 
       };
-      
-
 
       const finalConversation = {
         messages: [
@@ -359,7 +360,8 @@ export const useOnboardingChat = () => {
       
       // Complete the onboarding process
       completeOnboarding(finalConversation);
-      resetScrollState();
+      // Ensure auto-scroll is enabled for this flow
+      setShouldAutoScroll(true);
       return;
     }
 
@@ -374,8 +376,8 @@ export const useOnboardingChat = () => {
     setInput("");
     setIsTyping(true);
     
-    // Always scroll to bottom when user sends a message
-    resetScrollState();
+    // Always enable auto-scroll when user sends a message
+    setShouldAutoScroll(true);
 
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));

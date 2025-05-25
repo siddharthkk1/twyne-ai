@@ -95,7 +95,7 @@ const ChatContainer = ({
         viewportRef={scrollViewportRef}
         onViewportScroll={handleScroll}
       >
-        <div className="space-y-4 pt-8 pb-0 max-w-3xl mx-auto">
+        <div className="space-y-4 pt-8 pb-6 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 
