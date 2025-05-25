@@ -90,7 +90,7 @@ const ChatContainer = ({
       
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-scroll px-4 pt-4 max-w-3xl mx-auto w-full"
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         onScroll={handleScroll}
         style={{
           scrollbarWidth: isUserNearBottom ? 'none' : 'thin',
@@ -110,7 +110,7 @@ const ChatContainer = ({
           }
         `}</style>
         
-        <div className="space-y-4 pt-8 pb-6 max-w-3xl mx-auto">
+        <div className="space-y-4 pt-8 pb-24 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
             <PromptModeSelector 
@@ -154,9 +154,6 @@ const ChatContainer = ({
               </p>
             </div>
           )}
-          
-          {/* Bottom padding to ensure last message is fully visible */}
-          <div className="h-4" />
         </div>
       </div>
       

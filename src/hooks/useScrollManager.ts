@@ -20,16 +20,16 @@ export const useScrollManager = (messages: Message[]) => {
     return distanceFromBottom <= 100;
   }, []);
 
-  // Scroll to bottom immediately and synchronously
+  // Force scroll to bottom with proper timing
   const scrollToBottom = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     isAutoScrollingRef.current = true;
-    container.scrollTop = container.scrollHeight;
     
-    // Reset auto-scroll flag after DOM settles
+    // Use requestAnimationFrame to ensure DOM is updated
     requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
       isAutoScrollingRef.current = false;
     });
   }, []);
@@ -51,16 +51,25 @@ export const useScrollManager = (messages: Message[]) => {
     }
   }, [checkIfNearBottom]);
 
-  // Pre-position for new messages - this is the key to iMessage-like behavior
+  // Pre-position for new messages
   const prepareForNewMessage = useCallback((isUserMessage: boolean) => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     if (isUserMessage) {
-      // For user messages: ALWAYS pre-scroll to bottom BEFORE message is added
+      // For user messages: ALWAYS scroll to bottom immediately
       setIsUserNearBottom(true);
       userScrolledAwayRef.current = false;
-      scrollToBottom();
+      
+      // Scroll immediately before the message is added
+      isAutoScrollingRef.current = true;
+      container.scrollTop = container.scrollHeight;
+      
+      // Then scroll again after the DOM updates to account for new content
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+        isAutoScrollingRef.current = false;
+      });
     } else {
       // For AI messages: only if user is anchored and hasn't scrolled recently
       const timeSinceUserScroll = Date.now() - lastUserScrollTimeRef.current;
@@ -78,7 +87,6 @@ export const useScrollManager = (messages: Message[]) => {
     const shouldAutoScroll = isUserNearBottom && !userScrolledAwayRef.current && timeSinceUserScroll > 1000;
     
     if (shouldAutoScroll) {
-      // Scroll immediately when new parts appear
       scrollToBottom();
     }
   }, [isUserNearBottom, scrollToBottom]);
@@ -92,8 +100,16 @@ export const useScrollManager = (messages: Message[]) => {
       const newMessage = messages[currentMessageCount - 1];
       
       if (newMessage?.sender === 'user') {
-        // User message: pre-position immediately
+        // User message: ensure we scroll to bottom after DOM update
         prepareForNewMessage(true);
+        
+        // Additional scroll after a short delay to ensure content is rendered
+        setTimeout(() => {
+          const container = scrollContainerRef.current;
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        }, 50);
       } else if (newMessage?.sender === 'ai') {
         // AI message: conditional scroll
         prepareForNewMessage(false);
