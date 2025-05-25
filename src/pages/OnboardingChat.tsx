@@ -40,26 +40,12 @@ const OnboardingChat = () => {
     setUserName,
     showNameCollection,
     handleNameSubmit,
-    scrollViewportRef,
+    scrollContainerRef,
     dashboardRef,
     handleScroll,
     resetScrollState,
     handleMessagePartVisible
   } = useOnboardingChat();
-
-  // Show name collection step first
-  //if (showNameCollection) {
-  //  return (
-  //    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-  //      <NameCollectionStep onSubmit={handleNameSubmit} />
-  //    </div>
-  //  );
-  //}
-
-  // Show loading screen while initializing
-  //if (isInitializing) {
-  //  return <LoadingScreen />;
-  //}
 
   // Show results when complete
   if (isComplete) {
@@ -106,7 +92,7 @@ const OnboardingChat = () => {
         startSmsConversation={startSmsConversation}
         userName={userName}
         setUserName={setUserName}
-        scrollViewportRef={scrollViewportRef}
+        scrollContainerRef={scrollContainerRef}
         dashboardRef={dashboardRef}
         handleScroll={handleScroll}
         resetScrollState={resetScrollState}

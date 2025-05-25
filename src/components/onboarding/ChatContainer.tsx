@@ -1,6 +1,5 @@
 
 import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
@@ -39,11 +38,11 @@ interface ChatContainerProps {
   startSmsConversation: (phoneNumber: string) => void;
   userName: string;
   setUserName: (value: string) => void;
-  scrollViewportRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement>;
   dashboardRef?: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
   resetScrollState: () => void;
-  handleMessagePartVisible: () => void;
+  handleMessagePartVisible?: () => void;
 }
 
 const ChatContainer = ({
@@ -75,7 +74,7 @@ const ChatContainer = ({
   startSmsConversation,
   userName,
   setUserName,
-  scrollViewportRef,
+  scrollContainerRef,
   dashboardRef,
   handleScroll,
   resetScrollState,
@@ -90,11 +89,21 @@ const ChatContainer = ({
         showGuidanceInfo={showGuidanceInfo}
       />
       
-      <ScrollArea 
-        className="flex-1 px-4 pt-4 max-w-3xl mx-auto w-full"
-        viewportRef={scrollViewportRef}
-        onViewportScroll={handleScroll}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full custom-scrollbar"
+        onScroll={handleScroll}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
       >
+        <style jsx>{`
+          .custom-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        
         <div className="space-y-4 pt-8 pb-6 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
@@ -142,7 +151,7 @@ const ChatContainer = ({
           
           <div ref={messagesEndRef} className="h-1" />
         </div>
-      </ScrollArea>
+      </div>
       
       <div className="border-t p-4 w-full max-w-3xl mx-auto">
         <InputContainer

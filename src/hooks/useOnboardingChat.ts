@@ -7,14 +7,14 @@ import { useSmsConversation } from './useSmsConversation';
 import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
-import { useOnboardingScroll } from './useOnboardingScroll';
-import { useAutoScroll } from './useAutoScroll';
+import { useScrollManager } from './useScrollManager';
 import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
   SYSTEM_PROMPT_PLAYFUL,
   SYSTEM_PROMPT_YOUNG_ADULT
 } from '@/utils/aiUtils';
+import { useRef } from 'react';
 
 // Maximum number of user messages before asking for name and completing
 const MESSAGE_CAP = 15;
@@ -39,7 +39,7 @@ export const useOnboardingChat = () => {
   const [isComplete, setIsComplete] = useState(false);
   const { user, clearNewUserFlag } = useAuth();
   const [showCreateAccountPrompt, setShowCreateAccountPrompt] = useState(true);
-  const [showGuidanceInfo, setShowGuidanceInfo] = useState(true); // Changed to start as true
+  const [showGuidanceInfo, setShowGuidanceInfo] = useState(true);
   const [showNameCollection, setShowNameCollection] = useState(true);
   const [askingForName, setAskingForName] = useState(false);
   
@@ -132,22 +132,24 @@ export const useOnboardingChat = () => {
     MESSAGE_CAP
   );
   
+  // Use the new unified scroll manager
   const {
+    scrollContainerRef,
     messagesEndRef,
-    scrollViewportRef,
-    dashboardRef,
     isUserNearBottom,
-    setIsUserNearBottom,
-    shouldAutoScroll,
-    setShouldAutoScroll,
-    scrollToBottom,
     handleScroll,
-    resetScrollState,
-    handleMessagePartVisible
-  } = useOnboardingScroll(isComplete, messages);
+    scrollToBottom,
+    resetScrollState
+  } = useScrollManager(messages);
 
-  // Use the new auto-scroll hook with shouldAutoScroll instead of isUserNearBottom
-  useAutoScroll(messagesEndRef, scrollViewportRef, messages, shouldAutoScroll);
+  // Create a simple callback for MessageBubble to trigger smooth scrolling
+  const handleMessagePartVisible = () => {
+    if (isUserNearBottom) {
+      requestAnimationFrame(() => {
+        scrollToBottom('smooth');
+      });
+    }
+  };
 
   // Hide guidance info after user sends first message
   useEffect(() => {
@@ -319,8 +321,6 @@ export const useOnboardingChat = () => {
       };
       
       setConversation(updatedConversation);
-      // Ensure auto-scroll is enabled for this flow
-      setShouldAutoScroll(true);
       return;
     }
 
@@ -360,8 +360,6 @@ export const useOnboardingChat = () => {
       
       // Complete the onboarding process
       completeOnboarding(finalConversation);
-      // Ensure auto-scroll is enabled for this flow
-      setShouldAutoScroll(true);
       return;
     }
 
@@ -375,9 +373,6 @@ export const useOnboardingChat = () => {
     setMessages((prev) => [...prev, newUserMessage]);
     setInput("");
     setIsTyping(true);
-    
-    // Always enable auto-scroll when user sends a message
-    setShouldAutoScroll(true);
 
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
@@ -472,8 +467,8 @@ export const useOnboardingChat = () => {
     setUserName,
     showNameCollection,
     handleNameSubmit,
-    scrollViewportRef,
-    dashboardRef,
+    scrollContainerRef,
+    dashboardRef: useRef<HTMLDivElement>(null), // Keep for compatibility
     handleScroll,
     resetScrollState,
     handleMessagePartVisible
