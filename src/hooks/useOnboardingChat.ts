@@ -134,13 +134,11 @@ export const useOnboardingChat = () => {
   // Use the new chat scroll system
   const {
     scrollContainerRef,
-    messagesEndRef,
     isUserNearBottom,
     hasUserScrolled,
     handleScroll,
-    handleNewMessage,
     handleUserMessage,
-    scrollToBottom
+    handleAIMessagePart
   } = useChatScroll();
 
   // Hide guidance info after user sends first message
@@ -258,17 +256,17 @@ export const useOnboardingChat = () => {
     
     // Check if we've reached the message cap and need to ask for name
     if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
-      const newUserMessage: Message = {
-        id: messages.length + 1,
-        text: textToSend,
-        sender: "user",
-      };
+      // Use the new handleUserMessage with scroll-before-update
+      handleUserMessage(() => {
+        const newUserMessage: Message = {
+          id: messages.length + 1,
+          text: textToSend,
+          sender: "user",
+        };
 
-      setMessages((prev) => [...prev, newUserMessage]);
-      setInput("");
-      
-      // Handle user message scroll
-      handleUserMessage();
+        setMessages((prev) => [...prev, newUserMessage]);
+        setInput("");
+      });
       
       const nameRequestMessage: Message = {
         id: messages.length + 2,
@@ -305,17 +303,17 @@ export const useOnboardingChat = () => {
 
     // If we're asking for name, this is the final message
     if (askingForName) {
-      const nameMessage: Message = {
-        id: messages.length + 1,
-        text: textToSend,
-        sender: "user",
-      };
+      // Use the new handleUserMessage with scroll-before-update
+      handleUserMessage(() => {
+        const nameMessage: Message = {
+          id: messages.length + 1,
+          text: textToSend,
+          sender: "user",
+        };
 
-      setMessages((prev) => [...prev, nameMessage]);
-      setInput("");
-      
-      // Handle user message scroll
-      handleUserMessage();
+        setMessages((prev) => [...prev, nameMessage]);
+        setInput("");
+      });
       
       console.log("Setting userName from final response:", textToSend);
       setUserName(textToSend);
@@ -343,19 +341,18 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Add user message to UI
-    const newUserMessage: Message = {
-      id: messages.length + 1,
-      text: textToSend,
-      sender: "user",
-    };
+    // Use the new handleUserMessage with scroll-before-update
+    handleUserMessage(() => {
+      const newUserMessage: Message = {
+        id: messages.length + 1,
+        text: textToSend,
+        sender: "user",
+      };
 
-    setMessages((prev) => [...prev, newUserMessage]);
-    setInput("");
-    setIsTyping(true);
-    
-    // Handle user message scroll
-    handleUserMessage();
+      setMessages((prev) => [...prev, newUserMessage]);
+      setInput("");
+      setIsTyping(true);
+    });
 
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
@@ -421,7 +418,6 @@ export const useOnboardingChat = () => {
     isInitializing,
     isGeneratingProfile,
     userProfile,
-    messagesEndRef,
     showCreateAccountPrompt,
     setShowCreateAccountPrompt,
     showGuidanceInfo,
@@ -446,8 +442,7 @@ export const useOnboardingChat = () => {
     showNameCollection,
     handleNameSubmit,
     scrollContainerRef,
-    dashboardRef: undefined,
     handleScroll,
-    handleNewMessage
+    handleAIMessagePart
   };
 };

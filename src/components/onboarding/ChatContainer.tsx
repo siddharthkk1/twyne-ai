@@ -16,7 +16,6 @@ interface ChatContainerProps {
   isTyping: boolean;
   isInitializing?: boolean;
   isGeneratingProfile: boolean;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
   showCreateAccountPrompt: boolean;
   setShowCreateAccountPrompt: (value: boolean) => void;
   showGuidanceInfo: boolean;
@@ -39,9 +38,8 @@ interface ChatContainerProps {
   userName: string;
   setUserName: (value: string) => void;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
-  dashboardRef?: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
-  handleNewMessage: () => void;
+  handleAIMessagePart: (updateFn: () => void) => void;
 }
 
 const ChatContainer = ({
@@ -51,7 +49,6 @@ const ChatContainer = ({
   isTyping,
   isInitializing = false,
   isGeneratingProfile,
-  messagesEndRef,
   showCreateAccountPrompt,
   setShowCreateAccountPrompt,
   showGuidanceInfo,
@@ -74,9 +71,8 @@ const ChatContainer = ({
   userName,
   setUserName,
   scrollContainerRef,
-  dashboardRef,
   handleScroll,
-  handleNewMessage
+  handleAIMessagePart
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
@@ -90,10 +86,10 @@ const ChatContainer = ({
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-hide"
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         style={{ 
           overflowAnchor: "auto",
-          scrollBehavior: "smooth"
+          scrollBehavior: "auto"
         }}
       >
         <div className="space-y-4 pt-8 pb-4 max-w-3xl mx-auto">
@@ -118,7 +114,7 @@ const ChatContainer = ({
                   key={message.id}
                   message={message} 
                   nameInitial={getNameInitial()}
-                  onMessagePartVisible={handleNewMessage}
+                  onMessagePartVisible={handleAIMessagePart}
                   userName={userName}
                 />
               ))}
@@ -140,9 +136,6 @@ const ChatContainer = ({
               </p>
             </div>
           )}
-          
-          {/* Messages end anchor */}
-          <div ref={messagesEndRef} className="h-1" />
         </div>
       </div>
       

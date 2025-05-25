@@ -16,7 +16,6 @@ const OnboardingChat = () => {
     isInitializing,
     isGeneratingProfile,
     userProfile,
-    messagesEndRef,
     showCreateAccountPrompt,
     setShowCreateAccountPrompt,
     showGuidanceInfo,
@@ -42,7 +41,7 @@ const OnboardingChat = () => {
     handleNameSubmit,
     scrollContainerRef,
     handleScroll,
-    handleNewMessage
+    handleAIMessagePart
   } = useOnboardingChat();
 
   // Show results when complete
@@ -68,7 +67,6 @@ const OnboardingChat = () => {
         setInput={setInput}
         isTyping={isTyping}
         isGeneratingProfile={isGeneratingProfile}
-        messagesEndRef={messagesEndRef}
         showCreateAccountPrompt={showCreateAccountPrompt}
         setShowCreateAccountPrompt={setShowCreateAccountPrompt}
         showGuidanceInfo={showGuidanceInfo}
@@ -92,7 +90,7 @@ const OnboardingChat = () => {
         setUserName={setUserName}
         scrollContainerRef={scrollContainerRef}
         handleScroll={handleScroll}
-        handleNewMessage={handleNewMessage}
+        handleAIMessagePart={handleAIMessagePart}
       />
     </div>
   );

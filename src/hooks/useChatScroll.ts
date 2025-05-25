@@ -1,9 +1,9 @@
 
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 
 export const useChatScroll = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   const [hasUserScrolled, setHasUserScrolled] = useState(false);
 
@@ -15,12 +15,15 @@ export const useChatScroll = () => {
     const { scrollTop, scrollHeight, clientHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
     
-    // Consider "near bottom" if within 100px
-    return distanceFromBottom < 100;
+    // Consider "near bottom" if within 50px
+    return distanceFromBottom < 50;
   }, []);
 
   // Handle scroll events
   const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
     const isNearBottom = checkIfNearBottom();
     setIsUserNearBottom(isNearBottom);
     
@@ -33,19 +36,7 @@ export const useChatScroll = () => {
     }
   }, [checkIfNearBottom, hasUserScrolled]);
 
-  // Smooth scroll to bottom
-  const scrollToBottom = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    // Use smooth scrolling to bottom
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: 'smooth'
-    });
-  }, []);
-
-  // Instant scroll to bottom (for when user sends message)
+  // Instant scroll to bottom (for user messages)
   const scrollToBottomInstant = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -54,36 +45,76 @@ export const useChatScroll = () => {
     container.scrollTop = container.scrollHeight;
   }, []);
 
-  // Auto-scroll when new content appears (only if user is near bottom)
-  const handleNewMessage = useCallback(() => {
-    if (!hasUserScrolled && isUserNearBottom) {
-      // Use requestAnimationFrame to ensure DOM has updated
-      requestAnimationFrame(() => {
-        scrollToBottom();
-      });
-    }
-  }, [hasUserScrolled, isUserNearBottom, scrollToBottom]);
+  // Smooth scroll to bottom (for AI messages when user is near bottom)
+  const scrollToBottomSmooth = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  // Handle user sending a message (always scroll to bottom)
-  const handleUserMessage = useCallback(() => {
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth'
+    });
+  }, []);
+
+  // Handle user sending a message - scroll BEFORE DOM update
+  const handleUserMessage = useCallback((updateMessages: () => void) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
     // Reset scroll state since user is actively participating
     setHasUserScrolled(false);
     setIsUserNearBottom(true);
     
-    // Use requestAnimationFrame to scroll after DOM update
-    requestAnimationFrame(() => {
-      scrollToBottomInstant();
+    // Scroll to bottom BEFORE adding the message
+    container.scrollTop = container.scrollHeight;
+    
+    // Use flushSync to immediately update DOM and scroll again
+    flushSync(() => {
+      updateMessages();
     });
-  }, [scrollToBottomInstant]);
+    
+    // Ensure we're at the bottom after the message is added
+    container.scrollTop = container.scrollHeight;
+  }, []);
+
+  // Handle AI message parts - smooth scroll if user is near bottom
+  const handleAIMessagePart = useCallback((updateMessages: () => void) => {
+    if (!hasUserScrolled && isUserNearBottom) {
+      // Use flushSync to immediately update DOM
+      flushSync(() => {
+        updateMessages();
+      });
+      
+      // Smooth scroll to show the new content
+      const container = scrollContainerRef.current;
+      if (container) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    } else {
+      // User has scrolled up, just update without scrolling
+      updateMessages();
+    }
+  }, [hasUserScrolled, isUserNearBottom]);
+
+  // For backward compatibility - generic new message handler
+  const handleNewMessage = useCallback(() => {
+    if (!hasUserScrolled && isUserNearBottom) {
+      scrollToBottomSmooth();
+    }
+  }, [hasUserScrolled, isUserNearBottom, scrollToBottomSmooth]);
 
   return {
     scrollContainerRef,
-    messagesEndRef,
     isUserNearBottom,
     hasUserScrolled,
     handleScroll,
-    handleNewMessage,
     handleUserMessage,
-    scrollToBottom
+    handleAIMessagePart,
+    handleNewMessage,
+    scrollToBottomInstant,
+    scrollToBottomSmooth
   };
 };

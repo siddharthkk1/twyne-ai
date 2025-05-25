@@ -7,7 +7,7 @@ import { Message } from '@/types/chat';
 interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
-  onMessagePartVisible?: () => void;
+  onMessagePartVisible?: (updateFn: () => void) => void;
   userName?: string;
 }
 
@@ -31,8 +31,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   useEffect(() => {
     if (message.sender === "ai") {
       // Show first part immediately
-      setVisibleParts([0]);
-      onMessagePartVisible?.();
+      if (onMessagePartVisible) {
+        onMessagePartVisible(() => {
+          setVisibleParts([0]);
+        });
+      } else {
+        setVisibleParts([0]);
+      }
 
       // Show subsequent parts with delays
       messageParts.forEach((_, index) => {
@@ -42,21 +47,19 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           const delay = baseDelay + (index * incrementDelay);
 
           setTimeout(() => {
-            setVisibleParts(prev => {
-              const updated = [...prev, index];
-              // Trigger scroll for each new part
-              requestAnimationFrame(() => {
-                onMessagePartVisible?.();
+            if (onMessagePartVisible) {
+              onMessagePartVisible(() => {
+                setVisibleParts(prev => [...prev, index]);
               });
-              return updated;
-            });
+            } else {
+              setVisibleParts(prev => [...prev, index]);
+            }
           }, delay);
         }
       });
     } else {
       // For user messages, show all parts immediately
       setVisibleParts([...Array(messageParts.length).keys()]);
-      onMessagePartVisible?.();
     }
   }, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
 
