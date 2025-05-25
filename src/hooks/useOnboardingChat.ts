@@ -132,7 +132,7 @@ export const useOnboardingChat = () => {
     MESSAGE_CAP
   );
   
-  // Use the new unified scroll manager
+  // Use the simplified scroll manager
   const {
     scrollContainerRef,
     messagesEndRef,
@@ -142,18 +142,9 @@ export const useOnboardingChat = () => {
     resetScrollState
   } = useScrollManager(messages);
 
-  // Create a simple callback for MessageBubble to trigger smooth scrolling
-  const handleMessagePartVisible = () => {
-    if (isUserNearBottom) {
-      requestAnimationFrame(() => {
-        scrollToBottom('smooth');
-      });
-    }
-  };
-
   // Hide guidance info after user sends first message
   useEffect(() => {
-    if (messages.length > 1) { // More than just the initial AI greeting
+    if (messages.length > 1) {
       const hasUserMessages = messages.some(msg => msg.sender === "user");
       if (hasUserMessages && showGuidanceInfo) {
         setShowGuidanceInfo(false);
@@ -172,7 +163,6 @@ export const useOnboardingChat = () => {
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
     if (isComplete || isGeneratingProfile) {
-      // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
 
@@ -186,35 +176,25 @@ export const useOnboardingChat = () => {
       systemPrompt = SYSTEM_PROMPT_YOUNG_ADULT;
     }
 
-        // Fix: Create a properly typed message object
     const initialMessage: { role: ChatRole; content: string } = {
       role: "system" as ChatRole,
       content: systemPrompt
     };
     
-    // Reset messages and conversation
     setMessages([]);
-        // Use the properly typed message object
     setConversation({
       messages: [initialMessage],
       userAnswers: []
     });
-    
-
-
-    // Add assistant guidance with user's name (if needed at beginning)
-    //const assistantGuidance = `The user's name is ${userName}. Make sure to use their name occasionally in your responses to personalize the conversation.`;
-    
 
     setCurrentQuestionIndex(0);
 
     const effectiveName = userName || "friend";
-    // Initialize chat with AI greeting, passing the promptMode
     initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
-    setIsInitializing(false);
-    setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
-    setConversation(updatedConversation);
-  });
+      setIsInitializing(false);
+      setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
+      setConversation(updatedConversation);
+    });
   }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile]);
 
   // Complete onboarding and generate profile
@@ -223,20 +203,17 @@ export const useOnboardingChat = () => {
       console.log("Completing onboarding with userName:", userName);
       console.log("Final conversation:", finalConversation);
       
-      // Ensure the profile has the user's name
       setUserProfile(prev => ({ ...prev, name: userName }));
       
       const profile = await generateProfile(finalConversation, userName);
       console.log("Generated profile:", profile);
       
-      // Make sure the profile has the name - prioritize userName over generated name
       if (userName) {
         profile.name = userName;
       } else if (profile.name && !userName) {
         setUserName(profile.name);
       }
       
-      // Ensure the profile definitely has a name
       if (!profile.name && userName) {
         profile.name = userName;
       }
@@ -246,15 +223,12 @@ export const useOnboardingChat = () => {
       setUserProfile(profile);
       setIsComplete(true);
       
-      // Save profile data to localStorage for persistence across navigation
       localStorage.setItem('onboardingProfile', JSON.stringify(profile));
       localStorage.setItem('onboardingUserName', userName || profile.name || '');
       localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
       
-      // Save conversation to Supabase with user's name
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       
-      // Updated redirect logic based on authentication status
       if (user) {
         navigate("/mirror");
       } else {
@@ -280,7 +254,6 @@ export const useOnboardingChat = () => {
 
     const userMessageCount = conversation.userAnswers.length;
     
-    // Check if we've reached the message cap and need to ask for name
     if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
       const newUserMessage: Message = {
         id: messages.length + 1,
@@ -324,7 +297,6 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // If we're asking for name, this is the final message
     if (askingForName) {
       const nameMessage: Message = {
         id: messages.length + 1,
@@ -335,7 +307,6 @@ export const useOnboardingChat = () => {
       setMessages((prev) => [...prev, nameMessage]);
       setInput("");
       
-      // Update the user's name immediately
       console.log("Setting userName from final response:", textToSend);
       setUserName(textToSend);
       setUserProfile(prev => ({ ...prev, name: textToSend }));
@@ -358,12 +329,10 @@ export const useOnboardingChat = () => {
       console.log("Final conversation before completion:", finalConversation);
       setConversation(finalConversation);
       
-      // Complete the onboarding process
       completeOnboarding(finalConversation);
       return;
     }
 
-    // Add user message to UI
     const newUserMessage: Message = {
       id: messages.length + 1,
       text: textToSend,
@@ -411,19 +380,14 @@ export const useOnboardingChat = () => {
 
   // Get progress percent based on conversation length
   const getProgress = (): number => {
-    // Start at 10%, increase based on number of messages
-    // Cap at 90% until final profile generation
     if (isComplete) return 100;
     if (isGeneratingProfile) return 95;
     
     const baseProgress = 10;
-    // We count only user messages
     const userMessageCount = conversation.userAnswers.length;
     
-    // Progress increases with each message, but at a decreasing rate
     const progressPerMessage = Math.max(5, 70 / Math.max(1, userMessageCount + 5));
     
-    // Calculate progress but cap it at 90%
     const calculatedProgress = Math.min(90, baseProgress + (userMessageCount * progressPerMessage));
     
     return calculatedProgress;
@@ -468,9 +432,8 @@ export const useOnboardingChat = () => {
     showNameCollection,
     handleNameSubmit,
     scrollContainerRef,
-    dashboardRef: useRef<HTMLDivElement>(null), // Keep for compatibility
+    dashboardRef: useRef<HTMLDivElement>(null),
     handleScroll,
-    resetScrollState,
-    handleMessagePartVisible
+    resetScrollState
   };
 };

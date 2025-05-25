@@ -42,7 +42,6 @@ interface ChatContainerProps {
   dashboardRef?: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
   resetScrollState: () => void;
-  handleMessagePartVisible?: () => void;
 }
 
 const ChatContainer = ({
@@ -77,8 +76,7 @@ const ChatContainer = ({
   scrollContainerRef,
   dashboardRef,
   handleScroll,
-  resetScrollState,
-  handleMessagePartVisible
+  resetScrollState
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
@@ -91,7 +89,7 @@ const ChatContainer = ({
       
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full custom-scrollbar"
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         onScroll={handleScroll}
         style={{
           scrollbarWidth: 'none',
@@ -126,7 +124,6 @@ const ChatContainer = ({
                   key={message.id}
                   message={message} 
                   nameInitial={getNameInitial()}
-                  onMessagePartVisible={handleMessagePartVisible}
                   userName={userName}
                 />
               ))}

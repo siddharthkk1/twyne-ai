@@ -7,6 +7,7 @@ export const useScrollManager = (messages: Message[]) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   const lastMessageCountRef = useRef(0);
+  const isScrollingRef = useRef(false);
 
   // Check if user is near bottom
   const checkIfNearBottom = useCallback(() => {
@@ -18,8 +19,10 @@ export const useScrollManager = (messages: Message[]) => {
     return distanceFromBottom <= 100;
   }, []);
 
-  // Handle scroll events
+  // Handle scroll events with debouncing
   const handleScroll = useCallback(() => {
+    if (isScrollingRef.current) return;
+    
     const nearBottom = checkIfNearBottom();
     setIsUserNearBottom(nearBottom);
   }, [checkIfNearBottom]);
@@ -29,11 +32,18 @@ export const useScrollManager = (messages: Message[]) => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    isScrollingRef.current = true;
+    
     requestAnimationFrame(() => {
       container.scrollTo({
         top: container.scrollHeight,
         behavior
       });
+      
+      // Reset the scrolling flag after a brief delay
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 100);
     });
   }, []);
 
@@ -46,16 +56,14 @@ export const useScrollManager = (messages: Message[]) => {
       const lastMessage = messages[messages.length - 1];
       
       if (lastMessage?.sender === 'user') {
-        // For user messages: always scroll immediately and anchor at bottom
-        requestAnimationFrame(() => {
-          scrollToBottom('auto');
-          setIsUserNearBottom(true);
-        });
+        // For user messages: always scroll immediately
+        scrollToBottom('auto');
+        setIsUserNearBottom(true);
       } else if (lastMessage?.sender === 'ai' && isUserNearBottom) {
-        // For AI messages: only smooth scroll if user was near bottom
-        requestAnimationFrame(() => {
+        // For AI messages: only scroll if user was near bottom
+        setTimeout(() => {
           scrollToBottom('smooth');
-        });
+        }, 50);
       }
     }
     

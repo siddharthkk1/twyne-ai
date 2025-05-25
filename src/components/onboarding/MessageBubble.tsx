@@ -7,14 +7,12 @@ import { Message } from '@/types/chat';
 interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
-  onMessagePartVisible?: () => void;
   userName?: string;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ 
   message, 
   nameInitial,
-  onMessagePartVisible,
   userName
 }) => {
   const messageParts = message.sender === "ai" 
@@ -38,16 +36,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       messageParts.forEach((_, index) => {
         if (index > 0) {
           const delay = base + increment * index;
-
           setTimeout(() => {
             setVisibleParts(prev => [...prev, index]);
-            
-            // Trigger scroll callback for smooth scrolling
-            if (onMessagePartVisible) {
-              setTimeout(() => {
-                onMessagePartVisible();
-              }, 50);
-            }
           }, delay);
         }
       });
@@ -55,7 +45,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       // For user messages, show all parts immediately
       setVisibleParts([...Array(messageParts.length).keys()]);
     }
-  }, [message.id, messageParts.length, message.sender, onMessagePartVisible]);
+  }, [message.id, messageParts.length, message.sender]);
 
   const allMessageParts = messageParts.map((part, index) => {
     const isVisible = visibleParts.includes(index);
