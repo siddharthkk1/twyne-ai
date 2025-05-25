@@ -4,20 +4,20 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
-  
+
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
-  
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, []);
 
   const handleScroll = useCallback(() => {
-  const el = scrollViewportRef.current;
-  if (!el) return;
+    const el = scrollViewportRef.current;
+    if (!el) return;
 
-  const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-  setIsUserNearBottom(distanceFromBottom < 100); // ✅ threshold is good
-}, []);
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setIsUserNearBottom(distanceFromBottom < 100); // 100px leeway
+  }, []);
 
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
@@ -45,6 +45,6 @@ export const useOnboardingScroll = (isComplete: boolean) => {
     scrollToBottom,
     handleScroll,
     resetScrollState,
-    handleMessagePartVisible
+    handleMessagePartVisible,
   };
 };
