@@ -91,7 +91,7 @@ const ChatContainer = ({
       />
       
       <div 
-        className="flex-1 overflow-y-auto scrollbar-hide px-4 pt-4 max-w-3xl mx-auto w-full"
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         ref={scrollViewportRef}
         onScroll={handleScroll}
       >
