@@ -43,8 +43,7 @@ const OnboardingChat = () => {
     scrollContainerRef,
     dashboardRef,
     handleScroll,
-    resetScrollState,
-    handleMessagePartVisible
+    resetScrollState
   } = useOnboardingChat();
 
   // Show results when complete
@@ -96,7 +95,6 @@ const OnboardingChat = () => {
         dashboardRef={dashboardRef}
         handleScroll={handleScroll}
         resetScrollState={resetScrollState}
-        handleMessagePartVisible={handleMessagePartVisible}
       />
     </div>
   );
