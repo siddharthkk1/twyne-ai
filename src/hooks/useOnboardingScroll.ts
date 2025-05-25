@@ -19,10 +19,6 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   setIsUserNearBottom(distanceFromBottom < 100); // ✅ threshold is good
 }, []);
 
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    setIsUserNearBottom(distanceFromBottom < 100); // 100px leeway
-  }, []);
-
   const resetScrollState = useCallback(() => {
     setIsUserNearBottom(true);
     scrollToBottom(); // immediate scroll
