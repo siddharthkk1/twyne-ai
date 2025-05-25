@@ -8,14 +8,11 @@ export const useAutoScroll = (
   isUserNearBottom: boolean
 ) => {
   useEffect(() => {
-    // Only scroll if user is near the bottom when new messages come in
     if (!scrollViewportRef.current || !messagesEndRef.current || !isUserNearBottom) return;
 
-    // Use requestAnimationFrame to wait for layout to finish before scrolling
-    const frame = requestAnimationFrame(() => {
+    // Wait until layout settles, then scroll
+    requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     });
-
-    return () => cancelAnimationFrame(frame);
-  }, [messages.length, isUserNearBottom, messagesEndRef, scrollViewportRef]);
+  }, [messages.length, isUserNearBottom]);
 };
