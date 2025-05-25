@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { Message } from '@/types/chat';
 
@@ -7,20 +8,27 @@ export const useAutoScroll = (
   messages: Message[],
   isUserNearBottom: boolean
 ) => {
-  const prevMessageCount = useRef<number>(0);
+  const resizeTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const messageAdded = messages.length > prevMessageCount.current;
+    if (!scrollViewportRef.current || !messagesEndRef.current || !isUserNearBottom) return;
 
-    if (
-      messageAdded &&
-      messagesEndRef.current &&
-      scrollViewportRef.current &&
-      isUserNearBottom
-    ) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    const observer = new ResizeObserver(() => {
+      if (resizeTimeout.current) clearTimeout(resizeTimeout.current);
 
-    prevMessageCount.current = messages.length;
+      // Wait for layout to settle before scrolling
+      resizeTimeout.current = setTimeout(() => {
+        if (messagesEndRef.current && isUserNearBottom) {
+          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100); // Delay to ensure layout is stable
+    });
+
+    observer.observe(scrollViewportRef.current);
+
+    return () => {
+      observer.disconnect();
+      if (resizeTimeout.current) clearTimeout(resizeTimeout.current);
+    };
   }, [messages.length, isUserNearBottom]);
 };
