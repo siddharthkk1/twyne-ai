@@ -20,11 +20,12 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   }, []);
 
   const resetScrollState = useCallback(() => {
-  setIsUserNearBottom(true);
-  requestAnimationFrame(() => {
-    scrollToBottom("auto"); // anchors to bottom after render
-  });
+    setIsUserNearBottom(true);
+    setTimeout(() => {
+      scrollToBottom("auto");
+    }, 0); // or 50ms if needed
 }, [scrollToBottom]);
+
 
 
     const handleMessagePartVisible = useCallback(() => {
