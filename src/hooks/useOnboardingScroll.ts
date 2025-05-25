@@ -1,4 +1,3 @@
-
 import { useRef, useState, useCallback, useEffect } from 'react';
 
 export const useOnboardingScroll = (isComplete: boolean) => {
@@ -6,50 +5,36 @@ export const useOnboardingScroll = (isComplete: boolean) => {
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
   
-  // Track if user is near the bottom - start as true so initial messages auto-scroll
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   
-  // Define a function to scroll to bottom - simplified since ResizeObserver handles timing
   const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, []);
 
-  // Handle user scroll events to track if they're near bottom
   const handleScroll = useCallback(() => {
     const el = scrollViewportRef.current;
     if (!el) return;
-    
+
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    
-    // User is near bottom if within 100px - you can tune this number
-    setIsUserNearBottom(distanceFromBottom < 100);
+    setIsUserNearBottom(distanceFromBottom < 100); // 100px leeway
   }, []);
-  
-  // Scroll to top when profile is complete
-  useEffect(() => {
-    if (isComplete && dashboardRef.current) {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
-    }
-  }, [isComplete]);
-  
-  // Handle message part becoming visible - only scroll if user is near bottom
+
+  const resetScrollState = useCallback(() => {
+    setIsUserNearBottom(true);
+    scrollToBottom(); // immediate scroll
+  }, [scrollToBottom]);
+
   const handleMessagePartVisible = useCallback(() => {
     if (isUserNearBottom) {
       scrollToBottom();
     }
   }, [scrollToBottom, isUserNearBottom]);
-  
-  // Reset user scroll state and scroll to bottom - call this when sending new messages
-  const resetScrollState = useCallback(() => {
-    setIsUserNearBottom(true);
-    // Simple immediate scroll since ResizeObserver will handle proper timing
-    scrollToBottom();
-  }, [scrollToBottom]);
+
+  useEffect(() => {
+    if (isComplete && dashboardRef.current) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isComplete]);
 
   return {
     messagesEndRef,
