@@ -12,8 +12,16 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url)
-    const redirect_uri = url.searchParams.get('redirect_uri') || `${req.headers.get('origin')}/connections`
+    let redirect_uri: string;
+    
+    // Handle both GET and POST requests
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      redirect_uri = url.searchParams.get('redirect_uri') || `${req.headers.get('origin')}/mirror`
+    } else {
+      const body = await req.json()
+      redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/mirror`
+    }
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
     
@@ -37,13 +45,27 @@ serve(async (req) => {
     
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
     
-    return new Response(null, {
-      status: 302,
-      headers: {
-        ...corsHeaders,
-        'Location': authUrl
+    // For GET requests, redirect directly
+    if (req.method === 'GET') {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          'Location': authUrl
+        }
+      })
+    }
+    
+    // For POST requests, return the auth URL
+    return new Response(
+      JSON.stringify({ authUrl }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
       }
-    })
+    )
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),

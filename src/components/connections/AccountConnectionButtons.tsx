@@ -207,9 +207,24 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating Spotify connection...');
       
-      // Direct redirect to the edge function with proper redirect URI
+      // Use Supabase client to call the edge function
       const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
-      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${redirectUri}`;
+      const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
+        body: { redirect_uri: decodeURIComponent(redirectUri) }
+      });
+      
+      if (error) {
+        console.error('Error getting Spotify auth URL:', error);
+        throw error;
+      }
+      
+      // The edge function should return the auth URL or redirect directly
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      } else {
+        // If no auth URL returned, try direct redirect as fallback
+        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${redirectUri}`;
+      }
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
       toast({
@@ -226,9 +241,24 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating YouTube connection...');
       
-      // Direct redirect to the edge function with proper redirect URI
+      // Use Supabase client to call the edge function
       const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
-      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${redirectUri}`;
+      const { data, error } = await supabase.functions.invoke('google-auth-url', {
+        body: { redirect_uri: decodeURIComponent(redirectUri) }
+      });
+      
+      if (error) {
+        console.error('Error getting Google auth URL:', error);
+        throw error;
+      }
+      
+      // The edge function should return the auth URL or redirect directly
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      } else {
+        // If no auth URL returned, try direct redirect as fallback
+        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${redirectUri}`;
+      }
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
       toast({
