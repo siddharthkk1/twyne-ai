@@ -74,18 +74,28 @@ const Mirror = () => {
       }
 
       try {
+        console.log("Fetching user profile for user ID:", user.id);
+        
         const { data, error } = await supabase
           .from('user_data')
           .select('profile_data')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching user profile:', error);
           setUserProfile(null);
+        } else if (data?.profile_data) {
+          console.log("Raw profile data from database:", data.profile_data);
+          
+          // Handle the profile data properly - it should be the direct object
+          const profileData = data.profile_data as UserProfile;
+          console.log("Processed profile data:", profileData);
+          
+          setUserProfile(profileData);
         } else {
-          const profileData = data?.profile_data as UserProfile;
-          setUserProfile(profileData || null);
+          console.log("No profile data found for user");
+          setUserProfile(null);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -443,7 +453,6 @@ const Mirror = () => {
                     </div>
                   )}
 
-                  {/* Visual representation if we have numeric personality traits */}
                   {userProfile.personalityTraits && (
                     <div className="mt-6">
                       <h3 className="font-medium mb-4">Personality Visualization</h3>
@@ -760,7 +769,6 @@ const Mirror = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Chat History */}
                     <div className="h-64 border rounded-lg p-4 overflow-y-auto bg-muted/20">
                       {chatHistory.length === 0 ? (
                         <p className="text-muted-foreground text-center py-8">
@@ -788,7 +796,6 @@ const Mirror = () => {
                       )}
                     </div>
                     
-                    {/* Chat Input */}
                     <div className="flex space-x-2">
                       <Textarea
                         placeholder="Tell your mirror about updates to your life..."
@@ -821,7 +828,6 @@ const Mirror = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Spotify Integration */}
                     <div className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="p-2 bg-green-100 rounded-lg">
@@ -837,7 +843,6 @@ const Mirror = () => {
                       </Button>
                     </div>
 
-                    {/* YouTube Integration */}
                     <div className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="p-2 bg-red-100 rounded-lg">
