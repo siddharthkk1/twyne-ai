@@ -87,11 +87,7 @@ const ChatContainer = ({
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-none hover:scrollbar-thumb-gray-400"
-        style={{ 
-          overflowAnchor: "auto",
-          scrollBehavior: "auto"
-        }}
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-none chat-scroll-container"
       >
         <div className="space-y-4 pt-8 pb-4 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}

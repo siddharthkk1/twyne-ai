@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -193,13 +194,15 @@ export const useOnboardingChat = () => {
     const effectiveName = userName || "friend";
     initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
       setIsInitializing(false);
+      
+      // Set the messages and then scroll after DOM update
       setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
       setConversation(updatedConversation);
       
-      // Scroll to bottom after the first AI message is added
-      requestAnimationFrame(() => {
+      // Use a longer delay to ensure DOM is fully updated and layout is complete
+      setTimeout(() => {
         scrollToBottomInstant();
-      });
+      }, 100);
     });
   }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile, scrollToBottomInstant]);
 
@@ -359,11 +362,6 @@ export const useOnboardingChat = () => {
       setInput("");
       setIsTyping(true);
     });
-
-    // Scroll to show the user message immediately after it's added
-    setTimeout(() => {
-      scrollToBottomInstant();
-    }, 50);
 
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
