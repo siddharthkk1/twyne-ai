@@ -14,6 +14,7 @@ import OnboardingPaste from "./pages/OnboardingPaste";
 import OnboardingResults from "./pages/OnboardingResults";
 import Mirror from "./pages/Mirror";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             {/* Onboarding routes without authentication protection */}
             <Route path="/onboarding" element={<OnboardingSelection />} />
             <Route path="/onboarding-chat" element={<OnboardingChat />} />
