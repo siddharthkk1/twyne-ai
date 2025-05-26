@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Message, Conversation } from '@/types/chat';
 import { getAIResponse } from '@/utils/aiUtils';
@@ -20,10 +21,10 @@ export const useOnboardingMessages = (
     setConversation: (conversation: Conversation) => void
   ) => {
     try {
-      // Add a 400ms delay before showing the typing indicator
+      // Add a 800ms delay before showing the typing indicator
       setTimeout(() => {
         setIsTyping(true);
-      }, 400);
+      }, 800);
       
       // Get AI response from the API
       const aiResponse = await getAIResponse(draftConversation);
