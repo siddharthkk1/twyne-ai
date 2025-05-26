@@ -60,20 +60,23 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
 
   // Generate and store Spotify insights when component mounts with data
   useEffect(() => {
-    if (spotifyData && !isDataStored && !isGeneratingSummary) {
+    if (spotifyData && !isDataStored && !isGeneratingSummary && !spotifyInsights) {
       setIsGeneratingSummary(true);
       
-      // Prepare data for AI analysis
-      const analysisData = {
-        topTracks: spotifyData.topTracks || [],
-        topArtists: spotifyData.topArtists || [],
-        topAlbums: spotifyData.topAlbums || [],
-        topGenres: spotifyData.topGenres || []
+      // Ensure all required arrays exist and are arrays before processing
+      const safeSpotifyData = {
+        topTracks: Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks : [],
+        topArtists: Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists : [],
+        topAlbums: Array.isArray(spotifyData.topAlbums) ? spotifyData.topAlbums : [],
+        topGenres: Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres : []
       };
 
+      console.log('Processing Spotify data for AI analysis:', safeSpotifyData);
+
       // Generate AI insights
-      AIProfileService.generateSpotifyProfile(analysisData)
+      AIProfileService.generateSpotifyProfile(safeSpotifyData)
         .then(insights => {
+          console.log('Generated Spotify insights:', insights);
           setSpotifyInsights(insights);
           
           // Get raw Spotify data from localStorage
@@ -97,7 +100,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           setIsGeneratingSummary(false);
         });
     }
-  }, [spotifyData, isDataStored, isGeneratingSummary]);
+  }, [spotifyData, isDataStored, isGeneratingSummary, spotifyInsights]);
 
   if (!spotifyData && !spotifyInsights) {
     return (

@@ -146,15 +146,33 @@ Write in second person ("You...") and make it feel personal and insightful.`;
     };
   }> {
     try {
+      // Ensure data arrays exist and are arrays - this is the critical fix
+      const safeTopTracks = Array.isArray(data.topTracks) ? data.topTracks : [];
+      const safeTopArtists = Array.isArray(data.topArtists) ? data.topArtists : [];
+      const safeTopAlbums = Array.isArray(data.topAlbums) ? data.topAlbums : [];
+      const safeTopGenres = Array.isArray(data.topGenres) ? data.topGenres : [];
+
+      console.log('Processing Spotify data with safe arrays:', {
+        tracksCount: safeTopTracks.length,
+        artistsCount: safeTopArtists.length,
+        albumsCount: safeTopAlbums.length,
+        genresCount: safeTopGenres.length
+      });
+
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session?.access_token) {
         console.error('No active session for AI profile generation');
-        return this.getDefaultSpotifyProfile(data);
+        return this.getDefaultSpotifyProfile({
+          topTracks: safeTopTracks,
+          topArtists: safeTopArtists,
+          topAlbums: safeTopAlbums,
+          topGenres: safeTopGenres
+        });
       }
 
-      // Calculate average audio features
-      const tracksWithFeatures = data.topTracks.filter(track => track.audio_features);
+      // Calculate average audio features using safe arrays
+      const tracksWithFeatures = safeTopTracks.filter(track => track.audio_features);
       const avgFeatures = tracksWithFeatures.length > 0 ? {
         valence: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.valence || 0), 0) / tracksWithFeatures.length * 100),
         energy: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.energy || 0), 0) / tracksWithFeatures.length * 100),
@@ -171,18 +189,18 @@ Write in second person ("You...") and make it feel personal and insightful.`;
         instrumentalness: 10
       };
 
-      // Prepare data for AI analysis
+      // Prepare data for AI analysis using safe arrays
       const musicSummary = {
-        topTracks: data.topTracks.slice(0, 10).map(track => ({
+        topTracks: safeTopTracks.slice(0, 10).map(track => ({
           name: track.name,
           artists: track.artists.map(a => a.name).join(', '),
           audioFeatures: track.audio_features
         })),
-        topArtists: data.topArtists.slice(0, 10).map(artist => ({
+        topArtists: safeTopArtists.slice(0, 10).map(artist => ({
           name: artist.name,
           genres: artist.genres
         })),
-        topGenres: data.topGenres.slice(0, 10),
+        topGenres: safeTopGenres.slice(0, 10),
         audioProfile: avgFeatures
       };
 
@@ -219,21 +237,21 @@ Write in second person ("You...") and make it feel deeply personal and emotional
       const vibeSummary = error ? this.generateDefaultVibeSummary(avgFeatures) : (aiResponse.content || this.generateDefaultVibeSummary(avgFeatures));
 
       return {
-        topSongs: data.topTracks.slice(0, 5).map(track => ({
+        topSongs: safeTopTracks.slice(0, 5).map(track => ({
           name: track.name,
           artists: track.artists,
           album: track.album
         })),
-        topArtists: data.topArtists.slice(0, 5).map(artist => ({
+        topArtists: safeTopArtists.slice(0, 5).map(artist => ({
           name: artist.name,
           images: artist.images
         })),
-        topAlbums: data.topAlbums?.slice(0, 5).map(album => ({
+        topAlbums: safeTopAlbums.slice(0, 5).map(album => ({
           name: album.name,
           artists: album.artists,
           images: album.images
-        })) || [],
-        topGenres: data.topGenres.slice(0, 5),
+        })),
+        topGenres: safeTopGenres.slice(0, 5),
         vibeSummary,
         traitDisplay: avgFeatures
       };
@@ -244,7 +262,13 @@ Write in second person ("You...") and make it feel deeply personal and emotional
   }
 
   private static getDefaultSpotifyProfile(data: SpotifyAnalysisData) {
-    const tracksWithFeatures = data.topTracks.filter(track => track.audio_features);
+    // Ensure data arrays exist and are arrays
+    const safeTopTracks = Array.isArray(data.topTracks) ? data.topTracks : [];
+    const safeTopArtists = Array.isArray(data.topArtists) ? data.topArtists : [];
+    const safeTopAlbums = Array.isArray(data.topAlbums) ? data.topAlbums : [];
+    const safeTopGenres = Array.isArray(data.topGenres) ? data.topGenres : [];
+
+    const tracksWithFeatures = safeTopTracks.filter(track => track.audio_features);
     const avgFeatures = tracksWithFeatures.length > 0 ? {
       valence: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.valence || 0), 0) / tracksWithFeatures.length * 100),
       energy: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.energy || 0), 0) / tracksWithFeatures.length * 100),
@@ -262,21 +286,21 @@ Write in second person ("You...") and make it feel deeply personal and emotional
     };
 
     return {
-      topSongs: data.topTracks.slice(0, 5).map(track => ({
+      topSongs: safeTopTracks.slice(0, 5).map(track => ({
         name: track.name,
         artists: track.artists,
         album: track.album
       })),
-      topArtists: data.topArtists.slice(0, 5).map(artist => ({
+      topArtists: safeTopArtists.slice(0, 5).map(artist => ({
         name: artist.name,
         images: artist.images
       })),
-      topAlbums: data.topAlbums?.slice(0, 5).map(album => ({
+      topAlbums: safeTopAlbums.slice(0, 5).map(album => ({
         name: album.name,
         artists: album.artists,
         images: album.images
-      })) || [],
-      topGenres: data.topGenres.slice(0, 5),
+      })),
+      topGenres: safeTopGenres.slice(0, 5),
       vibeSummary: this.generateDefaultVibeSummary(avgFeatures),
       traitDisplay: avgFeatures
     };
