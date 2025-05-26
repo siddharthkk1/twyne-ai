@@ -1,14 +1,15 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Edit, Settings, MessageSquare, Music, Video } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Music, Video, Send, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
+import { getMirrorChatResponse, updateProfileFromChat } from "@/utils/aiUtils";
+import { toast } from "sonner";
 
 interface UserProfile {
   vibeSummary?: string;
@@ -66,6 +67,8 @@ const Mirror = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [chatMessage, setChatMessage] = useState("");
   const [chatHistory, setChatHistory] = useState<Array<{id: number, message: string, sender: 'user' | 'ai'}>>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -112,8 +115,8 @@ const Mirror = () => {
     fetchUserProfile();
   }, [user]);
 
-  const handleChatSubmit = () => {
-    if (!chatMessage.trim()) return;
+  const handleChatSubmit = async () => {
+    if (!chatMessage.trim() || isTyping) return;
     
     const newMessage = {
       id: chatHistory.length + 1,
@@ -123,16 +126,79 @@ const Mirror = () => {
     
     setChatHistory(prev => [...prev, newMessage]);
     setChatMessage("");
+    setIsTyping(true);
     
-    // Simulate AI response (you can connect to your AI endpoint here)
-    setTimeout(() => {
-      const aiResponse = {
+    try {
+      // Create conversation object for AI
+      const conversation = {
+        messages: [
+          ...chatHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.message
+          })),
+          {
+            role: 'user' as const,
+            content: chatMessage
+          }
+        ]
+      };
+
+      const aiResponse = await getMirrorChatResponse(conversation);
+      
+      const aiMessage = {
         id: chatHistory.length + 2,
-        message: "Thanks for the update! I'll help you refine your mirror with this new information.",
+        message: aiResponse,
         sender: 'ai' as const
       };
-      setChatHistory(prev => [...prev, aiResponse]);
-    }, 1000);
+      
+      setChatHistory(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      toast.error("Failed to get response. Please try again.");
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    if (chatHistory.length === 0) {
+      toast.error("No conversation to update from.");
+      return;
+    }
+
+    setIsUpdating(true);
+    
+    try {
+      // Create conversation object for profile update
+      const conversation = {
+        messages: chatHistory.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.message
+        }))
+      };
+
+      const result = await updateProfileFromChat(conversation);
+      
+      if (result.success) {
+        toast.success(result.message);
+        // Clear chat history after successful update
+        setChatHistory([]);
+        // Refetch user profile to show updated data
+        fetchUserProfile();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Failed to update profile. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const clearChatHistory = () => {
+    setChatHistory([]);
+    toast.success("Chat cleared!");
   };
 
   if (loading) {
@@ -248,9 +314,29 @@ const Mirror = () => {
             </p>
           </div>
 
+          {/* Action Buttons Row */}
+          <div className="flex justify-center gap-4 mb-4">
+            <Button
+              variant="outline"
+              onClick={() => setActiveTab("edit")}
+              className={`flex items-center gap-2 ${activeTab === "edit" ? "bg-primary text-primary-foreground" : ""}`}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Chat with Mirror
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setActiveTab("integrations")}
+              className={`flex items-center gap-2 ${activeTab === "integrations" ? "bg-primary text-primary-foreground" : ""}`}
+            >
+              <Settings className="h-4 w-4" />
+              Connect Accounts
+            </Button>
+          </div>
+
           {/* Main Tabbed Interface */}
           <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-8 mb-8">
+            <TabsList className="grid grid-cols-6 mb-8">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -274,14 +360,6 @@ const Mirror = () => {
               <TabsTrigger value="connection" className="flex items-center gap-2">
                 <Heart className="h-4 w-4" />
                 <span className="hidden sm:inline">Connection</span>
-              </TabsTrigger>
-              <TabsTrigger value="edit" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">Edit</span>
-              </TabsTrigger>
-              <TabsTrigger value="integrations" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Connect</span>
               </TabsTrigger>
             </TabsList>
 
@@ -764,7 +842,7 @@ const Mirror = () => {
               )}
             </TabsContent>
 
-            {/* Edit Tab */}
+            {/* Updated Edit Tab */}
             <TabsContent value="edit" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
@@ -773,7 +851,7 @@ const Mirror = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="h-64 border rounded-lg p-4 overflow-y-auto bg-muted/20">
+                    <div className="h-96 border rounded-lg p-4 overflow-y-auto bg-muted/20">
                       {chatHistory.length === 0 ? (
                         <p className="text-muted-foreground text-center py-8">
                           Start a conversation with your mirror! Tell it about recent changes in your life, new interests, or anything you'd like to update.
@@ -796,6 +874,13 @@ const Mirror = () => {
                               </div>
                             </div>
                           ))}
+                          {isTyping && (
+                            <div className="flex justify-start">
+                              <div className="bg-background border p-3 rounded-lg max-w-[80%]">
+                                <p className="text-sm text-muted-foreground">Twyne is thinking...</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -812,11 +897,32 @@ const Mirror = () => {
                           }
                         }}
                         className="flex-1"
+                        disabled={isTyping}
                       />
-                      <Button onClick={handleChatSubmit} disabled={!chatMessage.trim()}>
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Send
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button onClick={handleChatSubmit} disabled={!chatMessage.trim() || isTyping}>
+                          <Send className="h-4 w-4" />
+                        </Button>
+                        {chatHistory.length > 0 && (
+                          <>
+                            <Button
+                              onClick={handleUpdateProfile}
+                              disabled={isUpdating}
+                              variant="default"
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {isUpdating ? "Updating..." : "Update Profile"}
+                            </Button>
+                            <Button
+                              onClick={clearChatHistory}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

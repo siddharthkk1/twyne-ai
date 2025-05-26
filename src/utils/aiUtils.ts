@@ -327,3 +327,48 @@ export const getMirrorChatResponse = async (conversation: Conversation): Promise
     throw err;
   }
 };
+
+// Function to update profile from mirror chat
+export const updateProfileFromChat = async (conversation: Conversation): Promise<{ success: boolean; message: string }> => {
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      throw new Error("No active session or access token found");
+    }
+
+    const { data, error } = await supabase.functions.invoke('mirror-chat', {
+      body: {
+        conversation,
+        updateType: "update",
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (error) {
+      console.error("Error from mirror chat update function:", error);
+      throw new Error(`API error: ${error.message}`);
+    }
+
+    if (data.error) {
+      console.error("Error in mirror chat update response:", data.error);
+      throw new Error(`Mirror chat update error: ${data.error}`);
+    }
+
+    return {
+      success: data.profileUpdated || false,
+      message: data.content || "Profile updated successfully!"
+    };
+  } catch (err) {
+    console.error("Error updating profile from chat:", err);
+    return {
+      success: false,
+      message: "Failed to update profile. Please try again."
+    };
+  }
+};

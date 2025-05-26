@@ -68,7 +68,7 @@ serve(async (req) => {
 
     console.log("User authenticated:", user.id);
 
-    const { conversation } = await req.json();
+    const { conversation, updateType } = await req.json();
     
     if (!conversation || !conversation.messages) {
       return new Response(
@@ -93,31 +93,105 @@ serve(async (req) => {
       .from('user_data')
       .select('*')
       .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (userData?.profile_data) {
       profileData = userData.profile_data;
       profileName = userData.profile_data.name || profileName;
       profileLocation = userData.profile_data.location || profileLocation;
-    } else {
-      // Fallback to profiles table
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profile) {
-        profileData = profile.profile_data || {};
-        profileName = profile.full_name || profileName;
-        profileBio = profile.bio || profileBio;
-        profileLocation = profile.location || profileLocation;
-        profileUsername = profile.username || profileUsername;
-      }
     }
 
-    // Enhanced system prompt for mirror chat
-    const systemPrompt = `You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values.
+    if (updateType === "update") {
+      // Profile update mode
+      const updatePrompt = `You are Twyne, an AI assistant that helps users update their personal profiles based on new conversations.
+
+Current user profile data:
+${JSON.stringify(profileData, null, 2)}
+
+The user has had the following conversation with you in their Mirror chat:
+${conversation.messages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+Your task is to analyze this conversation and update the existing profile data with any new information shared by the user. Follow these guidelines:
+
+1. Only update fields where the user has explicitly shared new information
+2. Keep existing data that wasn't contradicted or updated
+3. If the user corrects existing information, update it accordingly
+4. Don't make assumptions - only use information directly stated by the user
+5. Maintain the same JSON structure as the current profile
+
+Return ONLY a valid JSON object with the updated profile data. Do not include any explanations or additional text.`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: "system", content: updatePrompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 2000,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("OpenAI API error:", response.status, errorText);
+        return new Response(JSON.stringify({ error: `OpenAI API error: ${response.status}` }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      const data = await response.json();
+      const updatedProfileText = data.choices[0].message.content;
+      
+      try {
+        const updatedProfile = JSON.parse(updatedProfileText);
+        
+        // Update the user's profile data
+        const { error: updateError } = await supabaseService
+          .from('user_data')
+          .update({ 
+            profile_data: updatedProfile,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .eq('id', userData.id);
+
+        if (updateError) {
+          console.error("Profile update error:", updateError);
+          return new Response(JSON.stringify({ error: "Failed to update profile" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            content: "Perfect! I've updated your mirror with the new information from our conversation. Your profile has been refreshed.",
+            profileUpdated: true
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
+      } catch (parseError) {
+        console.error("Failed to parse updated profile:", parseError);
+        return new Response(JSON.stringify({ error: "Failed to process profile update" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+    } else {
+      // Regular chat mode
+      const systemPrompt = `You are Twyne, a warm, emotionally intelligent assistant who helps users update their Mirror — a structured profile that captures their personality, social needs, life context, and values.
 
 Current user profile:
 - Name: ${profileName}
@@ -137,69 +211,70 @@ The user will tell you what they want to change or update. Your job is to:
 
 Keep your tone kind, casual, and respectful. You are here to help them feel seen. Prioritize clarity and consent.`;
 
-    // Prepare messages for OpenAI
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...conversation.messages.filter(msg => msg.role !== "system")
-    ];
+      // Prepare messages for OpenAI
+      const messages = [
+        { role: "system", content: systemPrompt },
+        ...conversation.messages.filter(msg => msg.role !== "system")
+      ];
 
-    console.log("Sending request to OpenAI with messages:", messages.length);
+      console.log("Sending request to OpenAI with messages:", messages.length);
 
-    if (!openAIApiKey) {
-      console.error("OpenAI API key not found");
-      return new Response(JSON.stringify({ error: "OpenAI API key not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("OpenAI API error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: `OpenAI API error: ${response.status}` }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
-    const data = await response.json();
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error("Invalid OpenAI response:", data);
-      return new Response(JSON.stringify({ error: "Invalid response from OpenAI API" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
-
-    const aiResponse = data.choices[0].message.content;
-    console.log("OpenAI response received successfully");
-
-    return new Response(
-      JSON.stringify({ 
-        content: aiResponse,
-        timestamp: new Date().toISOString()
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      if (!openAIApiKey) {
+        console.error("OpenAI API key not found");
+        return new Response(JSON.stringify({ error: "OpenAI API key not configured" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
       }
-    );
+
+      // Call OpenAI API
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 1000,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("OpenAI API error:", response.status, errorText);
+        return new Response(JSON.stringify({ error: `OpenAI API error: ${response.status}` }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error("Invalid OpenAI response:", data);
+        return new Response(JSON.stringify({ error: "Invalid response from OpenAI API" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+
+      const aiResponse = data.choices[0].message.content;
+      console.log("OpenAI response received successfully");
+
+      return new Response(
+        JSON.stringify({ 
+          content: aiResponse,
+          timestamp: new Date().toISOString()
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
   } catch (error) {
     console.error("Error in mirror-chat function:", error);
     
