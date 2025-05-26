@@ -123,8 +123,11 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
           const defaultSummary = "Your viewing habits reflect diverse interests across multiple content categories.";
           let summaryText = defaultSummary;
           
-          if (insights && typeof insights === 'object' && 'summary' in insights && typeof insights.summary === 'string') {
-            summaryText = insights.summary;
+          // Check if insights is not null and has the expected structure
+          if (insights !== null && typeof insights === 'object') {
+            if ('summary' in insights && typeof insights.summary === 'string') {
+              summaryText = insights.summary;
+            }
           }
           
           const synthesizedInsights = {
