@@ -103,8 +103,8 @@ export class MirrorDataService {
       // Update profile_data with synthesized insights
       const updatedProfileData = {
         ...currentProfileData,
-        music_insights: synthesizedData.spotify,
-        video_insights: synthesizedData.youtube
+        ...(synthesizedData.spotify && { music_insights: synthesizedData.spotify }),
+        ...(synthesizedData.youtube && { video_insights: synthesizedData.youtube })
       };
 
       // Prepare raw data storage (check size)
@@ -148,8 +148,8 @@ export class MirrorDataService {
       const { error: updateError } = await supabase
         .from('user_data')
         .update({
-          profile_data: updatedProfileData,
-          raw_platform_data: rawDataToStore,
+          profile_data: updatedProfileData as any,
+          raw_platform_data: rawDataToStore as any,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
