@@ -198,7 +198,7 @@ const Settings = () => {
       console.log('Initiating Spotify connection...');
       
       // Direct redirect to the edge function
-      window.location.href = `${supabase.supabaseUrl}/functions/v1/spotify-auth-url`;
+      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
       toast({
@@ -217,7 +217,7 @@ const Settings = () => {
       console.log('Initiating YouTube connection...');
       
       // Direct redirect to the edge function
-      window.location.href = `${supabase.supabaseUrl}/functions/v1/google-auth-url`;
+      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
       toast({

@@ -14,20 +14,14 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating Spotify connection...');
       
-      // Create a form and submit it to avoid CORS issues with redirects
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `${supabase.supabaseUrl}/functions/v1/spotify-auth-url`;
+      const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
+        body: { redirect_uri: `${window.location.origin}/settings` }
+      });
+
+      if (error) throw error;
       
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'redirect_uri';
-      input.value = `${window.location.origin}/settings`;
-      
-      form.appendChild(input);
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      // The function should handle the redirect
+      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
       toast({
@@ -44,20 +38,14 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating YouTube connection...');
       
-      // Create a form and submit it to avoid CORS issues with redirects
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `${supabase.supabaseUrl}/functions/v1/google-auth-url`;
+      const { data, error } = await supabase.functions.invoke('google-auth-url', {
+        body: { redirect_uri: `${window.location.origin}/settings` }
+      });
+
+      if (error) throw error;
       
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'redirect_uri';
-      input.value = `${window.location.origin}/settings`;
-      
-      form.appendChild(input);
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      // The function should handle the redirect
+      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
       toast({
