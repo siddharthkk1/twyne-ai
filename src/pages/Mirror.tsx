@@ -654,7 +654,7 @@ const Mirror = () => {
                   <div className="border-t pt-4">
                     <h3 className="font-medium mb-3">Additional Music Preferences</h3>
                     <p className="text-muted-foreground">
-                      {userProfile.music || userProfile.favoriteMusic || "We don't have enough info on that yet."}
+                      {userProfile.favoriteMusic || "We don't have enough info on that yet."}
                     </p>
                   </div>
                 </CardContent>

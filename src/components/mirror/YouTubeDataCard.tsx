@@ -83,7 +83,9 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
       const dataForAI = youtubeData.fullTopVideos && youtubeData.fullTopChannels ? {
         topVideos: youtubeData.fullTopVideos,
         topChannels: youtubeData.fullTopChannels,
-        topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories : []
+        topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories : [],
+        likedVideos: [], // Add required fields for YouTubeAnalysisData
+        subscriptions: []
       } : {
         topVideos: Array.isArray(youtubeData.topVideos) ? youtubeData.topVideos.map(video => ({
           snippet: {
@@ -106,7 +108,9 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
             }
           }
         })) : [],
-        topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories : []
+        topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories : [],
+        likedVideos: [], // Add required fields for YouTubeAnalysisData
+        subscriptions: []
       };
 
       console.log('Processing YouTube data for AI analysis:', dataForAI);
@@ -121,7 +125,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
             topVideos: Array.isArray(youtubeData.topVideos) ? youtubeData.topVideos.slice(0, 5) : [],
             topChannels: Array.isArray(youtubeData.topChannels) ? youtubeData.topChannels.slice(0, 5) : [],
             topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories.slice(0, 5) : [],
-            summary: insights.summary || "Your viewing habits reflect diverse interests across multiple content categories."
+            summary: typeof insights === 'object' && insights.summary ? insights.summary : "Your viewing habits reflect diverse interests across multiple content categories."
           };
           
           setYoutubeInsights(synthesizedInsights);
@@ -133,8 +137,8 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
           // Store both synthesized and raw data
           import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
             MirrorDataService.storeMirrorData(
-              { youtube: synthesizedInsights },
-              { youtube: parsedRawData }
+              { spotify: null, youtube: synthesizedInsights },
+              { spotify: null, youtube: parsedRawData }
             );
           });
 
