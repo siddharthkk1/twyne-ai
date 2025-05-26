@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Youtube, PlayCircle, Users, Heart, TrendingUp } from 'lucide-react';
@@ -63,6 +62,8 @@ interface YouTubeDataCardProps {
 }
 
 const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
+  const [isDataStored, setIsDataStored] = useState(false);
+
   if (!data) {
     return (
       <Card className="border border-border bg-card">
@@ -124,6 +125,33 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
       return `You enjoy a mix of ${categoryDescriptions[topCategories[0].category as keyof typeof categoryDescriptions]} and ${categoryDescriptions[topCategories[1].category as keyof typeof categoryDescriptions]}, showing your diverse interests.`;
     }
   };
+
+  // Store synthesized data when component mounts with data
+  useEffect(() => {
+    if (data && !isDataStored) {
+      const synthesizedData = {
+        subscriptions: data.subscriptions.slice(0, 5),
+        likedVideos: data.likedVideos.slice(0, 5),
+        playlists: data.playlists.slice(0, 3),
+        videos: data.videos.slice(0, 3),
+        vibeSummary: generateContentSummary()
+      };
+
+      // Get raw YouTube data from localStorage
+      const rawYouTubeData = localStorage.getItem('youtube_data');
+      const parsedRawData = rawYouTubeData ? JSON.parse(rawYouTubeData) : null;
+
+      // Store both synthesized and raw data
+      import('../services/mirrorDataService').then(({ MirrorDataService }) => {
+        MirrorDataService.storeMirrorData(
+          { youtube: synthesizedData },
+          { youtube: parsedRawData }
+        );
+      });
+
+      setIsDataStored(true);
+    }
+  }, [data, isDataStored]);
 
   return (
     <Card className="border border-border bg-card">

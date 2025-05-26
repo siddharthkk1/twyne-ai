@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Music, TrendingUp, Heart, Disc, User } from 'lucide-react';
@@ -36,6 +35,8 @@ interface SpotifyDataCardProps {
 }
 
 const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
+  const [isDataStored, setIsDataStored] = useState(false);
+
   if (!data) {
     return (
       <Card className="border border-border bg-card">
@@ -79,6 +80,34 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
       return "You have an eclectic taste that balances different moods and styles. Your music reflects a complex, multifaceted personality.";
     }
   };
+
+  // Store synthesized data when component mounts with data
+  useEffect(() => {
+    if (data && !isDataStored) {
+      const synthesizedData = {
+        topArtists: data.topArtists.slice(0, 5),
+        topTracks: data.topTracks.slice(0, 5),
+        topGenres: data.topGenres.slice(0, 5),
+        topAlbums: data.topAlbums.slice(0, 5),
+        audioFeatures: avgFeatures,
+        vibeSummary: generateVibeSummary()
+      };
+
+      // Get raw Spotify data from localStorage
+      const rawSpotifyData = localStorage.getItem('spotify_data');
+      const parsedRawData = rawSpotifyData ? JSON.parse(rawSpotifyData) : null;
+
+      // Store both synthesized and raw data
+      import('../services/mirrorDataService').then(({ MirrorDataService }) => {
+        MirrorDataService.storeMirrorData(
+          { spotify: synthesizedData },
+          { spotify: parsedRawData }
+        );
+      });
+
+      setIsDataStored(true);
+    }
+  }, [data, isDataStored, avgFeatures]);
 
   return (
     <Card className="border border-border bg-card">
