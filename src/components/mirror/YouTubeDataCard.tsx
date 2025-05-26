@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -125,7 +124,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
             topVideos: Array.isArray(youtubeData.topVideos) ? youtubeData.topVideos.slice(0, 5) : [],
             topChannels: Array.isArray(youtubeData.topChannels) ? youtubeData.topChannels.slice(0, 5) : [],
             topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories.slice(0, 5) : [],
-            summary: typeof insights === 'object' && insights.summary ? insights.summary : "Your viewing habits reflect diverse interests across multiple content categories."
+            summary: (insights && typeof insights === 'object' && insights.summary) ? insights.summary : "Your viewing habits reflect diverse interests across multiple content categories."
           };
           
           setYoutubeInsights(synthesizedInsights);
