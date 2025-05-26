@@ -31,7 +31,7 @@ serve(async (req) => {
         client_secret: clientSecret,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: `${req.headers.get('origin')}/settings`
+        redirect_uri: `${req.headers.get('origin')}/connections`
       })
     })
     

@@ -12,7 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { redirect_uri } = await req.json()
+    const url = new URL(req.url)
+    const redirect_uri = url.searchParams.get('redirect_uri') || `${req.headers.get('origin')}/connections`
     
     const clientId = Deno.env.get('SPOTIFY_CLIENT_ID')
     
