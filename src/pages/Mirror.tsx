@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,10 +77,13 @@ const Mirror = () => {
       try {
         console.log("Fetching user profile for user ID:", user.id);
         
+        // Get the most recent user_data entry for this user
         const { data, error } = await supabase
           .from('user_data')
           .select('profile_data')
           .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (error) {
