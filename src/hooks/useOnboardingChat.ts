@@ -195,8 +195,13 @@ export const useOnboardingChat = () => {
       setIsInitializing(false);
       setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
       setConversation(updatedConversation);
+      
+      // Scroll to bottom after the first AI message is added
+      requestAnimationFrame(() => {
+        scrollToBottomInstant();
+      });
     });
-  }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile]);
+  }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile, scrollToBottomInstant]);
 
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
