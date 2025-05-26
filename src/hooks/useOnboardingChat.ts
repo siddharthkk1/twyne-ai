@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -163,7 +164,6 @@ export const useOnboardingChat = () => {
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
     if (isComplete || isGeneratingProfile) {
-      // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
 
@@ -194,11 +194,17 @@ export const useOnboardingChat = () => {
     initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
       setIsInitializing(false);
       
-      // Set the messages and then scroll after DOM update
-      setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
+      // Set the messages with the AI greeting as a single message
+      const aiMessage: Message = { 
+        id: 1, 
+        text: aiGreeting, 
+        sender: "ai" 
+      };
+      
+      setMessages([aiMessage]);
       setConversation(updatedConversation);
       
-      // Use a longer delay to ensure DOM is fully updated and layout is complete
+      // Scroll to bottom after DOM update
       setTimeout(() => {
         scrollToBottomInstant();
       }, 100);
@@ -276,11 +282,11 @@ export const useOnboardingChat = () => {
         setInput("");
       });
       
-      // Add slight delay before showing typing indicator
+      // Add delay before showing typing indicator
       setTimeout(() => {
         setIsTyping(true);
         
-        // Add typing indicator to messages immediately
+        // Add typing indicator immediately to messages
         const typingMessage: Message = {
           id: messages.length + 2,
           text: "",
@@ -288,7 +294,7 @@ export const useOnboardingChat = () => {
         };
         setMessages(prev => [...prev, typingMessage]);
         
-        // After delay, replace typing with actual message
+        // Replace typing with actual message after delay
         setTimeout(() => {
           const nameRequestMessage: Message = {
             id: messages.length + 2,
@@ -366,7 +372,7 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Use handleUserMessage for seamless scrolling
+    // Regular message handling - use handleUserMessage for seamless scrolling
     handleUserMessage(() => {
       const newUserMessage: Message = {
         id: messages.length + 1,
@@ -381,7 +387,7 @@ export const useOnboardingChat = () => {
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, interests: [textToSend.trim()] }));
+      setUserProfile(prev => ({ ...prev, interestsAndPassions: textToSend.trim() }));
     }
 
     const newIndex = currentQuestionIndex + 1;
@@ -410,11 +416,11 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Add slight delay before showing typing indicator
+    // Add delay before showing typing indicator
     setTimeout(() => {
       setIsTyping(true);
       
-      // Add typing indicator to messages immediately
+      // Add typing indicator immediately to messages
       const typingMessage: Message = {
         id: messages.length + 2,
         text: "",
