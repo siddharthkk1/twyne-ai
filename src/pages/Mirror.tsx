@@ -70,48 +70,48 @@ const Mirror = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+  const fetchUserProfile = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        console.log("Fetching user profile for user ID:", user.id);
-        
-        // Get the most recent user_data entry for this user
-        const { data, error } = await supabase
-          .from('user_data')
-          .select('profile_data')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+    try {
+      console.log("Fetching user profile for user ID:", user.id);
+      
+      // Get the most recent user_data entry for this user
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('profile_data')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-        if (error) {
-          console.error('Error fetching user profile:', error);
-          setUserProfile(null);
-        } else if (data?.profile_data) {
-          console.log("Raw profile data from database:", data.profile_data);
-          
-          // Handle the profile data properly - it should be the direct object
-          const profileData = data.profile_data as UserProfile;
-          console.log("Processed profile data:", profileData);
-          
-          setUserProfile(profileData);
-        } else {
-          console.log("No profile data found for user");
-          setUserProfile(null);
-        }
-      } catch (error) {
+      if (error) {
         console.error('Error fetching user profile:', error);
         setUserProfile(null);
-      } finally {
-        setLoading(false);
+      } else if (data?.profile_data) {
+        console.log("Raw profile data from database:", data.profile_data);
+        
+        // Handle the profile data properly - it should be the direct object
+        const profileData = data.profile_data as UserProfile;
+        console.log("Processed profile data:", profileData);
+        
+        setUserProfile(profileData);
+      } else {
+        console.log("No profile data found for user");
+        setUserProfile(null);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setUserProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUserProfile();
   }, [user]);
 
@@ -129,18 +129,22 @@ const Mirror = () => {
     setIsTyping(true);
     
     try {
-      // Create conversation object for AI
+      // Create conversation object for AI with proper structure
       const conversation = {
         messages: [
           ...chatHistory.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
+            role: msg.sender === 'user' ? 'user' as const : 'assistant' as const,
             content: msg.message
           })),
           {
             role: 'user' as const,
             content: chatMessage
           }
-        ]
+        ],
+        userAnswers: chatHistory
+          .filter(msg => msg.sender === 'user')
+          .map(msg => msg.message)
+          .concat([chatMessage])
       };
 
       const aiResponse = await getMirrorChatResponse(conversation);
@@ -169,12 +173,15 @@ const Mirror = () => {
     setIsUpdating(true);
     
     try {
-      // Create conversation object for profile update
+      // Create conversation object for profile update with proper structure
       const conversation = {
         messages: chatHistory.map(msg => ({
-          role: msg.sender === 'user' ? 'user' : 'assistant',
+          role: msg.sender === 'user' ? 'user' as const : 'assistant' as const,
           content: msg.message
-        }))
+        })),
+        userAnswers: chatHistory
+          .filter(msg => msg.sender === 'user')
+          .map(msg => msg.message)
       };
 
       const result = await updateProfileFromChat(conversation);
@@ -184,7 +191,7 @@ const Mirror = () => {
         // Clear chat history after successful update
         setChatHistory([]);
         // Refetch user profile to show updated data
-        fetchUserProfile();
+        await fetchUserProfile();
       } else {
         toast.error(result.message);
       }
