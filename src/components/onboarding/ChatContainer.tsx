@@ -40,6 +40,7 @@ interface ChatContainerProps {
   scrollContainerRef: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
   handleAIMessagePart: (updateMessages: () => void) => void;
+  isScrolling?: boolean;
 }
 
 const ChatContainer = ({
@@ -72,7 +73,8 @@ const ChatContainer = ({
   setUserName,
   scrollContainerRef,
   handleScroll,
-  handleAIMessagePart
+  handleAIMessagePart,
+  isScrolling = false
 }: ChatContainerProps) => {
   return (
     <div className="flex flex-col h-screen">
@@ -86,7 +88,9 @@ const ChatContainer = ({
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-none"
+        className={`flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full transition-all duration-200 ${
+          isScrolling ? 'scrollbar-none' : 'scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'
+        }`}
         style={{ 
           overflowAnchor: "auto",
           scrollBehavior: "auto"
