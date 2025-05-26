@@ -207,8 +207,10 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating Spotify connection...');
       
-      // Use a consistent redirect URI that should be registered in developer console
-      const redirectUri = `${window.location.origin}/auth/callback`;
+      // Use the exact redirect URI that should be registered in Spotify developer console
+      const redirectUri = `https://9c0cff03-a326-49dd-8bfb-d6678231c2b3.lovableproject.com/auth/callback`;
+      console.log('Spotify - Using redirect URI:', redirectUri);
+      
       const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
         body: { redirect_uri: redirectUri }
       });
@@ -220,10 +222,13 @@ const AccountConnectionButtons = () => {
       
       // The edge function should return the auth URL or redirect directly
       if (data?.authUrl) {
+        console.log('Redirecting to Spotify auth URL:', data.authUrl);
         window.location.href = data.authUrl;
       } else {
         // If no auth URL returned, try direct redirect as fallback
-        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
+        const fallbackUrl = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
+        console.log('Using fallback redirect to:', fallbackUrl);
+        window.location.href = fallbackUrl;
       }
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
@@ -241,8 +246,10 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating YouTube connection...');
       
-      // Use a consistent redirect URI that should be registered in developer console
-      const redirectUri = `${window.location.origin}/auth/callback`;
+      // Use the exact redirect URI that should be registered in Google developer console
+      const redirectUri = `https://9c0cff03-a326-49dd-8bfb-d6678231c2b3.lovableproject.com/auth/callback`;
+      console.log('YouTube - Using redirect URI:', redirectUri);
+      
       const { data, error } = await supabase.functions.invoke('google-auth-url', {
         body: { redirect_uri: redirectUri }
       });
@@ -254,10 +261,13 @@ const AccountConnectionButtons = () => {
       
       // The edge function should return the auth URL or redirect directly
       if (data?.authUrl) {
+        console.log('Redirecting to Google auth URL:', data.authUrl);
         window.location.href = data.authUrl;
       } else {
         // If no auth URL returned, try direct redirect as fallback
-        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
+        const fallbackUrl = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
+        console.log('Using fallback redirect to:', fallbackUrl);
+        window.location.href = fallbackUrl;
       }
     } catch (error) {
       console.error('Error connecting to YouTube:', error);

@@ -23,6 +23,9 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
     }
     
+    // Ensure we're using the exact redirect URI format
+    console.log('Spotify Auth - Using redirect URI:', redirect_uri)
+    
     const clientId = Deno.env.get('SPOTIFY_CLIENT_ID')
     
     if (!clientId) {
@@ -48,6 +51,8 @@ serve(async (req) => {
     
     const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`
     
+    console.log('Spotify Auth URL generated:', authUrl)
+    
     // For GET requests, redirect directly
     if (req.method === 'GET') {
       return new Response(null, {
@@ -70,6 +75,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Spotify auth URL error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

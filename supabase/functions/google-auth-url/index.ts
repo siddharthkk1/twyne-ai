@@ -23,6 +23,9 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
     }
     
+    // Ensure we're using the exact redirect URI format
+    console.log('Google Auth - Using redirect URI:', redirect_uri)
+    
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
     
     if (!clientId) {
@@ -44,6 +47,8 @@ serve(async (req) => {
     })
     
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+    
+    console.log('Google Auth URL generated:', authUrl)
     
     // For GET requests, redirect directly
     if (req.method === 'GET') {
@@ -67,6 +72,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Google auth URL error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
