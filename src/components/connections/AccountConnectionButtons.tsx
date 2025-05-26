@@ -207,8 +207,9 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating Spotify connection...');
       
-      // Direct redirect to the edge function
-      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${encodeURIComponent(window.location.origin + '/connections')}`;
+      // Direct redirect to the edge function with proper redirect URI
+      const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${redirectUri}`;
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
       toast({
@@ -225,8 +226,9 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating YouTube connection...');
       
-      // Direct redirect to the edge function
-      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(window.location.origin + '/connections')}`;
+      // Direct redirect to the edge function with proper redirect URI
+      const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+      window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${redirectUri}`;
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
       toast({
@@ -264,7 +266,6 @@ const AccountConnectionButtons = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Connect Your Accounts</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Spotify Button */}
         <div className="space-y-2">
