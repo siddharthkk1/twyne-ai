@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { User } from 'lucide-react';
 import TwyneOrb from "@/components/ui/TwyneOrb";
 import { Message } from '@/types/chat';
 
@@ -100,7 +101,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             {message.sender === "user" && (
               <div className="ml-2 mt-1 flex-shrink-0">
                 <Avatar className="h-8 w-8 bg-muted">
-                  <AvatarFallback>{nameInitial}</AvatarFallback>
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
                 </Avatar>
               </div>
             )}
