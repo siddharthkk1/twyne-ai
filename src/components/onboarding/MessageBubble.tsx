@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import TwyneOrb from "@/components/ui/TwyneOrb";
@@ -6,7 +7,7 @@ import { Message } from '@/types/chat';
 interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
-  onMessagePartVisible?: () => void; // simplified to a notifier
+  onMessagePartVisible?: (updateMessages: () => void) => void;
   userName?: string;
 }
 
@@ -32,7 +33,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       // Fire after first render
       requestAnimationFrame(() => {
-        onMessagePartVisible?.();
+        onMessagePartVisible?.(() => {
+          // No-op update function since we're already updating state
+        });
       });
 
       messageParts.forEach((_, index) => {
@@ -43,7 +46,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             setVisibleParts(prev => {
               const updated = [...prev, index];
               requestAnimationFrame(() => {
-                onMessagePartVisible?.();
+                onMessagePartVisible?.(() => {
+                  // No-op update function since we're already updating state
+                });
               });
               return updated;
             });
@@ -53,7 +58,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     } else {
       setVisibleParts([...Array(messageParts.length).keys()]);
       requestAnimationFrame(() => {
-        onMessagePartVisible?.();
+        onMessagePartVisible?.(() => {
+          // No-op update function since we're already updating state
+        });
       });
     }
   }, [message.id]);
