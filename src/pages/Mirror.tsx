@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
 import AccountConnectionButtons from "@/components/connections/AccountConnectionButtons";
+import SpotifyDataCard from "@/components/mirror/SpotifyDataCard";
+import YouTubeDataCard from "@/components/mirror/YouTubeDataCard";
 import { getMirrorChatResponse, updateProfileFromChat } from "@/utils/aiUtils";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/chat";
@@ -22,6 +24,8 @@ const Mirror = () => {
   const [chatHistory, setChatHistory] = useState<Array<{id: number, message: string, sender: 'user' | 'ai'}>>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [spotifyData, setSpotifyData] = useState(null);
+  const [youtubeData, setYoutubeData] = useState(null);
 
   const fetchUserProfile = async () => {
     if (!user) {
@@ -64,8 +68,29 @@ const Mirror = () => {
     }
   };
 
+  const fetchConnectionData = async () => {
+    if (!user) return;
+
+    try {
+      // Check for stored connection data in localStorage (from auth callback)
+      const storedSpotifyData = localStorage.getItem('spotify_data');
+      const storedYouTubeData = localStorage.getItem('youtube_data');
+      
+      if (storedSpotifyData) {
+        setSpotifyData(JSON.parse(storedSpotifyData));
+      }
+      
+      if (storedYouTubeData) {
+        setYoutubeData(JSON.parse(storedYouTubeData));
+      }
+    } catch (error) {
+      console.error('Error fetching connection data:', error);
+    }
+  };
+
   useEffect(() => {
     fetchUserProfile();
+    fetchConnectionData();
   }, [user]);
 
   const handleChatSubmit = async () => {
@@ -548,6 +573,9 @@ const Mirror = () => {
                 </CardContent>
               </Card>
 
+              {/* Spotify Data Card */}
+              <SpotifyDataCard data={spotifyData} />
+
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">Favorite Music</CardTitle>
@@ -565,6 +593,9 @@ const Mirror = () => {
                   <p>{userProfile.favoriteBooks || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
+
+              {/* YouTube Data Card */}
+              <YouTubeDataCard data={youtubeData} />
 
               <Card className="border border-border bg-card">
                 <CardHeader>
