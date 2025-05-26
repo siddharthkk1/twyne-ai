@@ -6,45 +6,44 @@ import { Message } from '@/types/chat';
 interface MessageBubbleProps {
   message: Message;
   nameInitial: string;
-  onMessagePartVisible?: () => void;  // ✅ simplified to a notifier
+  onMessagePartVisible?: () => void; // simplified to a notifier
   userName?: string;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ 
-  message, 
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
   nameInitial,
   onMessagePartVisible,
   userName
 }) => {
-  const messageParts = message.sender === "ai" 
-    ? message.text.split("||") 
+  const messageParts = message.sender === "ai"
+    ? message.text.split("||")
     : [message.text];
 
   const [visibleParts, setVisibleParts] = useState<number[]>([]);
 
   const personalizeMessage = (text: string) => {
-    if (!userName) return text;
-    return text.replace(/{{name}}/g, userName);
+    return userName ? text.replace(/{{name}}/g, userName) : text;
   };
 
   useEffect(() => {
     if (message.sender === "ai") {
-      // Show first part immediately
       setVisibleParts([0]);
-      onMessagePartVisible?.();
 
-      // Show remaining parts with staggered delay
+      // Fire after first render
+      requestAnimationFrame(() => {
+        onMessagePartVisible?.();
+      });
+
       messageParts.forEach((_, index) => {
         if (index > 0) {
-          const baseDelay = 500 + Math.floor(Math.random() * 200);
-          const incrementDelay = 500 + Math.floor(Math.random() * 200);
-          const delay = baseDelay + index * incrementDelay;
+          const delay = 500 + index * (300 + Math.random() * 200);
 
           setTimeout(() => {
             setVisibleParts(prev => {
               const updated = [...prev, index];
               requestAnimationFrame(() => {
-                onMessagePartVisible?.(); // Notify parent that new content is visible
+                onMessagePartVisible?.();
               });
               return updated;
             });
@@ -52,22 +51,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         }
       });
     } else {
-      // For user messages, show all parts instantly
       setVisibleParts([...Array(messageParts.length).keys()]);
-      onMessagePartVisible?.();
+      requestAnimationFrame(() => {
+        onMessagePartVisible?.();
+      });
     }
-  }, [message.id]); // ✅ only runs on new message
+  }, [message.id]);
 
   return (
     <>
-      {messageParts.map((part, index) => {
-        if (!visibleParts.includes(index)) return null;
-
-        const text = message.sender === "ai"
-          ? personalizeMessage(part)
-          : part;
-
-        return (
+      {messageParts.map((part, index) =>
+        visibleParts.includes(index) ? (
           <div
             key={`${message.id}-${index}`}
             className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
@@ -91,7 +85,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 transition-opacity duration-300 opacity-100
               `}
             >
-              {text.trim()}
+              {personalizeMessage(part).trim()}
             </div>
             {message.sender === "user" && (
               <div className="ml-2 mt-1 flex-shrink-0">
@@ -101,8 +95,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               </div>
             )}
           </div>
-        );
-      })}
+        ) : null
+      )}
     </>
   );
 };

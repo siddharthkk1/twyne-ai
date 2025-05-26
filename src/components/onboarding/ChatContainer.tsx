@@ -1,6 +1,6 @@
 import React from "react";
 import MessageBubble from "./MessageBubble";
-import TypingIndicator from "TypingIndicator";
+import TypingIndicator from "./TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
 import InputContainer from "./InputContainer";
 import ConversationHeader from "./ConversationHeader";
