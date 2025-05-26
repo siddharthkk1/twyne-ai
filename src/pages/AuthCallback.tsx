@@ -12,20 +12,46 @@ const AuthCallback = () => {
     const handleAuthCallback = async () => {
       try {
         console.log('Auth callback - current URL:', window.location.href);
-        console.log('Location hash:', window.location.hash);
         console.log('Location search:', window.location.search);
+        console.log('Location hash:', window.location.hash);
 
-        // Handle the auth session from Supabase
-        const { data, error } = await supabase.auth.getSession();
-        
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+
         if (error) {
-          console.error('Auth callback error:', error);
-          navigate('/auth?error=' + encodeURIComponent(error.message));
+          console.error('OAuth error:', error);
+          navigate('/auth?error=' + encodeURIComponent(error));
+          return;
+        }
+
+        if (code) {
+          console.log('Google OAuth code received, handling YouTube connection');
+          // This is a Google OAuth callback for YouTube
+          try {
+            // Store the code in localStorage for the YouTube service to pick up
+            localStorage.setItem('youtube_auth_code', code);
+            // Redirect to mirror page where YouTube connection will be completed
+            navigate('/mirror?youtube_auth=true');
+            return;
+          } catch (error) {
+            console.error('Error handling YouTube auth:', error);
+            navigate('/mirror?youtube_error=true');
+            return;
+          }
+        }
+
+        // Handle Supabase auth session
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Auth callback error:', sessionError);
+          navigate('/auth?error=' + encodeURIComponent(sessionError.message));
           return;
         }
 
         if (data.session) {
-          console.log('Auth callback successful, session found:', data.session);
+          console.log('Supabase auth callback successful, session found:', data.session);
           navigate('/mirror');
         } else {
           console.log('No session found in auth callback');

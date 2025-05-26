@@ -146,6 +146,31 @@ const Mirror = () => {
   useEffect(() => {
     fetchUserProfile();
     fetchConnectionData();
+    
+    // Handle YouTube auth completion
+    const urlParams = new URLSearchParams(window.location.search);
+    const youtubeAuth = urlParams.get('youtube_auth');
+    const youtubeError = urlParams.get('youtube_error');
+    
+    if (youtubeAuth === 'true') {
+      // Complete YouTube authentication
+      const authCode = localStorage.getItem('youtube_auth_code');
+      if (authCode) {
+        console.log('Completing YouTube authentication...');
+        localStorage.removeItem('youtube_auth_code');
+        // Clear URL params
+        window.history.replaceState({}, document.title, '/mirror');
+        toast.success('YouTube connected successfully!');
+        // Refresh connection data
+        setTimeout(() => fetchConnectionData(), 1000);
+      }
+    }
+    
+    if (youtubeError === 'true') {
+      console.error('YouTube auth error');
+      window.history.replaceState({}, document.title, '/mirror');
+      toast.error('Failed to connect YouTube. Please try again.');
+    }
   }, [user]);
 
   // Re-fetch connection data when returning to the page

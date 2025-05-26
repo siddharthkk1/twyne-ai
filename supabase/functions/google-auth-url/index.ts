@@ -23,7 +23,6 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
     }
     
-    // Ensure we're using the exact redirect URI format for Supabase auth
     console.log('Google Auth - Using redirect URI:', redirect_uri)
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
@@ -32,26 +31,38 @@ serve(async (req) => {
       throw new Error('Google client ID not configured')
     }
     
-    // Use Supabase auth URL for proper token handling
-    const supabaseUrl = req.headers.get('origin')?.replace('localhost:3000', 'lzwkccarbwokfxrzffjd.supabase.co') || ''
-    const supabaseAuthUrl = `${supabaseUrl}/auth/v1/authorize?provider=google`
+    // Build proper Google OAuth URL with correct scopes for YouTube
+    const scopes = [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/youtube.readonly'
+    ].join(' ');
     
-    console.log('Google Auth URL generated:', supabaseAuthUrl)
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authUrl.searchParams.set('client_id', clientId);
+    authUrl.searchParams.set('redirect_uri', redirect_uri);
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('scope', scopes);
+    authUrl.searchParams.set('access_type', 'offline');
+    authUrl.searchParams.set('prompt', 'consent');
     
-    // For GET requests, redirect directly to Supabase auth
+    const finalAuthUrl = authUrl.toString();
+    console.log('Google Auth URL generated:', finalAuthUrl)
+    
+    // For GET requests, redirect directly
     if (req.method === 'GET') {
       return new Response(null, {
         status: 302,
         headers: {
           ...corsHeaders,
-          'Location': supabaseAuthUrl
+          'Location': finalAuthUrl
         }
       })
     }
     
-    // For POST requests, return the Supabase auth URL
+    // For POST requests, return the auth URL
     return new Response(
-      JSON.stringify({ authUrl: supabaseAuthUrl }),
+      JSON.stringify({ authUrl: finalAuthUrl }),
       { 
         headers: { 
           ...corsHeaders, 
