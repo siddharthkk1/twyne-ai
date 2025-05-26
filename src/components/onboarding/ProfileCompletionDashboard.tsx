@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -67,9 +66,9 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
     structure: 50
   };
 
-  // Extract all tags - only use properties that exist in UserProfile
+  // Extract all tags
   const getTags = () => {
-    return userProfile.twyneTags || [];
+    return userProfile.twyneTags || userProfile.vibeWords || [];
   };
 
   const tags = getTags();
@@ -224,17 +223,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 </div>
               </CardContent>
             </Card>
-
-            {/* Basic personality visualization */}
-            <Card className="border border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-xl">Personality Visualization</CardTitle>
-                <CardDescription>A basic personality overview</CardDescription>
-              </CardHeader>
-              <CardContent className="pb-8">
-                <PersonalityChart traits={defaultTraits} />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Vibe Tab */}
@@ -316,11 +304,13 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                   </div>
                 )}
 
-                {/* Visual representation */}
-                <div className="mt-6">
-                  <h3 className="font-medium mb-4">Personality Visualization</h3>
-                  <PersonalityChart traits={defaultTraits} />
-                </div>
+                {/* Visual representation if we have numeric personality traits */}
+                {userProfile.personalityTraits && (
+                  <div className="mt-6">
+                    <h3 className="font-medium mb-4">Personality Visualization</h3>
+                    <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -366,6 +356,17 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.interestsAndPassions}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {userProfile.mediaTastes && (
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Media & Cultural Tastes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.mediaTastes}</p>
                 </CardContent>
               </Card>
             )}
@@ -528,7 +529,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 <CardTitle className="text-xl">Major Turning Points</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>{userProfile.majorTurningPoints || "We don't have info on that yet."}</p>
+                <p>{userProfile.majorTurningPoints || userProfile.majorEvents?.join(", ") || userProfile.turningPoints?.join(", ") || "We don't have info on that yet."}</p>
               </CardContent>
             </Card>
 

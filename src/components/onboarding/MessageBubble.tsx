@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import TwyneOrb from "@/components/ui/TwyneOrb";
 import { Message } from '@/types/chat';
@@ -11,88 +11,103 @@ interface MessageBubbleProps {
   userName?: string;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ 
-  message, 
-  nameInitial, 
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  nameInitial,
   onMessagePartVisible,
-  userName 
+  userName
 }) => {
+  const messageParts = message.sender === "ai"
+    ? message.text.split("||")
+    : [message.text];
+
+  const [visibleParts, setVisibleParts] = useState<number[]>([]);
+
+  const personalizeMessage = (text: string) => {
+    return userName ? text.replace(/{{name}}/g, userName) : text;
+  };
+
   useEffect(() => {
-    if (message.sender === "ai" && onMessagePartVisible) {
-      onMessagePartVisible(() => {
-        // This callback is used for scroll handling
+    if (message.sender === "ai") {
+      setVisibleParts([0]);
+
+      // Trigger scroll for first part with smooth scroll
+      if (onMessagePartVisible) {
+        onMessagePartVisible(() => {
+          // No-op since state is already being updated
+        });
+      }
+
+      messageParts.forEach((_, index) => {
+        if (index > 0) {
+          const delay = 500 + index * (300 + Math.random() * 200);
+
+          setTimeout(() => {
+            setVisibleParts(prev => {
+              const updated = [...prev, index];
+              
+              // Trigger smooth scroll for each new part
+              if (onMessagePartVisible) {
+                requestAnimationFrame(() => {
+                  onMessagePartVisible(() => {
+                    // No-op since state is already being updated
+                  });
+                });
+              }
+              
+              return updated;
+            });
+          }, delay);
+        }
       });
+    } else {
+      // For user messages, show all parts immediately
+      setVisibleParts([...Array(messageParts.length).keys()]);
+      
+      // No need to trigger scroll here since it's handled in handleSend
     }
-  }, [message, onMessagePartVisible]);
-
-  // Handle typing indicator
-  if (message.sender === "typing") {
-    return (
-      <div className="flex">
-        <div className="mr-2 mt-1 flex-shrink-0">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="text-primary text-xs font-medium p-0">
-              <TwyneOrb size={24} pulsing={true} />
-            </AvatarFallback>
-          </Avatar>
-        </div>
-        <div className="chat-bubble-ai bg-background border border-border/50 shadow-sm backdrop-blur-sm rounded-2xl p-4 animate-pulse flex space-x-1 w-16">
-          <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animation-delay-200"></div>
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animation-delay-500"></div>
-        </div>
-      </div>
-    );
-  }
-
-  // Safely handle message text - check if it exists and is a string
-  const messageText = message.text || '';
-  const parts = messageText.split('||').map(part => part.trim());
+  }, [message.id]);
 
   return (
-    <div className={`flex ${message.sender === "user" ? "justify-end" : ""} mb-4`}>
-      {/* AI Avatar */}
-      {message.sender === "ai" && (
-        <div className="mr-2 mt-1 flex-shrink-0">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="text-primary text-xs font-medium p-0">
-              <TwyneOrb size={24} />
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      )}
-      
-      {/* Message Content */}
-      <div className={`${
-        message.sender === "user" 
-          ? "chat-bubble-user" 
-          : "chat-bubble-ai bg-background border border-border/50 shadow-sm backdrop-blur-sm"
-      } rounded-2xl p-4 max-w-[85%] ${
-        message.sender === "user" ? "ml-auto" : "mr-auto"
-      }`}>
-        {parts.map((part, index) => (
+    <>
+      {messageParts.map((part, index) =>
+        visibleParts.includes(index) ? (
           <div
-            key={index}
-            className={`text-sm leading-relaxed ${
-              index > 0 ? "mt-3" : ""
-            }`}
+            key={`${message.id}-${index}`}
+            className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
           >
-            {part}
+            {message.sender === "ai" && (
+              <div className="mr-2 mt-1 flex-shrink-0">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-primary text-xs font-medium p-0">
+                    <TwyneOrb size={24} />
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
+            <div
+              className={`
+                ${message.sender === "user"
+                  ? "chat-bubble-user bg-primary/90 text-primary-foreground ml-auto shadow-lg"
+                  : "chat-bubble-ai bg-background border border-border/50 backdrop-blur-sm shadow-md"
+                }
+                rounded-2xl p-4 max-w-[85%] md:max-w-[70%]
+                transition-opacity duration-300 opacity-100
+              `}
+            >
+              {personalizeMessage(part).trim()}
+            </div>
+            {message.sender === "user" && (
+              <div className="ml-2 mt-1 flex-shrink-0">
+                <Avatar className="h-8 w-8 bg-muted">
+                  <AvatarFallback>{nameInitial}</AvatarFallback>
+                </Avatar>
+              </div>
+            )}
           </div>
-        ))}
-      </div>
-
-      {/* User Avatar */}
-      {message.sender === "user" && (
-        <div className="ml-2 mt-1 flex-shrink-0">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
-              {nameInitial}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        ) : null
       )}
-    </div>
+    </>
   );
 };
 

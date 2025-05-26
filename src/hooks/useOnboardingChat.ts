@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -164,6 +163,7 @@ export const useOnboardingChat = () => {
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
     if (isComplete || isGeneratingProfile) {
+      // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
 
@@ -194,17 +194,11 @@ export const useOnboardingChat = () => {
     initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
       setIsInitializing(false);
       
-      // Set the messages with the AI greeting as a single message
-      const aiMessage: Message = { 
-        id: 1, 
-        text: aiGreeting, 
-        sender: "ai" 
-      };
-      
-      setMessages([aiMessage]);
+      // Set the messages and then scroll after DOM update
+      setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
       setConversation(updatedConversation);
       
-      // Scroll to bottom after DOM update
+      // Use a longer delay to ensure DOM is fully updated and layout is complete
       setTimeout(() => {
         scrollToBottomInstant();
       }, 100);
@@ -280,32 +274,19 @@ export const useOnboardingChat = () => {
 
         setMessages((prev) => [...prev, newUserMessage]);
         setInput("");
+        setIsTyping(true);
       });
       
-      // Add delay before showing typing indicator
-      setTimeout(() => {
-        setIsTyping(true);
-        
-        // Add typing indicator immediately to messages
-        const typingMessage: Message = {
-          id: messages.length + 2,
-          text: "",
-          sender: "typing",
-        };
-        setMessages(prev => [...prev, typingMessage]);
-        
-        // Replace typing with actual message after delay
-        setTimeout(() => {
-          const nameRequestMessage: Message = {
-            id: messages.length + 2,
-            text: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?",
-            sender: "ai",
-          };
+      const nameRequestMessage: Message = {
+        id: messages.length + 2,
+        text: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?",
+        sender: "ai",
+      };
 
-          setMessages(prev => prev.slice(0, -1).concat(nameRequestMessage));
-          setIsTyping(false);
-        }, 1000);
-      }, 300);
+      setTimeout(() => {
+        setMessages(prev => [...prev, nameRequestMessage]);
+        setIsTyping(false);
+      }, 1000);
       
       setAskingForName(true);
 
@@ -316,7 +297,7 @@ export const useOnboardingChat = () => {
       
       const assistantMessageObj: { role: ChatRole; content: string } = { 
         role: "assistant" as ChatRole, 
-        content: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?" 
+        content: nameRequestMessage.text 
       };
 
       const updatedConversation = {
@@ -372,7 +353,7 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Regular message handling - use handleUserMessage for seamless scrolling
+    // Use handleUserMessage for seamless scrolling
     handleUserMessage(() => {
       const newUserMessage: Message = {
         id: messages.length + 1,
@@ -382,12 +363,13 @@ export const useOnboardingChat = () => {
 
       setMessages((prev) => [...prev, newUserMessage]);
       setInput("");
+      setIsTyping(true);
     });
 
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
     } else if (currentQuestionIndex === 1) {
-      setUserProfile(prev => ({ ...prev, interestsAndPassions: textToSend.trim() }));
+      setUserProfile(prev => ({ ...prev, interests: [textToSend.trim()] }));
     }
 
     const newIndex = currentQuestionIndex + 1;
@@ -416,21 +398,7 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Add delay before showing typing indicator
-    setTimeout(() => {
-      setIsTyping(true);
-      
-      // Add typing indicator immediately to messages
-      const typingMessage: Message = {
-        id: messages.length + 2,
-        text: "",
-        sender: "typing",
-      };
-      setMessages(prev => [...prev, typingMessage]);
-      
-      // Handle AI response which will replace the typing indicator
-      handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
-    }, 300);
+    handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
   };
 
   // Get progress percent based on conversation length
