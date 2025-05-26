@@ -2,10 +2,10 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Mesh } from 'three';
+import { Group } from 'three';
 
 const HumanAvatarModel = () => {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (groupRef.current) {
