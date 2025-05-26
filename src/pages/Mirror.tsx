@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Music, Video, Send, RotateCcw } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Send, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
+import AccountConnectionButtons from "@/components/connections/AccountConnectionButtons";
 import { getMirrorChatResponse, updateProfileFromChat } from "@/utils/aiUtils";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/chat";
@@ -851,44 +852,7 @@ const Mirror = () => {
                   <CardDescription>Link your music and video accounts to enhance your mirror</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <Music className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Spotify</h3>
-                          <p className="text-sm text-muted-foreground">Connect your music taste and listening habits</p>
-                        </div>
-                      </div>
-                      <Button variant="outline">
-                        Connect
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-red-100 rounded-lg">
-                          <Video className="h-5 w-5 text-red-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">YouTube</h3>
-                          <p className="text-sm text-muted-foreground">Connect your video preferences and subscriptions</p>
-                        </div>
-                      </div>
-                      <Button variant="outline">
-                        Connect
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 p-4 bg-muted/20 rounded-lg">
-                    <h4 className="font-medium mb-2">Coming Soon</h4>
-                    <p className="text-sm text-muted-foreground">
-                      More integrations like Instagram, Twitter, and Netflix are coming soon to make your mirror even more accurate.
-                    </p>
-                  </div>
+                  <AccountConnectionButtons />
                 </CardContent>
               </Card>
             </TabsContent>
