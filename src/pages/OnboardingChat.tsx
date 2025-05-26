@@ -41,8 +41,7 @@ const OnboardingChat = () => {
     handleNameSubmit,
     scrollContainerRef,
     handleScroll,
-    handleAIMessagePart,
-    isScrolling
+    handleAIMessagePart
   } = useOnboardingChat();
 
   // Show results when complete
@@ -92,7 +91,6 @@ const OnboardingChat = () => {
         scrollContainerRef={scrollContainerRef}
         handleScroll={handleScroll}
         handleAIMessagePart={handleAIMessagePart}
-        isScrolling={isScrolling}
       />
     </div>
   );

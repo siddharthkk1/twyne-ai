@@ -136,7 +136,6 @@ export const useOnboardingChat = () => {
     scrollContainerRef,
     isUserNearBottom,
     hasUserScrolled,
-    isScrolling,
     handleScroll,
     handleUserMessage,
     handleAIMessagePart,
@@ -450,7 +449,6 @@ export const useOnboardingChat = () => {
     handleNameSubmit,
     scrollContainerRef,
     handleScroll,
-    handleAIMessagePart,
-    isScrolling
+    handleAIMessagePart
   };
 };

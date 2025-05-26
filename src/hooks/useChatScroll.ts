@@ -5,7 +5,6 @@ export const useChatScroll = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isUserNearBottom, setIsUserNearBottom] = useState(true);
   const [hasUserScrolled, setHasUserScrolled] = useState(false);
-  const [isScrolling, setIsScrolling] = useState(false);
 
   // Check if user is near the bottom
   const checkIfNearBottom = useCallback(() => {
@@ -36,36 +35,24 @@ export const useChatScroll = () => {
     }
   }, [checkIfNearBottom, hasUserScrolled]);
 
-  // Instant scroll to bottom (for user messages)
+  // Instant scroll to bottom (for user messages and seamless AI updates)
   const scrollToBottomInstant = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    setIsScrolling(true);
-    // Force instant scroll to bottom
+    // Use scrollTop for instant, smooth updates
     container.scrollTop = container.scrollHeight;
-    
-    // Hide scrollbar briefly during update
-    setTimeout(() => {
-      setIsScrolling(false);
-    }, 100);
   }, []);
 
-  // Smooth scroll to bottom (for AI messages when user is near bottom)
+  // Smooth scroll to bottom (for when user manually needs to return)
   const scrollToBottomSmooth = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    setIsScrolling(true);
     container.scrollTo({
       top: container.scrollHeight,
       behavior: 'smooth'
     });
-    
-    // Hide scrollbar briefly during update
-    setTimeout(() => {
-      setIsScrolling(false);
-    }, 300);
   }, []);
 
   // Handle user sending a message - immediate scroll
@@ -77,13 +64,13 @@ export const useChatScroll = () => {
     // Update messages first
     updateMessages();
 
-    // Scroll immediately after state update
+    // Scroll immediately after DOM update
     requestAnimationFrame(() => {
       scrollToBottomInstant();
     });
   }, [scrollToBottomInstant]);
 
-  // Handle AI message parts - smooth scroll if user is near bottom
+  // Handle AI message parts - instant scroll if user is near bottom
   const handleAIMessagePart = useCallback((updateMessages: () => void) => {
     // Always update messages first
     updateMessages();
@@ -92,7 +79,7 @@ export const useChatScroll = () => {
     if (!hasUserScrolled && isUserNearBottom) {
       // Use requestAnimationFrame to ensure DOM is updated
       requestAnimationFrame(() => {
-        scrollToBottomInstant(); // Use instant for seamless appearance
+        scrollToBottomInstant();
       });
     }
   }, [hasUserScrolled, isUserNearBottom, scrollToBottomInstant]);
@@ -108,7 +95,6 @@ export const useChatScroll = () => {
     scrollContainerRef,
     isUserNearBottom,
     hasUserScrolled,
-    isScrolling,
     handleScroll,
     handleUserMessage,
     handleAIMessagePart,
