@@ -1,4 +1,6 @@
 
+import { supabase } from "@/integrations/supabase/client";
+
 interface GoogleTokenResponse {
   access_token: string;
   token_type: string;
@@ -9,14 +11,17 @@ interface GoogleTokenResponse {
 
 export class GoogleAuthService {
   private static readonly AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
-  private static readonly TOKEN_URL = 'https://oauth2.googleapis.com/token';
   
   static getYouTubeAuthUrl(): string {
     const params = new URLSearchParams({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
       response_type: 'code',
       redirect_uri: `${window.location.origin}/settings`,
-      scope: 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+      scope: [
+        'https://www.googleapis.com/auth/youtube.readonly',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ].join(' '),
       access_type: 'offline',
       prompt: 'consent',
       state: 'youtube_auth'
@@ -26,18 +31,14 @@ export class GoogleAuthService {
   }
   
   static async exchangeCodeForToken(code: string): Promise<GoogleTokenResponse> {
-    const response = await fetch('/api/google/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ code })
+    const { data, error } = await supabase.functions.invoke('google-auth', {
+      body: { code }
     });
     
-    if (!response.ok) {
+    if (error) {
       throw new Error('Failed to exchange code for token');
     }
     
-    return response.json();
+    return data;
   }
 }

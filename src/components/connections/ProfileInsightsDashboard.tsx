@@ -4,11 +4,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Lock } from "lucide-react";
 
-interface ProfileInsight {
-  category: string;
-  value: string;
-}
-
 interface ProfileInsightsDashboardProps {
   profileData: any;
   nameInitial: string;
@@ -20,42 +15,74 @@ const ProfileInsightsDashboard = ({ profileData, nameInitial }: ProfileInsightsD
     const insights = [
       { 
         category: "Location", 
-        value: profileData.location || "Not specified" 
+        value: profileData.location || "We don't have enough info on that yet." 
+      },
+      { 
+        category: "Age", 
+        value: profileData.age || "We don't have enough info on that yet." 
+      },
+      { 
+        category: "Job", 
+        value: profileData.job || "We don't have enough info on that yet." 
+      },
+      { 
+        category: "School", 
+        value: profileData.school || "We don't have enough info on that yet." 
       },
       { 
         category: "Interests", 
         value: Array.isArray(profileData.interests) 
           ? profileData.interests.join(", ") 
-          : profileData.talkingPoints?.join(", ") || "Not specified" 
+          : profileData.talkingPoints?.join(", ") || "We don't have enough info on that yet." 
       },
       { 
         category: "Social Style", 
-        value: profileData.socialStyle || "Not specified" 
+        value: profileData.socialStyle || "We don't have enough info on that yet." 
       },
       { 
-        category: "Looking For", 
-        value: profileData.lookingFor || "Not specified" 
+        category: "Lifestyle", 
+        value: profileData.lifestyle || "We don't have enough info on that yet." 
       },
       { 
-        category: "Weekend Activities", 
-        value: profileData.weekendActivities || "Not specified" 
+        category: "Favorite Activities", 
+        value: profileData.favoriteActivities || "We don't have enough info on that yet." 
       },
       { 
-        category: "Cultural Tastes", 
-        value: profileData.mediaTastes || "Not specified" 
+        category: "Communication Style", 
+        value: profileData.communicationStyle || "We don't have enough info on that yet." 
       },
       {
         category: "Core Values",
-        value: profileData.coreValues || "Not specified"
+        value: profileData.coreValues || "We don't have enough info on that yet."
       },
       {
         category: "Life Philosophy",
-        value: profileData.lifePhilosophy || "Not specified"
+        value: profileData.lifePhilosophy || "We don't have enough info on that yet."
+      },
+      {
+        category: "Goals",
+        value: profileData.goals || "We don't have enough info on that yet."
+      },
+      {
+        category: "Favorite Music",
+        value: profileData.favoriteMusic || "We don't have enough info on that yet."
+      },
+      {
+        category: "Favorite Movies & Shows",
+        value: profileData.favoriteMoviesAndShows || "We don't have enough info on that yet."
+      },
+      {
+        category: "Favorite Books",
+        value: profileData.favoriteBooks || "We don't have enough info on that yet."
+      },
+      {
+        category: "Connection Preferences",
+        value: profileData.connectionPreferences || "We don't have enough info on that yet."
       }
     ];
     
-    // Filter out insights with "Not specified" values
-    return insights.filter(insight => insight.value !== "Not specified");
+    // Return all insights, even if empty
+    return insights;
   };
 
   // Get tags from profileData
@@ -87,19 +114,25 @@ const ProfileInsightsDashboard = ({ profileData, nameInitial }: ProfileInsightsD
           </div>
           
           {/* Vibe Summary */}
-          {profileData.vibeSummary && (
-            <div className="space-y-1">
-              <div className="text-sm font-medium">Vibe Summary</div>
-              <div className="bg-secondary/5 rounded-lg p-3 text-sm border border-secondary/10">
-                {profileData.vibeSummary}
-              </div>
+          <div className="space-y-1">
+            <div className="text-sm font-medium">Vibe Summary</div>
+            <div className="bg-secondary/5 rounded-lg p-3 text-sm border border-secondary/10">
+              {profileData.vibeSummary || "We don't have enough info on that yet."}
             </div>
-          )}
+          </div>
+          
+          {/* One Liner */}
+          <div className="space-y-1">
+            <div className="text-sm font-medium">One Liner</div>
+            <div className="bg-secondary/5 rounded-lg p-3 text-sm border border-secondary/10">
+              {profileData.oneLiner || "We don't have enough info on that yet."}
+            </div>
+          </div>
           
           {/* Twyne Tags */}
-          {tags.length > 0 && (
-            <div className="space-y-1">
-              <div className="text-sm font-medium">Twyne Tags</div>
+          <div className="space-y-1">
+            <div className="text-sm font-medium">Twyne Tags</div>
+            {tags.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag: string, index: number) => (
                   <Badge key={index} variant="outline" className="bg-primary/5 text-primary">
@@ -107,8 +140,12 @@ const ProfileInsightsDashboard = ({ profileData, nameInitial }: ProfileInsightsD
                   </Badge>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-secondary/5 rounded-lg p-3 text-sm border border-secondary/10">
+                We don't have enough info on that yet.
+              </div>
+            )}
+          </div>
           
           {/* Profile Insights */}
           <div className="space-y-3">

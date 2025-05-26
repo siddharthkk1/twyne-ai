@@ -1,18 +1,53 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Environment } from '@react-three/drei';
+import { Suspense } from 'react';
+
+interface AvatarModelProps {
+  url?: string;
+}
+
+const AvatarModel: React.FC<AvatarModelProps> = ({ url = "https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb" }) => {
+  const { scene } = useGLTF(url);
+  
+  useEffect(() => {
+    // Scale and position the model
+    scene.scale.setScalar(2);
+    scene.position.y = -1;
+  }, [scene]);
+
+  return <primitive object={scene} />;
+};
 
 interface HumanAvatar3DProps {
   className?: string;
+  avatarUrl?: string;
 }
 
-const HumanAvatar3D: React.FC<HumanAvatar3DProps> = ({ className = "" }) => {
+const HumanAvatar3D: React.FC<HumanAvatar3DProps> = ({ 
+  className = "", 
+  avatarUrl 
+}) => {
   return (
-    <div className={`w-full h-64 rounded-lg overflow-hidden border bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center ${className}`}>
-      <img 
-        src="/lovable-uploads/68a274e6-f0d4-456d-9118-af4701073af0.png" 
-        alt="3D Avatar" 
-        className="h-full w-auto object-contain"
-      />
+    <div className={`w-full h-64 rounded-lg overflow-hidden ${className}`}>
+      <Canvas 
+        camera={{ position: [0, 0, 3], fov: 50 }}
+        style={{ background: 'transparent' }}
+      >
+        <Suspense fallback={null}>
+          <Environment preset="studio" />
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <AvatarModel url={avatarUrl} />
+          <OrbitControls 
+            enablePan={false} 
+            enableZoom={false} 
+            maxPolarAngle={Math.PI / 2}
+            minPolarAngle={Math.PI / 3}
+          />
+        </Suspense>
+      </Canvas>
     </div>
   );
 };

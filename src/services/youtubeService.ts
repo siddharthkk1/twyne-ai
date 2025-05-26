@@ -28,6 +28,7 @@ interface YouTubeVideo {
       high: { url: string };
     };
     publishedAt: string;
+    channelTitle: string;
   };
   statistics: {
     viewCount: string;
@@ -49,6 +50,22 @@ interface YouTubePlaylist {
   };
   contentDetails: {
     itemCount: number;
+  };
+}
+
+interface YouTubeSubscription {
+  id: string;
+  snippet: {
+    title: string;
+    description: string;
+    resourceId: {
+      channelId: string;
+    };
+    thumbnails: {
+      default: { url: string };
+      medium: { url: string };
+      high: { url: string };
+    };
   };
 }
 
@@ -74,7 +91,7 @@ export class YouTubeService {
     return data.items[0];
   }
   
-  static async getUserVideos(accessToken: string, maxResults: number = 20): Promise<YouTubeVideo[]> {
+  static async getUserVideos(accessToken: string, maxResults: number = 50): Promise<YouTubeVideo[]> {
     // First get the channel's upload playlist ID
     const channelResponse = await fetch(`${this.API_BASE}/channels?part=contentDetails&mine=true`, {
       headers: {
@@ -107,6 +124,10 @@ export class YouTubeService {
     const playlistData = await playlistResponse.json();
     const videoIds = playlistData.items.map((item: any) => item.snippet.resourceId.videoId).join(',');
     
+    if (!videoIds) {
+      return [];
+    }
+    
     // Get detailed video information
     const videosResponse = await fetch(`${this.API_BASE}/videos?part=snippet,statistics&id=${videoIds}`, {
       headers: {
@@ -122,7 +143,7 @@ export class YouTubeService {
     return videosData.items;
   }
   
-  static async getUserPlaylists(accessToken: string, maxResults: number = 20): Promise<YouTubePlaylist[]> {
+  static async getUserPlaylists(accessToken: string, maxResults: number = 50): Promise<YouTubePlaylist[]> {
     const response = await fetch(`${this.API_BASE}/playlists?part=snippet,contentDetails&mine=true&maxResults=${maxResults}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
@@ -136,12 +157,24 @@ export class YouTubeService {
     const data = await response.json();
     return data.items;
   }
+
+  static async getUserSubscriptions(accessToken: string, maxResults: number = 50): Promise<YouTubeSubscription[]> {
+    const response = await fetch(`${this.API_BASE}/subscriptions?part=snippet&mine=true&maxResults=${maxResults}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch subscriptions');
+    }
+    
+    const data = await response.json();
+    return data.items;
+  }
   
-  static async getWatchHistory(accessToken: string): Promise<YouTubeVideo[]> {
-    // Note: YouTube API doesn't provide watch history directly due to privacy concerns
-    // This would require additional setup with YouTube Analytics API for channel owners
-    // For now, we'll return liked videos as a proxy
-    const response = await fetch(`${this.API_BASE}/videos?part=snippet,statistics&myRating=like&maxResults=20`, {
+  static async getLikedVideos(accessToken: string): Promise<YouTubeVideo[]> {
+    const response = await fetch(`${this.API_BASE}/videos?part=snippet,statistics&myRating=like&maxResults=50`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       }
@@ -153,5 +186,48 @@ export class YouTubeService {
     
     const data = await response.json();
     return data.items;
+  }
+
+  static async getWatchHistory(accessToken: string): Promise<YouTubeVideo[]> {
+    // YouTube doesn't provide direct access to watch history via API for privacy reasons
+    // We'll return liked videos as a proxy for user engagement
+    return this.getLikedVideos(accessToken);
+  }
+
+  static async getWatchLaterPlaylist(accessToken: string): Promise<YouTubeVideo[]> {
+    try {
+      const response = await fetch(`${this.API_BASE}/playlistItems?part=snippet&playlistId=WL&maxResults=50`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        return [];
+      }
+      
+      const data = await response.json();
+      const videoIds = data.items.map((item: any) => item.snippet.resourceId.videoId).join(',');
+      
+      if (!videoIds) {
+        return [];
+      }
+      
+      const videosResponse = await fetch(`${this.API_BASE}/videos?part=snippet,statistics&id=${videoIds}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (!videosResponse.ok) {
+        return [];
+      }
+      
+      const videosData = await videosResponse.json();
+      return videosData.items;
+    } catch (error) {
+      console.error('Failed to fetch watch later playlist:', error);
+      return [];
+    }
   }
 }

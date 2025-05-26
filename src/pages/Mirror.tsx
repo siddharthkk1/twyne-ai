@@ -330,7 +330,7 @@ const Mirror = () => {
                   <CardTitle className="text-xl">Vibe Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.vibeSummary || "We don't have info on that yet."}</p>
+                  <p>{userProfile.vibeSummary || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
@@ -340,7 +340,7 @@ const Mirror = () => {
                   <CardTitle className="text-xl">One Liner</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg font-medium">{userProfile.oneLiner || "We don't have info on that yet."}</p>
+                  <p className="text-lg font-medium">{userProfile.oneLiner || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
@@ -359,7 +359,7 @@ const Mirror = () => {
                       ))}
                     </div>
                   ) : (
-                    <p>We don't have info on that yet.</p>
+                    <p>We don't have enough info on that yet.</p>
                   )}
                 </CardContent>
               </Card>
@@ -373,42 +373,42 @@ const Mirror = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h3 className="font-medium text-muted-foreground">Name</h3>
-                      <p className="font-semibold">{displayName || "We don't have info on that yet."}</p>
+                      <p className="font-semibold">{displayName || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium text-muted-foreground">Age</h3>
-                      <p>{userProfile.age || "We don't have info on that yet."}</p>
+                      <p>{userProfile.age || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium text-muted-foreground">Location</h3>
-                      <p>{userProfile.location || "We don't have info on that yet."}</p>
+                      <p>{userProfile.location || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium text-muted-foreground">Job</h3>
-                      <p>{userProfile.job || "We don't have info on that yet."}</p>
+                      <p>{userProfile.job || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium text-muted-foreground">School</h3>
-                      <p>{userProfile.school || "We don't have info on that yet."}</p>
+                      <p>{userProfile.school || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium text-muted-foreground">Ethnicity</h3>
-                      <p>{userProfile.ethnicity || "We don't have info on that yet."}</p>
+                      <p>{userProfile.ethnicity || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium text-muted-foreground">Religion</h3>
-                      <p>{userProfile.religion || "We don't have info on that yet."}</p>
+                      <p>{userProfile.religion || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium text-muted-foreground">Hometown</h3>
-                      <p>{userProfile.hometown || "We don't have info on that yet."}</p>
+                      <p>{userProfile.hometown || "We don't have enough info on that yet."}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -423,7 +423,7 @@ const Mirror = () => {
                   <CardTitle className="text-xl">Personality Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.personalitySummary || "We don't have info on that yet."}</p>
+                  <p>{userProfile.personalitySummary || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
@@ -434,65 +434,40 @@ const Mirror = () => {
                   <CardDescription>Your personality dimensions mapped across the Big Five model</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {userProfile.bigFiveTraits?.openness ? (
-                    <div>
-                      <h3 className="font-medium mb-2">Openness</h3>
-                      <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.openness}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="font-medium mb-2">Openness</h3>
-                      <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium mb-2">Openness</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userProfile.bigFiveTraits?.openness || "We don't have enough info on that yet."}
+                    </p>
+                  </div>
                   
-                  {userProfile.bigFiveTraits?.conscientiousness ? (
-                    <div>
-                      <h3 className="font-medium mb-2">Conscientiousness</h3>
-                      <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.conscientiousness}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="font-medium mb-2">Conscientiousness</h3>
-                      <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium mb-2">Conscientiousness</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userProfile.bigFiveTraits?.conscientiousness || "We don't have enough info on that yet."}
+                    </p>
+                  </div>
                   
-                  {userProfile.bigFiveTraits?.extraversion ? (
-                    <div>
-                      <h3 className="font-medium mb-2">Extraversion</h3>
-                      <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.extraversion}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="font-medium mb-2">Extraversion</h3>
-                      <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium mb-2">Extraversion</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userProfile.bigFiveTraits?.extraversion || "We don't have enough info on that yet."}
+                    </p>
+                  </div>
                   
-                  {userProfile.bigFiveTraits?.agreeableness ? (
-                    <div>
-                      <h3 className="font-medium mb-2">Agreeableness</h3>
-                      <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.agreeableness}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="font-medium mb-2">Agreeableness</h3>
-                      <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium mb-2">Agreeableness</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userProfile.bigFiveTraits?.agreeableness || "We don't have enough info on that yet."}
+                    </p>
+                  </div>
                   
-                  {userProfile.bigFiveTraits?.neuroticism ? (
-                    <div>
-                      <h3 className="font-medium mb-2">Neuroticism</h3>
-                      <p className="text-sm text-muted-foreground">{userProfile.bigFiveTraits.neuroticism}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="font-medium mb-2">Neuroticism</h3>
-                      <p className="text-sm text-muted-foreground">We don't have info on that yet.</p>
-                    </div>
-                  )}
+                  <div>
+                    <h3 className="font-medium mb-2">Neuroticism</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userProfile.bigFiveTraits?.neuroticism || "We don't have enough info on that yet."}
+                    </p>
+                  </div>
 
                   {userProfile.personalityTraits && (
                     <div className="mt-6">
@@ -509,96 +484,102 @@ const Mirror = () => {
                   <CardTitle className="text-xl">Style</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.style || "We don't have info on that yet."}</p>
+                  <p>{userProfile.style || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
+
+              {/* Quirks */}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Quirks</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.quirks || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
+
+              {/* Communication Style */}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Communication Style</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.communicationStyle || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Interests & Lifestyle Tab */}
             <TabsContent value="interests" className="space-y-6">
-              {userProfile.lifestyle && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Lifestyle</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.lifestyle}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Lifestyle</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lifestyle || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.favoriteProducts && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Favorite Products</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.favoriteProducts}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Favorite Products</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.favoriteProducts || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.interestsAndPassions && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Interests & Passions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.interestsAndPassions}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Interests & Passions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.interestsAndPassions || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.favoriteMoviesAndShows && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Favorite Movies & Shows</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.favoriteMoviesAndShows}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Favorite Movies & Shows</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.favoriteMoviesAndShows || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.favoriteMusic && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Favorite Music</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.favoriteMusic}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Favorite Music</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.favoriteMusic || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.favoriteBooks && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Favorite Books</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.favoriteBooks}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Favorite Books</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.favoriteBooks || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.favoritePodcastsOrYouTube && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Favorite Podcasts or YouTube</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.favoritePodcastsOrYouTube}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Favorite Podcasts or YouTube</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.favoritePodcastsOrYouTube || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.talkingPoints && userProfile.talkingPoints.length > 0 && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Talking Points</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Talking Points</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {userProfile.talkingPoints && userProfile.talkingPoints.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {ensureArray(userProfile.talkingPoints).map((point, i) => (
                         <Badge key={i} variant="outline" className="bg-secondary/5 text-secondary">
@@ -606,83 +587,66 @@ const Mirror = () => {
                         </Badge>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <p>We don't have enough info on that yet.</p>
+                  )}
+                </CardContent>
+              </Card>
 
-              {userProfile.favoriteActivities && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Favorite Activities</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.favoriteActivities}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Favorite Activities</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.favoriteActivities || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.favoriteSpots && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Favorite Spots</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.favoriteSpots}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Favorite Spots</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.favoriteSpots || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Inner World Tab */}
             <TabsContent value="inner-world" className="space-y-6">
-              {userProfile.coreValues && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Core Values</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.coreValues}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Core Values</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.coreValues || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.lifePhilosophy && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Life Philosophy</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.lifePhilosophy}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Life Philosophy</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.lifePhilosophy || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">Goals</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.goals || "We don't have info on that yet."}</p>
+                  <p>{userProfile.goals || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
-
-              {userProfile.religion && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Religious Beliefs</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.religion}</p>
-                  </CardContent>
-                </Card>
-              )}
 
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">Political Views</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.politicalViews || "We don't have info on that yet."}</p>
+                  <p>{userProfile.politicalViews || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
@@ -691,31 +655,9 @@ const Mirror = () => {
                   <CardTitle className="text-xl">Personal Beliefs</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.personalBeliefs || "We don't have info on that yet."}</p>
+                  <p>{userProfile.personalBeliefs || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
-
-              {userProfile.quirks && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Quirks</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.quirks}</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {userProfile.communicationStyle && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Communication Style</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.communicationStyle}</p>
-                  </CardContent>
-                </Card>
-              )}
             </TabsContent>
 
             {/* Story Tab */}
@@ -725,7 +667,7 @@ const Mirror = () => {
                   <CardTitle className="text-xl">Upbringing</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.upbringing || "We don't have info on that yet."}</p>
+                  <p>{userProfile.upbringing || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
@@ -734,7 +676,7 @@ const Mirror = () => {
                   <CardTitle className="text-xl">Major Turning Points</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.majorTurningPoints || "We don't have info on that yet."}</p>
+                  <p>{userProfile.majorTurningPoints || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
@@ -743,92 +685,78 @@ const Mirror = () => {
                   <CardTitle className="text-xl">Recent Life Context</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.recentLifeContext || "We don't have info on that yet."}</p>
+                  <p>{userProfile.recentLifeContext || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Connection Tab */}
             <TabsContent value="connection" className="space-y-6">
-              {userProfile.socialStyle && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Social Style</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.socialStyle}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Social Style</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.socialStyle || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.loveLanguageOrFriendStyle && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Love Language or Friend Style</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.loveLanguageOrFriendStyle}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Love Language or Friend Style</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.loveLanguageOrFriendStyle || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.socialNeeds && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Social Needs</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.socialNeeds}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Social Needs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.socialNeeds || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.connectionPreferences && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Connection Preferences</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.connectionPreferences}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Connection Preferences</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.connectionPreferences || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.dealBreakers && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Dealbreakers</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.dealBreakers}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Dealbreakers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.dealBreakers || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.boundariesAndPetPeeves && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Boundaries & Pet Peeves</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.boundariesAndPetPeeves}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Boundaries & Pet Peeves</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.boundariesAndPetPeeves || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
 
-              {userProfile.connectionActivities && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Connection Activities</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.connectionActivities}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Connection Activities</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.connectionActivities || "We don't have enough info on that yet."}</p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            {/* Updated Edit Tab */}
+            {/* Chat Tab */}
             <TabsContent value="edit" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
@@ -915,7 +843,7 @@ const Mirror = () => {
               </Card>
             </TabsContent>
 
-            {/* New Integrations Tab */}
+            {/* Integrations Tab */}
             <TabsContent value="integrations" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>

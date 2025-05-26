@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User, Music, Video, ExternalLink } from "lucide-react";
+import { LogOut, User, Music, Video, ExternalLink, Loader2 } from "lucide-react";
 import HumanAvatar3D from "@/components/HumanAvatar3D";
 import { SpotifyService } from "@/services/spotifyService";
 import { GoogleAuthService } from "@/services/googleAuthService";
@@ -21,6 +21,7 @@ const Settings = () => {
   const [spotifyProfile, setSpotifyProfile] = useState<any>(null);
   const [youtubeChannel, setYoutubeChannel] = useState<any>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   useEffect(() => {
     // Check for OAuth callback codes in URL
@@ -39,33 +40,31 @@ const Settings = () => {
     try {
       if (state === 'youtube_auth') {
         // Handle YouTube OAuth callback
+        console.log('Processing YouTube OAuth callback...');
         const tokenData = await GoogleAuthService.exchangeCodeForToken(code);
         setGoogleToken(tokenData.access_token);
         localStorage.setItem('google_access_token', tokenData.access_token);
         
-        // Fetch YouTube channel info
-        const channel = await YouTubeService.getChannelInfo(tokenData.access_token);
-        setYoutubeChannel(channel);
-        localStorage.setItem('youtube_channel', JSON.stringify(channel));
+        // Fetch comprehensive YouTube data
+        await fetchYouTubeData(tokenData.access_token);
         
         toast({
           title: "YouTube Connected!",
-          description: "Successfully connected your YouTube account.",
+          description: "Successfully connected your YouTube account and fetched your data.",
         });
       } else {
         // Handle Spotify OAuth callback
+        console.log('Processing Spotify OAuth callback...');
         const tokenData = await SpotifyService.exchangeCodeForToken(code);
         setSpotifyToken(tokenData.access_token);
         localStorage.setItem('spotify_access_token', tokenData.access_token);
         
-        // Fetch Spotify profile
-        const profile = await SpotifyService.getUserProfile(tokenData.access_token);
-        setSpotifyProfile(profile);
-        localStorage.setItem('spotify_profile', JSON.stringify(profile));
+        // Fetch comprehensive Spotify data
+        await fetchSpotifyData(tokenData.access_token);
         
         toast({
           title: "Spotify Connected!",
-          description: "Successfully connected your Spotify account.",
+          description: "Successfully connected your Spotify account and fetched your data.",
         });
       }
       
@@ -83,6 +82,111 @@ const Settings = () => {
     }
   };
 
+  const fetchSpotifyData = async (accessToken: string) => {
+    try {
+      setIsFetchingData(true);
+      console.log('Fetching comprehensive Spotify data...');
+      
+      // Fetch all available Spotify data
+      const [
+        profile,
+        topTracksShort,
+        topTracksMedium,
+        topTracksLong,
+        topArtistsShort,
+        topArtistsMedium,
+        topArtistsLong,
+        recentlyPlayed,
+        playlists,
+        savedTracks,
+        followedArtists
+      ] = await Promise.all([
+        SpotifyService.getUserProfile(accessToken),
+        SpotifyService.getTopTracks(accessToken, 'short_term'),
+        SpotifyService.getTopTracks(accessToken, 'medium_term'),
+        SpotifyService.getTopTracks(accessToken, 'long_term'),
+        SpotifyService.getTopArtists(accessToken, 'short_term'),
+        SpotifyService.getTopArtists(accessToken, 'medium_term'),
+        SpotifyService.getTopArtists(accessToken, 'long_term'),
+        SpotifyService.getRecentlyPlayed(accessToken),
+        SpotifyService.getUserPlaylists(accessToken),
+        SpotifyService.getSavedTracks(accessToken),
+        SpotifyService.getFollowedArtists(accessToken)
+      ]);
+
+      const spotifyData = {
+        profile,
+        topTracks: {
+          short_term: topTracksShort,
+          medium_term: topTracksMedium,
+          long_term: topTracksLong
+        },
+        topArtists: {
+          short_term: topArtistsShort,
+          medium_term: topArtistsMedium,
+          long_term: topArtistsLong
+        },
+        recentlyPlayed,
+        playlists,
+        savedTracks,
+        followedArtists
+      };
+
+      setSpotifyProfile(profile);
+      localStorage.setItem('spotify_profile', JSON.stringify(profile));
+      localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
+      
+      console.log('Spotify data fetched successfully:', spotifyData);
+    } catch (error) {
+      console.error('Error fetching Spotify data:', error);
+    } finally {
+      setIsFetchingData(false);
+    }
+  };
+
+  const fetchYouTubeData = async (accessToken: string) => {
+    try {
+      setIsFetchingData(true);
+      console.log('Fetching comprehensive YouTube data...');
+      
+      // Fetch all available YouTube data
+      const [
+        channel,
+        videos,
+        playlists,
+        subscriptions,
+        likedVideos,
+        watchLater
+      ] = await Promise.all([
+        YouTubeService.getChannelInfo(accessToken),
+        YouTubeService.getUserVideos(accessToken),
+        YouTubeService.getUserPlaylists(accessToken),
+        YouTubeService.getUserSubscriptions(accessToken),
+        YouTubeService.getLikedVideos(accessToken),
+        YouTubeService.getWatchLaterPlaylist(accessToken)
+      ]);
+
+      const youtubeData = {
+        channel,
+        videos,
+        playlists,
+        subscriptions,
+        likedVideos,
+        watchLater
+      };
+
+      setYoutubeChannel(channel);
+      localStorage.setItem('youtube_channel', JSON.stringify(channel));
+      localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
+      
+      console.log('YouTube data fetched successfully:', youtubeData);
+    } catch (error) {
+      console.error('Error fetching YouTube data:', error);
+    } finally {
+      setIsFetchingData(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -90,11 +194,13 @@ const Settings = () => {
 
   const connectSpotify = () => {
     const authUrl = SpotifyService.getAuthUrl();
+    console.log('Redirecting to Spotify auth URL:', authUrl);
     window.location.href = authUrl;
   };
 
   const connectYouTube = () => {
     const authUrl = GoogleAuthService.getYouTubeAuthUrl();
+    console.log('Redirecting to YouTube auth URL:', authUrl);
     window.location.href = authUrl;
   };
 
@@ -103,6 +209,7 @@ const Settings = () => {
     setSpotifyProfile(null);
     localStorage.removeItem('spotify_access_token');
     localStorage.removeItem('spotify_profile');
+    localStorage.removeItem('spotify_data');
     toast({
       title: "Spotify Disconnected",
       description: "Your Spotify account has been disconnected.",
@@ -114,6 +221,7 @@ const Settings = () => {
     setYoutubeChannel(null);
     localStorage.removeItem('google_access_token');
     localStorage.removeItem('youtube_channel');
+    localStorage.removeItem('youtube_data');
     toast({
       title: "YouTube Disconnected",
       description: "Your YouTube account has been disconnected.",
@@ -153,7 +261,7 @@ const Settings = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <HumanAvatar3D className="bg-gradient-to-b from-blue-50 to-indigo-50" />
+            <HumanAvatar3D />
             <p className="text-sm text-muted-foreground mt-3 text-center">
               Your personalized 3D avatar
             </p>
@@ -185,6 +293,12 @@ const Settings = () => {
                     </p>
                   </div>
                 </div>
+                {isFetchingData && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Syncing your music data...
+                  </div>
+                )}
                 <Button 
                   variant="outline" 
                   onClick={disconnectSpotify}
@@ -231,6 +345,12 @@ const Settings = () => {
                     </p>
                   </div>
                 </div>
+                {isFetchingData && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Syncing your video data...
+                  </div>
+                )}
                 <Button 
                   variant="outline" 
                   onClick={disconnectYouTube}
