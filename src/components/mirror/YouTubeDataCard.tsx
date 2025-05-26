@@ -192,14 +192,14 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Summary */}
-        <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
+        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
           <h3 className="font-medium mb-2 flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Your Viewing Profile
           </h3>
           {isGeneratingSummary ? (
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
               <p className="text-sm text-muted-foreground">Analyzing your viewing patterns...</p>
             </div>
           ) : (
@@ -222,7 +222,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
                 <div className="space-y-2">
                   {safeChannels.slice(0, 5).map((channel, index) => (
                     <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-center w-6 h-6 bg-primary/10 rounded-full text-xs font-medium text-primary">
+                      <div className="flex items-center justify-center w-6 h-6 bg-red-100 rounded-full text-xs font-medium text-red-700">
                         {channel.rank || (index + 1)}
                       </div>
                       {channel.imageUrl && (
@@ -251,7 +251,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
                 <div className="space-y-2">
                   {safeVideos.slice(0, 5).map((video, index) => (
                     <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-center w-6 h-6 bg-primary/10 rounded-full text-xs font-medium text-primary">
+                      <div className="flex items-center justify-center w-6 h-6 bg-red-100 rounded-full text-xs font-medium text-red-700">
                         {video.rank || (index + 1)}
                       </div>
                       {video.imageUrl && (
@@ -281,7 +281,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
             <h3 className="font-medium mb-3">Top Categories</h3>
             <div className="flex flex-wrap gap-2">
               {safeCategories.slice(0, 5).map((category, index) => (
-                <Badge key={index} variant="outline" className="bg-secondary/5 text-secondary">
+                <Badge key={index} variant="outline" className="bg-red-50 text-red-700 border-red-200">
                   {category}
                 </Badge>
               ))}
