@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Youtube, PlayCircle, Users, Heart, TrendingUp } from 'lucide-react';
+import { Youtube, TrendingUp } from 'lucide-react';
+import { AIProfileService } from '@/services/aiProfileService';
 
 interface YouTubeData {
   subscriptions: Array<{
@@ -64,6 +64,8 @@ interface YouTubeDataCardProps {
 
 const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
   const [isDataStored, setIsDataStored] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string>("");
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   if (!data) {
     return (
@@ -85,80 +87,62 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
   const safePlaylists = Array.isArray(data.playlists) ? data.playlists : [];
   const safeVideos = Array.isArray(data.videos) ? data.videos : [];
 
-  // Generate content summary based on subscriptions and liked videos
-  const generateContentSummary = () => {
-    const subscriptionTitles = safeSubscriptions.map(sub => sub.snippet.title.toLowerCase());
-    const likedVideoTitles = safeLikedVideos.map(video => video.snippet.title.toLowerCase());
-    
-    const allContent = [...subscriptionTitles, ...likedVideoTitles].join(' ');
-    
-    // Simple keyword analysis
-    const keywords = {
-      educational: ['tutorial', 'learn', 'how to', 'explain', 'science', 'history', 'documentary'],
-      entertainment: ['funny', 'comedy', 'meme', 'react', 'gaming', 'stream'],
-      lifestyle: ['vlog', 'daily', 'routine', 'lifestyle', 'travel', 'food'],
-      tech: ['tech', 'coding', 'programming', 'computer', 'software', 'review'],
-      music: ['music', 'song', 'album', 'artist', 'concert', 'live'],
-      fitness: ['workout', 'fitness', 'gym', 'health', 'exercise'],
-      creative: ['art', 'design', 'creative', 'drawing', 'photography']
-    };
-    
-    const scores = Object.entries(keywords).map(([category, words]) => {
-      const score = words.reduce((acc, word) => {
-        return acc + (allContent.split(word).length - 1);
-      }, 0);
-      return { category, score };
-    }).sort((a, b) => b.score - a.score);
-    
-    const topCategories = scores.filter(s => s.score > 0).slice(0, 2);
-    
-    if (topCategories.length === 0) {
-      return "You have a diverse viewing pattern across various types of content on YouTube.";
-    }
-    
-    const categoryDescriptions = {
-      educational: "thought-provoking educational content",
-      entertainment: "entertaining and fun videos",
-      lifestyle: "lifestyle and vlog content", 
-      tech: "technology and programming content",
-      music: "music and audio content",
-      fitness: "health and fitness content",
-      creative: "creative and artistic content"
-    };
-    
-    if (topCategories.length === 1) {
-      return `You're drawn to ${categoryDescriptions[topCategories[0].category as keyof typeof categoryDescriptions]} that matches your interests and curiosity.`;
-    } else {
-      return `You enjoy a mix of ${categoryDescriptions[topCategories[0].category as keyof typeof categoryDescriptions]} and ${categoryDescriptions[topCategories[1].category as keyof typeof categoryDescriptions]}, showing your diverse interests.`;
-    }
-  };
-
-  // Store synthesized data when component mounts with data
+  // Generate AI summary when component mounts with data
   useEffect(() => {
-    if (data && !isDataStored) {
-      const synthesizedData = {
-        subscriptions: safeSubscriptions.slice(0, 5),
-        likedVideos: safeLikedVideos.slice(0, 5),
-        playlists: safePlaylists.slice(0, 3),
-        videos: safeVideos.slice(0, 3),
-        vibeSummary: generateContentSummary()
+    if (data && !isDataStored && !aiSummary && !isGeneratingSummary) {
+      setIsGeneratingSummary(true);
+      
+      // Prepare data for AI analysis
+      const analysisData = {
+        likedVideos: safeLikedVideos.map(video => ({
+          title: video.snippet.title,
+          channelTitle: video.snippet.channelTitle,
+          description: ""
+        })),
+        subscriptions: safeSubscriptions.map(sub => ({
+          title: sub.snippet.title,
+          description: sub.snippet.description || ""
+        })),
+        watchHistory: [] // YouTube API doesn't provide watch history
       };
 
-      // Get raw YouTube data from localStorage
-      const rawYouTubeData = localStorage.getItem('youtube_data');
-      const parsedRawData = rawYouTubeData ? JSON.parse(rawYouTubeData) : null;
+      // Generate AI summary
+      AIProfileService.generateYouTubeProfile(analysisData)
+        .then(summary => {
+          setAiSummary(summary);
+          
+          // Store synthesized data with AI summary
+          const synthesizedData = {
+            subscriptions: safeSubscriptions.slice(0, 5),
+            likedVideos: safeLikedVideos.slice(0, 5),
+            playlists: safePlaylists.slice(0, 3),
+            videos: safeVideos.slice(0, 3),
+            vibeSummary: summary
+          };
 
-      // Store both synthesized and raw data
-      import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
-        MirrorDataService.storeMirrorData(
-          { youtube: synthesizedData },
-          { youtube: parsedRawData }
-        );
-      });
+          // Get raw YouTube data from localStorage
+          const rawYouTubeData = localStorage.getItem('youtube_data');
+          const parsedRawData = rawYouTubeData ? JSON.parse(rawYouTubeData) : null;
 
-      setIsDataStored(true);
+          // Store both synthesized and raw data
+          import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
+            MirrorDataService.storeMirrorData(
+              { youtube: synthesizedData },
+              { youtube: parsedRawData }
+            );
+          });
+
+          setIsDataStored(true);
+        })
+        .catch(error => {
+          console.error('Error generating AI summary:', error);
+          setAiSummary("Your YouTube viewing habits reflect a curious mind that enjoys discovering diverse content across the platform.");
+        })
+        .finally(() => {
+          setIsGeneratingSummary(false);
+        });
     }
-  }, [data, isDataStored]);
+  }, [data, isDataStored, aiSummary, isGeneratingSummary]);
 
   return (
     <Card className="border border-border bg-card">
@@ -167,121 +151,46 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
           <Youtube className="h-5 w-5" />
           YouTube Profile
         </CardTitle>
-        <CardDescription>Your viewing habits and content preferences</CardDescription>
+        <CardDescription>Your viewing personality and content preferences</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Content Summary */}
+        {/* AI-Generated Viewing Profile */}
         <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-100 dark:border-red-900/20">
           <h3 className="font-medium mb-2 flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Your Viewing Vibe
+            Your Viewing Personality
           </h3>
-          <p className="text-sm text-muted-foreground">{generateContentSummary()}</p>
-        </div>
-
-        {/* Top Subscriptions */}
-        <div>
-          <h3 className="font-medium mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Top Subscriptions
-          </h3>
-          <div className="grid grid-cols-1 gap-2">
-            {safeSubscriptions.slice(0, 5).map((subscription, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                <img 
-                  src={subscription.snippet.thumbnails.default.url} 
-                  alt={subscription.snippet.title}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{subscription.snippet.title}</p>
-                  {subscription.snippet.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-1">
-                      {subscription.snippet.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Liked Videos */}
-        <div>
-          <h3 className="font-medium mb-3 flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            Recently Liked Videos
-          </h3>
-          <div className="grid grid-cols-1 gap-2">
-            {safeLikedVideos.slice(0, 5).map((video, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                <img 
-                  src={video.snippet.thumbnails.default.url} 
-                  alt={video.snippet.title}
-                  className="w-10 h-10 rounded object-cover"
-                />
-                <div className="flex-1">
-                  <p className="font-medium text-sm line-clamp-1">{video.snippet.title}</p>
-                  <p className="text-xs text-muted-foreground">{video.snippet.channelTitle}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Playlists */}
-        {safePlaylists.length > 0 && (
-          <div>
-            <h3 className="font-medium mb-3 flex items-center gap-2">
-              <PlayCircle className="h-4 w-4" />
-              Your Playlists
-            </h3>
-            <div className="grid grid-cols-1 gap-2">
-              {safePlaylists.slice(0, 3).map((playlist, index) => (
-                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                  <img 
-                    src={playlist.snippet.thumbnails.default.url} 
-                    alt={playlist.snippet.title}
-                    className="w-10 h-10 rounded object-cover"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{playlist.snippet.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {playlist.contentDetails.itemCount} videos
-                    </p>
-                  </div>
-                </div>
-              ))}
+          {isGeneratingSummary ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+              <p className="text-sm text-muted-foreground">Analyzing your viewing habits...</p>
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {aiSummary || "Your YouTube viewing habits reflect a curious mind that enjoys discovering diverse content across the platform."}
+            </p>
+          )}
+        </div>
 
-        {/* Your Videos (if any) */}
-        {safeVideos.length > 0 && (
-          <div>
-            <h3 className="font-medium mb-3 flex items-center gap-2">
-              <Youtube className="h-4 w-4" />
-              Your Content
-            </h3>
-            <div className="grid grid-cols-1 gap-2">
-              {safeVideos.slice(0, 3).map((video, index) => (
-                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                  <img 
-                    src={video.snippet.thumbnails.default.url} 
-                    alt={video.snippet.title}
-                    className="w-10 h-10 rounded object-cover"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm line-clamp-1">{video.snippet.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {parseInt(video.statistics.viewCount).toLocaleString()} views
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Basic Stats */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="flex justify-between">
+            <span>Subscriptions:</span>
+            <span>{safeSubscriptions.length}</span>
           </div>
-        )}
+          <div className="flex justify-between">
+            <span>Liked Videos:</span>
+            <span>{safeLikedVideos.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Playlists:</span>
+            <span>{safePlaylists.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Your Videos:</span>
+            <span>{safeVideos.length}</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

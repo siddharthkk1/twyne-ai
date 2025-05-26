@@ -37,8 +37,25 @@ interface SpotifyDataCardProps {
 
 const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   const [isDataStored, setIsDataStored] = useState(false);
+  const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(data);
 
-  if (!data) {
+  // Try to load data from localStorage if not provided
+  useEffect(() => {
+    if (!spotifyData) {
+      const storedData = localStorage.getItem('spotify_data');
+      if (storedData) {
+        try {
+          const parsed = JSON.parse(storedData);
+          console.log('Loaded Spotify data from localStorage:', parsed);
+          setSpotifyData(parsed);
+        } catch (error) {
+          console.error('Error parsing stored Spotify data:', error);
+        }
+      }
+    }
+  }, [spotifyData]);
+
+  if (!spotifyData) {
     return (
       <Card className="border border-border bg-card">
         <CardHeader>
@@ -53,10 +70,10 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   }
 
   // Ensure data arrays exist and are arrays
-  const safeTracks = Array.isArray(data.topTracks) ? data.topTracks : [];
-  const safeArtists = Array.isArray(data.topArtists) ? data.topArtists : [];
-  const safeGenres = Array.isArray(data.topGenres) ? data.topGenres : [];
-  const safeAlbums = Array.isArray(data.topAlbums) ? data.topAlbums : [];
+  const safeTracks = Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks : [];
+  const safeArtists = Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists : [];
+  const safeGenres = Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres : [];
+  const safeAlbums = Array.isArray(spotifyData.topAlbums) ? spotifyData.topAlbums : [];
 
   // Calculate average audio features
   const tracksWithFeatures = safeTracks.filter(track => track.audio_features);
@@ -90,7 +107,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
 
   // Store synthesized data when component mounts with data
   useEffect(() => {
-    if (data && !isDataStored) {
+    if (spotifyData && !isDataStored) {
       const synthesizedData = {
         topArtists: safeArtists.slice(0, 5),
         topTracks: safeTracks.slice(0, 5),
@@ -114,7 +131,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
 
       setIsDataStored(true);
     }
-  }, [data, isDataStored, avgFeatures]);
+  }, [spotifyData, isDataStored, avgFeatures]);
 
   return (
     <Card className="border border-border bg-card">
@@ -171,106 +188,39 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           </div>
         )}
 
-        {/* Top Artists */}
-        <div>
-          <h3 className="font-medium mb-3 flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Top Artists
-          </h3>
-          <div className="grid grid-cols-1 gap-2">
-            {safeArtists.slice(0, 5).map((artist, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                {artist.images && artist.images[0] ? (
-                  <img 
-                    src={artist.images[0].url} 
-                    alt={artist.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <User className="h-5 w-5" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{artist.name}</p>
-                  {artist.genres && artist.genres.length > 0 && (
-                    <p className="text-xs text-muted-foreground">{artist.genres.slice(0, 2).join(', ')}</p>
-                  )}
-                </div>
-              </div>
-            ))}
+        {/* Basic Stats */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="flex justify-between">
+            <span>Top Artists:</span>
+            <span>{safeArtists.length}</span>
           </div>
-        </div>
-
-        {/* Top Songs */}
-        <div>
-          <h3 className="font-medium mb-3 flex items-center gap-2">
-            <Music className="h-4 w-4" />
-            Top Songs
-          </h3>
-          <div className="grid grid-cols-1 gap-2">
-            {safeTracks.slice(0, 5).map((track, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                {track.album && track.album.images && track.album.images[0] ? (
-                  <img 
-                    src={track.album.images[0].url} 
-                    alt={track.album.name}
-                    className="w-10 h-10 rounded object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                    <Music className="h-5 w-5" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{track.name}</p>
-                  <p className="text-xs text-muted-foreground">{track.artists && track.artists[0]?.name}</p>
-                </div>
-              </div>
-            ))}
+          <div className="flex justify-between">
+            <span>Top Tracks:</span>
+            <span>{safeTracks.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Genres:</span>
+            <span>{safeGenres.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Albums:</span>
+            <span>{safeAlbums.length}</span>
           </div>
         </div>
 
         {/* Top Genres */}
-        <div>
-          <h3 className="font-medium mb-3">Top Genres</h3>
-          <div className="flex flex-wrap gap-2">
-            {safeGenres.slice(0, 5).map((genre, index) => (
-              <Badge key={index} variant="outline" className="bg-secondary/5 text-secondary">
-                {genre}
-              </Badge>
-            ))}
+        {safeGenres.length > 0 && (
+          <div>
+            <h3 className="font-medium mb-3">Top Genres</h3>
+            <div className="flex flex-wrap gap-2">
+              {safeGenres.slice(0, 5).map((genre, index) => (
+                <Badge key={index} variant="outline" className="bg-secondary/5 text-secondary">
+                  {genre}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* Top Albums */}
-        <div>
-          <h3 className="font-medium mb-3 flex items-center gap-2">
-            <Disc className="h-4 w-4" />
-            Top Albums
-          </h3>
-          <div className="grid grid-cols-1 gap-2">
-            {safeAlbums.slice(0, 5).map((album, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                {album.images && album.images[0] ? (
-                  <img 
-                    src={album.images[0].url} 
-                    alt={album.name}
-                    className="w-10 h-10 rounded object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                    <Disc className="h-5 w-5" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{album.name}</p>
-                  <p className="text-xs text-muted-foreground">{album.artists && album.artists[0]?.name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -76,12 +76,19 @@ const Mirror = () => {
       const storedSpotifyData = localStorage.getItem('spotify_data');
       const storedYouTubeData = localStorage.getItem('youtube_data');
       
+      console.log('Stored Spotify data:', storedSpotifyData ? 'Found' : 'Not found');
+      console.log('Stored YouTube data:', storedYouTubeData ? 'Found' : 'Not found');
+      
       if (storedSpotifyData) {
-        setSpotifyData(JSON.parse(storedSpotifyData));
+        const parsed = JSON.parse(storedSpotifyData);
+        console.log('Parsed Spotify data:', parsed);
+        setSpotifyData(parsed);
       }
       
       if (storedYouTubeData) {
-        setYoutubeData(JSON.parse(storedYouTubeData));
+        const parsed = JSON.parse(storedYouTubeData);
+        console.log('Parsed YouTube data:', parsed);
+        setYoutubeData(parsed);
       }
     } catch (error) {
       console.error('Error fetching connection data:', error);
@@ -92,6 +99,17 @@ const Mirror = () => {
     fetchUserProfile();
     fetchConnectionData();
   }, [user]);
+
+  // Re-fetch connection data when returning to the page
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Page focused, re-fetching connection data');
+      fetchConnectionData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   const handleChatSubmit = async () => {
     if (!chatMessage.trim() || isTyping) return;

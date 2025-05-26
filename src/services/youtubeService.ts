@@ -1,4 +1,3 @@
-
 interface YouTubeChannel {
   id: string;
   snippet: {
@@ -186,6 +185,86 @@ export class YouTubeService {
     
     const data = await response.json();
     return data.items;
+  }
+
+  static async getEnhancedLikedVideos(accessToken: string): Promise<any[]> {
+    try {
+      const likedVideos = await this.getLikedVideos(accessToken);
+      
+      // Get enhanced video details with tags and categories
+      const videoIds = likedVideos.map(video => video.id).slice(0, 50).join(',');
+      
+      if (!videoIds) return [];
+      
+      const enhancedResponse = await fetch(`${this.API_BASE}/videos?part=snippet,topicDetails&id=${videoIds}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (!enhancedResponse.ok) {
+        return likedVideos.map(video => ({
+          title: video.snippet.title,
+          description: video.snippet.description,
+          channelTitle: video.snippet.channelTitle,
+          tags: [],
+          categoryId: null,
+          topicCategories: []
+        }));
+      }
+      
+      const enhancedData = await enhancedResponse.json();
+      
+      return enhancedData.items.map((video: any) => ({
+        title: video.snippet.title,
+        description: video.snippet.description,
+        channelTitle: video.snippet.channelTitle,
+        tags: video.snippet.tags || [],
+        categoryId: video.snippet.categoryId,
+        topicCategories: video.topicDetails?.topicCategories || []
+      }));
+    } catch (error) {
+      console.error('Error getting enhanced liked videos:', error);
+      return [];
+    }
+  }
+
+  static async getEnhancedSubscriptions(accessToken: string): Promise<any[]> {
+    try {
+      const subscriptions = await this.getUserSubscriptions(accessToken);
+      
+      // Get channel details for subscriptions
+      const channelIds = subscriptions.map(sub => sub.snippet.resourceId.channelId).slice(0, 50).join(',');
+      
+      if (!channelIds) return [];
+      
+      const channelsResponse = await fetch(`${this.API_BASE}/channels?part=snippet,topicDetails&id=${channelIds}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (!channelsResponse.ok) {
+        return subscriptions.map(sub => ({
+          title: sub.snippet.title,
+          description: sub.snippet.description,
+          topicCategories: [],
+          keywords: []
+        }));
+      }
+      
+      const channelsData = await channelsResponse.json();
+      
+      return channelsData.items.map((channel: any) => ({
+        title: channel.snippet.title,
+        description: channel.snippet.description,
+        topicCategories: channel.topicDetails?.topicCategories || [],
+        keywords: channel.snippet.keywords || []
+      }));
+    } catch (error) {
+      console.error('Error getting enhanced subscriptions:', error);
+      return [];
+    }
   }
 
   static async getWatchHistory(accessToken: string): Promise<YouTubeVideo[]> {
