@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,7 @@ import { SpotifyService } from "@/services/spotifyService";
 import { GoogleAuthService } from "@/services/googleAuthService";
 import { YouTubeService } from "@/services/youtubeService";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { signOut } = useAuth();
@@ -193,8 +195,24 @@ const Settings = () => {
 
   const connectSpotify = async () => {
     try {
-      // Redirect directly to the edge function that will handle the auth URL
-      window.location.href = '/api/spotify-auth-url';
+      setIsConnecting(true);
+      console.log('Initiating Spotify connection...');
+      
+      // Call the Spotify auth URL edge function
+      const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
+        body: { 
+          redirect_uri: `${window.location.origin}/settings` 
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // The edge function should redirect automatically, but if it returns a URL, redirect to it
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      }
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
       toast({
@@ -202,13 +220,31 @@ const Settings = () => {
         description: "Failed to connect to Spotify. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
   const connectYouTube = async () => {
     try {
-      // Redirect directly to the edge function that will handle the auth URL
-      window.location.href = '/api/google-auth-url';
+      setIsConnecting(true);
+      console.log('Initiating YouTube connection...');
+      
+      // Call the Google auth URL edge function
+      const { data, error } = await supabase.functions.invoke('google-auth-url', {
+        body: { 
+          redirect_uri: `${window.location.origin}/settings` 
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // The edge function should redirect automatically, but if it returns a URL, redirect to it
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      }
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
       toast({
@@ -216,6 +252,8 @@ const Settings = () => {
         description: "Failed to connect to YouTube. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -273,7 +311,7 @@ const Settings = () => {
             <User className="h-5 w-5" />
             Your Avatar
           </h2>
-          <HumanAvatar3D />
+          <HumanAvatar3D className="h-96" />
           <p className="text-sm text-muted-foreground mt-3">
             Your personalized 3D avatar
           </p>
