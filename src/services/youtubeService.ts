@@ -1,4 +1,3 @@
-
 interface YouTubeChannel {
   id: string;
   snippet: {
@@ -88,6 +87,8 @@ export class YouTubeService {
     });
 
     if (!response.ok) {
+      const errorData = await response.text();
+      console.error('YouTube token exchange failed:', errorData);
       throw new Error('Failed to exchange code for token');
     }
 

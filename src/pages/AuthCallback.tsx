@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SpotifyService } from '@/services/spotifyService';
@@ -95,7 +96,7 @@ const AuthCallback = () => {
           });
           const topAlbums = Array.from(albumsMap.values()).slice(0, 10);
 
-          // Create simplified data with rankings for storage
+          // Create simplified data with only essential song info for storage
           const simplifiedTopTracks = tracksWithFeatures.slice(0, 5).map((track, index) => ({
             rank: index + 1,
             title: track.name,
@@ -118,10 +119,7 @@ const AuthCallback = () => {
             recentlyPlayed,
             playlists,
             savedTracks,
-            followedArtists,
-            // Keep full data for AI analysis
-            fullTopTracks: tracksWithFeatures,
-            fullTopArtists: topArtists
+            followedArtists
           };
 
           console.log('Complete Spotify data fetched:', spotifyData);
@@ -131,17 +129,26 @@ const AuthCallback = () => {
 
           setStatus('Generating your music insights...');
           
-          // Generate AI insights using full data
+          // Generate AI insights using full data (top 50 songs/artists) for comprehensive analysis
           const spotifyInsights = await AIProfileService.generateSpotifyProfile({
-            topTracks: tracksWithFeatures,
-            topArtists,
+            topTracks: tracksWithFeatures.slice(0, 50), // Analyze top 50 for insights
+            topArtists: topArtists.slice(0, 50), // Analyze top 50 for insights
             topGenres,
             topAlbums
           });
 
-          // Store synthesized data
+          // Store synthesized data with only the vibe summary and essential track/artist info
+          const synthesizedSpotifyData = {
+            vibeSummary: spotifyInsights.vibeSummary,
+            traitDisplay: spotifyInsights.traitDisplay,
+            topSongs: simplifiedTopTracks, // Only essential song info
+            topArtists: simplifiedTopArtists, // Only essential artist info
+            topGenres: topGenres.slice(0, 5),
+            topAlbums: topAlbums.slice(0, 5)
+          };
+
           await MirrorDataService.storeMirrorData(
-            { spotify: spotifyInsights },
+            { spotify: synthesizedSpotifyData },
             { spotify: spotifyData }
           );
 

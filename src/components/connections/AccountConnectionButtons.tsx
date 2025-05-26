@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -9,7 +8,8 @@ import { GoogleAuthService } from "@/services/googleAuthService";
 import { YouTubeService } from "@/services/youtubeService";
 
 const AccountConnectionButtons = () => {
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnectingSpotify, setIsConnectingSpotify] = useState(false);
+  const [isConnectingYoutube, setIsConnectingYoutube] = useState(false);
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
   const [googleToken, setGoogleToken] = useState<string | null>(null);
@@ -50,7 +50,11 @@ const AccountConnectionButtons = () => {
   }, []);
 
   const handleOAuthCallback = async (code: string, state: string | null) => {
-    setIsConnecting(true);
+    if (state === 'youtube_auth') {
+      setIsConnectingYoutube(true);
+    } else {
+      setIsConnectingSpotify(true);
+    }
     
     try {
       if (state === 'youtube_auth') {
@@ -93,7 +97,8 @@ const AccountConnectionButtons = () => {
         variant: "destructive",
       });
     } finally {
-      setIsConnecting(false);
+      setIsConnectingSpotify(false);
+      setIsConnectingYoutube(false);
     }
   };
 
@@ -204,7 +209,7 @@ const AccountConnectionButtons = () => {
 
   const connectSpotify = async () => {
     try {
-      setIsConnecting(true);
+      setIsConnectingSpotify(true);
       console.log('Initiating Spotify connection...');
       
       // Use the exact redirect URI that should be registered in Spotify developer console
@@ -237,13 +242,13 @@ const AccountConnectionButtons = () => {
         description: "Failed to connect to Spotify. Please try again.",
         variant: "destructive",
       });
-      setIsConnecting(false);
+      setIsConnectingSpotify(false);
     }
   };
 
   const connectYouTube = async () => {
     try {
-      setIsConnecting(true);
+      setIsConnectingYoutube(true);
       console.log('Initiating YouTube connection...');
       
       // Use the exact redirect URI that should be registered in Google developer console
@@ -276,7 +281,7 @@ const AccountConnectionButtons = () => {
         description: "Failed to connect to YouTube. Please try again.",
         variant: "destructive",
       });
-      setIsConnecting(false);
+      setIsConnectingYoutube(false);
     }
   };
 
@@ -343,10 +348,10 @@ const AccountConnectionButtons = () => {
           ) : (
             <Button 
               onClick={connectSpotify}
-              disabled={isConnecting}
+              disabled={isConnectingSpotify}
               className="bg-green-500 hover:bg-green-600 text-white h-16 flex flex-col items-center justify-center gap-2 w-full"
             >
-              {isConnecting ? (
+              {isConnectingSpotify ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
@@ -394,10 +399,10 @@ const AccountConnectionButtons = () => {
           ) : (
             <Button 
               onClick={connectYouTube}
-              disabled={isConnecting}
+              disabled={isConnectingYoutube}
               className="bg-red-500 hover:bg-red-600 text-white h-16 flex flex-col items-center justify-center gap-2 w-full"
             >
-              {isConnecting ? (
+              {isConnectingYoutube ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
