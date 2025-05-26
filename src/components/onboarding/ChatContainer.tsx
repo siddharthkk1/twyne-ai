@@ -86,21 +86,12 @@ const ChatContainer = ({
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
+        className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full scrollbar-none"
         style={{ 
           overflowAnchor: "auto",
-          scrollBehavior: "auto",
-          scrollbarWidth: "none", // Firefox
-          msOverflowStyle: "none" // IE/Edge
+          scrollBehavior: "auto"
         }}
       >
-        {/* Hide webkit scrollbar */}
-        <style jsx>{`
-          div::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-        
         <div className="space-y-4 pt-8 pb-4 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">
