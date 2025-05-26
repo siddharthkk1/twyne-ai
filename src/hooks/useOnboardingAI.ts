@@ -145,15 +145,7 @@ export const useOnboardingAI = () => {
         connectionPreferences: profileData.connectionPreferences || "",
         dealBreakers: profileData.dealBreakers || "",
         boundariesAndPetPeeves: profileData.boundariesAndPetPeeves || "",
-        connectionActivities: profileData.connectionActivities || "",
-        
-        // Legacy compatibility fields - derive from new fields where possible
-        interests: profileData.talkingPoints || [profileData.interestsAndPassions || ""],
-        personalInsights: [
-          profileData.vibeSummary || "",
-          profileData.personalitySummary || "",
-          profileData.coreValues || ""
-        ].filter(insight => insight.trim() !== "")
+        connectionActivities: profileData.connectionActivities || ""
       };
       
       setIsGeneratingProfile(false);
@@ -169,8 +161,46 @@ export const useOnboardingAI = () => {
         vibeSummary: "",
         oneLiner: "",
         twyneTags: [],
-        interests: [],
-        personalInsights: []
+        age: "",
+        job: "",
+        school: "",
+        ethnicity: "",
+        religion: "",
+        hometown: "",
+        lifestyle: "",
+        favoriteProducts: "",
+        style: "",
+        interestsAndPassions: "",
+        favoriteMoviesAndShows: "",
+        favoriteMusic: "",
+        favoriteBooks: "",
+        favoritePodcastsOrYouTube: "",
+        talkingPoints: [],
+        favoriteActivities: "",
+        favoriteSpots: "",
+        coreValues: "",
+        lifePhilosophy: "",
+        goals: "",
+        personalitySummary: "",
+        bigFiveTraits: {
+          openness: "",
+          conscientiousness: "",
+          extraversion: "",
+          agreeableness: "",
+          neuroticism: ""
+        },
+        quirks: "",
+        communicationStyle: "",
+        upbringing: "",
+        majorTurningPoints: "",
+        recentLifeContext: "",
+        socialStyle: "",
+        loveLanguageOrFriendStyle: "",
+        socialNeeds: "",
+        connectionPreferences: "",
+        dealBreakers: "",
+        boundariesAndPetPeeves: "",
+        connectionActivities: ""
       };
       
       return fallbackProfile;

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -78,7 +79,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
 
   // Extract all tags
   const getTags = () => {
-    return userProfile.twyneTags || userProfile.vibeWords || [];
+    return userProfile.twyneTags || [];
   };
 
   const tags = getTags();
@@ -191,7 +192,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                   <CardTitle className="text-xl">Vibe Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.vibeSummary || userProfile.oneLinerSummary || "Your personality is multifaceted and unique. You bring your own special energy to social situations and connections."}</p>
+                  <p>{userProfile.vibeSummary || "Your personality is multifaceted and unique. You bring your own special energy to social situations and connections."}</p>
                   
                   {/* Twyne Tags */}
                   {tags.length > 0 && (
@@ -212,18 +213,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 </CardContent>
               </Card>
             </div>
-            
-            {/* Key Facts/Background */}
-            {userProfile.keyFacts && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Key Facts & Background</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.keyFacts}</p>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Personality Chart */}
             <Card className="border border-border bg-card">
@@ -232,7 +221,7 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 <CardDescription>Based on our conversation, here's your social style and energy</CardDescription>
               </CardHeader>
               <CardContent>
-                <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
+                <PersonalityChart traits={defaultTraits} />
               </CardContent>
             </Card>
             
@@ -249,29 +238,10 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 <CardTitle className="text-xl">Interests & Passions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-3">
-                  {ensureArray(userProfile.interests).map((interest, i) => (
-                    <div 
-                      key={i} 
-                      className="px-4 py-3 rounded-lg text-sm font-medium"
-                      style={{ 
-                        backgroundColor: `${userTheme.light}`,
-                        color: `${userTheme.dark}`,
-                        border: `1px solid ${userTheme.medium}`
-                      }}
-                    >
-                      {interest}
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Weekly routine and weekend activities */}
-                {userProfile.weekendActivities && (
-                  <div className="mt-8">
-                    <h3 className="font-medium text-xl mb-4">How You Spend Your Time</h3>
-                    <p className="text-muted-foreground mb-4">Typical week and weekend activities</p>
-                    <p>{userProfile.weekendActivities}</p>
-                  </div>
+                {userProfile.interestsAndPassions ? (
+                  <p>{userProfile.interestsAndPassions}</p>
+                ) : (
+                  <p>We don't have info on that yet.</p>
                 )}
                 
                 {/* Favorite Activities */}
@@ -279,14 +249,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                   <div className="mt-8">
                     <h3 className="font-medium text-xl mb-4">Favorite Activities</h3>
                     <p>{userProfile.favoriteActivities}</p>
-                  </div>
-                )}
-                
-                {userProfile.mediaTastes && (
-                  <div className="mt-8">
-                    <h3 className="font-medium text-xl mb-4">Media & Cultural Tastes</h3>
-                    <p className="text-muted-foreground mb-4">Entertainment and cultural preferences that resonate with you</p>
-                    <p>{userProfile.mediaTastes}</p>
                   </div>
                 )}
                 
@@ -306,17 +268,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 )}
               </CardContent>
             </Card>
-            
-            {userProfile.lookingFor && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">What You're Looking For</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.lookingFor}</p>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           {/* Inner World Tab */}
@@ -328,62 +279,42 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 <CardDescription>A visual representation of your inner dimensions</CardDescription>
               </CardHeader>
               <CardContent className="pb-8">
-                <PersonalityChart traits={userProfile.personalityTraits || defaultTraits} />
+                <PersonalityChart traits={defaultTraits} />
               </CardContent>
             </Card>
             
             {/* Core Values */}
-            {(userProfile.coreValues || userProfile.values) && (
+            {userProfile.coreValues && (
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">Core Values</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.coreValues}</p>
-                  {ensureArray(userProfile.values).length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {ensureArray(userProfile.values).map((value, i) => (
-                        <Badge key={i} variant="outline" className="bg-secondary/5 text-secondary">
-                          {value}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}
             
             {/* Philosophy, Belief System, Spirituality */}
-            {(userProfile.philosophy || userProfile.beliefSystem || userProfile.spirituality || userProfile.lifePhilosophy) && (
+            {userProfile.lifePhilosophy && (
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">Philosophy & Beliefs</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>{userProfile.philosophy || userProfile.beliefSystem || userProfile.spirituality || userProfile.lifePhilosophy}</p>
+                  <p>{userProfile.lifePhilosophy}</p>
                 </CardContent>
               </Card>
             )}
             
             {/* Goals and Aspirations */}
-            {(userProfile.goals?.length > 0 || userProfile.aspirations?.length > 0) && (
+            {userProfile.goals && (
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">Goals & Aspirations</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {ensureArray(userProfile.goals).map((goal, i) => (
-                      <div key={i} className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-                        {goal}
-                      </div>
-                    ))}
-                    {ensureArray(userProfile.aspirations).map((aspiration, i) => (
-                      <div key={i} className="p-3 bg-accent/5 rounded-lg border border-accent/10">
-                        {aspiration}
-                      </div>
-                    ))}
-                  </div>
+                  <p>{userProfile.goals}</p>
                 </CardContent>
               </Card>
             )}
@@ -394,22 +325,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 <CardTitle className="text-xl">Personality Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Big 5 traits representation is handled by the personality chart above */}
-                
-                {/* Quirks */}
-                {userProfile.personalityQuirks?.length > 0 && (
-                  <div>
-                    <h3 className="font-medium text-lg mb-3">Quirks & Unique Traits</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {ensureArray(userProfile.personalityQuirks).map((quirk, i) => (
-                        <Badge key={i} variant="outline" className="bg-accent/5 text-accent">
-                          {quirk}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
                 {/* Communication Style */}
                 {userProfile.communicationStyle && (
                   <div>
@@ -419,42 +334,14 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 )}
                 
                 {/* Boundaries & Pet Peeves */}
-                {(userProfile.boundaries || userProfile.petPeeves) && (
+                {userProfile.boundariesAndPetPeeves && (
                   <div>
                     <h3 className="font-medium text-lg mb-3">Boundaries & Pet Peeves</h3>
-                    <p>{userProfile.boundaries || ""}</p>
-                    {userProfile.boundaries && userProfile.petPeeves && <div className="h-2"></div>}
-                    <p>{userProfile.petPeeves || ""}</p>
+                    <p>{userProfile.boundariesAndPetPeeves}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-            
-            {/* Personal Insights */}
-            {userProfile.personalInsights?.length > 0 && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Key Traits & Characteristics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {ensureArray(userProfile.personalInsights).map((trait, i) => (
-                      <span 
-                        key={i} 
-                        className="px-3 py-1.5 rounded-full text-sm font-medium"
-                        style={{ 
-                          backgroundColor: `${userTheme.light}`,
-                          color: `${userTheme.dark}`,
-                          border: `1px solid ${userTheme.medium}`
-                        }}
-                      >
-                        {trait}
-                      </span>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
             
             {/* Vibe Summary if available */}
             {userProfile.vibeSummary && (
@@ -484,24 +371,13 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
             )}
             
             {/* Major Events & Turning Points */}
-            {(userProfile.majorEvents?.length > 0 || userProfile.turningPoints?.length > 0) && (
+            {userProfile.majorTurningPoints && (
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">Major Events & Turning Points</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {ensureArray(userProfile.majorEvents).map((event, i) => (
-                      <div key={i} className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-                        {event}
-                      </div>
-                    ))}
-                    {ensureArray(userProfile.turningPoints).map((point, i) => (
-                      <div key={i} className="p-3 bg-accent/5 rounded-lg border border-accent/10">
-                        {point}
-                      </div>
-                    ))}
-                  </div>
+                  <p>{userProfile.majorTurningPoints}</p>
                 </CardContent>
               </Card>
             )}
@@ -514,54 +390,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.recentLifeContext}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Life Stories section */}
-            {userProfile.lifeStory && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Life Stories</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.lifeStory}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Challenges Overcome */}
-            {userProfile.challengesOvercome && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Challenges Overcome</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.challengesOvercome}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Achievements */}
-            {userProfile.meaningfulAchievements && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Meaningful Achievements</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.meaningfulAchievements}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Background if available */}
-            {userProfile.background && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Background</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.background}</p>
                 </CardContent>
               </Card>
             )}
@@ -582,25 +410,13 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
             )}
             
             {/* Love Language & Friends Style */}
-            {(userProfile.loveLanguage || userProfile.friendsStyle) && (
+            {userProfile.loveLanguageOrFriendStyle && (
               <Card className="border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="text-xl">How You Connect</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {userProfile.loveLanguage && (
-                    <div>
-                      <h3 className="font-medium text-lg mb-2">Love Language</h3>
-                      <p>{userProfile.loveLanguage}</p>
-                    </div>
-                  )}
-                  
-                  {userProfile.friendsStyle && (
-                    <div>
-                      <h3 className="font-medium text-lg mb-2">Friendship Style</h3>
-                      <p>{userProfile.friendsStyle}</p>
-                    </div>
-                  )}
+                <CardContent>
+                  <p>{userProfile.loveLanguageOrFriendStyle}</p>
                 </CardContent>
               </Card>
             )}
@@ -625,30 +441,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.connectionPreferences}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Looking For */}
-            {userProfile.lookingFor && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">What You're Looking For</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.lookingFor}</p>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Friendship Pace if available */}
-            {userProfile.friendshipPace && (
-              <Card className="border border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-xl">Friendship Pace</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{userProfile.friendshipPace}</p>
                 </CardContent>
               </Card>
             )}
