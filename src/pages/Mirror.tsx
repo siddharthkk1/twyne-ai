@@ -10,55 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
 import { getMirrorChatResponse, updateProfileFromChat } from "@/utils/aiUtils";
 import { toast } from "sonner";
-
-interface UserProfile {
-  vibeSummary?: string;
-  oneLiner?: string;
-  twyneTags?: string[];
-  name?: string;
-  age?: string;
-  location?: string;
-  job?: string;
-  school?: string;
-  ethnicity?: string;
-  religion?: string;
-  hometown?: string;
-  lifestyle?: string;
-  favoriteProducts?: string;
-  style?: string;
-  interestsAndPassions?: string;
-  favoriteMoviesAndShows?: string;
-  favoriteMusic?: string;
-  favoriteBooks?: string;
-  favoritePodcastsOrYouTube?: string;
-  talkingPoints?: string[];
-  favoriteActivities?: string;
-  favoriteSpots?: string;
-  coreValues?: string;
-  lifePhilosophy?: string;
-  goals?: string;
-  personalitySummary?: string;
-  bigFiveTraits?: {
-    openness?: string;
-    conscientiousness?: string;
-    extraversion?: string;
-    agreeableness?: string;
-    neuroticism?: string;
-  };
-  quirks?: string;
-  communicationStyle?: string;
-  upbringing?: string;
-  majorTurningPoints?: string;
-  recentLifeContext?: string;
-  socialStyle?: string;
-  loveLanguageOrFriendStyle?: string;
-  socialNeeds?: string;
-  connectionPreferences?: string;
-  dealBreakers?: string;
-  boundariesAndPetPeeves?: string;
-  connectionActivities?: string;
-  personalityTraits?: any;
-}
+import { UserProfile } from "@/types/chat";
 
 const Mirror = () => {
   const { user } = useAuth();
