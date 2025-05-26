@@ -140,10 +140,10 @@ const AuthCallback = () => {
           
           setStatus('Fetching your YouTube data...');
           
-          // Fetch user data
+          // Fetch user data using correct method names
           const [likedVideos, subscriptions, watchHistory] = await Promise.all([
             YouTubeService.getLikedVideos(tokenData.access_token),
-            YouTubeService.getSubscriptions(tokenData.access_token),
+            YouTubeService.getUserSubscriptions(tokenData.access_token),
             YouTubeService.getWatchHistory(tokenData.access_token)
           ]);
 

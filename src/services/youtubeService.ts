@@ -1,3 +1,4 @@
+
 interface YouTubeChannel {
   id: string;
   snippet: {
@@ -70,6 +71,29 @@ interface YouTubeSubscription {
 
 export class YouTubeService {
   private static readonly API_BASE = 'https://www.googleapis.com/youtube/v3';
+  
+  static async exchangeCodeForToken(code: string): Promise<{ access_token: string; refresh_token?: string }> {
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
+        client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
+        redirect_uri: `${window.location.origin}/auth/callback`,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to exchange code for token');
+    }
+
+    const data = await response.json();
+    return data;
+  }
   
   static async getChannelInfo(accessToken: string): Promise<YouTubeChannel> {
     const response = await fetch(`${this.API_BASE}/channels?part=snippet,statistics&mine=true`, {
@@ -170,6 +194,11 @@ export class YouTubeService {
     
     const data = await response.json();
     return data.items;
+  }
+
+  // Alias for backward compatibility
+  static async getSubscriptions(accessToken: string, maxResults: number = 50): Promise<YouTubeSubscription[]> {
+    return this.getUserSubscriptions(accessToken, maxResults);
   }
   
   static async getLikedVideos(accessToken: string): Promise<YouTubeVideo[]> {
