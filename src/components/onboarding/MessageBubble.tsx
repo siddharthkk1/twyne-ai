@@ -31,11 +31,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     if (message.sender === "ai") {
       setVisibleParts([0]);
 
-      // Fire after first render
-      requestAnimationFrame(() => {
-        onMessagePartVisible?.(() => {
-          // No-op update function since we're already updating state
-        });
+      // Fire immediately after first part is visible
+      onMessagePartVisible?.(() => {
+        // No-op update function since we're already updating state
       });
 
       messageParts.forEach((_, index) => {
@@ -45,10 +43,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           setTimeout(() => {
             setVisibleParts(prev => {
               const updated = [...prev, index];
-              requestAnimationFrame(() => {
-                onMessagePartVisible?.(() => {
-                  // No-op update function since we're already updating state
-                });
+              // Fire immediately when part becomes visible
+              onMessagePartVisible?.(() => {
+                // No-op update function since we're already updating state
               });
               return updated;
             });
@@ -57,10 +54,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       });
     } else {
       setVisibleParts([...Array(messageParts.length).keys()]);
-      requestAnimationFrame(() => {
-        onMessagePartVisible?.(() => {
-          // No-op update function since we're already updating state
-        });
+      // Fire immediately for user messages
+      onMessagePartVisible?.(() => {
+        // No-op update function since we're already updating state
       });
     }
   }, [message.id]);

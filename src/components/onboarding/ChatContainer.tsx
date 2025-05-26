@@ -1,3 +1,4 @@
+
 import React from "react";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
@@ -88,9 +89,18 @@ const ChatContainer = ({
         className="flex-1 overflow-y-auto px-4 pt-4 max-w-3xl mx-auto w-full"
         style={{ 
           overflowAnchor: "auto",
-          scrollBehavior: "auto"
+          scrollBehavior: "auto",
+          scrollbarWidth: "none", // Firefox
+          msOverflowStyle: "none" // IE/Edge
         }}
       >
+        {/* Hide webkit scrollbar */}
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        
         <div className="space-y-4 pt-8 pb-4 max-w-3xl mx-auto">
           {/* Prompt Mode Selector */}
           <div className="flex justify-end mb-2">

@@ -41,7 +41,7 @@ export const useChatScroll = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Instant scroll to bottom
+    // Force instant scroll to bottom
     container.scrollTop = container.scrollHeight;
   }, []);
 
@@ -56,42 +56,36 @@ export const useChatScroll = () => {
     });
   }, []);
 
-  // Handle user sending a message - scroll BEFORE DOM update
+  // Handle user sending a message - scroll DURING DOM update
   const handleUserMessage = useCallback((updateMessages: () => void) => {
-  // Reset scroll state
-  setHasUserScrolled(false);
-  setIsUserNearBottom(true);
+    // Reset scroll state
+    setHasUserScrolled(false);
+    setIsUserNearBottom(true);
 
-  // Flush the state update immediately so DOM reflects the new message
-  flushSync(() => {
-    updateMessages();
-  });
+    // Update messages and scroll in the same synchronous block
+    flushSync(() => {
+      updateMessages();
+    });
 
-  // Scroll after DOM updates, but before paint
-  requestAnimationFrame(() => {
+    // Scroll immediately after DOM update, no delay
     const container = scrollContainerRef.current;
     if (container) {
       container.scrollTop = container.scrollHeight;
     }
-  });
-}, []);
-
+  }, []);
 
   // Handle AI message parts - smooth scroll if user is near bottom
   const handleAIMessagePart = useCallback((updateMessages: () => void) => {
     if (!hasUserScrolled && isUserNearBottom) {
-      // Use flushSync to immediately update DOM
+      // Update messages immediately
       flushSync(() => {
         updateMessages();
       });
       
-      // Smooth scroll to show the new content
+      // Smooth scroll to show the new content immediately
       const container = scrollContainerRef.current;
       if (container) {
-        container.scrollTo({
-          top: container.scrollHeight,
-          behavior: 'smooth'
-        });
+        container.scrollTop = container.scrollHeight;
       }
     } else {
       // User has scrolled up, just update without scrolling
