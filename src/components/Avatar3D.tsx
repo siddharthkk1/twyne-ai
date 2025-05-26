@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, Box, Cylinder } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { Mesh } from 'three';
 
 const AvatarModel = () => {
@@ -19,38 +19,46 @@ const AvatarModel = () => {
   return (
     <group>
       {/* Head */}
-      <Sphere ref={headRef} args={[0.8, 32, 32]} position={[0, 1.5, 0]}>
+      <mesh ref={headRef} position={[0, 1.5, 0]}>
+        <sphereGeometry args={[0.8, 32, 32]} />
         <meshStandardMaterial color="#fdbcb4" />
-      </Sphere>
+      </mesh>
       
       {/* Eyes */}
-      <Sphere args={[0.1, 16, 16]} position={[-0.25, 1.6, 0.6]}>
+      <mesh position={[-0.25, 1.6, 0.6]}>
+        <sphereGeometry args={[0.1, 16, 16]} />
         <meshStandardMaterial color="#333" />
-      </Sphere>
-      <Sphere args={[0.1, 16, 16]} position={[0.25, 1.6, 0.6]}>
+      </mesh>
+      <mesh position={[0.25, 1.6, 0.6]}>
+        <sphereGeometry args={[0.1, 16, 16]} />
         <meshStandardMaterial color="#333" />
-      </Sphere>
+      </mesh>
       
       {/* Body */}
-      <Cylinder ref={bodyRef} args={[0.6, 0.8, 1.5, 32]} position={[0, 0, 0]}>
+      <mesh ref={bodyRef} position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.6, 0.8, 1.5, 32]} />
         <meshStandardMaterial color="#4f46e5" />
-      </Cylinder>
+      </mesh>
       
       {/* Arms */}
-      <Cylinder args={[0.15, 0.15, 1, 16]} position={[-1, 0.2, 0]} rotation={[0, 0, Math.PI / 4]}>
+      <mesh position={[-1, 0.2, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <cylinderGeometry args={[0.15, 0.15, 1, 16]} />
         <meshStandardMaterial color="#fdbcb4" />
-      </Cylinder>
-      <Cylinder args={[0.15, 0.15, 1, 16]} position={[1, 0.2, 0]} rotation={[0, 0, -Math.PI / 4]}>
+      </mesh>
+      <mesh position={[1, 0.2, 0]} rotation={[0, 0, -Math.PI / 4]}>
+        <cylinderGeometry args={[0.15, 0.15, 1, 16]} />
         <meshStandardMaterial color="#fdbcb4" />
-      </Cylinder>
+      </mesh>
       
       {/* Legs */}
-      <Cylinder args={[0.2, 0.2, 1.2, 16]} position={[-0.3, -1.3, 0]}>
+      <mesh position={[-0.3, -1.3, 0]}>
+        <cylinderGeometry args={[0.2, 0.2, 1.2, 16]} />
         <meshStandardMaterial color="#2563eb" />
-      </Cylinder>
-      <Cylinder args={[0.2, 0.2, 1.2, 16]} position={[0.3, -1.3, 0]}>
+      </mesh>
+      <mesh position={[0.3, -1.3, 0]}>
+        <cylinderGeometry args={[0.2, 0.2, 1.2, 16]} />
         <meshStandardMaterial color="#2563eb" />
-      </Cylinder>
+      </mesh>
     </group>
   );
 };
