@@ -46,8 +46,8 @@ const Mirror = () => {
       } else if (data?.profile_data) {
         console.log("Raw profile data from database:", data.profile_data);
         
-        // Handle the profile data properly - it should be the direct object
-        const profileData = data.profile_data as UserProfile;
+        // Safely handle the profile data - cast through unknown first
+        const profileData = data.profile_data as unknown as UserProfile;
         console.log("Processed profile data:", profileData);
         
         setUserProfile(profileData);
@@ -657,16 +657,14 @@ const Mirror = () => {
                 </Card>
               )}
 
-              {userProfile.goals && (
-                <Card className="border border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-xl">Goals</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{userProfile.goals}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Goals</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.goals || "We don't have info on that yet."}</p>
+                </CardContent>
+              </Card>
 
               {userProfile.religion && (
                 <Card className="border border-border bg-card">
