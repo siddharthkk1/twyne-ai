@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -275,6 +274,7 @@ export const useOnboardingChat = () => {
 
         setMessages((prev) => [...prev, newUserMessage]);
         setInput("");
+        setIsTyping(true);
       });
       
       const nameRequestMessage: Message = {
@@ -283,8 +283,11 @@ export const useOnboardingChat = () => {
         sender: "ai",
       };
 
-      setMessages(prev => [...prev, nameRequestMessage]);
-      setIsTyping(false);
+      setTimeout(() => {
+        setMessages(prev => [...prev, nameRequestMessage]);
+        setIsTyping(false);
+      }, 1000);
+      
       setAskingForName(true);
 
       const userMessageObj: { role: ChatRole; content: string } = { 

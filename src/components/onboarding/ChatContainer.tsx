@@ -115,6 +115,11 @@ const ChatContainer = ({
                   userName={userName}
                 />
               ))}
+              
+              {/* Show typing indicator when AI is thinking */}
+              {isTyping && !isGeneratingProfile && (
+                <TypingIndicator />
+              )}
             </>
           )}
           
