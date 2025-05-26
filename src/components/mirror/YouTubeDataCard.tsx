@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -121,13 +120,18 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
           console.log('Generated YouTube insights:', insights);
           
           // Convert the insights to match our SynthesizedYouTubeData format
+          const defaultSummary = "Your viewing habits reflect diverse interests across multiple content categories.";
+          let summaryText = defaultSummary;
+          
+          if (insights && typeof insights === 'object' && 'summary' in insights && typeof insights.summary === 'string') {
+            summaryText = insights.summary;
+          }
+          
           const synthesizedInsights = {
             topVideos: Array.isArray(youtubeData.topVideos) ? youtubeData.topVideos.slice(0, 5) : [],
             topChannels: Array.isArray(youtubeData.topChannels) ? youtubeData.topChannels.slice(0, 5) : [],
             topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories.slice(0, 5) : [],
-            summary: (insights && typeof insights === 'object' && 'summary' in insights && typeof insights.summary === 'string') 
-              ? insights.summary 
-              : "Your viewing habits reflect diverse interests across multiple content categories."
+            summary: summaryText
           };
           
           setYoutubeInsights(synthesizedInsights);
