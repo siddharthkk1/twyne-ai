@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SpotifyService } from '@/services/spotifyService';
@@ -140,17 +139,40 @@ const AuthCallback = () => {
           
           setStatus('Fetching your YouTube data...');
           
-          // Fetch user data using correct method names
-          const [likedVideos, subscriptions, watchHistory] = await Promise.all([
+          // Fetch raw YouTube data using correct method names
+          const [rawLikedVideos, rawSubscriptions, rawWatchHistory] = await Promise.all([
             YouTubeService.getLikedVideos(tokenData.access_token),
             YouTubeService.getUserSubscriptions(tokenData.access_token),
             YouTubeService.getWatchHistory(tokenData.access_token)
           ]);
 
+          // Transform the data to match the expected AI service format
+          const likedVideos = rawLikedVideos.map(video => ({
+            title: video.snippet.title,
+            description: video.snippet.description || '',
+            channelTitle: video.snippet.channelTitle,
+            tags: [], // YouTube API doesn't provide tags in this endpoint
+            categoryId: undefined
+          }));
+
+          const subscriptions = rawSubscriptions.map(sub => ({
+            title: sub.snippet.title,
+            description: sub.snippet.description || '',
+            topicCategories: [],
+            keywords: []
+          }));
+
+          const watchHistory = rawWatchHistory.map(video => ({
+            title: video.snippet.title,
+            description: video.snippet.description || '',
+            tags: [],
+            categoryId: undefined
+          }));
+
           const youtubeData = {
-            likedVideos,
-            subscriptions,
-            watchHistory
+            likedVideos: rawLikedVideos,
+            subscriptions: rawSubscriptions,
+            watchHistory: rawWatchHistory
           };
 
           console.log('Complete YouTube data fetched:', youtubeData);
@@ -160,7 +182,7 @@ const AuthCallback = () => {
 
           setStatus('Generating your content insights...');
           
-          // Generate AI insights
+          // Generate AI insights using transformed data
           const youtubeSummary = await AIProfileService.generateYouTubeProfile({
             likedVideos,
             subscriptions,
