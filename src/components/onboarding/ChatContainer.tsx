@@ -38,7 +38,7 @@ interface ChatContainerProps {
   setUserName: (value: string) => void;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
-  handleAIMessagePart: () => void;
+  handleAIMessagePart: (updateMessages: () => void) => void;
 }
 
 const ChatContainer = ({
