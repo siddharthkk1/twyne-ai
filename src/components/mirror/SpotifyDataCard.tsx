@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Music, TrendingUp, Heart, Disc, User } from 'lucide-react';
+import { AIProfileService } from '@/services/aiProfileService';
 
 interface SpotifyData {
   topArtists: Array<{
@@ -24,7 +25,7 @@ interface SpotifyData {
     };
   }>;
   topGenres: string[];
-  topAlbums: Array<{
+  topAlbums?: Array<{
     name: string;
     artists: Array<{ name: string }>;
     images: Array<{ url: string }>;
@@ -38,6 +39,8 @@ interface SpotifyDataCardProps {
 const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   const [isDataStored, setIsDataStored] = useState(false);
   const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(data);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [spotifyInsights, setSpotifyInsights] = useState<any>(null);
 
   // Try to load data from localStorage if not provided
   useEffect(() => {
@@ -55,7 +58,48 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     }
   }, [spotifyData]);
 
-  if (!spotifyData) {
+  // Generate and store Spotify insights when component mounts with data
+  useEffect(() => {
+    if (spotifyData && !isDataStored && !isGeneratingSummary) {
+      setIsGeneratingSummary(true);
+      
+      // Prepare data for AI analysis
+      const analysisData = {
+        topTracks: spotifyData.topTracks || [],
+        topArtists: spotifyData.topArtists || [],
+        topAlbums: spotifyData.topAlbums || [],
+        topGenres: spotifyData.topGenres || []
+      };
+
+      // Generate AI insights
+      AIProfileService.generateSpotifyProfile(analysisData)
+        .then(insights => {
+          setSpotifyInsights(insights);
+          
+          // Get raw Spotify data from localStorage
+          const rawSpotifyData = localStorage.getItem('spotify_data');
+          const parsedRawData = rawSpotifyData ? JSON.parse(rawSpotifyData) : null;
+
+          // Store both synthesized and raw data
+          import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
+            MirrorDataService.storeMirrorData(
+              { spotify: insights },
+              { spotify: parsedRawData }
+            );
+          });
+
+          setIsDataStored(true);
+        })
+        .catch(error => {
+          console.error('Error generating Spotify insights:', error);
+        })
+        .finally(() => {
+          setIsGeneratingSummary(false);
+        });
+    }
+  }, [spotifyData, isDataStored, isGeneratingSummary]);
+
+  if (!spotifyData && !spotifyInsights) {
     return (
       <Card className="border border-border bg-card">
         <CardHeader>
@@ -69,69 +113,12 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     );
   }
 
-  // Ensure data arrays exist and are arrays
-  const safeTracks = Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks : [];
-  const safeArtists = Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists : [];
-  const safeGenres = Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres : [];
-  const safeAlbums = Array.isArray(spotifyData.topAlbums) ? spotifyData.topAlbums : [];
-
-  // Calculate average audio features
-  const tracksWithFeatures = safeTracks.filter(track => track.audio_features);
-  const avgFeatures = tracksWithFeatures.length > 0 ? {
-    danceability: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.danceability || 0), 0) / tracksWithFeatures.length * 100),
-    energy: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.energy || 0), 0) / tracksWithFeatures.length * 100),
-    valence: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.valence || 0), 0) / tracksWithFeatures.length * 100),
-    tempo: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.tempo || 0), 0) / tracksWithFeatures.length),
-    acousticness: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.acousticness || 0), 0) / tracksWithFeatures.length * 100),
-    instrumentalness: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.instrumentalness || 0), 0) / tracksWithFeatures.length * 100)
-  } : null;
-
-  // Generate vibe summary based on audio features
-  const generateVibeSummary = () => {
-    if (!avgFeatures) return "Your music taste reflects a unique personality that loves discovering new sounds.";
-    
-    const { valence, energy, acousticness, danceability } = avgFeatures;
-    
-    if (valence > 70 && energy > 70) {
-      return "You're into upbeat, high-energy tracks that radiate positivity. Your playlist is the soundtrack to good vibes and celebration.";
-    } else if (valence < 40 && acousticness > 60) {
-      return "You're drawn to soulful, introspective tracks with emotional depth. Your taste reflects a thoughtful, contemplative inner world.";
-    } else if (danceability > 70) {
-      return "You love rhythmic, groove-heavy music that gets you moving. Whether it's electronic beats or funky basslines, you're all about the rhythm.";
-    } else if (acousticness > 70) {
-      return "You appreciate organic, acoustic sounds with raw authenticity. Your taste leans toward intimate, unplugged performances.";
-    } else {
-      return "You have an eclectic taste that balances different moods and styles. Your music reflects a complex, multifaceted personality.";
-    }
-  };
-
-  // Store synthesized data when component mounts with data
-  useEffect(() => {
-    if (spotifyData && !isDataStored) {
-      const synthesizedData = {
-        topArtists: safeArtists.slice(0, 5),
-        topTracks: safeTracks.slice(0, 5),
-        topGenres: safeGenres.slice(0, 5),
-        topAlbums: safeAlbums.slice(0, 5),
-        audioFeatures: avgFeatures,
-        vibeSummary: generateVibeSummary()
-      };
-
-      // Get raw Spotify data from localStorage
-      const rawSpotifyData = localStorage.getItem('spotify_data');
-      const parsedRawData = rawSpotifyData ? JSON.parse(rawSpotifyData) : null;
-
-      // Store both synthesized and raw data
-      import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
-        MirrorDataService.storeMirrorData(
-          { spotify: synthesizedData },
-          { spotify: parsedRawData }
-        );
-      });
-
-      setIsDataStored(true);
-    }
-  }, [spotifyData, isDataStored, avgFeatures]);
+  // Use insights if available, otherwise fall back to raw data
+  const displayData = spotifyInsights || spotifyData;
+  const safeTracks = Array.isArray(displayData.topTracks || displayData.topSongs) ? (displayData.topTracks || displayData.topSongs) : [];
+  const safeArtists = Array.isArray(displayData.topArtists) ? displayData.topArtists : [];
+  const safeGenres = Array.isArray(displayData.topGenres) ? displayData.topGenres : [];
+  const safeAlbums = Array.isArray(displayData.topAlbums) ? displayData.topAlbums : [];
 
   return (
     <Card className="border border-border bg-card">
@@ -149,11 +136,20 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             <Heart className="h-4 w-4" />
             Your Music Vibe
           </h3>
-          <p className="text-sm text-muted-foreground">{generateVibeSummary()}</p>
+          {isGeneratingSummary ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground">Analyzing your music taste...</p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {spotifyInsights?.vibeSummary || "Your music taste reflects a unique personality that loves discovering new sounds."}
+            </p>
+          )}
         </div>
 
-        {/* Audio Features */}
-        {avgFeatures && (
+        {/* Trait Display */}
+        {spotifyInsights?.traitDisplay && (
           <div>
             <h3 className="font-medium mb-3 flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -161,52 +157,87 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex justify-between">
-                <span>🎭 Positivity:</span>
-                <span>{avgFeatures.valence}%</span>
+                <span>🎭 Valence:</span>
+                <span>{spotifyInsights.traitDisplay.valence}%</span>
               </div>
               <div className="flex justify-between">
                 <span>⚡️ Energy:</span>
-                <span>{avgFeatures.energy}%</span>
+                <span>{spotifyInsights.traitDisplay.energy}%</span>
               </div>
               <div className="flex justify-between">
                 <span>🕺 Danceability:</span>
-                <span>{avgFeatures.danceability}%</span>
+                <span>{spotifyInsights.traitDisplay.danceability}%</span>
               </div>
               <div className="flex justify-between">
                 <span>🎚 Tempo:</span>
-                <span>{avgFeatures.tempo} BPM</span>
+                <span>{spotifyInsights.traitDisplay.tempo} BPM</span>
               </div>
               <div className="flex justify-between">
-                <span>🌿 Acoustic:</span>
-                <span>{avgFeatures.acousticness}%</span>
+                <span>🌿 Acousticness:</span>
+                <span>{spotifyInsights.traitDisplay.acousticness}%</span>
               </div>
               <div className="flex justify-between">
-                <span>🎹 Instrumental:</span>
-                <span>{avgFeatures.instrumentalness}%</span>
+                <span>🎹 Instrumentalness:</span>
+                <span>{spotifyInsights.traitDisplay.instrumentalness}%</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Basic Stats */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex justify-between">
-            <span>Top Artists:</span>
-            <span>{safeArtists.length}</span>
+        {/* Top Songs */}
+        {safeTracks.length > 0 && (
+          <div>
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              <Disc className="h-4 w-4" />
+              Top Songs
+            </h3>
+            <div className="space-y-2">
+              {safeTracks.slice(0, 5).map((track, index) => (
+                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                  {track.album?.images?.[0]?.url && (
+                    <img
+                      src={track.album.images[0].url}
+                      alt={track.album.name}
+                      className="w-10 h-10 rounded"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{track.name}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {Array.isArray(track.artists) ? track.artists.map(a => a.name).join(', ') : 'Unknown Artist'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span>Top Tracks:</span>
-            <span>{safeTracks.length}</span>
+        )}
+
+        {/* Top Artists */}
+        {safeArtists.length > 0 && (
+          <div>
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Top Artists
+            </h3>
+            <div className="space-y-2">
+              {safeArtists.slice(0, 5).map((artist, index) => (
+                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                  {artist.images?.[0]?.url && (
+                    <img
+                      src={artist.images[0].url}
+                      alt={artist.name}
+                      className="w-10 h-10 rounded-full"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{artist.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span>Genres:</span>
-            <span>{safeGenres.length}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Albums:</span>
-            <span>{safeAlbums.length}</span>
-          </div>
-        </div>
+        )}
 
         {/* Top Genres */}
         {safeGenres.length > 0 && (
@@ -221,6 +252,26 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             </div>
           </div>
         )}
+
+        {/* Basic Stats */}
+        <div className="grid grid-cols-2 gap-4 text-sm pt-4 border-t">
+          <div className="flex justify-between">
+            <span>Songs:</span>
+            <span>{safeTracks.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Artists:</span>
+            <span>{safeArtists.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Genres:</span>
+            <span>{safeGenres.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Albums:</span>
+            <span>{safeAlbums.length}</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

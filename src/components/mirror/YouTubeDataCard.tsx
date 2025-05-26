@@ -111,24 +111,11 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
         .then(summary => {
           setAiSummary(summary);
           
-          // Store synthesized data with AI summary
-          const synthesizedData = {
-            subscriptions: safeSubscriptions.slice(0, 5),
-            likedVideos: safeLikedVideos.slice(0, 5),
-            playlists: safePlaylists.slice(0, 3),
-            videos: safeVideos.slice(0, 3),
-            vibeSummary: summary
-          };
-
-          // Get raw YouTube data from localStorage
-          const rawYouTubeData = localStorage.getItem('youtube_data');
-          const parsedRawData = rawYouTubeData ? JSON.parse(rawYouTubeData) : null;
-
-          // Store both synthesized and raw data
+          // Store only the AI summary
           import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
             MirrorDataService.storeMirrorData(
-              { youtube: synthesizedData },
-              { youtube: parsedRawData }
+              { youtube: { summary } },
+              {} // No raw YouTube data
             );
           });
 

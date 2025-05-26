@@ -2,76 +2,40 @@
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
-  topArtists: Array<{
-    name: string;
-    images: Array<{ url: string }>;
-    genres: string[];
-  }>;
-  topTracks: Array<{
+  topSongs: Array<{
     name: string;
     artists: Array<{ name: string }>;
     album: { name: string; images: Array<{ url: string }> };
   }>;
-  topGenres: string[];
+  topArtists: Array<{
+    name: string;
+    images: Array<{ url: string }>;
+  }>;
   topAlbums: Array<{
     name: string;
     artists: Array<{ name: string }>;
     images: Array<{ url: string }>;
   }>;
-  audioFeatures?: {
-    danceability: number;
-    energy: number;
+  topGenres: string[];
+  vibeSummary: string;
+  traitDisplay: {
     valence: number;
+    energy: number;
+    danceability: number;
     tempo: number;
     acousticness: number;
     instrumentalness: number;
   };
-  vibeSummary: string;
-}
-
-interface SynthesizedYouTubeData {
-  subscriptions: Array<{
-    snippet: {
-      title: string;
-      thumbnails: { default: { url: string } };
-    };
-  }>;
-  likedVideos: Array<{
-    snippet: {
-      title: string;
-      channelTitle: string;
-      thumbnails: { default: { url: string } };
-    };
-  }>;
-  playlists: Array<{
-    snippet: {
-      title: string;
-      thumbnails: { default: { url: string } };
-    };
-    contentDetails: { itemCount: number };
-  }>;
-  videos: Array<{
-    snippet: {
-      title: string;
-      thumbnails: { default: { url: string } };
-    };
-    statistics: {
-      viewCount: string;
-      likeCount: string;
-    };
-  }>;
-  vibeSummary: string;
 }
 
 export class MirrorDataService {
   static async storeMirrorData(
     synthesizedData: {
       spotify?: SynthesizedSpotifyData;
-      youtube?: SynthesizedYouTubeData;
+      youtube?: { summary: string };
     },
     rawData: {
       spotify?: any;
-      youtube?: any;
     }
   ) {
     try {
@@ -103,14 +67,14 @@ export class MirrorDataService {
       // Update profile_data with synthesized insights
       const updatedProfileData = {
         ...currentProfileData,
-        ...(synthesizedData.spotify && { music_insights: synthesizedData.spotify }),
-        ...(synthesizedData.youtube && { video_insights: synthesizedData.youtube })
+        ...(synthesizedData.spotify && { spotify_insights: synthesizedData.spotify }),
+        ...(synthesizedData.youtube && { youtube_summary: synthesizedData.youtube.summary })
       };
 
-      // Prepare raw data storage (check size)
+      // Prepare raw data storage (only Spotify data)
       const rawDataToStore: any = {};
       
-      // Store raw Spotify data if not too large (limit to ~1MB per service)
+      // Store raw Spotify data if not too large (limit to ~1MB)
       if (rawData.spotify) {
         const spotifySize = JSON.stringify(rawData.spotify).length;
         if (spotifySize < 1000000) { // 1MB limit
@@ -121,24 +85,6 @@ export class MirrorDataService {
             profile: rawData.spotify.profile,
             topTracks: rawData.spotify.topTracks?.short_term?.slice(0, 50),
             topArtists: rawData.spotify.topArtists?.short_term?.slice(0, 50),
-            summary: 'Full data truncated due to size'
-          };
-        }
-      }
-
-      // Store raw YouTube data if not too large
-      if (rawData.youtube) {
-        const youtubeSize = JSON.stringify(rawData.youtube).length;
-        if (youtubeSize < 1000000) { // 1MB limit
-          rawDataToStore.youtube = rawData.youtube;
-        } else {
-          console.warn('YouTube data too large, storing summary only');
-          rawDataToStore.youtube = {
-            channel: rawData.youtube.channel,
-            subscriptions: rawData.youtube.subscriptions?.slice(0, 50),
-            likedVideos: rawData.youtube.likedVideos?.slice(0, 50),
-            playlists: rawData.youtube.playlists?.slice(0, 20),
-            videos: rawData.youtube.videos?.slice(0, 20),
             summary: 'Full data truncated due to size'
           };
         }
