@@ -21,6 +21,8 @@ serve(async (req) => {
       throw new Error('Spotify credentials not configured')
     }
     
+    console.log('Spotify Auth - Exchanging code for token with redirect URI:', `${req.headers.get('origin')}/auth/callback`)
+    
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -30,15 +32,18 @@ serve(async (req) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: `${req.headers.get('origin')}/connections`
+        redirect_uri: `${req.headers.get('origin')}/auth/callback`
       })
     })
     
     if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('Spotify token exchange failed:', errorText)
       throw new Error('Failed to exchange code for token')
     }
     
     const tokenData = await tokenResponse.json()
+    console.log('Spotify token exchange successful')
     
     return new Response(
       JSON.stringify(tokenData),
@@ -50,6 +55,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Spotify auth error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

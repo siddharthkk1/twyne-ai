@@ -21,6 +21,8 @@ serve(async (req) => {
       throw new Error('Google credentials not configured')
     }
     
+    console.log('Google Auth - Exchanging code for token with redirect URI:', `${req.headers.get('origin')}/auth/callback`)
+    
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: {
@@ -31,15 +33,18 @@ serve(async (req) => {
         client_secret: clientSecret,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: `${req.headers.get('origin')}/connections`
+        redirect_uri: `${req.headers.get('origin')}/auth/callback`
       })
     })
     
     if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('Google token exchange failed:', errorText)
       throw new Error('Failed to exchange code for token')
     }
     
     const tokenData = await tokenResponse.json()
+    console.log('Google token exchange successful')
     
     return new Response(
       JSON.stringify(tokenData),
@@ -51,6 +56,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Google auth error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
