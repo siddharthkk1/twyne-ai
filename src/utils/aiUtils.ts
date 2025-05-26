@@ -131,12 +131,9 @@ Return a single valid JSON object in the following structure. All fields must be
   "favoriteActivities": "",
   "favoriteSpots": "",
 
-  // 🧘 Inner World
-  "coreValues": "",
-  "lifePhilosophy": "",
-  "goals": "",
+  // Vibe
   "personalitySummary": "",
-  "bigFiveTraits": {
+  bigFiveTraits": {
     "openness": "",
     "conscientiousness": "",
     "extraversion": "",
@@ -145,6 +142,13 @@ Return a single valid JSON object in the following structure. All fields must be
   },
   "quirks": "",
   "communicationStyle": "",
+  
+  // 🧘 Inner World
+  "coreValues": "",
+  "worldView: "",
+  "goals": "",
+  "politicalViews": "",
+  
 
   // 📖 Story
   "upbringing": "",
