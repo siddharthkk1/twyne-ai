@@ -13,7 +13,7 @@ export class GoogleAuthService {
   
   static getYouTubeAuthUrl(): string {
     const params = new URLSearchParams({
-      client_id: process.env.GOOGLE_CLIENT_ID || '',
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
       response_type: 'code',
       redirect_uri: `${window.location.origin}/settings`,
       scope: 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',

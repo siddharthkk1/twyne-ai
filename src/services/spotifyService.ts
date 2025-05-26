@@ -31,7 +31,7 @@ export class SpotifyService {
   
   static getAuthUrl(): string {
     const params = new URLSearchParams({
-      client_id: process.env.SPOTIFY_CLIENT_ID || '',
+      client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID || '',
       response_type: 'code',
       redirect_uri: `${window.location.origin}/settings`,
       scope: 'user-read-private user-read-email user-top-read user-read-recently-played playlist-read-private',

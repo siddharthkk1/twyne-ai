@@ -716,6 +716,35 @@ const Mirror = () => {
                 </Card>
               )}
 
+              {userProfile.religion && (
+                <Card className="border border-border bg-card">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Religious Beliefs</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{userProfile.religion}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Political Views</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.politicalViews || "We don't have info on that yet."}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-xl">Personal Beliefs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{userProfile.personalBeliefs || "We don't have info on that yet."}</p>
+                </CardContent>
+              </Card>
+
               {userProfile.quirks && (
                 <Card className="border border-border bg-card">
                   <CardHeader>
