@@ -3,13 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
   topSongs: Array<{
-    name: string;
-    artists: Array<{ name: string }>;
-    album: { name: string; images: Array<{ url: string }> };
+    rank: number;
+    title: string;
+    artist: string;
+    imageUrl: string;
   }>;
   topArtists: Array<{
+    rank: number;
     name: string;
-    images: Array<{ url: string }>;
+    imageUrl: string;
   }>;
   topAlbums: Array<{
     name: string;
