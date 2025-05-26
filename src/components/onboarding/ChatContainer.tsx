@@ -1,7 +1,6 @@
-
 import React from "react";
 import MessageBubble from "./MessageBubble";
-import TypingIndicator from "./TypingIndicator";
+import TypingIndicator from "TypingIndicator";
 import PromptModeSelector from "./PromptModeSelector";
 import InputContainer from "./InputContainer";
 import ConversationHeader from "./ConversationHeader";
@@ -39,7 +38,7 @@ interface ChatContainerProps {
   setUserName: (value: string) => void;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
   handleScroll: () => void;
-  handleAIMessagePart: (updateFn: () => void) => void;
+  handleAIMessagePart: () => void;
 }
 
 const ChatContainer = ({
