@@ -207,10 +207,10 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating Spotify connection...');
       
-      // Use Supabase client to call the edge function
-      const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+      // Use a consistent redirect URI that should be registered in developer console
+      const redirectUri = `${window.location.origin}/auth/callback`;
       const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
-        body: { redirect_uri: decodeURIComponent(redirectUri) }
+        body: { redirect_uri: redirectUri }
       });
       
       if (error) {
@@ -223,7 +223,7 @@ const AccountConnectionButtons = () => {
         window.location.href = data.authUrl;
       } else {
         // If no auth URL returned, try direct redirect as fallback
-        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${redirectUri}`;
+        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
       }
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
@@ -241,10 +241,10 @@ const AccountConnectionButtons = () => {
       setIsConnecting(true);
       console.log('Initiating YouTube connection...');
       
-      // Use Supabase client to call the edge function
-      const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+      // Use a consistent redirect URI that should be registered in developer console
+      const redirectUri = `${window.location.origin}/auth/callback`;
       const { data, error } = await supabase.functions.invoke('google-auth-url', {
-        body: { redirect_uri: decodeURIComponent(redirectUri) }
+        body: { redirect_uri: redirectUri }
       });
       
       if (error) {
@@ -257,7 +257,7 @@ const AccountConnectionButtons = () => {
         window.location.href = data.authUrl;
       } else {
         // If no auth URL returned, try direct redirect as fallback
-        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${redirectUri}`;
+        window.location.href = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
       }
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
