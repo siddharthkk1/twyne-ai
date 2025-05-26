@@ -73,6 +73,8 @@ export interface UserProfile {
   bigFiveTraits?: BigFiveTraits;
   quirks?: string;
   communicationStyle?: string;
+  politicalViews?: string;
+  personalBeliefs?: string;
 
   // Story
   upbringing?: string;
