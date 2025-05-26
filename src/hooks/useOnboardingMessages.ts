@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Message, Conversation } from '@/types/chat';
 import { getAIResponse } from '@/utils/aiUtils';
@@ -29,14 +28,20 @@ export const useOnboardingMessages = (
       // Get AI response from the API
       const aiResponse = await getAIResponse(draftConversation);
       
-      // Add AI message to the UI
+      // Add AI message to the UI while keeping typing indicator visible briefly
       const newAiMessage: Message = {
         id: messages.length + 2, // +2 because user message was +1
         text: aiResponse,
         sender: "ai"
       };
       
+      // Add the message first, then remove typing indicator to prevent scroll jump
       setMessages(prev => [...prev, newAiMessage]);
+      
+      // Small delay to ensure message is rendered before removing typing indicator
+      setTimeout(() => {
+        setIsTyping(false);
+      }, 50);
       
       // Update conversation state with AI response
       setConversation({
@@ -76,7 +81,7 @@ export const useOnboardingMessages = (
         ],
         userAnswers: draftConversation.userAnswers
       });
-    } finally {
+      
       setIsTyping(false);
     }
   };
