@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -123,11 +124,9 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
           const defaultSummary = "Your viewing habits reflect diverse interests across multiple content categories.";
           let summaryText = defaultSummary;
           
-          // Check if insights is not null and has the expected structure
-          if (insights !== null && typeof insights === 'object') {
-            if ('summary' in insights && typeof insights.summary === 'string') {
-              summaryText = insights.summary;
-            }
+          // Safe null checking for insights
+          if (insights && typeof insights === 'string') {
+            summaryText = insights;
           }
           
           const synthesizedInsights = {
