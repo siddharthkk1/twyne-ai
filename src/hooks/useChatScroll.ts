@@ -83,7 +83,10 @@ export const useChatScroll = () => {
       requestAnimationFrame(() => {
         const container = scrollContainerRef.current;
         if (container) {
-          container.scrollTop = container.scrollHeight;
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
         }
       });
     } else {

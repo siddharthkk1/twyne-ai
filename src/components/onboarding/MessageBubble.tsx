@@ -31,7 +31,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     if (message.sender === "ai") {
       setVisibleParts([0]);
 
-      // Trigger scroll for first part immediately
+      // Trigger scroll for first part with smooth scroll
       if (onMessagePartVisible) {
         onMessagePartVisible(() => {
           // No-op since state is already being updated
@@ -46,7 +46,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             setVisibleParts(prev => {
               const updated = [...prev, index];
               
-              // Trigger scroll for each new part
+              // Trigger smooth scroll for each new part
               if (onMessagePartVisible) {
                 requestAnimationFrame(() => {
                   onMessagePartVisible(() => {
@@ -64,12 +64,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       // For user messages, show all parts immediately
       setVisibleParts([...Array(messageParts.length).keys()]);
       
-      // Trigger immediate scroll for user messages
-      if (onMessagePartVisible) {
-        onMessagePartVisible(() => {
-          // No-op since state is already being updated
-        });
-      }
+      // No need to trigger scroll here since it's handled in handleSend
     }
   }, [message.id]);
 

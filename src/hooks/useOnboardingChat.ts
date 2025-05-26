@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -138,7 +139,8 @@ export const useOnboardingChat = () => {
     hasUserScrolled,
     handleScroll,
     handleUserMessage,
-    handleAIMessagePart
+    handleAIMessagePart,
+    scrollToBottomSmooth
   } = useChatScroll();
 
   // Hide guidance info after user sends first message
@@ -256,17 +258,19 @@ export const useOnboardingChat = () => {
     
     // Check if we've reached the message cap and need to ask for name
     if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
-      // Use the new handleUserMessage with scroll-before-update
-      handleUserMessage(() => {
-        const newUserMessage: Message = {
-          id: messages.length + 1,
-          text: textToSend,
-          sender: "user",
-        };
+      const newUserMessage: Message = {
+        id: messages.length + 1,
+        text: textToSend,
+        sender: "user",
+      };
 
-        setMessages((prev) => [...prev, newUserMessage]);
-        setInput("");
-      });
+      setMessages((prev) => [...prev, newUserMessage]);
+      setInput("");
+      
+      // Scroll to show the user message immediately
+      setTimeout(() => {
+        scrollToBottomSmooth();
+      }, 50);
       
       const nameRequestMessage: Message = {
         id: messages.length + 2,
@@ -303,17 +307,19 @@ export const useOnboardingChat = () => {
 
     // If we're asking for name, this is the final message
     if (askingForName) {
-      // Use the new handleUserMessage with scroll-before-update
-      handleUserMessage(() => {
-        const nameMessage: Message = {
-          id: messages.length + 1,
-          text: textToSend,
-          sender: "user",
-        };
+      const nameMessage: Message = {
+        id: messages.length + 1,
+        text: textToSend,
+        sender: "user",
+      };
 
-        setMessages((prev) => [...prev, nameMessage]);
-        setInput("");
-      });
+      setMessages((prev) => [...prev, nameMessage]);
+      setInput("");
+      
+      // Scroll to show the user message immediately
+      setTimeout(() => {
+        scrollToBottomSmooth();
+      }, 50);
       
       console.log("Setting userName from final response:", textToSend);
       setUserName(textToSend);
@@ -341,18 +347,20 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Use the new handleUserMessage with scroll-before-update
-    handleUserMessage(() => {
-      const newUserMessage: Message = {
-        id: messages.length + 1,
-        text: textToSend,
-        sender: "user",
-      };
+    const newUserMessage: Message = {
+      id: messages.length + 1,
+      text: textToSend,
+      sender: "user",
+    };
 
-      setMessages((prev) => [...prev, newUserMessage]);
-      setInput("");
-      setIsTyping(true);
-    });
+    setMessages((prev) => [...prev, newUserMessage]);
+    setInput("");
+    setIsTyping(true);
+    
+    // Scroll to show the user message immediately after it's added
+    setTimeout(() => {
+      scrollToBottomSmooth();
+    }, 50);
 
     if (currentQuestionIndex === 0) {
       setUserProfile(prev => ({ ...prev, location: textToSend.trim() }));
