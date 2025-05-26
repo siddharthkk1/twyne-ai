@@ -55,7 +55,7 @@ export const useChatScroll = () => {
     });
   }, []);
 
-  // Handle user sending a message - immediate scroll
+  // Handle user sending a message - immediate smooth scroll
   const handleUserMessage = useCallback((updateMessages: () => void) => {
     // Reset scroll state
     setHasUserScrolled(false);
@@ -64,25 +64,50 @@ export const useChatScroll = () => {
     // Update messages first
     updateMessages();
 
-    // Scroll immediately after DOM update
-    requestAnimationFrame(() => {
-      scrollToBottomInstant();
-    });
-  }, [scrollToBottomInstant]);
+    // Use multiple techniques to ensure we scroll all the way down
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  // Handle AI message parts - instant scroll if user is near bottom
+    // First, use requestAnimationFrame to wait for DOM update
+    requestAnimationFrame(() => {
+      // Force scroll to absolute bottom
+      container.scrollTop = container.scrollHeight;
+      
+      // Double-check with another frame
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+        
+        // Add smooth behavior for any adjustments
+        container.style.scrollBehavior = 'smooth';
+        setTimeout(() => {
+          container.style.scrollBehavior = 'auto';
+        }, 100);
+      });
+    });
+  }, []);
+
+  // Handle AI message parts - smooth scroll if user is near bottom
   const handleAIMessagePart = useCallback((updateMessages: () => void) => {
     // Always update messages first
     updateMessages();
     
     // Only scroll if user hasn't manually scrolled up
     if (!hasUserScrolled && isUserNearBottom) {
-      // Use requestAnimationFrame to ensure DOM is updated
+      const container = scrollContainerRef.current;
+      if (!container) return;
+      
+      // Use smooth scrolling for AI messages like iMessage
       requestAnimationFrame(() => {
-        scrollToBottomInstant();
+        container.style.scrollBehavior = 'smooth';
+        container.scrollTop = container.scrollHeight;
+        
+        // Reset to auto after smooth scroll
+        setTimeout(() => {
+          container.style.scrollBehavior = 'auto';
+        }, 300);
       });
     }
-  }, [hasUserScrolled, isUserNearBottom, scrollToBottomInstant]);
+  }, [hasUserScrolled, isUserNearBottom]);
 
   // For backward compatibility - generic new message handler
   const handleNewMessage = useCallback(() => {
