@@ -639,15 +639,24 @@ const Mirror = () => {
                 </CardContent>
               </Card>
 
-              {/* Spotify Data Card */}
-              <SpotifyDataCard data={spotifyData} />
-
+              {/* Music Section - Now includes Spotify as a subsection */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl">Favorite Music</CardTitle>
+                  <CardTitle className="text-xl">Music</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p>{userProfile.favoriteMusic || "We don't have enough info on that yet."}</p>
+                <CardContent className="space-y-6">
+                  {/* Spotify Profile Subsection */}
+                  <div>
+                    <SpotifyDataCard data={spotifyData} />
+                  </div>
+
+                  {/* Traditional Music Text */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-medium mb-3">Additional Music Preferences</h3>
+                    <p className="text-muted-foreground">
+                      {userProfile.music || userProfile.favoriteMusic || "We don't have enough info on that yet."}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -670,8 +679,8 @@ const Mirror = () => {
                   <CardDescription>Your viewing habits and content preferences across platforms</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* YouTube Profile Subsection */}
-                  <div className="border rounded-lg p-4 bg-muted/20">
+                  {/* YouTube Profile Subsection - Remove extra border */}
+                  <div>
                     <YouTubeDataCard data={youtubeData} />
                   </div>
 

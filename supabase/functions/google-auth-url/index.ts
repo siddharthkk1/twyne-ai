@@ -23,7 +23,7 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
     }
     
-    // Ensure we're using the exact redirect URI format
+    // Ensure we're using the exact redirect URI format for Supabase auth
     console.log('Google Auth - Using redirect URI:', redirect_uri)
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
@@ -32,38 +32,26 @@ serve(async (req) => {
       throw new Error('Google client ID not configured')
     }
     
-    const params = new URLSearchParams({
-      client_id: clientId,
-      response_type: 'code',
-      redirect_uri: redirect_uri,
-      scope: [
-        'https://www.googleapis.com/auth/youtube.readonly',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/userinfo.email'
-      ].join(' '),
-      access_type: 'offline',
-      prompt: 'consent',
-      state: 'youtube_auth'
-    })
+    // Use Supabase auth URL for proper token handling
+    const supabaseUrl = req.headers.get('origin')?.replace('localhost:3000', 'lzwkccarbwokfxrzffjd.supabase.co') || ''
+    const supabaseAuthUrl = `${supabaseUrl}/auth/v1/authorize?provider=google`
     
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+    console.log('Google Auth URL generated:', supabaseAuthUrl)
     
-    console.log('Google Auth URL generated:', authUrl)
-    
-    // For GET requests, redirect directly
+    // For GET requests, redirect directly to Supabase auth
     if (req.method === 'GET') {
       return new Response(null, {
         status: 302,
         headers: {
           ...corsHeaders,
-          'Location': authUrl
+          'Location': supabaseAuthUrl
         }
       })
     }
     
-    // For POST requests, return the auth URL
+    // For POST requests, return the Supabase auth URL
     return new Response(
-      JSON.stringify({ authUrl }),
+      JSON.stringify({ authUrl: supabaseAuthUrl }),
       { 
         headers: { 
           ...corsHeaders, 
