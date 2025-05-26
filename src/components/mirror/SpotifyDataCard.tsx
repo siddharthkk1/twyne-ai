@@ -108,7 +108,18 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
       AIProfileService.generateSpotifyProfile(dataForAI)
         .then(insights => {
           console.log('Generated Spotify insights:', insights);
-          setSpotifyInsights(insights);
+          
+          // Convert the insights to match our SynthesizedSpotifyData format
+          const synthesizedInsights = {
+            topSongs: Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks.slice(0, 5) : [],
+            topArtists: Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists.slice(0, 5) : [],
+            topGenres: Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres.slice(0, 5) : [],
+            topAlbums: Array.isArray(spotifyData.topAlbums) ? spotifyData.topAlbums.slice(0, 5) : [],
+            vibeSummary: insights.vibeSummary,
+            traitDisplay: insights.traitDisplay
+          };
+          
+          setSpotifyInsights(synthesizedInsights);
           
           // Get raw Spotify data from localStorage
           const rawSpotifyData = localStorage.getItem('spotify_data');
@@ -117,7 +128,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           // Store both synthesized and raw data
           import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
             MirrorDataService.storeMirrorData(
-              { spotify: insights },
+              { spotify: synthesizedInsights },
               { spotify: parsedRawData }
             );
           });
