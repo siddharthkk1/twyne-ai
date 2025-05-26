@@ -1,23 +1,16 @@
 
-import React, { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, Music, Video, CheckCircle, AlertCircle } from "lucide-react";
-import { SpotifyService } from "@/services/spotifyService";
-import { GoogleAuthService } from "@/services/googleAuthService";
-import { YouTubeService } from "@/services/youtubeService";
-import { useToast } from "@/hooks/use-toast";
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { SpotifyService } from '@/services/spotifyService';
+import { YouTubeService } from '@/services/youtubeService';
+import { AIProfileService } from '@/services/aiProfileService';
+import { MirrorDataService } from '@/services/mirrorDataService';
+import { toast } from 'sonner';
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  const [isProcessing, setIsProcessing] = useState(true);
-  const [service, setService] = useState<'spotify' | 'youtube' | null>(null);
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState('Processing...');
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -26,426 +19,182 @@ const AuthCallback = () => {
       const error = searchParams.get('error');
 
       if (error) {
-        setError(`Authorization failed: ${error}`);
-        setIsProcessing(false);
+        console.error('OAuth error:', error);
+        setStatus('Authentication failed');
+        toast.error('Authentication failed');
+        setTimeout(() => navigate('/mirror'), 3000);
         return;
       }
 
       if (!code) {
-        setError('No authorization code received');
-        setIsProcessing(false);
+        console.error('No authorization code received');
+        setStatus('No authorization code received');
+        setTimeout(() => navigate('/mirror'), 3000);
         return;
       }
 
       try {
-        if (state === 'youtube_auth') {
-          setService('youtube');
-          await handleYouTubeCallback(code);
-        } else {
-          setService('spotify');
-          await handleSpotifyCallback(code);
+        if (state === 'spotify_auth') {
+          setStatus('Connecting to Spotify...');
+          
+          // Exchange code for tokens
+          const tokenData = await SpotifyService.exchangeCodeForToken(code);
+          
+          setStatus('Fetching your Spotify data...');
+          
+          // Fetch user data
+          const [profile, topTracks, topArtists, recentlyPlayed, playlists, savedTracks, followedArtists] = await Promise.all([
+            SpotifyService.getUserProfile(tokenData.access_token),
+            SpotifyService.getTopTracks(tokenData.access_token, 'medium_term'),
+            SpotifyService.getTopArtists(tokenData.access_token, 'medium_term'),
+            SpotifyService.getRecentlyPlayed(tokenData.access_token),
+            SpotifyService.getUserPlaylists(tokenData.access_token),
+            SpotifyService.getSavedTracks(tokenData.access_token),
+            SpotifyService.getFollowedArtists(tokenData.access_token)
+          ]);
+
+          // Get audio features for tracks
+          const tracksWithFeatures = await Promise.all(
+            topTracks.map(async (track) => {
+              try {
+                const response = await fetch(`https://api.spotify.com/v1/audio-features/${track.id}`, {
+                  headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                });
+                if (response.ok) {
+                  const audioFeatures = await response.json();
+                  return { ...track, audio_features: audioFeatures };
+                }
+                return track;
+              } catch (error) {
+                console.error('Error fetching audio features for track:', track.id, error);
+                return track;
+              }
+            })
+          );
+
+          // Extract genres from artists
+          const allGenres = topArtists.flatMap(artist => artist.genres);
+          const genreCounts = allGenres.reduce((acc, genre) => {
+            acc[genre] = (acc[genre] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+          const topGenres = Object.entries(genreCounts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 10)
+            .map(([genre]) => genre);
+
+          // Extract albums from tracks
+          const albumsMap = new Map();
+          tracksWithFeatures.forEach(track => {
+            if (!albumsMap.has(track.album.name)) {
+              albumsMap.set(track.album.name, {
+                name: track.album.name,
+                artists: track.artists,
+                images: track.album.images
+              });
+            }
+          });
+          const topAlbums = Array.from(albumsMap.values()).slice(0, 10);
+
+          const spotifyData = {
+            profile,
+            topTracks: tracksWithFeatures,
+            topArtists,
+            topGenres,
+            topAlbums,
+            recentlyPlayed,
+            playlists,
+            savedTracks,
+            followedArtists
+          };
+
+          console.log('Complete Spotify data fetched:', spotifyData);
+
+          // Store connection data persistently
+          await MirrorDataService.storeConnectionData('spotify', spotifyData);
+
+          setStatus('Generating your music insights...');
+          
+          // Generate AI insights
+          const spotifyInsights = await AIProfileService.generateSpotifyProfile({
+            topTracks: tracksWithFeatures,
+            topArtists,
+            topGenres,
+            topAlbums
+          });
+
+          // Store synthesized data
+          await MirrorDataService.storeMirrorData(
+            { spotify: spotifyInsights },
+            { spotify: spotifyData }
+          );
+
+          setStatus('Spotify connected successfully!');
+          toast.success('Spotify connected successfully!');
+          
+        } else if (state === 'youtube_auth') {
+          setStatus('Connecting to YouTube...');
+          
+          // Exchange code for tokens
+          const tokenData = await YouTubeService.exchangeCodeForToken(code);
+          
+          setStatus('Fetching your YouTube data...');
+          
+          // Fetch user data
+          const [likedVideos, subscriptions, watchHistory] = await Promise.all([
+            YouTubeService.getLikedVideos(tokenData.access_token),
+            YouTubeService.getSubscriptions(tokenData.access_token),
+            YouTubeService.getWatchHistory(tokenData.access_token)
+          ]);
+
+          const youtubeData = {
+            likedVideos,
+            subscriptions,
+            watchHistory
+          };
+
+          console.log('Complete YouTube data fetched:', youtubeData);
+
+          // Store connection data persistently
+          await MirrorDataService.storeConnectionData('youtube', youtubeData);
+
+          setStatus('Generating your content insights...');
+          
+          // Generate AI insights
+          const youtubeSummary = await AIProfileService.generateYouTubeProfile({
+            likedVideos,
+            subscriptions,
+            watchHistory
+          });
+
+          // Store synthesized data
+          await MirrorDataService.storeMirrorData(
+            { youtube: { summary: youtubeSummary } },
+            {}
+          );
+
+          setStatus('YouTube connected successfully!');
+          toast.success('YouTube connected successfully!');
         }
-      } catch (err) {
-        console.error('Callback error:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
-      } finally {
-        setIsProcessing(false);
+        
+        setTimeout(() => navigate('/mirror'), 2000);
+        
+      } catch (error) {
+        console.error('Error in auth callback:', error);
+        setStatus('Connection failed');
+        toast.error('Connection failed. Please try again.');
+        setTimeout(() => navigate('/mirror'), 3000);
       }
     };
 
     handleCallback();
-  }, [searchParams]);
-
-  const handleSpotifyCallback = async (code: string) => {
-    try {
-      // Exchange code for token
-      const tokenData = await SpotifyService.exchangeCodeForToken(code);
-      const accessToken = tokenData.access_token;
-      
-      // Store token
-      localStorage.setItem('spotify_access_token', accessToken);
-      
-      // Fetch user data
-      const [
-        profile,
-        topTracksShort,
-        topTracksMedium,
-        topTracksLong,
-        topArtistsShort,
-        topArtistsMedium,
-        topArtistsLong,
-        recentlyPlayed,
-        playlists,
-        savedTracks,
-        followedArtists
-      ] = await Promise.all([
-        SpotifyService.getUserProfile(accessToken),
-        SpotifyService.getTopTracks(accessToken, 'short_term'),
-        SpotifyService.getTopTracks(accessToken, 'medium_term'),
-        SpotifyService.getTopTracks(accessToken, 'long_term'),
-        SpotifyService.getTopArtists(accessToken, 'short_term'),
-        SpotifyService.getTopArtists(accessToken, 'medium_term'),
-        SpotifyService.getTopArtists(accessToken, 'long_term'),
-        SpotifyService.getRecentlyPlayed(accessToken),
-        SpotifyService.getUserPlaylists(accessToken),
-        SpotifyService.getSavedTracks(accessToken),
-        SpotifyService.getFollowedArtists(accessToken)
-      ]);
-
-      const spotifyData = {
-        profile,
-        topTracks: {
-          short_term: topTracksShort,
-          medium_term: topTracksMedium,
-          long_term: topTracksLong
-        },
-        topArtists: {
-          short_term: topArtistsShort,
-          medium_term: topArtistsMedium,
-          long_term: topArtistsLong
-        },
-        recentlyPlayed,
-        playlists,
-        savedTracks,
-        followedArtists
-      };
-
-      // Store all data
-      localStorage.setItem('spotify_profile', JSON.stringify(profile));
-      localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
-      
-      setData(spotifyData);
-      
-      toast({
-        title: "Spotify Connected!",
-        description: "Successfully fetched your Spotify data.",
-      });
-    } catch (error) {
-      throw new Error(`Failed to process Spotify data: ${error.message}`);
-    }
-  };
-
-  const handleYouTubeCallback = async (code: string) => {
-    try {
-      // Exchange code for token
-      const tokenData = await GoogleAuthService.exchangeCodeForToken(code);
-      const accessToken = tokenData.access_token;
-      
-      // Store token
-      localStorage.setItem('google_access_token', accessToken);
-      
-      // Fetch user data
-      const [
-        channel,
-        videos,
-        playlists,
-        subscriptions,
-        likedVideos
-      ] = await Promise.all([
-        YouTubeService.getChannelInfo(accessToken),
-        YouTubeService.getUserVideos(accessToken),
-        YouTubeService.getUserPlaylists(accessToken),
-        YouTubeService.getUserSubscriptions(accessToken),
-        YouTubeService.getLikedVideos(accessToken)
-      ]);
-
-      const youtubeData = {
-        channel,
-        videos,
-        playlists,
-        subscriptions,
-        likedVideos
-      };
-
-      // Store all data
-      localStorage.setItem('youtube_channel', JSON.stringify(channel));
-      localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
-      
-      setData(youtubeData);
-      
-      toast({
-        title: "YouTube Connected!",
-        description: "Successfully fetched your YouTube data.",
-      });
-    } catch (error) {
-      throw new Error(`Failed to process YouTube data: ${error.message}`);
-    }
-  };
-
-  const goToMirror = () => {
-    navigate('/mirror');
-  };
-
-  if (isProcessing) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Processing Authorization
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Connecting your account and fetching your data...
-            </p>
-            <div className="w-full bg-muted rounded-full h-2">
-              <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
-              Connection Failed
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">{error}</p>
-            <Button onClick={goToMirror} className="w-full">
-              Go to Mirror
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  }, [searchParams, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
-      <div className="container mx-auto py-8 max-w-4xl">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <CheckCircle className="h-6 w-6 text-green-500" />
-            <h1 className="text-3xl font-bold">
-              {service === 'spotify' ? 'Spotify' : 'YouTube'} Connected!
-            </h1>
-          </div>
-          <p className="text-muted-foreground">
-            Your data has been successfully imported and is now part of your mirror.
-          </p>
-        </div>
-
-        {service === 'spotify' && data && (
-          <div className="space-y-6">
-            {/* Profile Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Music className="h-5 w-5" />
-                  Your Spotify Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  {data.profile.images?.[0] && (
-                    <img 
-                      src={data.profile.images[0].url} 
-                      alt="Profile" 
-                      className="w-16 h-16 rounded-full"
-                    />
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-lg">{data.profile.display_name}</h3>
-                    <p className="text-muted-foreground">
-                      {data.profile.followers?.total.toLocaleString()} followers
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Top Artists */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Top Artists (All Time)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {data.topArtists.long_term?.slice(0, 10).map((artist: any, index: number) => (
-                    <div key={artist.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                      <span className="font-semibold text-primary">#{index + 1}</span>
-                      {artist.images?.[0] && (
-                        <img 
-                          src={artist.images[0].url} 
-                          alt={artist.name}
-                          className="w-12 h-12 rounded-full"
-                        />
-                      )}
-                      <div>
-                        <p className="font-medium">{artist.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {artist.followers?.total.toLocaleString()} followers
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Top Songs */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Top Songs (All Time)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {data.topTracks.long_term?.slice(0, 15).map((track: any, index: number) => (
-                    <div key={track.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                      <span className="font-semibold text-primary">#{index + 1}</span>
-                      {track.album?.images?.[0] && (
-                        <img 
-                          src={track.album.images[0].url} 
-                          alt={track.name}
-                          className="w-12 h-12 rounded"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <p className="font-medium">{track.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {track.artists.map((artist: any) => artist.name).join(', ')} • {track.album.name}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {service === 'youtube' && data && (
-          <div className="space-y-6">
-            {/* Channel Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="h-5 w-5" />
-                  Your YouTube Channel
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  {data.channel.snippet?.thumbnails?.default && (
-                    <img 
-                      src={data.channel.snippet.thumbnails.default.url} 
-                      alt="Channel" 
-                      className="w-16 h-16 rounded-full"
-                    />
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-lg">{data.channel.snippet?.title}</h3>
-                    <p className="text-muted-foreground">
-                      {parseInt(data.channel.statistics?.subscriberCount || '0').toLocaleString()} subscribers
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Subscriptions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Subscriptions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {data.subscriptions?.slice(0, 20).map((sub: any) => (
-                    <div key={sub.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                      {sub.snippet?.thumbnails?.default && (
-                        <img 
-                          src={sub.snippet.thumbnails.default.url} 
-                          alt={sub.snippet.title}
-                          className="w-12 h-12 rounded-full"
-                        />
-                      )}
-                      <div>
-                        <p className="font-medium">{sub.snippet?.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {sub.snippet?.description?.slice(0, 50)}...
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Playlists */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Playlists</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {data.playlists?.slice(0, 10).map((playlist: any) => (
-                    <div key={playlist.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                      {playlist.snippet?.thumbnails?.default && (
-                        <img 
-                          src={playlist.snippet.thumbnails.default.url} 
-                          alt={playlist.snippet.title}
-                          className="w-12 h-12 rounded"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <p className="font-medium">{playlist.snippet?.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {playlist.contentDetails?.itemCount} videos
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Liked Videos */}
-            {data.likedVideos && data.likedVideos.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recently Liked Videos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {data.likedVideos.slice(0, 10).map((video: any) => (
-                      <div key={video.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        {video.snippet?.thumbnails?.default && (
-                          <img 
-                            src={video.snippet.thumbnails.default.url} 
-                            alt={video.snippet.title}
-                            className="w-16 h-12 rounded"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <p className="font-medium">{video.snippet?.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {video.snippet?.channelTitle}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
-        <div className="text-center mt-8">
-          <Button onClick={goToMirror} size="lg" className="px-8">
-            Go to Your Mirror
-          </Button>
-        </div>
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-lg">{status}</p>
       </div>
     </div>
   );

@@ -236,7 +236,8 @@ Write in second person ("You...") and make it feel deeply personal and emotional
 
       const vibeSummary = error ? this.generateDefaultVibeSummary(avgFeatures) : (aiResponse.content || this.generateDefaultVibeSummary(avgFeatures));
 
-      return {
+      // Return the full data structure with actual data from the arrays
+      const result = {
         topSongs: safeTopTracks.slice(0, 5).map(track => ({
           name: track.name,
           artists: track.artists,
@@ -255,6 +256,15 @@ Write in second person ("You...") and make it feel deeply personal and emotional
         vibeSummary,
         traitDisplay: avgFeatures
       };
+
+      console.log('Generated Spotify insights with data:', {
+        topSongsCount: result.topSongs.length,
+        topArtistsCount: result.topArtists.length,
+        topAlbumsCount: result.topAlbums.length,
+        topGenresCount: result.topGenres.length
+      });
+
+      return result;
     } catch (error) {
       console.error('Error in Spotify profile generation:', error);
       return this.getDefaultSpotifyProfile(data);

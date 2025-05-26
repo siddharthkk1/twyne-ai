@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +14,7 @@ import YouTubeDataCard from "@/components/mirror/YouTubeDataCard";
 import { getMirrorChatResponse, updateProfileFromChat } from "@/utils/aiUtils";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/chat";
+import { MirrorDataService } from "@/services/mirrorDataService";
 
 const Mirror = () => {
   const { user } = useAuth();
@@ -70,29 +70,76 @@ const Mirror = () => {
   };
 
   const fetchConnectionData = async () => {
-    if (!user) return;
-
-    try {
-      // Check for stored connection data in localStorage (from auth callback)
+    if (!user) {
+      // For anonymous users, check localStorage only
       const storedSpotifyData = localStorage.getItem('spotify_data');
       const storedYouTubeData = localStorage.getItem('youtube_data');
       
-      console.log('Stored Spotify data:', storedSpotifyData ? 'Found' : 'Not found');
-      console.log('Stored YouTube data:', storedYouTubeData ? 'Found' : 'Not found');
-      
       if (storedSpotifyData) {
-        const parsed = JSON.parse(storedSpotifyData);
-        console.log('Parsed Spotify data:', parsed);
-        setSpotifyData(parsed);
+        try {
+          const parsed = JSON.parse(storedSpotifyData);
+          console.log('Loaded Spotify data from localStorage (anonymous):', parsed);
+          setSpotifyData(parsed);
+        } catch (error) {
+          console.error('Error parsing Spotify data from localStorage:', error);
+        }
       }
       
       if (storedYouTubeData) {
-        const parsed = JSON.parse(storedYouTubeData);
-        console.log('Parsed YouTube data:', parsed);
-        setYoutubeData(parsed);
+        try {
+          const parsed = JSON.parse(storedYouTubeData);
+          console.log('Loaded YouTube data from localStorage (anonymous):', parsed);
+          setYoutubeData(parsed);
+        } catch (error) {
+          console.error('Error parsing YouTube data from localStorage:', error);
+        }
+      }
+      return;
+    }
+
+    try {
+      // Load persisted connection data from database
+      const connectionData = await MirrorDataService.loadConnectionData();
+      
+      console.log('Loaded connection data:', connectionData);
+      
+      if (connectionData.spotify) {
+        setSpotifyData(connectionData.spotify);
+        // Also store in localStorage for immediate access
+        localStorage.setItem('spotify_data', JSON.stringify(connectionData.spotify));
+      }
+      
+      if (connectionData.youtube) {
+        setYoutubeData(connectionData.youtube);
+        // Also store in localStorage for immediate access
+        localStorage.setItem('youtube_data', JSON.stringify(connectionData.youtube));
       }
     } catch (error) {
       console.error('Error fetching connection data:', error);
+      
+      // Fallback to localStorage
+      const storedSpotifyData = localStorage.getItem('spotify_data');
+      const storedYouTubeData = localStorage.getItem('youtube_data');
+      
+      if (storedSpotifyData) {
+        try {
+          const parsed = JSON.parse(storedSpotifyData);
+          console.log('Fallback: Loaded Spotify data from localStorage:', parsed);
+          setSpotifyData(parsed);
+        } catch (error) {
+          console.error('Error parsing Spotify data from localStorage:', error);
+        }
+      }
+      
+      if (storedYouTubeData) {
+        try {
+          const parsed = JSON.parse(storedYouTubeData);
+          console.log('Fallback: Loaded YouTube data from localStorage:', parsed);
+          setYoutubeData(parsed);
+        } catch (error) {
+          console.error('Error parsing YouTube data from localStorage:', error);
+        }
+      }
     }
   };
 
@@ -110,7 +157,7 @@ const Mirror = () => {
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, []);
+  }, [user]);
 
   const handleChatSubmit = async () => {
     if (!chatMessage.trim() || isTyping) return;
