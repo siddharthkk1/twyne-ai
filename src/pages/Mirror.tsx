@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Send, RotateCcw } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Send, RotateCcw, Youtube, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
@@ -612,15 +613,28 @@ const Mirror = () => {
                 </CardContent>
               </Card>
 
-              {/* YouTube Data Card */}
-              <YouTubeDataCard data={youtubeData} />
-
+              {/* Online Content Consumption Section */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl">Favorite Podcasts or YouTube</CardTitle>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Play className="h-5 w-5" />
+                    Online Content Consumption
+                  </CardTitle>
+                  <CardDescription>Your viewing habits and content preferences across platforms</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p>{userProfile.favoritePodcastsOrYouTube || "We don't have enough info on that yet."}</p>
+                <CardContent className="space-y-6">
+                  {/* YouTube Profile Subsection */}
+                  <div className="border rounded-lg p-4 bg-muted/20">
+                    <YouTubeDataCard data={youtubeData} />
+                  </div>
+
+                  {/* Traditional Text Data */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-medium mb-3">Favorite Podcasts or YouTube</h3>
+                    <p className="text-muted-foreground">
+                      {userProfile.favoritePodcastsOrYouTube || "We don't have enough info on that yet."}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 

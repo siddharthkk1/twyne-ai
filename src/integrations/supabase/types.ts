@@ -46,6 +46,7 @@ export type Database = {
           id: string
           profile_data: Json
           prompt_mode: string | null
+          raw_platform_data: Json | null
           updated_at: string
           user_id: string
         }
@@ -55,6 +56,7 @@ export type Database = {
           id?: string
           profile_data?: Json
           prompt_mode?: string | null
+          raw_platform_data?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -64,6 +66,7 @@ export type Database = {
           id?: string
           profile_data?: Json
           prompt_mode?: string | null
+          raw_platform_data?: Json | null
           updated_at?: string
           user_id?: string
         }
