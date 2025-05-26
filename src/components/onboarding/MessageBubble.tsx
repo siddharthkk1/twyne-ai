@@ -45,7 +45,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     );
   }
 
-  const parts = message.text.split('||').map(part => part.trim());
+  // Safely handle message text - check if it exists and is a string
+  const messageText = message.text || '';
+  const parts = messageText.split('||').map(part => part.trim());
 
   return (
     <div className={`flex ${message.sender === "user" ? "justify-end" : ""} mb-4`}>
