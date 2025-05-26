@@ -41,11 +41,11 @@ const AuthCallback = () => {
           
           setStatus('Fetching your Spotify data...');
           
-          // Fetch user data
+          // Fetch user data using long_term for all-time data
           const [profile, topTracks, topArtists, recentlyPlayed, playlists, savedTracks, followedArtists] = await Promise.all([
             SpotifyService.getUserProfile(tokenData.access_token),
-            SpotifyService.getTopTracks(tokenData.access_token, 'medium_term'),
-            SpotifyService.getTopArtists(tokenData.access_token, 'medium_term'),
+            SpotifyService.getTopTracks(tokenData.access_token, 'long_term'),
+            SpotifyService.getTopArtists(tokenData.access_token, 'long_term'),
             SpotifyService.getRecentlyPlayed(tokenData.access_token),
             SpotifyService.getUserPlaylists(tokenData.access_token),
             SpotifyService.getSavedTracks(tokenData.access_token),
@@ -95,16 +95,33 @@ const AuthCallback = () => {
           });
           const topAlbums = Array.from(albumsMap.values()).slice(0, 10);
 
+          // Create simplified data with rankings for storage
+          const simplifiedTopTracks = tracksWithFeatures.slice(0, 5).map((track, index) => ({
+            rank: index + 1,
+            title: track.name,
+            artist: track.artists.map(a => a.name).join(', '),
+            imageUrl: track.album.images?.[0]?.url || ''
+          }));
+
+          const simplifiedTopArtists = topArtists.slice(0, 5).map((artist, index) => ({
+            rank: index + 1,
+            name: artist.name,
+            imageUrl: artist.images?.[0]?.url || ''
+          }));
+
           const spotifyData = {
             profile,
-            topTracks: tracksWithFeatures,
-            topArtists,
+            topTracks: simplifiedTopTracks,
+            topArtists: simplifiedTopArtists,
             topGenres,
             topAlbums,
             recentlyPlayed,
             playlists,
             savedTracks,
-            followedArtists
+            followedArtists,
+            // Keep full data for AI analysis
+            fullTopTracks: tracksWithFeatures,
+            fullTopArtists: topArtists
           };
 
           console.log('Complete Spotify data fetched:', spotifyData);
@@ -114,7 +131,7 @@ const AuthCallback = () => {
 
           setStatus('Generating your music insights...');
           
-          // Generate AI insights
+          // Generate AI insights using full data
           const spotifyInsights = await AIProfileService.generateSpotifyProfile({
             topTracks: tracksWithFeatures,
             topArtists,
