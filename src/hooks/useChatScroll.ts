@@ -58,24 +58,24 @@ export const useChatScroll = () => {
 
   // Handle user sending a message - scroll BEFORE DOM update
   const handleUserMessage = useCallback((updateMessages: () => void) => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+  // Reset scroll state
+  setHasUserScrolled(false);
+  setIsUserNearBottom(true);
 
-    // Reset scroll state since user is actively participating
-    setHasUserScrolled(false);
-    setIsUserNearBottom(true);
-    
-    // Scroll to bottom BEFORE adding the message
-    container.scrollTop = container.scrollHeight;
-    
-    // Use flushSync to immediately update DOM and scroll again
-    flushSync(() => {
-      updateMessages();
-    });
-    
-    // Ensure we're at the bottom after the message is added
-    container.scrollTop = container.scrollHeight;
-  }, []);
+  // Flush the state update immediately so DOM reflects the new message
+  flushSync(() => {
+    updateMessages();
+  });
+
+  // Scroll after DOM updates, but before paint
+  requestAnimationFrame(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+}, []);
+
 
   // Handle AI message parts - smooth scroll if user is near bottom
   const handleAIMessagePart = useCallback((updateMessages: () => void) => {
