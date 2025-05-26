@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,11 +8,11 @@ interface YouTubeData {
   subscriptions: Array<{
     snippet: {
       title: string;
-      description: string;
+      description?: string;
       thumbnails: {
         default: { url: string };
-        medium: { url: string };
-        high: { url: string };
+        medium?: { url: string };
+        high?: { url: string };
       };
     };
   }>;
@@ -21,19 +22,19 @@ interface YouTubeData {
       channelTitle: string;
       thumbnails: {
         default: { url: string };
-        medium: { url: string };
-        high: { url: string };
+        medium?: { url: string };
+        high?: { url: string };
       };
     };
   }>;
   playlists: Array<{
     snippet: {
       title: string;
-      description: string;
+      description?: string;
       thumbnails: {
         default: { url: string };
-        medium: { url: string };
-        high: { url: string };
+        medium?: { url: string };
+        high?: { url: string };
       };
     };
     contentDetails: {
@@ -43,11 +44,11 @@ interface YouTubeData {
   videos: Array<{
     snippet: {
       title: string;
-      description: string;
+      description?: string;
       thumbnails: {
         default: { url: string };
-        medium: { url: string };
-        high: { url: string };
+        medium?: { url: string };
+        high?: { url: string };
       };
     };
     statistics: {
@@ -78,10 +79,16 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
     );
   }
 
+  // Ensure data arrays exist and are arrays
+  const safeSubscriptions = Array.isArray(data.subscriptions) ? data.subscriptions : [];
+  const safeLikedVideos = Array.isArray(data.likedVideos) ? data.likedVideos : [];
+  const safePlaylists = Array.isArray(data.playlists) ? data.playlists : [];
+  const safeVideos = Array.isArray(data.videos) ? data.videos : [];
+
   // Generate content summary based on subscriptions and liked videos
   const generateContentSummary = () => {
-    const subscriptionTitles = data.subscriptions.map(sub => sub.snippet.title.toLowerCase());
-    const likedVideoTitles = data.likedVideos.map(video => video.snippet.title.toLowerCase());
+    const subscriptionTitles = safeSubscriptions.map(sub => sub.snippet.title.toLowerCase());
+    const likedVideoTitles = safeLikedVideos.map(video => video.snippet.title.toLowerCase());
     
     const allContent = [...subscriptionTitles, ...likedVideoTitles].join(' ');
     
@@ -130,10 +137,10 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
   useEffect(() => {
     if (data && !isDataStored) {
       const synthesizedData = {
-        subscriptions: data.subscriptions.slice(0, 5),
-        likedVideos: data.likedVideos.slice(0, 5),
-        playlists: data.playlists.slice(0, 3),
-        videos: data.videos.slice(0, 3),
+        subscriptions: safeSubscriptions.slice(0, 5),
+        likedVideos: safeLikedVideos.slice(0, 5),
+        playlists: safePlaylists.slice(0, 3),
+        videos: safeVideos.slice(0, 3),
         vibeSummary: generateContentSummary()
       };
 
@@ -142,7 +149,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
       const parsedRawData = rawYouTubeData ? JSON.parse(rawYouTubeData) : null;
 
       // Store both synthesized and raw data
-      import('../services/mirrorDataService').then(({ MirrorDataService }) => {
+      import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
         MirrorDataService.storeMirrorData(
           { youtube: synthesizedData },
           { youtube: parsedRawData }
@@ -179,7 +186,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
             Top Subscriptions
           </h3>
           <div className="grid grid-cols-1 gap-2">
-            {data.subscriptions.slice(0, 5).map((subscription, index) => (
+            {safeSubscriptions.slice(0, 5).map((subscription, index) => (
               <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
                 <img 
                   src={subscription.snippet.thumbnails.default.url} 
@@ -206,7 +213,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
             Recently Liked Videos
           </h3>
           <div className="grid grid-cols-1 gap-2">
-            {data.likedVideos.slice(0, 5).map((video, index) => (
+            {safeLikedVideos.slice(0, 5).map((video, index) => (
               <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
                 <img 
                   src={video.snippet.thumbnails.default.url} 
@@ -223,14 +230,14 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
         </div>
 
         {/* Playlists */}
-        {data.playlists.length > 0 && (
+        {safePlaylists.length > 0 && (
           <div>
             <h3 className="font-medium mb-3 flex items-center gap-2">
               <PlayCircle className="h-4 w-4" />
               Your Playlists
             </h3>
             <div className="grid grid-cols-1 gap-2">
-              {data.playlists.slice(0, 3).map((playlist, index) => (
+              {safePlaylists.slice(0, 3).map((playlist, index) => (
                 <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
                   <img 
                     src={playlist.snippet.thumbnails.default.url} 
@@ -250,14 +257,14 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
         )}
 
         {/* Your Videos (if any) */}
-        {data.videos.length > 0 && (
+        {safeVideos.length > 0 && (
           <div>
             <h3 className="font-medium mb-3 flex items-center gap-2">
               <Youtube className="h-4 w-4" />
               Your Content
             </h3>
             <div className="grid grid-cols-1 gap-2">
-              {data.videos.slice(0, 3).map((video, index) => (
+              {safeVideos.slice(0, 3).map((video, index) => (
                 <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
                   <img 
                     src={video.snippet.thumbnails.default.url} 

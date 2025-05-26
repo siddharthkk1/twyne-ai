@@ -95,9 +95,14 @@ export class MirrorDataService {
         return;
       }
 
+      // Safely handle profile_data - ensure it's an object
+      const currentProfileData = userData.profile_data && typeof userData.profile_data === 'object' 
+        ? userData.profile_data as Record<string, any>
+        : {};
+
       // Update profile_data with synthesized insights
       const updatedProfileData = {
-        ...userData.profile_data,
+        ...currentProfileData,
         music_insights: synthesizedData.spotify,
         video_insights: synthesizedData.youtube
       };

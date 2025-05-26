@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -51,8 +52,14 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     );
   }
 
+  // Ensure data arrays exist and are arrays
+  const safeTracks = Array.isArray(data.topTracks) ? data.topTracks : [];
+  const safeArtists = Array.isArray(data.topArtists) ? data.topArtists : [];
+  const safeGenres = Array.isArray(data.topGenres) ? data.topGenres : [];
+  const safeAlbums = Array.isArray(data.topAlbums) ? data.topAlbums : [];
+
   // Calculate average audio features
-  const tracksWithFeatures = data.topTracks.filter(track => track.audio_features);
+  const tracksWithFeatures = safeTracks.filter(track => track.audio_features);
   const avgFeatures = tracksWithFeatures.length > 0 ? {
     danceability: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.danceability || 0), 0) / tracksWithFeatures.length * 100),
     energy: Math.round(tracksWithFeatures.reduce((sum, track) => sum + (track.audio_features?.energy || 0), 0) / tracksWithFeatures.length * 100),
@@ -85,10 +92,10 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   useEffect(() => {
     if (data && !isDataStored) {
       const synthesizedData = {
-        topArtists: data.topArtists.slice(0, 5),
-        topTracks: data.topTracks.slice(0, 5),
-        topGenres: data.topGenres.slice(0, 5),
-        topAlbums: data.topAlbums.slice(0, 5),
+        topArtists: safeArtists.slice(0, 5),
+        topTracks: safeTracks.slice(0, 5),
+        topGenres: safeGenres.slice(0, 5),
+        topAlbums: safeAlbums.slice(0, 5),
         audioFeatures: avgFeatures,
         vibeSummary: generateVibeSummary()
       };
@@ -98,7 +105,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
       const parsedRawData = rawSpotifyData ? JSON.parse(rawSpotifyData) : null;
 
       // Store both synthesized and raw data
-      import('../services/mirrorDataService').then(({ MirrorDataService }) => {
+      import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
         MirrorDataService.storeMirrorData(
           { spotify: synthesizedData },
           { spotify: parsedRawData }
@@ -171,9 +178,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             Top Artists
           </h3>
           <div className="grid grid-cols-1 gap-2">
-            {data.topArtists.slice(0, 5).map((artist, index) => (
+            {safeArtists.slice(0, 5).map((artist, index) => (
               <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                {artist.images[0] ? (
+                {artist.images && artist.images[0] ? (
                   <img 
                     src={artist.images[0].url} 
                     alt={artist.name}
@@ -186,7 +193,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
                 )}
                 <div className="flex-1">
                   <p className="font-medium text-sm">{artist.name}</p>
-                  {artist.genres.length > 0 && (
+                  {artist.genres && artist.genres.length > 0 && (
                     <p className="text-xs text-muted-foreground">{artist.genres.slice(0, 2).join(', ')}</p>
                   )}
                 </div>
@@ -202,9 +209,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             Top Songs
           </h3>
           <div className="grid grid-cols-1 gap-2">
-            {data.topTracks.slice(0, 5).map((track, index) => (
+            {safeTracks.slice(0, 5).map((track, index) => (
               <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                {track.album.images[0] ? (
+                {track.album && track.album.images && track.album.images[0] ? (
                   <img 
                     src={track.album.images[0].url} 
                     alt={track.album.name}
@@ -217,7 +224,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
                 )}
                 <div className="flex-1">
                   <p className="font-medium text-sm">{track.name}</p>
-                  <p className="text-xs text-muted-foreground">{track.artists[0]?.name}</p>
+                  <p className="text-xs text-muted-foreground">{track.artists && track.artists[0]?.name}</p>
                 </div>
               </div>
             ))}
@@ -228,7 +235,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
         <div>
           <h3 className="font-medium mb-3">Top Genres</h3>
           <div className="flex flex-wrap gap-2">
-            {data.topGenres.slice(0, 5).map((genre, index) => (
+            {safeGenres.slice(0, 5).map((genre, index) => (
               <Badge key={index} variant="outline" className="bg-secondary/5 text-secondary">
                 {genre}
               </Badge>
@@ -243,9 +250,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             Top Albums
           </h3>
           <div className="grid grid-cols-1 gap-2">
-            {data.topAlbums.slice(0, 5).map((album, index) => (
+            {safeAlbums.slice(0, 5).map((album, index) => (
               <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
-                {album.images[0] ? (
+                {album.images && album.images[0] ? (
                   <img 
                     src={album.images[0].url} 
                     alt={album.name}
@@ -258,7 +265,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
                 )}
                 <div className="flex-1">
                   <p className="font-medium text-sm">{album.name}</p>
-                  <p className="text-xs text-muted-foreground">{album.artists[0]?.name}</p>
+                  <p className="text-xs text-muted-foreground">{album.artists && album.artists[0]?.name}</p>
                 </div>
               </div>
             ))}
