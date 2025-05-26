@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -198,21 +197,8 @@ const Settings = () => {
       setIsConnecting(true);
       console.log('Initiating Spotify connection...');
       
-      // Call the Spotify auth URL edge function
-      const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
-        body: { 
-          redirect_uri: `${window.location.origin}/settings` 
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      // The edge function should redirect automatically, but if it returns a URL, redirect to it
-      if (data?.authUrl) {
-        window.location.href = data.authUrl;
-      }
+      // Direct redirect to the edge function
+      window.location.href = `${supabase.supabaseUrl}/functions/v1/spotify-auth-url`;
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
       toast({
@@ -230,21 +216,8 @@ const Settings = () => {
       setIsConnecting(true);
       console.log('Initiating YouTube connection...');
       
-      // Call the Google auth URL edge function
-      const { data, error } = await supabase.functions.invoke('google-auth-url', {
-        body: { 
-          redirect_uri: `${window.location.origin}/settings` 
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      // The edge function should redirect automatically, but if it returns a URL, redirect to it
-      if (data?.authUrl) {
-        window.location.href = data.authUrl;
-      }
+      // Direct redirect to the edge function
+      window.location.href = `${supabase.supabaseUrl}/functions/v1/google-auth-url`;
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
       toast({
@@ -303,139 +276,139 @@ const Settings = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Settings</h1>
-      <div className="max-w-md mx-auto space-y-6">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2">
-            <User className="h-5 w-5" />
-            Your Avatar
-          </h2>
-          <HumanAvatar3D className="h-96" />
-          <p className="text-sm text-muted-foreground mt-3">
-            Your personalized 3D avatar
-          </p>
+    <div className="min-h-screen bg-white">
+      {/* Avatar Section - Full width background */}
+      <div className="w-full bg-white py-8">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl font-bold text-center mb-4">Settings</h1>
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2">
+              <User className="h-5 w-5" />
+              Your Avatar
+            </h2>
+            <div className="flex justify-center">
+              <HumanAvatar3D className="h-96 w-full max-w-md" />
+            </div>
+            <p className="text-sm text-muted-foreground mt-3">
+              Your personalized 3D avatar
+            </p>
+          </div>
         </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Music className="h-5 w-5" />
-              Spotify Integration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {spotifyProfile ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  {spotifyProfile.images?.[0] && (
-                    <img 
-                      src={spotifyProfile.images[0].url} 
-                      alt="Profile" 
-                      className="w-12 h-12 rounded-full"
-                    />
+      {/* Settings Cards */}
+      <div className="container mx-auto px-4 pb-8">
+        <div className="max-w-md mx-auto space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Music className="h-5 w-5" />
+                Spotify Integration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {spotifyProfile ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    {spotifyProfile.images?.[0] && (
+                      <img 
+                        src={spotifyProfile.images[0].url} 
+                        alt="Profile" 
+                        className="w-12 h-12 rounded-full"
+                      />
+                    )}
+                    <div>
+                      <p className="font-medium">{spotifyProfile.display_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {spotifyProfile.followers?.total} followers
+                      </p>
+                    </div>
+                  </div>
+                  {isFetchingData && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Syncing your music data...
+                    </div>
                   )}
-                  <div>
-                    <p className="font-medium">{spotifyProfile.display_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {spotifyProfile.followers?.total} followers
-                    </p>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={disconnectSpotify}
+                    className="w-full"
+                  >
+                    Disconnect Spotify
+                  </Button>
                 </div>
-                {isFetchingData && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Syncing your music data...
-                  </div>
-                )}
-                <Button 
-                  variant="outline" 
-                  onClick={disconnectSpotify}
-                  className="w-full"
-                >
-                  Disconnect Spotify
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                onClick={connectSpotify}
-                disabled={isConnecting}
-                className="w-full bg-green-500 hover:bg-green-600"
-              >
-                <Music className="mr-2 h-4 w-4" />
-                {isConnecting ? "Connecting..." : "Connect Spotify"}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Connect your Spotify account in the Connections section to sync your music data.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Video className="h-5 w-5" />
-              YouTube Integration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {youtubeChannel ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  {youtubeChannel.snippet?.thumbnails?.default && (
-                    <img 
-                      src={youtubeChannel.snippet.thumbnails.default.url} 
-                      alt="Channel" 
-                      className="w-12 h-12 rounded-full"
-                    />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                YouTube Integration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {youtubeChannel ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    {youtubeChannel.snippet?.thumbnails?.default && (
+                      <img 
+                        src={youtubeChannel.snippet.thumbnails.default.url} 
+                        alt="Channel" 
+                        className="w-12 h-12 rounded-full"
+                      />
+                    )}
+                    <div>
+                      <p className="font-medium">{youtubeChannel.snippet?.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {parseInt(youtubeChannel.statistics?.subscriberCount || '0').toLocaleString()} subscribers
+                      </p>
+                    </div>
+                  </div>
+                  {isFetchingData && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Syncing your video data...
+                    </div>
                   )}
-                  <div>
-                    <p className="font-medium">{youtubeChannel.snippet?.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {parseInt(youtubeChannel.statistics?.subscriberCount || '0').toLocaleString()} subscribers
-                    </p>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={disconnectYouTube}
+                    className="w-full"
+                  >
+                    Disconnect YouTube
+                  </Button>
                 </div>
-                {isFetchingData && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Syncing your video data...
-                  </div>
-                )}
-                <Button 
-                  variant="outline" 
-                  onClick={disconnectYouTube}
-                  className="w-full"
-                >
-                  Disconnect YouTube
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                onClick={connectYouTube}
-                disabled={isConnecting}
-                className="w-full bg-red-500 hover:bg-red-600"
-              >
-                <Video className="mr-2 h-4 w-4" />
-                {isConnecting ? "Connecting..." : "Connect YouTube"}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Connect your YouTube account in the Connections section to sync your video data.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button 
-              variant="destructive" 
-              className="w-full flex items-center justify-center gap-2" 
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                variant="destructive" 
+                className="w-full flex items-center justify-center gap-2" 
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

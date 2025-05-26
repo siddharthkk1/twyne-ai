@@ -12,8 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url)
-    const redirectUri = url.searchParams.get('redirect_uri') || `${url.origin}/settings`
+    const { redirect_uri } = await req.json()
     
     const clientId = Deno.env.get('SPOTIFY_CLIENT_ID')
     
@@ -24,7 +23,7 @@ serve(async (req) => {
     const params = new URLSearchParams({
       client_id: clientId,
       response_type: 'code',
-      redirect_uri: redirectUri,
+      redirect_uri: redirect_uri,
       scope: [
         'user-read-private',
         'user-read-email', 
