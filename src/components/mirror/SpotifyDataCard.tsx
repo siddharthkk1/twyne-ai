@@ -41,6 +41,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(data);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [spotifyInsights, setSpotifyInsights] = useState<any>(null);
+  const [rawSpotifyData, setRawSpotifyData] = useState<any>(null);
 
   // Try to load data from localStorage if not provided
   useEffect(() => {
@@ -51,6 +52,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           const parsed = JSON.parse(storedData);
           console.log('Loaded Spotify data from localStorage:', parsed);
           setSpotifyData(parsed);
+          setRawSpotifyData(parsed);
         } catch (error) {
           console.error('Error parsing stored Spotify data:', error);
         }
@@ -102,7 +104,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     }
   }, [spotifyData, isDataStored, isGeneratingSummary, spotifyInsights]);
 
-  if (!spotifyData && !spotifyInsights) {
+  if (!spotifyData && !spotifyInsights && !rawSpotifyData) {
     return (
       <Card className="border border-border bg-card">
         <CardHeader>
@@ -116,12 +118,12 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     );
   }
 
-  // Use insights if available, otherwise fall back to raw data
-  const displayData = spotifyInsights || spotifyData;
-  const safeTracks = Array.isArray(displayData.topTracks || displayData.topSongs) ? (displayData.topTracks || displayData.topSongs) : [];
-  const safeArtists = Array.isArray(displayData.topArtists) ? displayData.topArtists : [];
-  const safeGenres = Array.isArray(displayData.topGenres) ? displayData.topGenres : [];
-  const safeAlbums = Array.isArray(displayData.topAlbums) ? displayData.topAlbums : [];
+  // Use raw data first for displaying tracks/artists, then fall back to insights for summary
+  const displayDataForLists = rawSpotifyData || spotifyData;
+  const safeTracks = Array.isArray(displayDataForLists?.topTracks) ? displayDataForLists.topTracks : [];
+  const safeArtists = Array.isArray(displayDataForLists?.topArtists) ? displayDataForLists.topArtists : [];
+  const safeGenres = Array.isArray(displayDataForLists?.topGenres) ? displayDataForLists.topGenres : [];
+  const safeAlbums = Array.isArray(displayDataForLists?.topAlbums) ? displayDataForLists.topAlbums : [];
 
   return (
     <Card className="border border-border bg-card">
@@ -200,7 +202,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
                   {track.album?.images?.[0]?.url && (
                     <img
                       src={track.album.images[0].url}
-                      alt={track.album.name}
+                      alt={track.album.name || 'Album cover'}
                       className="w-10 h-10 rounded"
                     />
                   )}
@@ -235,6 +237,40 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{artist.name}</p>
+                    {artist.genres && artist.genres.length > 0 && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {artist.genres.slice(0, 2).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Top Albums - only show if we have album data */}
+        {safeAlbums.length > 0 && (
+          <div>
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              <Disc className="h-4 w-4" />
+              Top Albums
+            </h3>
+            <div className="space-y-2">
+              {safeAlbums.slice(0, 5).map((album, index) => (
+                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                  {album.images?.[0]?.url && (
+                    <img
+                      src={album.images[0].url}
+                      alt={album.name}
+                      className="w-10 h-10 rounded"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{album.name}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {Array.isArray(album.artists) ? album.artists.map(a => a.name).join(', ') : 'Unknown Artist'}
+                    </p>
                   </div>
                 </div>
               ))}
