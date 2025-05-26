@@ -50,8 +50,9 @@ export class SpotifyService {
   private static readonly API_BASE = 'https://api.spotify.com/v1';
   
   static getAuthUrl(): string {
+    // Use a placeholder that will be replaced by the edge function
     const params = new URLSearchParams({
-      client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID || '',
+      client_id: 'SPOTIFY_CLIENT_ID_PLACEHOLDER',
       response_type: 'code',
       redirect_uri: `${window.location.origin}/settings`,
       scope: [
@@ -67,7 +68,8 @@ export class SpotifyService {
       state: 'spotify_auth'
     });
     
-    return `${this.AUTH_URL}?${params.toString()}`;
+    // Get the actual auth URL from our edge function
+    return `/api/spotify-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/settings`)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<SpotifyTokenResponse> {

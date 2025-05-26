@@ -13,21 +13,8 @@ export class GoogleAuthService {
   private static readonly AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
   
   static getYouTubeAuthUrl(): string {
-    const params = new URLSearchParams({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-      response_type: 'code',
-      redirect_uri: `${window.location.origin}/settings`,
-      scope: [
-        'https://www.googleapis.com/auth/youtube.readonly',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/userinfo.email'
-      ].join(' '),
-      access_type: 'offline',
-      prompt: 'consent',
-      state: 'youtube_auth'
-    });
-    
-    return `${this.AUTH_URL}?${params.toString()}`;
+    // Get the actual auth URL from our edge function
+    return `/api/google-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/settings`)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<GoogleTokenResponse> {

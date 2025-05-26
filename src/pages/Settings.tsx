@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -192,16 +191,32 @@ const Settings = () => {
     navigate("/");
   };
 
-  const connectSpotify = () => {
-    const authUrl = SpotifyService.getAuthUrl();
-    console.log('Redirecting to Spotify auth URL:', authUrl);
-    window.location.href = authUrl;
+  const connectSpotify = async () => {
+    try {
+      // Redirect directly to the edge function that will handle the auth URL
+      window.location.href = '/api/spotify-auth-url';
+    } catch (error) {
+      console.error('Error connecting to Spotify:', error);
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to Spotify. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const connectYouTube = () => {
-    const authUrl = GoogleAuthService.getYouTubeAuthUrl();
-    console.log('Redirecting to YouTube auth URL:', authUrl);
-    window.location.href = authUrl;
+  const connectYouTube = async () => {
+    try {
+      // Redirect directly to the edge function that will handle the auth URL
+      window.location.href = '/api/google-auth-url';
+    } catch (error) {
+      console.error('Error connecting to YouTube:', error);
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to YouTube. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const disconnectSpotify = () => {
@@ -253,20 +268,16 @@ const Settings = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-center mb-8">Settings</h1>
       <div className="max-w-md mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Your Avatar
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <HumanAvatar3D />
-            <p className="text-sm text-muted-foreground mt-3 text-center">
-              Your personalized 3D avatar
-            </p>
-          </CardContent>
-        </Card>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2">
+            <User className="h-5 w-5" />
+            Your Avatar
+          </h2>
+          <HumanAvatar3D />
+          <p className="text-sm text-muted-foreground mt-3">
+            Your personalized 3D avatar
+          </p>
+        </div>
 
         <Card>
           <CardHeader>

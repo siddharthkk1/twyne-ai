@@ -12,9 +12,9 @@ const AvatarModel: React.FC<AvatarModelProps> = ({ url = "https://models.readypl
   const { scene } = useGLTF(url);
   
   useEffect(() => {
-    // Scale and position the model
-    scene.scale.setScalar(2);
-    scene.position.y = -1;
+    // Scale and position the model for full body view
+    scene.scale.setScalar(1.5);
+    scene.position.y = -2;
   }, [scene]);
 
   return <primitive object={scene} />;
@@ -30,21 +30,21 @@ const HumanAvatar3D: React.FC<HumanAvatar3DProps> = ({
   avatarUrl 
 }) => {
   return (
-    <div className={`w-full h-64 rounded-lg overflow-hidden ${className}`}>
+    <div className={`w-full h-96 ${className}`}>
       <Canvas 
-        camera={{ position: [0, 0, 3], fov: 50 }}
+        camera={{ position: [0, 0, 4], fov: 50 }}
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
           <Environment preset="studio" />
-          <ambientLight intensity={0.5} />
+          <ambientLight intensity={0.6} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <AvatarModel url={avatarUrl} />
           <OrbitControls 
             enablePan={false} 
             enableZoom={false} 
             maxPolarAngle={Math.PI / 2}
-            minPolarAngle={Math.PI / 3}
+            minPolarAngle={Math.PI / 6}
           />
         </Suspense>
       </Canvas>
