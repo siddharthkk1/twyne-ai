@@ -72,27 +72,17 @@ export class YouTubeService {
   private static readonly API_BASE = 'https://www.googleapis.com/youtube/v3';
   
   static async exchangeCodeForToken(code: string): Promise<{ access_token: string; refresh_token?: string }> {
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        code,
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-        client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
-        redirect_uri: `${window.location.origin}/auth/callback`,
-        grant_type: 'authorization_code',
-      }),
+    const { supabase } = await import("@/integrations/supabase/client");
+    
+    const { data, error } = await supabase.functions.invoke('google-auth', {
+      body: { code }
     });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('YouTube token exchange failed:', errorData);
+    
+    if (error) {
+      console.error('YouTube token exchange failed:', error);
       throw new Error('Failed to exchange code for token');
     }
-
-    const data = await response.json();
+    
     return data;
   }
   
