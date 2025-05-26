@@ -31,10 +31,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     if (message.sender === "ai") {
       setVisibleParts([0]);
 
-      // Fire immediately after first part is visible
-      onMessagePartVisible?.(() => {
-        // No-op update function since we're already updating state
-      });
+      // Trigger scroll for first part immediately
+      if (onMessagePartVisible) {
+        onMessagePartVisible(() => {
+          // No-op since state is already being updated
+        });
+      }
 
       messageParts.forEach((_, index) => {
         if (index > 0) {
@@ -43,21 +45,31 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           setTimeout(() => {
             setVisibleParts(prev => {
               const updated = [...prev, index];
-              // Fire immediately when part becomes visible
-              onMessagePartVisible?.(() => {
-                // No-op update function since we're already updating state
-              });
+              
+              // Trigger scroll for each new part
+              if (onMessagePartVisible) {
+                requestAnimationFrame(() => {
+                  onMessagePartVisible(() => {
+                    // No-op since state is already being updated
+                  });
+                });
+              }
+              
               return updated;
             });
           }, delay);
         }
       });
     } else {
+      // For user messages, show all parts immediately
       setVisibleParts([...Array(messageParts.length).keys()]);
-      // Fire immediately for user messages
-      onMessagePartVisible?.(() => {
-        // No-op update function since we're already updating state
-      });
+      
+      // Trigger immediate scroll for user messages
+      if (onMessagePartVisible) {
+        onMessagePartVisible(() => {
+          // No-op since state is already being updated
+        });
+      }
     }
   }, [message.id]);
 

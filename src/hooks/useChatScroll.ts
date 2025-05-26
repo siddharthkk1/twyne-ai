@@ -1,6 +1,5 @@
 
 import { useRef, useState, useCallback } from 'react';
-import { flushSync } from 'react-dom';
 
 export const useChatScroll = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -56,37 +55,37 @@ export const useChatScroll = () => {
     });
   }, []);
 
-  // Handle user sending a message - scroll DURING DOM update
+  // Handle user sending a message - immediate scroll
   const handleUserMessage = useCallback((updateMessages: () => void) => {
     // Reset scroll state
     setHasUserScrolled(false);
     setIsUserNearBottom(true);
 
-    // Update messages and scroll in the same synchronous block
-    flushSync(() => {
-      updateMessages();
-    });
+    // Update messages first
+    updateMessages();
 
-    // Scroll immediately after DOM update, no delay
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
+    // Scroll immediately after state update using requestAnimationFrame
+    requestAnimationFrame(() => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
   }, []);
 
   // Handle AI message parts - smooth scroll if user is near bottom
   const handleAIMessagePart = useCallback((updateMessages: () => void) => {
     if (!hasUserScrolled && isUserNearBottom) {
-      // Update messages immediately
-      flushSync(() => {
-        updateMessages();
-      });
+      // Update messages first
+      updateMessages();
       
-      // Smooth scroll to show the new content immediately
-      const container = scrollContainerRef.current;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
+      // Smooth scroll to show the new content
+      requestAnimationFrame(() => {
+        const container = scrollContainerRef.current;
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      });
     } else {
       // User has scrolled up, just update without scrolling
       updateMessages();
