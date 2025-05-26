@@ -58,6 +58,7 @@ const App = () => (
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            {/* Move auth callback route outside of protected routes */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             {/* Onboarding routes without authentication protection */}
             <Route path="/onboarding" element={<OnboardingSelection />} />
