@@ -129,10 +129,10 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
           setIsGeneratingSummary(false);
         });
     }
-  }, [data, isDataStored, aiSummary, isGeneratingSummary]);
+  }, [data, isDataStored, aiSummary, isGeneratingSummary, safeSubscriptions, safeLikedVideos]);
 
   return (
-    <Card className="border border-border bg-card">
+    <Card className="bg-card">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <Youtube className="h-5 w-5" />
