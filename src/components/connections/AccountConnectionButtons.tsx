@@ -200,11 +200,11 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
       
-      // If user is authenticated, also store in database
+      // If user is authenticated, store raw data only (no synthesized data for now)
       if (user) {
         try {
           await MirrorDataService.storeMirrorData(
-            { spotify: spotifyData },
+            {}, // No synthesized data yet
             { spotify: spotifyData }
           );
           console.log('Spotify data stored in database successfully');
@@ -256,11 +256,11 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
       localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
       
-      // If user is authenticated, also store in database
+      // If user is authenticated, store raw data only (no synthesized data for now)
       if (user) {
         try {
           await MirrorDataService.storeMirrorData(
-            { youtube: youtubeData },
+            {}, // No synthesized data yet
             { youtube: youtubeData }
           );
           console.log('YouTube data stored in database successfully');

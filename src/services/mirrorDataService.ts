@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
@@ -38,6 +37,7 @@ export class MirrorDataService {
     },
     rawData: {
       spotify?: any;
+      youtube?: any;
     }
   ) {
     try {
@@ -73,7 +73,7 @@ export class MirrorDataService {
         ...(synthesizedData.youtube && { youtube_summary: synthesizedData.youtube.summary })
       };
 
-      // Prepare raw data storage (only Spotify data)
+      // Prepare raw data storage
       const rawDataToStore: any = {};
       
       // Store raw Spotify data if not too large (limit to ~1MB)
@@ -87,6 +87,22 @@ export class MirrorDataService {
             profile: rawData.spotify.profile,
             topTracks: rawData.spotify.topTracks?.short_term?.slice(0, 50),
             topArtists: rawData.spotify.topArtists?.short_term?.slice(0, 50),
+            summary: 'Full data truncated due to size'
+          };
+        }
+      }
+
+      // Store raw YouTube data if not too large
+      if (rawData.youtube) {
+        const youtubeSize = JSON.stringify(rawData.youtube).length;
+        if (youtubeSize < 1000000) { // 1MB limit
+          rawDataToStore.youtube = rawData.youtube;
+        } else {
+          console.warn('YouTube data too large, storing summary only');
+          rawDataToStore.youtube = {
+            channel: rawData.youtube.channel,
+            videos: rawData.youtube.videos?.slice(0, 50),
+            playlists: rawData.youtube.playlists?.slice(0, 50),
             summary: 'Full data truncated due to size'
           };
         }
