@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const RedirectNewUser = () => {
-  const { user, isLoading, profile } = useAuth();
+  const { user, isLoading, profile, isNewUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,7 +43,14 @@ const RedirectNewUser = () => {
       return;
     }
 
-  }, [user, isLoading, profile, location.pathname, navigate]);
+    // If user is authenticated but hasn't completed onboarding and is not on onboarding page
+    if (user && (isNewUser || !hasCompletedOnboarding) && !isOnboardingPath && !isAuthPath) {
+      console.log("Redirecting new user to onboarding");
+      navigate("/onboarding");
+      return;
+    }
+
+  }, [user, isLoading, profile, isNewUser, location.pathname, navigate]);
 
   return null;
 };

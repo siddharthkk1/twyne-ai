@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,12 +35,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Mark as new user if this is a sign up event or if user hasn't onboarded
-        if (session?.user && 
-            (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && 
-            session.user.user_metadata?.has_onboarded === false) {
-          console.log("Setting user as new");
-          setIsNewUser(true);
+        // Handle new Google sign-ups
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if this is a Google OAuth sign-in
+          const isGoogleSignIn = session.user.app_metadata?.provider === 'google';
+          
+          if (isGoogleSignIn) {
+            // Check if user already has profile data (existing user)
+            const { data: existingUserData } = await supabase
+              .from('user_data')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            
+            if (!existingUserData) {
+              // New Google user - store SSO data and mark as new user
+              console.log("New Google user detected, storing SSO data");
+              
+              const ssoData = {
+                provider: 'google',
+                provider_id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+                avatar_url: session.user.user_metadata?.avatar_url,
+                iss: 'https://accounts.google.com',
+                raw_user_metadata: session.user.user_metadata
+              };
+              
+              await supabase
+                .from('user_data')
+                .insert({
+                  user_id: session.user.id,
+                  sso_data: ssoData,
+                  profile_data: {},
+                  conversation_data: {},
+                  prompt_mode: 'structured',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                });
+              
+              setIsNewUser(true);
+            } else if (existingUserData && (!existingUserData.profile_data || Object.keys(existingUserData.profile_data).length === 0)) {
+              // Existing Google user without completed onboarding
+              setIsNewUser(true);
+            }
+          }
         }
         
         // Handle transferring onboarding data after sign in/up
@@ -55,10 +93,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               // Save to user_data table
               const { error } = await supabase
                 .from('user_data')
-                .insert({
+                .upsert({
                   user_id: session.user.id,
                   profile_data: parsedData,
-                  created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString()
                 });
 
@@ -95,14 +132,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Check if this is a new user based on metadata
+      // Check if this is a new user based on profile completion
       if (session?.user) {
-        const hasOnboarded = session.user.user_metadata?.has_onboarded;
-        if (hasOnboarded === false) {
-          console.log("User hasn't completed onboarding");
-          setIsNewUser(true);
-        }
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id).then((profileData) => {
+          if (profileData && (!profileData.profile_data || Object.keys(profileData.profile_data).length === 0)) {
+            setIsNewUser(true);
+          }
+        });
       }
       setIsLoading(false);
     });
@@ -122,18 +158,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!userDataError && userData) {
         setProfile({
           ...userData,
-          profile_data: userData.profile_data
+          profile_data: userData.profile_data,
+          sso_data: userData.sso_data
         });
-        return;
+        return userData;
       }
 
-      // If no user_data found, try to create a basic profile entry
+      // If no user_data found, profile will be null
       if (userDataError || !userData) {
         console.log('No user_data found, profile will be null');
         setProfile(null);
+        return null;
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      return null;
     }
   };
 
