@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -46,13 +45,14 @@ const AccountConnectionButtons = () => {
         
         if (connectionData.spotify) {
           setSpotifyProfile(connectionData.spotify.profile || connectionData.spotify);
-          setSpotifyToken('connected'); // Set token state to indicate connection
+          setSpotifyToken('connected');
           console.log('Loaded Spotify profile from database:', connectionData.spotify.profile || connectionData.spotify);
         }
         
         if (connectionData.youtube) {
+          // Use the channel data from the stored YouTube data
           setYoutubeChannel(connectionData.youtube.channel || connectionData.youtube);
-          setGoogleToken('connected'); // Set token state to indicate connection
+          setGoogleToken('connected');
           console.log('Loaded YouTube channel from database:', connectionData.youtube.channel || connectionData.youtube);
         }
       } catch (error) {
@@ -70,7 +70,7 @@ const AccountConnectionButtons = () => {
     const savedSpotifyToken = localStorage.getItem('spotify_access_token');
     const savedSpotifyProfile = localStorage.getItem('spotify_profile');
     const savedGoogleToken = localStorage.getItem('google_access_token');
-    const savedYouTubeChannel = localStorage.getItem('youtube_channel');
+    const savedYouTubeData = localStorage.getItem('youtube_data');
     
     if (savedSpotifyToken) {
       setSpotifyToken(savedSpotifyToken);
@@ -85,11 +85,13 @@ const AccountConnectionButtons = () => {
     if (savedGoogleToken) {
       setGoogleToken(savedGoogleToken);
     }
-    if (savedYouTubeChannel) {
+    if (savedYouTubeData) {
       try {
-        setYoutubeChannel(JSON.parse(savedYouTubeChannel));
+        const youtubeData = JSON.parse(savedYouTubeData);
+        // Use channel data if available
+        setYoutubeChannel(youtubeData.channel || youtubeData);
       } catch (error) {
-        console.error('Error parsing YouTube channel from localStorage:', error);
+        console.error('Error parsing YouTube data from localStorage:', error);
       }
     }
   };
@@ -103,13 +105,11 @@ const AccountConnectionButtons = () => {
     
     try {
       if (state === 'youtube_auth') {
-        // Handle YouTube OAuth callback
         console.log('Processing YouTube OAuth callback...');
         const tokenData = await GoogleAuthService.exchangeCodeForToken(code);
         setGoogleToken(tokenData.access_token);
         localStorage.setItem('google_access_token', tokenData.access_token);
         
-        // Fetch comprehensive YouTube data
         await fetchYouTubeData(tokenData.access_token);
         
         toast({
@@ -117,13 +117,11 @@ const AccountConnectionButtons = () => {
           description: "Successfully connected your YouTube account and fetched your data.",
         });
       } else {
-        // Handle Spotify OAuth callback
         console.log('Processing Spotify OAuth callback...');
         const tokenData = await SpotifyService.exchangeCodeForToken(code);
         setSpotifyToken(tokenData.access_token);
         localStorage.setItem('spotify_access_token', tokenData.access_token);
         
-        // Fetch comprehensive Spotify data
         await fetchSpotifyData(tokenData.access_token);
         
         toast({
@@ -132,7 +130,6 @@ const AccountConnectionButtons = () => {
         });
       }
       
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
       console.error('OAuth callback error:', error);
@@ -152,7 +149,6 @@ const AccountConnectionButtons = () => {
       setIsFetchingData(true);
       console.log('Fetching comprehensive Spotify data...');
       
-      // Fetch all available Spotify data
       const [
         profile,
         topTracksShort,
@@ -201,11 +197,10 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
       
-      // If user is authenticated, store raw data only (no synthesized data for now)
       if (user) {
         try {
           await MirrorDataService.storeMirrorData(
-            {}, // No synthesized data yet
+            {},
             { spotify: spotifyData }
           );
           console.log('Spotify data stored in database successfully');
@@ -227,16 +222,17 @@ const AccountConnectionButtons = () => {
       setIsFetchingData(true);
       console.log('Fetching comprehensive YouTube data...');
       
-      // Fetch all available YouTube data
+      // Fetch channel info first to get profile picture and subscriber count
+      const channel = await YouTubeService.getChannelInfo(accessToken);
+      console.log('YouTube channel info:', channel);
+      
       const [
-        channel,
         videos,
         playlists,
         subscriptions,
         likedVideos,
         watchLater
       ] = await Promise.all([
-        YouTubeService.getChannelInfo(accessToken),
         YouTubeService.getUserVideos(accessToken),
         YouTubeService.getUserPlaylists(accessToken),
         YouTubeService.getUserSubscriptions(accessToken),
@@ -245,7 +241,7 @@ const AccountConnectionButtons = () => {
       ]);
 
       const youtubeData = {
-        channel,
+        channel, // Store the complete channel object
         videos,
         playlists,
         subscriptions,
@@ -253,15 +249,14 @@ const AccountConnectionButtons = () => {
         watchLater
       };
 
-      setYoutubeChannel(channel);
+      setYoutubeChannel(channel); // Set the channel state for UI display
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
       localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
       
-      // If user is authenticated, store raw data only (no synthesized data for now)
       if (user) {
         try {
           await MirrorDataService.storeMirrorData(
-            {}, // No synthesized data yet
+            {},
             { youtube: youtubeData }
           );
           console.log('YouTube data stored in database successfully');
@@ -283,7 +278,6 @@ const AccountConnectionButtons = () => {
       setIsConnectingSpotify(true);
       console.log('Initiating Spotify connection...');
       
-      // Use the exact redirect URI that should be registered in Spotify developer console
       const redirectUri = `https://9c0cff03-a326-49dd-8bfb-d6678231c2b3.lovableproject.com/auth/callback`;
       console.log('Spotify - Using redirect URI:', redirectUri);
       
@@ -296,12 +290,10 @@ const AccountConnectionButtons = () => {
         throw error;
       }
       
-      // The edge function should return the auth URL or redirect directly
       if (data?.authUrl) {
         console.log('Redirecting to Spotify auth URL:', data.authUrl);
         window.location.href = data.authUrl;
       } else {
-        // If no auth URL returned, try direct redirect as fallback
         const fallbackUrl = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
         console.log('Using fallback redirect to:', fallbackUrl);
         window.location.href = fallbackUrl;
@@ -322,7 +314,6 @@ const AccountConnectionButtons = () => {
       setIsConnectingYoutube(true);
       console.log('Initiating YouTube connection...');
       
-      // Use the exact redirect URI that should be registered in Google developer console
       const redirectUri = `https://9c0cff03-a326-49dd-8bfb-d6678231c2b3.lovableproject.com/auth/callback`;
       console.log('YouTube - Using redirect URI:', redirectUri);
       
@@ -335,12 +326,10 @@ const AccountConnectionButtons = () => {
         throw error;
       }
       
-      // The edge function should return the auth URL or redirect directly
       if (data?.authUrl) {
         console.log('Redirecting to Google auth URL:', data.authUrl);
         window.location.href = data.authUrl;
       } else {
-        // If no auth URL returned, try direct redirect as fallback
         const fallbackUrl = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
         console.log('Using fallback redirect to:', fallbackUrl);
         window.location.href = fallbackUrl;
@@ -363,7 +352,6 @@ const AccountConnectionButtons = () => {
     localStorage.removeItem('spotify_profile');
     localStorage.removeItem('spotify_data');
     
-    // If user is authenticated, also remove from database
     if (user) {
       try {
         await MirrorDataService.storeMirrorData(
@@ -389,7 +377,6 @@ const AccountConnectionButtons = () => {
     localStorage.removeItem('youtube_channel');
     localStorage.removeItem('youtube_data');
     
-    // If user is authenticated, also remove from database
     if (user) {
       try {
         await MirrorDataService.storeMirrorData(
@@ -479,7 +466,7 @@ const AccountConnectionButtons = () => {
                   <p className="text-sm text-muted-foreground">
                     {youtubeChannel.statistics?.subscriberCount ? 
                       parseInt(youtubeChannel.statistics.subscriberCount).toLocaleString() + ' subscribers' :
-                      'Subscriber count not available'
+                      'Channel connected'
                     }
                   </p>
                 </div>

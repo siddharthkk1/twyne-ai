@@ -102,6 +102,7 @@ export class YouTubeService {
       throw new Error('No channel found');
     }
     
+    console.log('YouTube channel data:', data.items[0]);
     return data.items[0];
   }
   

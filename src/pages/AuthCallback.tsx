@@ -6,11 +6,13 @@ import { YouTubeService } from '@/services/youtubeService';
 import { AIProfileService } from '@/services/aiProfileService';
 import { MirrorDataService } from '@/services/mirrorDataService';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('Processing...');
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -72,7 +74,6 @@ const AuthCallback = () => {
             })
           );
 
-          // Extract genres from artists
           const allGenres = topArtists.flatMap(artist => artist.genres);
           const genreCounts = allGenres.reduce((acc, genre) => {
             acc[genre] = (acc[genre] || 0) + 1;
@@ -83,7 +84,6 @@ const AuthCallback = () => {
             .slice(0, 10)
             .map(([genre]) => genre);
 
-          // Extract albums from tracks
           const albumsMap = new Map();
           tracksWithFeatures.forEach(track => {
             if (!albumsMap.has(track.album.name)) {
@@ -96,7 +96,6 @@ const AuthCallback = () => {
           });
           const topAlbums = Array.from(albumsMap.values()).slice(0, 10);
 
-          // Create simplified data with only essential song info for storage
           const simplifiedTopTracks = tracksWithFeatures.slice(0, 5).map((track, index) => ({
             rank: index + 1,
             title: track.name,
@@ -124,25 +123,22 @@ const AuthCallback = () => {
 
           console.log('Complete Spotify data fetched:', spotifyData);
 
-          // Store connection data persistently
           await MirrorDataService.storeConnectionData('spotify', spotifyData);
 
           setStatus('Generating your music insights...');
           
-          // Generate AI insights using full data (top 50 songs/artists) for comprehensive analysis
           const spotifyInsights = await AIProfileService.generateSpotifyProfile({
-            topTracks: tracksWithFeatures.slice(0, 50), // Analyze top 50 for insights
-            topArtists: topArtists.slice(0, 50), // Analyze top 50 for insights
+            topTracks: tracksWithFeatures.slice(0, 50),
+            topArtists: topArtists.slice(0, 50),
             topGenres,
             topAlbums
           });
 
-          // Store synthesized data with only the vibe summary and essential track/artist info
           const synthesizedSpotifyData = {
             vibeSummary: spotifyInsights.vibeSummary,
             traitDisplay: spotifyInsights.traitDisplay,
-            topSongs: simplifiedTopTracks, // Only essential song info
-            topArtists: simplifiedTopArtists, // Only essential artist info
+            topSongs: simplifiedTopTracks,
+            topArtists: simplifiedTopArtists,
             topGenres: topGenres.slice(0, 5),
             topAlbums: topAlbums.slice(0, 5)
           };
@@ -163,19 +159,47 @@ const AuthCallback = () => {
           
           setStatus('Fetching your YouTube data...');
           
-          // Fetch raw YouTube data using correct method names
-          const [rawLikedVideos, rawSubscriptions, rawWatchHistory] = await Promise.all([
-            YouTubeService.getLikedVideos(tokenData.access_token),
-            YouTubeService.getUserSubscriptions(tokenData.access_token),
-            YouTubeService.getWatchHistory(tokenData.access_token)
+          // Fetch YouTube channel info with proper error handling
+          let channel;
+          try {
+            channel = await YouTubeService.getChannelInfo(tokenData.access_token);
+            console.log('YouTube channel fetched successfully:', channel);
+          } catch (error) {
+            console.error('Error fetching YouTube channel:', error);
+            throw new Error('Failed to fetch YouTube channel information');
+          }
+          
+          // Fetch other YouTube data
+          const [rawLikedVideos, rawSubscriptions, rawWatchHistory, videos, playlists] = await Promise.all([
+            YouTubeService.getLikedVideos(tokenData.access_token).catch(e => { console.error('Error fetching liked videos:', e); return []; }),
+            YouTubeService.getUserSubscriptions(tokenData.access_token).catch(e => { console.error('Error fetching subscriptions:', e); return []; }),
+            YouTubeService.getWatchHistory(tokenData.access_token).catch(e => { console.error('Error fetching watch history:', e); return []; }),
+            YouTubeService.getUserVideos(tokenData.access_token).catch(e => { console.error('Error fetching user videos:', e); return []; }),
+            YouTubeService.getUserPlaylists(tokenData.access_token).catch(e => { console.error('Error fetching playlists:', e); return []; })
           ]);
 
-          // Transform the data to match the expected AI service format
+          const youtubeData = {
+            channel, // Store the complete channel object with profile pic and subscriber count
+            videos,
+            playlists,
+            subscriptions: rawSubscriptions,
+            likedVideos: rawLikedVideos,
+            watchHistory: rawWatchHistory
+          };
+
+          console.log('Complete YouTube data fetched:', youtubeData);
+
+          // Store connection data persistently
+          await MirrorDataService.storeConnectionData('youtube', youtubeData);
+
+          setStatus('Generating your content insights...');
+          
+          // Transform the data for AI analysis
           const likedVideos = rawLikedVideos.map(video => ({
             title: video.snippet.title,
             description: video.snippet.description || '',
             channelTitle: video.snippet.channelTitle,
-            tags: [], // YouTube API doesn't provide tags in this endpoint
+            tags: [],
             categoryId: undefined
           }));
 
@@ -193,19 +217,6 @@ const AuthCallback = () => {
             categoryId: undefined
           }));
 
-          const youtubeData = {
-            likedVideos: rawLikedVideos,
-            subscriptions: rawSubscriptions,
-            watchHistory: rawWatchHistory
-          };
-
-          console.log('Complete YouTube data fetched:', youtubeData);
-
-          // Store connection data persistently
-          await MirrorDataService.storeConnectionData('youtube', youtubeData);
-
-          setStatus('Generating your content insights...');
-          
           // Generate AI insights using transformed data
           const youtubeSummary = await AIProfileService.generateYouTubeProfile({
             likedVideos,
