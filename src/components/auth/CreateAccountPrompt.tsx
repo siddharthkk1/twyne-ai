@@ -1,13 +1,15 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+import type { Json } from '@/integrations/supabase/types';
 import type { UserProfile, Conversation } from '@/types/chat';
 
 interface CreateAccountPromptProps {
@@ -30,6 +32,8 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,49 +59,81 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     setIsLoading(true);
 
     try {
-      console.log("Starting signup process for:", email);
+      // Simple signup without metadata since name is already in profile_data
+      const signupData = { email, password };
       
-      // Store onboarding data in localStorage before signup so auth state change can pick it up
-      if (onboardingProfileData) {
-        localStorage.setItem('onboarding_profile_data', JSON.stringify(onboardingProfileData));
-      }
-      
-      // Simple signup without immediate sign-in
-      const { data, error } = await supabase.auth.signUp({
+      console.log("Signing up with:", {
         email,
-        password
+        password: "***"
       });
+
+      const { data, error } = await supabase.auth.signUp(signupData);
 
       if (error) {
         console.error("Signup error:", error);
-        
-        // Check for existing user
-        if (error.message.includes('User already registered')) {
-          toast({
-            title: "Account already exists",
-            description: "This email is already registered. Try signing in instead.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error creating account",
-            description: error.message || "Failed to create account. Please try again.",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error creating account",
+          description: error.message || "Failed to create account. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
       if (data.user) {
-        console.log("Account created successfully for:", email);
-        toast({
-          title: "Account created!",
-          description: "Welcome to Twyne! You'll be redirected to complete your setup.",
-        });
+        // Auto sign in the user first
+        await signIn(email, password);
         
+        // Wait a moment for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Now save onboarding data to user_data table if we have it
+        if (onboardingProfileData) {
+          try {
+            const { error: userDataError } = await supabase
+              .from('user_data')
+              .upsert({
+                user_id: data.user.id,
+                profile_data: onboardingProfileData as unknown as Json,
+                conversation_data: (onboardingConversationData || {}) as unknown as Json,
+                prompt_mode: 'structured',
+                updated_at: new Date().toISOString()
+              });
+
+            if (userDataError) {
+              console.error("Error saving user data:", userDataError);
+              toast({
+                title: "Account created",
+                description: "Account created successfully, but there was an issue saving your profile data. Please contact support if needed.",
+                variant: "default",
+              });
+            } else {
+              console.log("Successfully saved onboarding data to user_data table");
+              toast({
+                title: "Account created successfully!",
+                description: "Welcome to Twyne! Your profile has been saved.",
+              });
+              
+              // Navigate to mirror page after successful account creation and data save
+              navigate("/mirror");
+            }
+          } catch (dataError) {
+            console.error("Error saving onboarding data:", dataError);
+            toast({
+              title: "Account created",
+              description: "Account created successfully, but there was an issue saving your profile data.",
+              variant: "default",
+            });
+            navigate("/mirror");
+          }
+        } else {
+          toast({
+            title: "Account created successfully!",
+            description: "Welcome to Twyne! You can now access all features.",
+          });
+          navigate("/mirror");
+        }
+
         onOpenChange(false);
-        
-        // The AuthContext will handle the rest via onAuthStateChange
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -115,11 +151,6 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     setIsGoogleLoading(true);
     
     try {
-      // Store onboarding data before Google auth
-      if (onboardingProfileData) {
-        localStorage.setItem('onboarding_profile_data', JSON.stringify(onboardingProfileData));
-      }
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
