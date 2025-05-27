@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Youtube, TrendingUp, Heart, Video, User, Play } from 'lucide-react';
+import { YouTubeService } from '@/services/youtubeService';
 import { AIProfileService } from '@/services/aiProfileService';
 
 interface SimplifiedVideo {
@@ -76,89 +77,143 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
 
   // Generate and store YouTube insights when component mounts with data
   useEffect(() => {
-    if (youtubeData && !isDataStored && !isGeneratingSummary && !youtubeInsights) {
-      setIsGeneratingSummary(true);
-      
-      // Use full data if available, otherwise convert simplified data for AI analysis
-      const dataForAI = youtubeData.fullTopVideos && youtubeData.fullTopChannels ? {
-        topVideos: youtubeData.fullTopVideos,
-        topChannels: youtubeData.fullTopChannels,
-        topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories : [],
-        likedVideos: [], // Add required fields for YouTubeAnalysisData
-        subscriptions: []
-      } : {
-        topVideos: Array.isArray(youtubeData.topVideos) ? youtubeData.topVideos.map(video => ({
-          snippet: {
+    const generateYouTubeInsights = async () => {
+      if (youtubeData && !isDataStored && !isGeneratingSummary && !youtubeInsights) {
+        setIsGeneratingSummary(true);
+        
+        try {
+          console.log('Starting YouTube data analysis...');
+          
+          // Get access token from localStorage
+          const accessToken = localStorage.getItem('youtube_access_token');
+          if (!accessToken) {
+            console.error('No YouTube access token found');
+            setIsGeneratingSummary(false);
+            return;
+          }
+
+          // Fetch actual YouTube data using the API
+          console.log('Fetching YouTube data from API...');
+          
+          const [likedVideos, subscriptions, watchLaterVideos] = await Promise.all([
+            YouTubeService.getEnhancedLikedVideos(accessToken).catch(error => {
+              console.error('Error fetching liked videos:', error);
+              return [];
+            }),
+            YouTubeService.getEnhancedSubscriptions(accessToken).catch(error => {
+              console.error('Error fetching subscriptions:', error);
+              return [];
+            }),
+            YouTubeService.getWatchLaterPlaylist(accessToken).catch(error => {
+              console.error('Error fetching watch later:', error);
+              return [];
+            })
+          ]);
+
+          console.log('Fetched YouTube data:', {
+            likedVideosCount: likedVideos.length,
+            subscriptionsCount: subscriptions.length,
+            watchLaterCount: watchLaterVideos.length
+          });
+
+          // Prepare data for AI analysis using the original algorithm
+          const youtubeAnalysisData = {
+            likedVideos: likedVideos.map(video => ({
+              title: video.title,
+              description: video.description,
+              channelTitle: video.channelTitle,
+              tags: video.tags || [],
+              categoryId: video.categoryId,
+              topicCategories: video.topicCategories || []
+            })),
+            subscriptions: subscriptions.map(sub => ({
+              title: sub.title,
+              description: sub.description,
+              topicCategories: sub.topicCategories || [],
+              keywords: sub.keywords || []
+            })),
+            watchHistory: watchLaterVideos.map(video => ({
+              title: video.snippet?.title || '',
+              description: video.snippet?.description || '',
+              tags: [],
+              categoryId: null
+            }))
+          };
+
+          console.log('Sending data to AI for analysis...');
+          
+          // Generate AI insights using the original algorithm
+          const aiSummary = await AIProfileService.generateYouTubeProfile(youtubeAnalysisData);
+          
+          console.log('Generated AI summary:', aiSummary);
+          
+          // Create simplified data for display
+          const topVideos = likedVideos.slice(0, 5).map((video, index) => ({
+            rank: index + 1,
             title: video.title,
             channelTitle: video.channelTitle,
-            thumbnails: { 
-              default: { url: video.imageUrl },
-              medium: { url: video.imageUrl },
-              high: { url: video.imageUrl }
-            }
-          }
-        })) : [],
-        topChannels: Array.isArray(youtubeData.topChannels) ? youtubeData.topChannels.map(channel => ({
-          snippet: {
-            title: channel.name,
-            thumbnails: { 
-              default: { url: channel.imageUrl },
-              medium: { url: channel.imageUrl },
-              high: { url: channel.imageUrl }
-            }
-          }
-        })) : [],
-        topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories : [],
-        likedVideos: [], // Add required fields for YouTubeAnalysisData
-        subscriptions: []
-      };
+            imageUrl: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url || ''
+          }));
 
-      console.log('Processing YouTube data for AI analysis:', dataForAI);
+          const topChannels = subscriptions.slice(0, 5).map((sub, index) => ({
+            rank: index + 1,
+            name: sub.title,
+            imageUrl: sub.snippet?.thumbnails?.medium?.url || sub.snippet?.thumbnails?.default?.url || ''
+          }));
 
-      // Generate AI insights
-      AIProfileService.generateYouTubeProfile(dataForAI)
-        .then(insights => {
-          console.log('Generated YouTube insights:', insights);
+          // Extract categories from topics
+          const allCategories = [
+            ...likedVideos.flatMap(v => v.topicCategories || []),
+            ...subscriptions.flatMap(s => s.topicCategories || [])
+          ];
           
-          // Convert the insights to match our SynthesizedYouTubeData format
-          const defaultSummary = "Your viewing habits reflect diverse interests across multiple content categories.";
-          let summaryText = defaultSummary;
+          const categoryCount = allCategories.reduce((acc, cat) => {
+            const cleanCat = cat.replace('https://en.wikipedia.org/wiki/', '').replace(/_/g, ' ');
+            acc[cleanCat] = (acc[cleanCat] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
           
-          // Safe null checking for insights
-          if (insights && typeof insights === 'string') {
-            summaryText = insights;
-          }
-          
+          const topCategories = Object.entries(categoryCount)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 5)
+            .map(([cat]) => cat);
+
           const synthesizedInsights = {
-            topVideos: Array.isArray(youtubeData.topVideos) ? youtubeData.topVideos.slice(0, 5) : [],
-            topChannels: Array.isArray(youtubeData.topChannels) ? youtubeData.topChannels.slice(0, 5) : [],
-            topCategories: Array.isArray(youtubeData.topCategories) ? youtubeData.topCategories.slice(0, 5) : [],
-            summary: summaryText
+            topVideos,
+            topChannels,
+            topCategories,
+            summary: aiSummary
           };
           
           setYoutubeInsights(synthesizedInsights);
           
-          // Get raw YouTube data from localStorage
-          const rawYouTubeData = localStorage.getItem('youtube_data');
-          const parsedRawData = rawYouTubeData ? JSON.parse(rawYouTubeData) : null;
-
           // Store both synthesized and raw data
+          const rawDataForStorage = {
+            likedVideos,
+            subscriptions,
+            watchLaterVideos,
+            topVideos,
+            topChannels,
+            topCategories
+          };
+
           import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
             MirrorDataService.storeMirrorData(
               { spotify: null, youtube: synthesizedInsights },
-              { spotify: null, youtube: parsedRawData }
+              { spotify: null, youtube: rawDataForStorage }
             );
           });
 
           setIsDataStored(true);
-        })
-        .catch(error => {
+        } catch (error) {
           console.error('Error generating YouTube insights:', error);
-        })
-        .finally(() => {
+        } finally {
           setIsGeneratingSummary(false);
-        });
-    }
+        }
+      }
+    };
+
+    generateYouTubeInsights();
   }, [youtubeData, isDataStored, isGeneratingSummary, youtubeInsights]);
 
   if (!youtubeData && !youtubeInsights && !rawYouTubeData) {
@@ -204,7 +259,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {youtubeInsights?.summary || "Your viewing habits reflect diverse interests across multiple content categories."}
+              {youtubeInsights?.summary || "Analyzing your YouTube data to create a personalized viewing profile..."}
             </p>
           )}
         </div>
