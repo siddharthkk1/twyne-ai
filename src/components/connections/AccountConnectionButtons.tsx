@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -466,7 +467,7 @@ const AccountConnectionButtons = () => {
           {youtubeChannel ? (
             <div className="space-y-3 p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                {youtubeChannel.snippet?.thumbnails?.default && (
+                {youtubeChannel.snippet?.thumbnails?.default?.url && (
                   <img 
                     src={youtubeChannel.snippet.thumbnails.default.url} 
                     alt="Channel" 
@@ -476,7 +477,10 @@ const AccountConnectionButtons = () => {
                 <div>
                   <p className="font-medium">{youtubeChannel.snippet?.title}</p>
                   <p className="text-sm text-muted-foreground">
-                    {parseInt(youtubeChannel.statistics?.subscriberCount || '0').toLocaleString()} subscribers
+                    {youtubeChannel.statistics?.subscriberCount ? 
+                      parseInt(youtubeChannel.statistics.subscriberCount).toLocaleString() + ' subscribers' :
+                      'Subscriber count not available'
+                    }
                   </p>
                 </div>
               </div>

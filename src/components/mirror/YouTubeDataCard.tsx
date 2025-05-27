@@ -69,7 +69,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
 
   if (!data) {
     return (
-      <Card className="border border-border bg-card">
+      <Card className="border border-border bg-muted/20">
         <CardHeader>
           <CardTitle className="text-xl flex items-center gap-2">
             <Youtube className="h-5 w-5" />
@@ -132,7 +132,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
   }, [data, isDataStored, aiSummary, isGeneratingSummary, safeSubscriptions, safeLikedVideos]);
 
   return (
-    <Card className="bg-card">
+    <Card className="bg-muted/20">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <Youtube className="h-5 w-5" />
@@ -142,14 +142,14 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = ({ data }) => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* AI-Generated Viewing Profile */}
-        <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-100 dark:border-green-900/20">
+        <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-100 dark:border-red-900/20">
           <h3 className="font-medium mb-2 flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Your Viewing Personality
           </h3>
           {isGeneratingSummary ? (
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
               <p className="text-sm text-muted-foreground">Analyzing your viewing habits...</p>
             </div>
           ) : (
