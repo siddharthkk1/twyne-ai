@@ -48,21 +48,28 @@ const RedirectNewUser = () => {
       return;
     }
 
-    // If user is authenticated but hasn't completed onboarding and is not on onboarding or auth page
-    if (user && !hasCompletedOnboarding && !isOnboardingPath && !isAuthPath && !isLandingPath) {
-      console.log("Redirecting to onboarding - user needs to complete onboarding");
-      navigate("/onboarding");
-      return;
-    }
-
-    // Special case: if user just signed up with Google and is on auth page, redirect to onboarding
+    // If user just signed up and is on auth page, redirect to onboarding
     if (isAuthPath && user && !hasCompletedOnboarding) {
-      console.log("Redirecting new Google user from auth to onboarding");
+      console.log("Redirecting new user from auth to onboarding");
       navigate("/onboarding");
       return;
     }
 
-  }, [user, isLoading, profile, isNewUser, location.pathname, navigate]);
+    // If user is authenticated but hasn't completed onboarding and is NOT on onboarding or auth or landing pages
+    // IMPORTANT: Only redirect if they're on a protected route that requires onboarding
+    if (user && !hasCompletedOnboarding && !isOnboardingPath && !isAuthPath && !isLandingPath) {
+      // Only redirect to onboarding if they're trying to access protected routes like /mirror, /settings, etc.
+      const protectedRoutes = ["/mirror", "/settings", "/profile", "/connections"];
+      const isOnProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
+      
+      if (isOnProtectedRoute) {
+        console.log("Redirecting to onboarding - user trying to access protected route without completing onboarding");
+        navigate("/onboarding");
+        return;
+      }
+    }
+
+  }, [user, isLoading, profile, location.pathname, navigate]);
 
   return null;
 };
