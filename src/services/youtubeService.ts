@@ -1,4 +1,3 @@
-
 interface YouTubeChannel {
   id: string;
   snippet: {

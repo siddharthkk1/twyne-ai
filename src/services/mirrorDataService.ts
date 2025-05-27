@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
@@ -29,31 +30,14 @@ interface SynthesizedSpotifyData {
   };
 }
 
-interface SynthesizedYouTubeData {
-  topVideos: Array<{
-    rank: number;
-    title: string;
-    channelTitle: string;
-    imageUrl: string;
-  }>;
-  topChannels: Array<{
-    rank: number;
-    name: string;
-    imageUrl: string;
-  }>;
-  topCategories: string[];
-  summary: string;
-}
-
 export class MirrorDataService {
   static async storeMirrorData(
     synthesizedData: {
       spotify?: SynthesizedSpotifyData;
-      youtube?: SynthesizedYouTubeData;
+      youtube?: { summary: string };
     },
     rawData: {
       spotify?: any;
-      youtube?: any;
     }
   ) {
     try {
@@ -89,7 +73,7 @@ export class MirrorDataService {
         ...(synthesizedData.youtube && { youtube_summary: synthesizedData.youtube.summary })
       };
 
-      // Prepare raw data storage
+      // Prepare raw data storage (only Spotify data)
       const rawDataToStore: any = {};
       
       // Store raw Spotify data if not too large (limit to ~1MB)
@@ -106,11 +90,6 @@ export class MirrorDataService {
             summary: 'Full data truncated due to size'
           };
         }
-      }
-
-      // Store raw YouTube data if provided
-      if (rawData.youtube) {
-        rawDataToStore.youtube = rawData.youtube;
       }
 
       // Update user_data with both synthesized insights and raw data

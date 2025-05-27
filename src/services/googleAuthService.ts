@@ -10,9 +10,11 @@ interface GoogleTokenResponse {
 }
 
 export class GoogleAuthService {
+  private static readonly AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+  
   static getYouTubeAuthUrl(): string {
-    // Use our edge function to get the proper Google OAuth URL
-    return `/api/google-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/auth/callback`)}`;
+    // Get the actual auth URL from our edge function
+    return `/api/google-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/settings`)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<GoogleTokenResponse> {

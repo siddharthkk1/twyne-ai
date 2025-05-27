@@ -23,6 +23,7 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
     }
     
+    // Ensure we're using the exact redirect URI format
     console.log('Google Auth - Using redirect URI:', redirect_uri)
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
@@ -31,23 +32,23 @@ serve(async (req) => {
       throw new Error('Google client ID not configured')
     }
     
-    // Build proper Google OAuth URL with correct scopes for YouTube
-    const scopes = [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/youtube.readonly'
-    ].join(' ');
+    const params = new URLSearchParams({
+      client_id: clientId,
+      response_type: 'code',
+      redirect_uri: redirect_uri,
+      scope: [
+        'https://www.googleapis.com/auth/youtube.readonly',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ].join(' '),
+      access_type: 'offline',
+      prompt: 'consent',
+      state: 'youtube_auth'
+    })
     
-    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    authUrl.searchParams.set('client_id', clientId);
-    authUrl.searchParams.set('redirect_uri', redirect_uri);
-    authUrl.searchParams.set('response_type', 'code');
-    authUrl.searchParams.set('scope', scopes);
-    authUrl.searchParams.set('access_type', 'offline');
-    authUrl.searchParams.set('prompt', 'consent');
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
     
-    const finalAuthUrl = authUrl.toString();
-    console.log('Google Auth URL generated:', finalAuthUrl)
+    console.log('Google Auth URL generated:', authUrl)
     
     // For GET requests, redirect directly
     if (req.method === 'GET') {
@@ -55,14 +56,14 @@ serve(async (req) => {
         status: 302,
         headers: {
           ...corsHeaders,
-          'Location': finalAuthUrl
+          'Location': authUrl
         }
       })
     }
     
     // For POST requests, return the auth URL
     return new Response(
-      JSON.stringify({ authUrl: finalAuthUrl }),
+      JSON.stringify({ authUrl }),
       { 
         headers: { 
           ...corsHeaders, 

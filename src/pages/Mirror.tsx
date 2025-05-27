@@ -146,31 +146,6 @@ const Mirror = () => {
   useEffect(() => {
     fetchUserProfile();
     fetchConnectionData();
-    
-    // Handle YouTube auth completion
-    const urlParams = new URLSearchParams(window.location.search);
-    const youtubeAuth = urlParams.get('youtube_auth');
-    const youtubeError = urlParams.get('youtube_error');
-    
-    if (youtubeAuth === 'true') {
-      // Complete YouTube authentication
-      const authCode = localStorage.getItem('youtube_auth_code');
-      if (authCode) {
-        console.log('Completing YouTube authentication...');
-        localStorage.removeItem('youtube_auth_code');
-        // Clear URL params
-        window.history.replaceState({}, document.title, '/mirror');
-        toast.success('YouTube connected successfully!');
-        // Refresh connection data
-        setTimeout(() => fetchConnectionData(), 1000);
-      }
-    }
-    
-    if (youtubeError === 'true') {
-      console.error('YouTube auth error');
-      window.history.replaceState({}, document.title, '/mirror');
-      toast.error('Failed to connect YouTube. Please try again.');
-    }
   }, [user]);
 
   // Re-fetch connection data when returning to the page
@@ -365,16 +340,16 @@ const Mirror = () => {
         <div className="flex flex-col gap-8">
           {/* Header with personalized greeting */}
           <div 
-            className="text-left p-8 rounded-xl mb-4"
+            className="text-center p-8 rounded-xl mb-4"
             style={{ 
               background: `linear-gradient(135deg, ${userTheme.light}, ${userTheme.medium})`,
               borderBottom: `3px solid ${userTheme.dark}`
             }}
           >
-            <h1 className="text-3xl font-bold mb-3 text-left" style={{ color: userTheme.dark }}>
+            <h1 className="text-3xl font-bold mb-3" style={{ color: userTheme.dark }}>
               Your Mirror, {firstName}
             </h1>
-            <p className="text-muted-foreground max-w-2xl text-left">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               This is your personal mirror - a reflection of who you are based on our conversation.
             </p>
           </div>
@@ -383,9 +358,9 @@ const Mirror = () => {
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/10 max-w-3xl mx-auto">
             <div className="flex items-center gap-2 mb-2">
               <Lock className="h-4 w-4 text-primary" />
-              <h3 className="font-medium text-left">Privacy Guarantee</h3>
+              <h3 className="font-medium">Privacy Guarantee</h3>
             </div>
-            <p className="text-sm text-muted-foreground text-left">
+            <p className="text-sm text-muted-foreground">
               This mirror is private and only visible to you. Twyne will never share your information with other users without your explicit permission.
             </p>
           </div>
@@ -444,31 +419,31 @@ const Mirror = () => {
               {/* Vibe Summary */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Vibe Summary</CardTitle>
+                  <CardTitle className="text-xl">Vibe Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-left">{userProfile.vibeSummary || "We don't have enough info on that yet."}</p>
+                  <p>{userProfile.vibeSummary || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
               {/* One Liner */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">One Liner</CardTitle>
+                  <CardTitle className="text-xl">One Liner</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg font-medium text-left">{userProfile.oneLiner || "We don't have enough info on that yet."}</p>
+                  <p className="text-lg font-medium">{userProfile.oneLiner || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
               {/* Twyne Tags */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Twyne Tags</CardTitle>
+                  <CardTitle className="text-xl">Twyne Tags</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {tags.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 justify-start">
+                    <div className="flex flex-wrap gap-2">
                       {tags.map((tag, i) => (
                         <Badge key={i} variant="outline" className="bg-primary/5 text-primary">
                           #{tag}
@@ -476,7 +451,7 @@ const Mirror = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-left">We don't have enough info on that yet.</p>
+                    <p>We don't have enough info on that yet.</p>
                   )}
                 </CardContent>
               </Card>
@@ -484,48 +459,48 @@ const Mirror = () => {
               {/* Key Facts & Background */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Key Facts & Background</CardTitle>
+                  <CardTitle className="text-xl">Key Facts & Background</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">Name</h3>
-                      <p className="font-semibold text-left">{displayName || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">Name</h3>
+                      <p className="font-semibold">{displayName || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">Age</h3>
-                      <p className="text-left">{userProfile.age || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">Age</h3>
+                      <p>{userProfile.age || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">Location</h3>
-                      <p className="text-left">{userProfile.location || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">Location</h3>
+                      <p>{userProfile.location || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">Job</h3>
-                      <p className="text-left">{userProfile.job || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">Job</h3>
+                      <p>{userProfile.job || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">School</h3>
-                      <p className="text-left">{userProfile.school || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">School</h3>
+                      <p>{userProfile.school || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">Ethnicity</h3>
-                      <p className="text-left">{userProfile.ethnicity || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">Ethnicity</h3>
+                      <p>{userProfile.ethnicity || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">Religion</h3>
-                      <p className="text-left">{userProfile.religion || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">Religion</h3>
+                      <p>{userProfile.religion || "We don't have enough info on that yet."}</p>
                     </div>
                     
                     <div>
-                      <h3 className="font-medium text-muted-foreground text-left">Hometown</h3>
-                      <p className="text-left">{userProfile.hometown || "We don't have enough info on that yet."}</p>
+                      <h3 className="font-medium text-muted-foreground">Hometown</h3>
+                      <p>{userProfile.hometown || "We don't have enough info on that yet."}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -537,7 +512,7 @@ const Mirror = () => {
               {/* Personality Summary */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Personality Summary</CardTitle>
+                  <CardTitle className="text-xl">Personality Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.personalitySummary || "We don't have enough info on that yet."}</p>
@@ -547,7 +522,7 @@ const Mirror = () => {
               {/* Big Five Traits */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Big Five Traits</CardTitle>
+                  <CardTitle className="text-xl">Big Five Traits</CardTitle>
                   <CardDescription>Your personality dimensions mapped across the Big Five model</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -598,7 +573,7 @@ const Mirror = () => {
               {/* Style */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Style</CardTitle>
+                  <CardTitle className="text-xl">Style</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.style || "We don't have enough info on that yet."}</p>
@@ -608,7 +583,7 @@ const Mirror = () => {
               {/* Quirks */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Quirks</CardTitle>
+                  <CardTitle className="text-xl">Quirks</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.quirks || "We don't have enough info on that yet."}</p>
@@ -618,7 +593,7 @@ const Mirror = () => {
               {/* Communication Style */}
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Communication Style</CardTitle>
+                  <CardTitle className="text-xl">Communication Style</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.communicationStyle || "We don't have enough info on that yet."}</p>
@@ -630,7 +605,7 @@ const Mirror = () => {
             <TabsContent value="interests" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Lifestyle</CardTitle>
+                  <CardTitle className="text-xl">Lifestyle</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.lifestyle || "We don't have enough info on that yet."}</p>
@@ -639,7 +614,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Favorite Products</CardTitle>
+                  <CardTitle className="text-xl">Favorite Products</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.favoriteProducts || "We don't have enough info on that yet."}</p>
@@ -648,7 +623,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Interests & Passions</CardTitle>
+                  <CardTitle className="text-xl">Interests & Passions</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.interestsAndPassions || "We don't have enough info on that yet."}</p>
@@ -657,35 +632,28 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Favorite Movies & Shows</CardTitle>
+                  <CardTitle className="text-xl">Favorite Movies & Shows</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.favoriteMoviesAndShows || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
-              {/* Music Section - Now includes Spotify as a subsection */}
+              {/* Spotify Data Card */}
+              <SpotifyDataCard data={spotifyData} />
+
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Music</CardTitle>
+                  <CardTitle className="text-xl">Favorite Music</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Spotify Profile Subsection */}
-                  <SpotifyDataCard data={spotifyData} />
-
-                  {/* Traditional Music Text */}
-                  <div className="border-t pt-4">
-                    <h3 className="font-medium mb-3">Additional Music Preferences</h3>
-                    <p className="text-muted-foreground">
-                      {userProfile.favoriteMusic || "We don't have enough info on that yet."}
-                    </p>
-                  </div>
+                <CardContent>
+                  <p>{userProfile.favoriteMusic || "We don't have enough info on that yet."}</p>
                 </CardContent>
               </Card>
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Favorite Books</CardTitle>
+                  <CardTitle className="text-xl">Favorite Books</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.favoriteBooks || "We don't have enough info on that yet."}</p>
@@ -703,7 +671,9 @@ const Mirror = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* YouTube Profile Subsection */}
-                  <YouTubeDataCard data={youtubeData} />
+                  <div className="border rounded-lg p-4 bg-muted/20">
+                    <YouTubeDataCard data={youtubeData} />
+                  </div>
 
                   {/* Traditional Text Data */}
                   <div className="border-t pt-4">
@@ -717,7 +687,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Talking Points</CardTitle>
+                  <CardTitle className="text-xl">Talking Points</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {userProfile.talkingPoints && userProfile.talkingPoints.length > 0 ? (
@@ -736,7 +706,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Favorite Activities</CardTitle>
+                  <CardTitle className="text-xl">Favorite Activities</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.favoriteActivities || "We don't have enough info on that yet."}</p>
@@ -745,7 +715,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Favorite Spots</CardTitle>
+                  <CardTitle className="text-xl">Favorite Spots</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.favoriteSpots || "We don't have enough info on that yet."}</p>
@@ -757,7 +727,7 @@ const Mirror = () => {
             <TabsContent value="inner-world" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Core Values</CardTitle>
+                  <CardTitle className="text-xl">Core Values</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.coreValues || "We don't have enough info on that yet."}</p>
@@ -766,7 +736,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Life Philosophy</CardTitle>
+                  <CardTitle className="text-xl">Life Philosophy</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.lifePhilosophy || "We don't have enough info on that yet."}</p>
@@ -775,7 +745,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Goals</CardTitle>
+                  <CardTitle className="text-xl">Goals</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.goals || "We don't have enough info on that yet."}</p>
@@ -784,7 +754,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Political Views</CardTitle>
+                  <CardTitle className="text-xl">Political Views</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.politicalViews || "We don't have enough info on that yet."}</p>
@@ -793,7 +763,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Personal Beliefs</CardTitle>
+                  <CardTitle className="text-xl">Personal Beliefs</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.personalBeliefs || "We don't have enough info on that yet."}</p>
@@ -805,7 +775,7 @@ const Mirror = () => {
             <TabsContent value="story" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Upbringing</CardTitle>
+                  <CardTitle className="text-xl">Upbringing</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.upbringing || "We don't have enough info on that yet."}</p>
@@ -814,7 +784,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Major Turning Points</CardTitle>
+                  <CardTitle className="text-xl">Major Turning Points</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.majorTurningPoints || "We don't have enough info on that yet."}</p>
@@ -823,7 +793,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Recent Life Context</CardTitle>
+                  <CardTitle className="text-xl">Recent Life Context</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.recentLifeContext || "We don't have enough info on that yet."}</p>
@@ -835,7 +805,7 @@ const Mirror = () => {
             <TabsContent value="connection" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Social Style</CardTitle>
+                  <CardTitle className="text-xl">Social Style</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.socialStyle || "We don't have enough info on that yet."}</p>
@@ -844,7 +814,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Love Language or Friend Style</CardTitle>
+                  <CardTitle className="text-xl">Love Language or Friend Style</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.loveLanguageOrFriendStyle || "We don't have enough info on that yet."}</p>
@@ -853,7 +823,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Social Needs</CardTitle>
+                  <CardTitle className="text-xl">Social Needs</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.socialNeeds || "We don't have enough info on that yet."}</p>
@@ -862,7 +832,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Connection Preferences</CardTitle>
+                  <CardTitle className="text-xl">Connection Preferences</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.connectionPreferences || "We don't have enough info on that yet."}</p>
@@ -871,7 +841,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Dealbreakers</CardTitle>
+                  <CardTitle className="text-xl">Dealbreakers</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.dealBreakers || "We don't have enough info on that yet."}</p>
@@ -880,7 +850,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Boundaries & Pet Peeves</CardTitle>
+                  <CardTitle className="text-xl">Boundaries & Pet Peeves</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.boundariesAndPetPeeves || "We don't have enough info on that yet."}</p>
@@ -889,7 +859,7 @@ const Mirror = () => {
 
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Connection Activities</CardTitle>
+                  <CardTitle className="text-xl">Connection Activities</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p>{userProfile.connectionActivities || "We don't have enough info on that yet."}</p>
@@ -901,7 +871,7 @@ const Mirror = () => {
             <TabsContent value="edit" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Chat with Your Mirror</CardTitle>
+                  <CardTitle className="text-xl">Chat with Your Mirror</CardTitle>
                   <CardDescription>Tell your mirror about updates to your life, and it will help refine your profile</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -988,8 +958,8 @@ const Mirror = () => {
             <TabsContent value="integrations" className="space-y-6">
               <Card className="border border-border bg-card">
                 <CardHeader>
-                  <CardTitle className="text-xl text-left">Connect Your Accounts</CardTitle>
-                  <CardDescription className="text-left">Link your music and video accounts to enhance your mirror</CardDescription>
+                  <CardTitle className="text-xl">Connect Your Accounts</CardTitle>
+                  <CardDescription>Link your music and video accounts to enhance your mirror</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <AccountConnectionButtons />
