@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -17,7 +16,7 @@ import {
 } from '@/utils/aiUtils';
 
 // Maximum number of user messages before asking for name and completing
-const MESSAGE_CAP = 15;
+const MESSAGE_CAP = 6;
 
 export const useOnboardingChat = () => {
   const navigate = useNavigate();
