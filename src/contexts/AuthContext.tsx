@@ -31,54 +31,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event);
+        console.log("Auth state changed:", event, "Session:", !!session);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle new Google sign-ups
+        // Handle different auth events
         if (event === 'SIGNED_IN' && session?.user) {
-          // Check if this is a Google OAuth sign-in
-          const isGoogleSignIn = session.user.app_metadata?.provider === 'google';
+          console.log("User signed in, checking profile status");
           
-          if (isGoogleSignIn) {
-            // Check if user already has profile data (existing user)
-            const { data: existingUserData } = await supabase
-              .from('user_data')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
+          // Check if user already has profile data (existing user vs new user)
+          const { data: existingUserData } = await supabase
+            .from('user_data')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          
+          console.log("Existing user data:", existingUserData);
+          
+          if (!existingUserData) {
+            // Completely new user - create initial record and mark as new user
+            console.log("New user detected, creating initial user_data record");
             
-            if (!existingUserData) {
-              // New Google user - store SSO data and mark as new user
-              console.log("New Google user detected, storing SSO data");
-              
-              const ssoData = {
-                provider: 'google',
-                provider_id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
-                avatar_url: session.user.user_metadata?.avatar_url,
-                iss: 'https://accounts.google.com',
-                raw_user_metadata: session.user.user_metadata
-              };
-              
-              await supabase
-                .from('user_data')
-                .insert({
-                  user_id: session.user.id,
-                  sso_data: ssoData,
-                  profile_data: {},
-                  conversation_data: {},
-                  prompt_mode: 'structured',
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                });
-              
-              setIsNewUser(true);
-            } else if (existingUserData && (!existingUserData.profile_data || Object.keys(existingUserData.profile_data).length === 0)) {
-              // Existing Google user without completed onboarding
-              setIsNewUser(true);
-            }
+            const ssoData = session.user.app_metadata?.provider === 'google' ? {
+              provider: 'google',
+              provider_id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+              avatar_url: session.user.user_metadata?.avatar_url,
+              iss: 'https://accounts.google.com',
+              raw_user_metadata: session.user.user_metadata
+            } : null;
+            
+            await supabase
+              .from('user_data')
+              .insert({
+                user_id: session.user.id,
+                sso_data: ssoData,
+                profile_data: {},
+                conversation_data: {},
+                prompt_mode: 'structured',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+            
+            setIsNewUser(true);
+          } else if (existingUserData && (!existingUserData.profile_data || Object.keys(existingUserData.profile_data).length === 0)) {
+            // Existing user without completed onboarding
+            console.log("Existing user without completed onboarding");
+            setIsNewUser(true);
+          } else {
+            // Existing user with completed onboarding
+            console.log("Existing user with completed onboarding");
+            setIsNewUser(false);
           }
         }
         
@@ -104,6 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               } else {
                 console.log("Successfully transferred onboarding data");
                 localStorage.removeItem('onboarding_profile_data');
+                setIsNewUser(false); // User has completed onboarding
                 toast({
                   title: "Profile Saved",
                   description: "Your onboarding data has been saved to your account!",
@@ -123,12 +128,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }, 0);
         } else {
           setProfile(null);
+          setIsNewUser(false);
         }
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", !!session);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -137,6 +144,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         fetchProfile(session.user.id).then((profileData) => {
           if (profileData && (!profileData.profile_data || Object.keys(profileData.profile_data).length === 0)) {
             setIsNewUser(true);
+          } else {
+            setIsNewUser(false);
           }
         });
       }
@@ -213,6 +222,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setIsNewUser(false);
   };
 
   const updateUserData = async (data: any) => {

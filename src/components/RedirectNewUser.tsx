@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,49 +26,81 @@ const RedirectNewUser = () => {
     
     console.log("RedirectNewUser - User:", !!user, "Has completed onboarding:", hasCompletedOnboarding, "Is new user:", isNewUser, "Current path:", location.pathname);
     
-    // If user is on auth page and already logged in with completed onboarding
-    if (isAuthPath && user && hasCompletedOnboarding) {
-      console.log("Redirecting from auth to mirror - user has completed onboarding");
-      navigate("/mirror");
-      return;
-    }
-    
-    // If user is on landing-v2 and already logged in with completed onboarding
-    if (location.pathname === "/landing-v2" && user && hasCompletedOnboarding) {
-      console.log("Redirecting from landing to mirror - user has completed onboarding");
-      navigate("/mirror");
-      return;
-    }
-    
-    // If user is in onboarding but has already completed it, redirect to mirror page
-    if (isOnboardingPath && user && hasCompletedOnboarding) {
-      console.log("Redirecting from onboarding to mirror - user has completed onboarding");
-      navigate("/mirror");
-      return;
-    }
-
-    // If user just signed up and is on auth page, redirect to onboarding
-    if (isAuthPath && user && !hasCompletedOnboarding) {
-      console.log("Redirecting new user from auth to onboarding");
-      navigate("/onboarding");
-      return;
-    }
-
-    // If user is authenticated but hasn't completed onboarding and is NOT on onboarding or auth or landing pages
-    // IMPORTANT: Only redirect if they're on a protected route that requires onboarding
-    if (user && !hasCompletedOnboarding && !isOnboardingPath && !isAuthPath && !isLandingPath) {
-      // Only redirect to onboarding if they're trying to access protected routes like /mirror, /settings, etc.
+    // Case 1: User is not authenticated
+    if (!user) {
+      // If they're on a protected route, redirect to auth
       const protectedRoutes = ["/mirror", "/settings", "/profile", "/connections"];
       const isOnProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
       
       if (isOnProtectedRoute) {
-        console.log("Redirecting to onboarding - user trying to access protected route without completing onboarding");
+        console.log("Redirecting unauthenticated user to auth");
+        navigate("/auth");
+        return;
+      }
+      // Otherwise, let them stay where they are (landing, auth, etc.)
+      return;
+    }
+
+    // Case 2: User is authenticated and has completed onboarding
+    if (user && hasCompletedOnboarding) {
+      // If they're on auth page, redirect to mirror
+      if (isAuthPath) {
+        console.log("Redirecting authenticated user with completed onboarding from auth to mirror");
+        navigate("/mirror");
+        return;
+      }
+      
+      // If they're on landing page, redirect to mirror
+      if (location.pathname === "/landing-v2") {
+        console.log("Redirecting authenticated user with completed onboarding from landing to mirror");
+        navigate("/mirror");
+        return;
+      }
+      
+      // If they're in onboarding flow but already completed, redirect to mirror
+      if (isOnboardingPath) {
+        console.log("Redirecting user with completed onboarding from onboarding to mirror");
+        navigate("/mirror");
+        return;
+      }
+      
+      // Otherwise, let them stay where they are (mirror, settings, etc.)
+      return;
+    }
+
+    // Case 3: User is authenticated but hasn't completed onboarding
+    if (user && !hasCompletedOnboarding) {
+      // If they're on auth page (just signed up/in), redirect to onboarding
+      if (isAuthPath) {
+        console.log("Redirecting new user from auth to onboarding");
         navigate("/onboarding");
+        return;
+      }
+      
+      // If they're trying to access protected routes without completing onboarding
+      const protectedRoutes = ["/mirror", "/settings", "/profile", "/connections"];
+      const isOnProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
+      
+      if (isOnProtectedRoute) {
+        console.log("Redirecting user to onboarding - trying to access protected route without completing onboarding");
+        navigate("/onboarding");
+        return;
+      }
+      
+      // If they're on landing page and authenticated but not onboarded, redirect to onboarding
+      if (isLandingPath) {
+        console.log("Redirecting authenticated but not onboarded user from landing to onboarding");
+        navigate("/onboarding");
+        return;
+      }
+      
+      // If they're already in onboarding flow, let them continue
+      if (isOnboardingPath) {
         return;
       }
     }
 
-  }, [user, isLoading, profile, location.pathname, navigate]);
+  }, [user, isLoading, profile, isNewUser, location.pathname, navigate]);
 
   return null;
 };
