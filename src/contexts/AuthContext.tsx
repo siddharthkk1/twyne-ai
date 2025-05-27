@@ -28,105 +28,124 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log("Auth state changed:", event, "Session:", !!session);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle different auth events
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log("User signed in, checking profile status");
+          console.log("User signed in, processing profile");
           
-          // Check if user already has profile data (existing user vs new user)
-          const { data: existingUserData } = await supabase
-            .from('user_data')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          
-          console.log("Existing user data:", existingUserData);
-          
-          if (!existingUserData) {
-            // Completely new user - create initial record and mark as new user
-            console.log("New user detected, creating initial user_data record");
+          // Use setTimeout to avoid blocking the auth callback
+          setTimeout(async () => {
+            if (!mounted) return;
             
-            const ssoData = session.user.app_metadata?.provider === 'google' ? {
-              provider: 'google',
-              provider_id: session.user.id,
-              email: session.user.email,
-              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
-              avatar_url: session.user.user_metadata?.avatar_url,
-              iss: 'https://accounts.google.com',
-              raw_user_metadata: session.user.user_metadata
-            } : null;
-            
-            await supabase
-              .from('user_data')
-              .insert({
-                user_id: session.user.id,
-                sso_data: ssoData,
-                profile_data: {},
-                conversation_data: {},
-                prompt_mode: 'structured',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              });
-            
-            setIsNewUser(true);
-          } else if (existingUserData && (!existingUserData.profile_data || Object.keys(existingUserData.profile_data).length === 0)) {
-            // Existing user without completed onboarding
-            console.log("Existing user without completed onboarding");
-            setIsNewUser(true);
-          } else {
-            // Existing user with completed onboarding
-            console.log("Existing user with completed onboarding");
-            setIsNewUser(false);
-          }
-        }
-        
-        // Handle transferring onboarding data after sign in/up
-        if (event === 'SIGNED_IN' && session?.user) {
-          const onboardingData = localStorage.getItem('onboarding_profile_data');
-          if (onboardingData) {
             try {
-              const parsedData = JSON.parse(onboardingData);
-              console.log("Found onboarding data, transferring to user_data table");
-              
-              // Save to user_data table
-              const { error } = await supabase
+              // Check for existing user data
+              const { data: existingUserData } = await supabase
                 .from('user_data')
-                .upsert({
-                  user_id: session.user.id,
-                  profile_data: parsedData,
-                  updated_at: new Date().toISOString()
-                });
+                .select('*')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+              
+              console.log("Existing user data:", existingUserData);
+              
+              // Handle onboarding data transfer
+              const onboardingData = localStorage.getItem('onboarding_profile_data');
+              if (onboardingData && !existingUserData) {
+                try {
+                  const parsedData = JSON.parse(onboardingData);
+                  console.log("Found onboarding data, creating user_data record");
+                  
+                  const ssoData = session.user.app_metadata?.provider === 'google' ? {
+                    provider: 'google',
+                    provider_id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+                    avatar_url: session.user.user_metadata?.avatar_url,
+                    iss: 'https://accounts.google.com',
+                    raw_user_metadata: session.user.user_metadata
+                  } : null;
+                  
+                  const { error } = await supabase
+                    .from('user_data')
+                    .insert({
+                      user_id: session.user.id,
+                      sso_data: ssoData,
+                      profile_data: parsedData,
+                      conversation_data: {},
+                      prompt_mode: 'structured',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString()
+                    });
 
-              if (error) {
-                console.error("Error transferring onboarding data:", error);
+                  if (error) {
+                    console.error("Error saving onboarding data:", error);
+                  } else {
+                    console.log("Successfully saved onboarding data");
+                    localStorage.removeItem('onboarding_profile_data');
+                    setIsNewUser(false);
+                    
+                    // Fetch the newly created profile
+                    await fetchProfile(session.user.id);
+                    
+                    toast({
+                      title: "Profile Saved",
+                      description: "Your onboarding data has been saved to your account!",
+                    });
+                  }
+                } catch (e) {
+                  console.error("Error parsing onboarding data:", e);
+                  localStorage.removeItem('onboarding_profile_data');
+                }
+              } else if (!existingUserData) {
+                // Completely new user without onboarding data
+                console.log("New user detected, creating initial user_data record");
+                
+                const ssoData = session.user.app_metadata?.provider === 'google' ? {
+                  provider: 'google',
+                  provider_id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+                  avatar_url: session.user.user_metadata?.avatar_url,
+                  iss: 'https://accounts.google.com',
+                  raw_user_metadata: session.user.user_metadata
+                } : null;
+                
+                await supabase
+                  .from('user_data')
+                  .insert({
+                    user_id: session.user.id,
+                    sso_data: ssoData,
+                    profile_data: {},
+                    conversation_data: {},
+                    prompt_mode: 'structured',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  });
+                
+                setIsNewUser(true);
               } else {
-                console.log("Successfully transferred onboarding data");
-                localStorage.removeItem('onboarding_profile_data');
-                setIsNewUser(false); // User has completed onboarding
-                toast({
-                  title: "Profile Saved",
-                  description: "Your onboarding data has been saved to your account!",
-                });
+                // Existing user
+                console.log("Existing user, checking onboarding status");
+                const hasCompletedOnboarding = existingUserData.profile_data && 
+                  Object.keys(existingUserData.profile_data).length > 0;
+                
+                setIsNewUser(!hasCompletedOnboarding);
+                await fetchProfile(session.user.id);
               }
-            } catch (e) {
-              console.error("Could not parse onboarding data:", e);
-              localStorage.removeItem('onboarding_profile_data');
+            } catch (error) {
+              console.error("Error processing user sign in:", error);
             }
-          }
-        }
-        
-        // Fetch profile if user is logged in
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
-        } else {
+          }, 100);
+        } else if (!session) {
+          // User signed out
           setProfile(null);
           setIsNewUser(false);
         }
@@ -135,13 +154,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       console.log("Initial session check:", !!session);
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Check if this is a new user based on profile completion
       if (session?.user) {
         fetchProfile(session.user.id).then((profileData) => {
+          if (!mounted) return;
+          
           if (profileData && (!profileData.profile_data || Object.keys(profileData.profile_data).length === 0)) {
             setIsNewUser(true);
           } else {
@@ -152,12 +174,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Try to get profile from user_data table
       const { data: userData, error: userDataError } = await supabase
         .from('user_data')
         .select('*')
@@ -173,7 +197,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return userData;
       }
 
-      // If no user_data found, profile will be null
       if (userDataError || !userData) {
         console.log('No user_data found, profile will be null');
         setProfile(null);
