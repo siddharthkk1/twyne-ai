@@ -15,6 +15,12 @@ const AuthCallback = () => {
         console.log('Location search:', window.location.search);
         console.log('Location hash:', window.location.hash);
 
+        // Handle hash fragment for Google OAuth
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        // Handle query params for other OAuth flows
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const error = urlParams.get('error');
@@ -23,6 +29,31 @@ const AuthCallback = () => {
           console.error('OAuth error:', error);
           navigate('/auth?error=' + encodeURIComponent(error));
           return;
+        }
+
+        // If we have tokens in the hash (Google OAuth), set the session
+        if (accessToken) {
+          console.log('Google OAuth tokens received, setting session');
+          try {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || ''
+            });
+            
+            if (error) {
+              console.error('Error setting session:', error);
+              navigate('/auth?error=' + encodeURIComponent(error.message));
+              return;
+            }
+            
+            console.log('Session set successfully:', data);
+            navigate('/mirror');
+            return;
+          } catch (error) {
+            console.error('Error handling Google auth:', error);
+            navigate('/auth?error=' + encodeURIComponent('Authentication failed'));
+            return;
+          }
         }
 
         if (code) {
