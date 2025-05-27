@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { SpotifyService } from "@/services/spotifyService";
 import { GoogleAuthService } from "@/services/googleAuthService";
 import { YouTubeService } from "@/services/youtubeService";
+import { useAuth } from "@/contexts/AuthContext";
+import { MirrorDataService } from "@/services/mirrorDataService";
 
 const AccountConnectionButtons = () => {
   const [isConnectingSpotify, setIsConnectingSpotify] = useState(false);
@@ -16,6 +18,7 @@ const AccountConnectionButtons = () => {
   const [spotifyProfile, setSpotifyProfile] = useState<any>(null);
   const [youtubeChannel, setYoutubeChannel] = useState<any>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Check for OAuth callback codes in URL
@@ -30,6 +33,39 @@ const AccountConnectionButtons = () => {
 
   // Load saved tokens on component mount
   useEffect(() => {
+    loadConnectionData();
+  }, [user]);
+
+  const loadConnectionData = async () => {
+    if (user) {
+      // For authenticated users, load from database first
+      try {
+        const connectionData = await MirrorDataService.loadConnectionData();
+        console.log('Loaded connection data from database:', connectionData);
+        
+        if (connectionData.spotify) {
+          setSpotifyProfile(connectionData.spotify.profile || connectionData.spotify);
+          setSpotifyToken('connected'); // Set token state to indicate connection
+          console.log('Loaded Spotify profile from database:', connectionData.spotify.profile || connectionData.spotify);
+        }
+        
+        if (connectionData.youtube) {
+          setYoutubeChannel(connectionData.youtube.channel || connectionData.youtube);
+          setGoogleToken('connected'); // Set token state to indicate connection
+          console.log('Loaded YouTube channel from database:', connectionData.youtube.channel || connectionData.youtube);
+        }
+      } catch (error) {
+        console.error('Error loading connection data from database:', error);
+        // Fallback to localStorage
+        loadFromLocalStorage();
+      }
+    } else {
+      // For anonymous users, load from localStorage only
+      loadFromLocalStorage();
+    }
+  };
+
+  const loadFromLocalStorage = () => {
     const savedSpotifyToken = localStorage.getItem('spotify_access_token');
     const savedSpotifyProfile = localStorage.getItem('spotify_profile');
     const savedGoogleToken = localStorage.getItem('google_access_token');
@@ -39,15 +75,23 @@ const AccountConnectionButtons = () => {
       setSpotifyToken(savedSpotifyToken);
     }
     if (savedSpotifyProfile) {
-      setSpotifyProfile(JSON.parse(savedSpotifyProfile));
+      try {
+        setSpotifyProfile(JSON.parse(savedSpotifyProfile));
+      } catch (error) {
+        console.error('Error parsing Spotify profile from localStorage:', error);
+      }
     }
     if (savedGoogleToken) {
       setGoogleToken(savedGoogleToken);
     }
     if (savedYouTubeChannel) {
-      setYoutubeChannel(JSON.parse(savedYouTubeChannel));
+      try {
+        setYoutubeChannel(JSON.parse(savedYouTubeChannel));
+      } catch (error) {
+        console.error('Error parsing YouTube channel from localStorage:', error);
+      }
     }
-  }, []);
+  };
 
   const handleOAuthCallback = async (code: string, state: string | null) => {
     if (state === 'youtube_auth') {
@@ -156,6 +200,19 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
       
+      // If user is authenticated, also store in database
+      if (user) {
+        try {
+          await MirrorDataService.storeMirrorData(
+            { spotify: spotifyData },
+            { spotify: spotifyData }
+          );
+          console.log('Spotify data stored in database successfully');
+        } catch (error) {
+          console.error('Error storing Spotify data in database:', error);
+        }
+      }
+      
       console.log('Spotify data fetched successfully:', spotifyData);
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
@@ -198,6 +255,19 @@ const AccountConnectionButtons = () => {
       setYoutubeChannel(channel);
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
       localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
+      
+      // If user is authenticated, also store in database
+      if (user) {
+        try {
+          await MirrorDataService.storeMirrorData(
+            { youtube: youtubeData },
+            { youtube: youtubeData }
+          );
+          console.log('YouTube data stored in database successfully');
+        } catch (error) {
+          console.error('Error storing YouTube data in database:', error);
+        }
+      }
       
       console.log('YouTube data fetched successfully:', youtubeData);
     } catch (error) {
@@ -285,24 +355,52 @@ const AccountConnectionButtons = () => {
     }
   };
 
-  const disconnectSpotify = () => {
+  const disconnectSpotify = async () => {
     setSpotifyToken(null);
     setSpotifyProfile(null);
     localStorage.removeItem('spotify_access_token');
     localStorage.removeItem('spotify_profile');
     localStorage.removeItem('spotify_data');
+    
+    // If user is authenticated, also remove from database
+    if (user) {
+      try {
+        await MirrorDataService.storeMirrorData(
+          {},
+          { spotify: null }
+        );
+        console.log('Spotify data removed from database');
+      } catch (error) {
+        console.error('Error removing Spotify data from database:', error);
+      }
+    }
+    
     toast({
       title: "Spotify Disconnected",
       description: "Your Spotify account has been disconnected.",
     });
   };
 
-  const disconnectYouTube = () => {
+  const disconnectYouTube = async () => {
     setGoogleToken(null);
     setYoutubeChannel(null);
     localStorage.removeItem('google_access_token');
     localStorage.removeItem('youtube_channel');
     localStorage.removeItem('youtube_data');
+    
+    // If user is authenticated, also remove from database
+    if (user) {
+      try {
+        await MirrorDataService.storeMirrorData(
+          {},
+          { youtube: null }
+        );
+        console.log('YouTube data removed from database');
+      } catch (error) {
+        console.error('Error removing YouTube data from database:', error);
+      }
+    }
+    
     toast({
       title: "YouTube Disconnected",
       description: "Your YouTube account has been disconnected.",
