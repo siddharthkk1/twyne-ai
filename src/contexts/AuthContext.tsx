@@ -36,14 +36,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Mark as new user if this is a sign up event or if user hasn't onboarded
-        if (session?.user && 
-            (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && 
-            session.user.user_metadata?.has_onboarded === false) {
-          console.log("Setting user as new");
-          setIsNewUser(true);
-        }
-        
         // Handle transferring onboarding data after sign in/up
         if (event === 'SIGNED_IN' && session?.user) {
           const onboardingData = localStorage.getItem('onboarding_profile_data');
@@ -55,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               // Save to user_data table
               const { error } = await supabase
                 .from('user_data')
-                .insert({
+                .upsert({
                   user_id: session.user.id,
                   profile_data: parsedData,
                   created_at: new Date().toISOString(),
@@ -83,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (session?.user) {
           setTimeout(() => {
             fetchProfile(session.user.id);
-          }, 0);
+          }, 100);
         } else {
           setProfile(null);
         }
@@ -95,13 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Check if this is a new user based on metadata
       if (session?.user) {
-        const hasOnboarded = session.user.user_metadata?.has_onboarded;
-        if (hasOnboarded === false) {
-          console.log("User hasn't completed onboarding");
-          setIsNewUser(true);
-        }
         fetchProfile(session.user.id);
       }
       setIsLoading(false);
@@ -112,6 +98,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
+      
       // Try to get profile from user_data table
       const { data: userData, error: userDataError } = await supabase
         .from('user_data')
@@ -120,6 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .maybeSingle();
 
       if (!userDataError && userData) {
+        console.log("Found user data:", userData);
         setProfile({
           ...userData,
           profile_data: userData.profile_data
@@ -127,13 +116,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      // If no user_data found, try to create a basic profile entry
+      // If no user_data found, set profile to null
       if (userDataError || !userData) {
         console.log('No user_data found, profile will be null');
         setProfile(null);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
     }
   };
 
@@ -174,6 +164,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setProfile(null);
+    setIsNewUser(false);
   };
 
   const updateUserData = async (data: any) => {
