@@ -12,9 +12,12 @@ const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('Processing...');
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
+    // Wait for auth to load before proceeding
+    if (isLoading) return;
+
     const handleCallback = async () => {
       const code = searchParams.get('code');
       const state = searchParams.get('state');
@@ -24,14 +27,15 @@ const AuthCallback = () => {
         console.error('OAuth error:', error);
         setStatus('Authentication failed');
         toast.error('Authentication failed');
-        setTimeout(() => navigate('/mirror'), 3000);
+        // If user is logged in, go back to mirror, otherwise go to auth
+        setTimeout(() => navigate(user ? '/mirror' : '/auth'), 3000);
         return;
       }
 
       if (!code) {
         console.error('No authorization code received');
         setStatus('No authorization code received');
-        setTimeout(() => navigate('/mirror'), 3000);
+        setTimeout(() => navigate(user ? '/mirror' : '/auth'), 3000);
         return;
       }
 
@@ -169,7 +173,6 @@ const AuthCallback = () => {
             throw new Error('Failed to fetch YouTube channel information');
           }
           
-          // Fetch other YouTube data
           const [rawLikedVideos, rawSubscriptions, rawWatchHistory, videos, playlists] = await Promise.all([
             YouTubeService.getLikedVideos(tokenData.access_token).catch(e => { console.error('Error fetching liked videos:', e); return []; }),
             YouTubeService.getUserSubscriptions(tokenData.access_token).catch(e => { console.error('Error fetching subscriptions:', e); return []; }),
@@ -179,7 +182,7 @@ const AuthCallback = () => {
           ]);
 
           const youtubeData = {
-            channel, // Store the complete channel object with profile pic and subscriber count
+            channel,
             videos,
             playlists,
             subscriptions: rawSubscriptions,
@@ -189,12 +192,10 @@ const AuthCallback = () => {
 
           console.log('Complete YouTube data fetched:', youtubeData);
 
-          // Store connection data persistently
           await MirrorDataService.storeConnectionData('youtube', youtubeData);
 
           setStatus('Generating your content insights...');
           
-          // Transform the data for AI analysis
           const likedVideos = rawLikedVideos.map(video => ({
             title: video.snippet.title,
             description: video.snippet.description || '',
@@ -217,14 +218,12 @@ const AuthCallback = () => {
             categoryId: undefined
           }));
 
-          // Generate AI insights using transformed data
           const youtubeSummary = await AIProfileService.generateYouTubeProfile({
             likedVideos,
             subscriptions,
             watchHistory
           });
 
-          // Store synthesized data
           await MirrorDataService.storeMirrorData(
             { youtube: { summary: youtubeSummary } },
             {}
@@ -234,24 +233,32 @@ const AuthCallback = () => {
           toast.success('YouTube connected successfully!');
         }
         
+        // Always redirect to mirror page after successful connection
+        console.log('Redirecting to mirror page...');
         setTimeout(() => navigate('/mirror'), 2000);
         
       } catch (error) {
         console.error('Error in auth callback:', error);
         setStatus('Connection failed');
         toast.error('Connection failed. Please try again.');
-        setTimeout(() => navigate('/mirror'), 3000);
+        // If user is logged in, go back to mirror, otherwise go to auth
+        setTimeout(() => navigate(user ? '/mirror' : '/auth'), 3000);
       }
     };
 
     handleCallback();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, user, isLoading]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
         <p className="text-lg">{status}</p>
+        {user && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Logged in as {user.email}
+          </p>
+        )}
       </div>
     </div>
   );
