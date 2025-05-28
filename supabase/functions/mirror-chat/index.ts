@@ -159,26 +159,29 @@ ${conversation.messages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 
 Your task is to analyze this conversation and provide updates to the user's profile data. Only update fields where the user has explicitly shared new information. Keep existing data that wasn't contradicted or updated.
 
+IMPORTANT FIELD MAPPING GUIDE:
+- When user mentions "clothing style", "fashion", "how I dress" → use "style" field
+- When user mentions "lifestyle", "way of living", "daily routine" → use "lifestyle" field  
+- When user mentions "connection preferences", "who I want to meet", "relationship preferences" → use "connectionPreferences" field
+- When user mentions "social style", "how I socialize", "social behavior" → use "socialStyle" field
+- When user mentions "interests", "hobbies", "passions" → use "interestsAndPassions" field
+- When user mentions "talking points", "topics I like" → use "talkingPoints" field (array)
+- When user mentions "personality", "who I am as a person" → use "personalitySummary" field
+- When user mentions "communication style", "how I communicate" → use "communicationStyle" field
+
 Return ONLY a valid JSON object with the updated fields. Include only the fields that need to be updated or added. Do not include any explanations, markdown formatting, or additional text. The response must be parseable JSON.
 
-Focus on these core profile fields:
-- name
-- location  
-- vibeSummary
-- oneLiner
-- coreValues
-- goals
-- lifestyle
-- interestsAndPassions
-- personalitySummary
-- socialStyle
-- twyneTags (array)
-- talkingPoints (array)
+Available profile fields:
+- name, age, location, job, school, ethnicity, religion, hometown
+- lifestyle, style, interestsAndPassions, favoriteMoviesAndShows, favoriteMusic, favoriteBooks
+- coreValues, goals, personalitySummary, communicationStyle
+- socialStyle, connectionPreferences, dealBreakers, boundariesAndPetPeeves
+- twyneTags (array), talkingPoints (array)
 
 Example format:
 {
-  "vibeSummary": "Updated vibe summary here",
-  "goals": "Updated goals here"
+  "style": "Updated clothing/fashion style here",
+  "connectionPreferences": "Updated connection preferences here"
 }`;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
