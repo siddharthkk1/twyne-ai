@@ -14,17 +14,21 @@ serve(async (req) => {
   try {
     let redirect_uri: string;
     
+    // Get the origin from the request headers
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/');
+    
     // Handle both GET and POST requests
     if (req.method === 'GET') {
       const url = new URL(req.url)
-      redirect_uri = url.searchParams.get('redirect_uri') || `${req.headers.get('origin')}/auth/callback`
+      redirect_uri = url.searchParams.get('redirect_uri') || `${origin}/auth/callback`
     } else {
       const body = await req.json()
-      redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
+      redirect_uri = body.redirect_uri || `${origin}/auth/callback`
     }
     
     // Ensure we're using the exact redirect URI format
     console.log('Google Auth - Using redirect URI:', redirect_uri)
+    console.log('Google Auth - Request origin:', origin)
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
     

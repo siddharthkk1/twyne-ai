@@ -21,7 +21,11 @@ serve(async (req) => {
       throw new Error('Google credentials not configured')
     }
     
-    console.log('Google Auth - Exchanging code for token with redirect URI:', `${req.headers.get('origin')}/auth/callback`)
+    // Get the origin from the request headers
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/');
+    const redirect_uri = `${origin}/auth/callback`;
+    
+    console.log('Google Auth - Exchanging code for token with redirect URI:', redirect_uri)
     
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -33,7 +37,7 @@ serve(async (req) => {
         client_secret: clientSecret,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: `${req.headers.get('origin')}/auth/callback`
+        redirect_uri: redirect_uri
       })
     })
     
