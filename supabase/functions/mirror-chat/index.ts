@@ -20,6 +20,45 @@ const supabaseService = createClient(supabaseUrl, serviceRoleKey || "", {
   }
 });
 
+// Helper function to safely parse JSON from OpenAI
+function safeParseJSON(jsonString: string) {
+  try {
+    // First, try direct parsing
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.log("Direct JSON parse failed, attempting to clean the string:", error);
+    
+    try {
+      // Clean the string by removing markdown code blocks if present
+      let cleaned = jsonString.trim();
+      
+      // Remove markdown code blocks
+      if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      // Try parsing the cleaned string
+      return JSON.parse(cleaned);
+    } catch (secondError) {
+      console.log("Cleaned JSON parse also failed:", secondError);
+      
+      try {
+        // Last resort: try to extract JSON from the response
+        const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+        throw new Error("No valid JSON found in response");
+      } catch (finalError) {
+        console.error("All JSON parsing attempts failed:", finalError);
+        throw new Error("Failed to parse JSON response from OpenAI");
+      }
+    }
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -120,8 +159,9 @@ Your task is to analyze this conversation and update the existing profile data w
 3. If the user corrects existing information, update it accordingly
 4. Don't make assumptions - only use information directly stated by the user
 5. Maintain the same JSON structure as the current profile
+6. Ensure all JSON strings are properly escaped and valid
 
-Return ONLY a valid JSON object with the updated profile data. Do not include any explanations or additional text.`;
+Return ONLY a valid JSON object with the updated profile data. Do not include any explanations, markdown formatting, or additional text. The response must be parseable JSON.`;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -134,7 +174,7 @@ Return ONLY a valid JSON object with the updated profile data. Do not include an
           messages: [
             { role: "system", content: updatePrompt }
           ],
-          temperature: 0.3,
+          temperature: 0.1, // Lower temperature for more consistent JSON output
           max_tokens: 2000,
         }),
       });
@@ -151,8 +191,11 @@ Return ONLY a valid JSON object with the updated profile data. Do not include an
       const data = await response.json();
       const updatedProfileText = data.choices[0].message.content;
       
+      console.log("Raw OpenAI response for profile update:", updatedProfileText);
+      
       try {
-        const updatedProfile = JSON.parse(updatedProfileText);
+        const updatedProfile = safeParseJSON(updatedProfileText);
+        console.log("Successfully parsed updated profile:", updatedProfile);
         
         // Update the user's profile data
         const { error: updateError } = await supabaseService
@@ -184,7 +227,8 @@ Return ONLY a valid JSON object with the updated profile data. Do not include an
         );
       } catch (parseError) {
         console.error("Failed to parse updated profile:", parseError);
-        return new Response(JSON.stringify({ error: "Failed to process profile update" }), {
+        console.error("Raw response that failed to parse:", updatedProfileText);
+        return new Response(JSON.stringify({ error: "Failed to process profile update - invalid JSON response from AI" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
