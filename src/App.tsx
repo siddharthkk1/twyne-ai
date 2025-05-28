@@ -28,6 +28,8 @@ const queryClient = new QueryClient();
 const HomeWrapper = () => {
   const { user, isLoading, isNewUser } = useAuth();
   
+  console.log("HomeWrapper - isLoading:", isLoading, "user:", user?.email, "isNewUser:", isNewUser);
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -37,11 +39,14 @@ const HomeWrapper = () => {
   }
   
   if (user) {
+    console.log("User logged in, isNewUser:", isNewUser);
     // If user is new (no profile data), redirect to onboarding
     if (isNewUser) {
+      console.log("Redirecting to onboarding");
       return <Navigate to="/onboarding" />;
     }
     // Otherwise redirect to mirror
+    console.log("Redirecting to mirror");
     return <Navigate to="/mirror" />;
   }
   

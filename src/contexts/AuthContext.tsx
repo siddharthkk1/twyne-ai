@@ -32,23 +32,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event);
+        console.log("Auth state changed:", event, "Session:", session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check if this is a new user signup
-        if (event === 'SIGNED_IN' && session?.user) {
+        // Handle new signups (both email and OAuth)
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+          console.log("Checking if user is new...");
+          
           // Check if user has any profile data
-          const { data: userData } = await supabase
+          const { data: userData, error } = await supabase
             .from('user_data')
             .select('*')
             .eq('user_id', session.user.id)
             .maybeSingle();
           
-          // If no user data exists, this is likely a new user
-          if (!userData) {
-            console.log("New user detected, will redirect to onboarding");
+          console.log("User data check result:", { userData, error });
+          
+          // If no user data exists, this is a new user
+          if (!userData && !error) {
+            console.log("New user detected, setting isNewUser to true");
             setIsNewUser(true);
+            
+            // Create initial user_data record for new users
+            const { error: insertError } = await supabase
+              .from('user_data')
+              .insert({
+                user_id: session.user.id,
+                profile_data: {},
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+            
+            if (insertError) {
+              console.error("Error creating initial user_data:", insertError);
+            } else {
+              console.log("Created initial user_data record");
+            }
+          } else if (userData) {
+            console.log("Existing user found, setting isNewUser to false");
+            setIsNewUser(false);
           }
           
           // Handle transferring onboarding data after sign in/up
@@ -59,7 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               console.log("Found onboarding data, transferring to user_data table");
               
               // Save to user_data table
-              const { error } = await supabase
+              const { error: updateError } = await supabase
                 .from('user_data')
                 .upsert({
                   user_id: session.user.id,
@@ -68,8 +91,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   updated_at: new Date().toISOString()
                 });
 
-              if (error) {
-                console.error("Error transferring onboarding data:", error);
+              if (updateError) {
+                console.error("Error transferring onboarding data:", updateError);
               } else {
                 console.log("Successfully transferred onboarding data");
                 localStorage.removeItem('onboarding_profile_data');
@@ -93,19 +116,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }, 100);
         } else {
           setProfile(null);
+          setIsNewUser(false);
         }
+        
+        // Set loading to false after handling auth state
+        setIsLoading(false);
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         fetchProfile(session.user.id);
+      } else {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -128,7 +157,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           ...userData,
           profile_data: userData.profile_data
         });
-        setIsNewUser(false); // User has data, not new
+        
+        // Check if profile_data is empty - if so, still consider them new
+        const hasProfileData = userData.profile_data && 
+          typeof userData.profile_data === 'object' && 
+          Object.keys(userData.profile_data).length > 0;
+        
+        setIsNewUser(!hasProfileData);
+        console.log("User has profile data:", hasProfileData, "isNewUser:", !hasProfileData);
         return;
       }
 
