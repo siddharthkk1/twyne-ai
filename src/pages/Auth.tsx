@@ -52,9 +52,8 @@ const Auth = () => {
             description: error.message,
             variant: "destructive",
           });
-        } else {
-          navigate("/mirror");
         }
+        // Don't redirect here - let AuthContext handle it
       } else {
         // Use the auth context's signUp function
         const emailPrefix = email.split('@')[0];
@@ -87,7 +86,7 @@ const Auth = () => {
             title: "Account created successfully",
             description: "Welcome to Twyne!",
           });
-          navigate("/mirror");
+          // Don't redirect here - let AuthContext handle it
         }
       }
     } catch (error: any) {
@@ -109,7 +108,8 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/mirror'
+          // Remove the hardcoded redirectTo - let auth context handle routing
+          redirectTo: window.location.origin + '/auth/callback'
         }
       });
       
@@ -119,6 +119,7 @@ const Auth = () => {
           description: error.message,
           variant: "destructive",
         });
+        setIsGoogleLoading(false);
       }
     } catch (error: any) {
       toast({
@@ -126,7 +127,6 @@ const Auth = () => {
         description: error.message || "Something went wrong with Google sign in.",
         variant: "destructive",
       });
-    } finally {
       setIsGoogleLoading(false);
     }
   };

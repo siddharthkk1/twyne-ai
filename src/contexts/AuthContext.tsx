@@ -36,105 +36,110 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle new signups (both email and OAuth)
-        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-          console.log("Checking if user is new...");
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log("User signed in, checking if new user...");
           
-          // Check if user has any profile data
-          const { data: userData, error } = await supabase
-            .from('user_data')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          
-          console.log("User data check result:", { userData, error });
-          
-          // If no user data exists, this is a new user
-          if (!userData && !error) {
-            console.log("New user detected, setting isNewUser to true");
-            setIsNewUser(true);
-            
-            // Create initial user_data record for new users
-            const { error: insertError } = await supabase
-              .from('user_data')
-              .insert({
-                user_id: session.user.id,
-                profile_data: {},
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              });
-            
-            if (insertError) {
-              console.error("Error creating initial user_data:", insertError);
-            } else {
-              console.log("Created initial user_data record");
-            }
-          } else if (userData) {
-            console.log("Existing user found, setting isNewUser to false");
-            setIsNewUser(false);
-          }
-          
-          // Handle transferring onboarding data after sign in/up
-          const onboardingData = localStorage.getItem('onboarding_profile_data');
-          if (onboardingData) {
+          // Check if user has any profile data - delay this check to avoid deadlock
+          setTimeout(async () => {
             try {
-              const parsedData = JSON.parse(onboardingData);
-              console.log("Found onboarding data, transferring to user_data table");
-              
-              // Save to user_data table
-              const { error: updateError } = await supabase
+              const { data: userData, error } = await supabase
                 .from('user_data')
-                .upsert({
-                  user_id: session.user.id,
-                  profile_data: parsedData,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                });
-
-              if (updateError) {
-                console.error("Error transferring onboarding data:", updateError);
-              } else {
-                console.log("Successfully transferred onboarding data");
-                localStorage.removeItem('onboarding_profile_data');
-                setIsNewUser(false); // Clear new user flag since they now have data
-                toast({
-                  title: "Profile Saved",
-                  description: "Your onboarding data has been saved to your account!",
-                });
+                .select('*')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+              
+              console.log("User data check result:", { userData, error });
+              
+              if (!userData && !error) {
+                console.log("New user detected - no user_data record exists");
+                setIsNewUser(true);
+                
+                // Create initial user_data record for new users
+                const { error: insertError } = await supabase
+                  .from('user_data')
+                  .insert({
+                    user_id: session.user.id,
+                    profile_data: {},
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  });
+                
+                if (insertError) {
+                  console.error("Error creating initial user_data:", insertError);
+                } else {
+                  console.log("Created initial user_data record");
+                }
+              } else if (userData) {
+                // Check if profile_data is empty - if so, still consider them new
+                const hasProfileData = userData.profile_data && 
+                  typeof userData.profile_data === 'object' && 
+                  Object.keys(userData.profile_data).length > 0;
+                
+                console.log("Existing user found, hasProfileData:", hasProfileData);
+                setIsNewUser(!hasProfileData);
               }
-            } catch (e) {
-              console.error("Could not parse onboarding data:", e);
-              localStorage.removeItem('onboarding_profile_data');
+              
+              // Handle transferring onboarding data after sign in/up
+              const onboardingData = localStorage.getItem('onboarding_profile_data');
+              if (onboardingData) {
+                try {
+                  const parsedData = JSON.parse(onboardingData);
+                  console.log("Found onboarding data, transferring to user_data table");
+                  
+                  // Save to user_data table
+                  const { error: updateError } = await supabase
+                    .from('user_data')
+                    .upsert({
+                      user_id: session.user.id,
+                      profile_data: parsedData,
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString()
+                    });
+
+                  if (updateError) {
+                    console.error("Error transferring onboarding data:", updateError);
+                  } else {
+                    console.log("Successfully transferred onboarding data");
+                    localStorage.removeItem('onboarding_profile_data');
+                    setIsNewUser(false); // Clear new user flag since they now have data
+                    toast({
+                      title: "Profile Saved",
+                      description: "Your onboarding data has been saved to your account!",
+                    });
+                  }
+                } catch (e) {
+                  console.error("Could not parse onboarding data:", e);
+                  localStorage.removeItem('onboarding_profile_data');
+                }
+              }
+              
+              // Fetch profile if user is logged in
+              fetchProfile(session.user.id);
+              
+            } catch (error) {
+              console.error("Error in auth state handler:", error);
+            } finally {
+              setIsLoading(false);
             }
-          }
-        }
-        
-        // Fetch profile if user is logged in
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
           }, 100);
-        } else {
+        } else if (!session) {
+          // User signed out
           setProfile(null);
           setIsNewUser(false);
+          setIsLoading(false);
+        } else {
+          setIsLoading(false);
         }
-        
-        // Set loading to false after handling auth state
-        setIsLoading(false);
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session check:", session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
+      if (!session) {
         setIsLoading(false);
       }
+      // Don't set session/user here - let onAuthStateChange handle it
     });
 
     return () => subscription.unsubscribe();
@@ -157,27 +162,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           ...userData,
           profile_data: userData.profile_data
         });
-        
-        // Check if profile_data is empty - if so, still consider them new
-        const hasProfileData = userData.profile_data && 
-          typeof userData.profile_data === 'object' && 
-          Object.keys(userData.profile_data).length > 0;
-        
-        setIsNewUser(!hasProfileData);
-        console.log("User has profile data:", hasProfileData, "isNewUser:", !hasProfileData);
         return;
       }
 
-      // If no user_data found, set profile to null and mark as new user
+      // If no user_data found, set profile to null
       if (userDataError || !userData) {
-        console.log('No user_data found, marking as new user');
+        console.log('No user_data found');
         setProfile(null);
-        setIsNewUser(true);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
-      setIsNewUser(true);
     }
   };
 
@@ -205,10 +200,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           },
         },
       });
-
-      if (!error) {
-        setIsNewUser(true);
-      }
 
       return { error };
     } catch (error) {
