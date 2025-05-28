@@ -26,9 +26,16 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${origin}/auth/callback`
     }
     
-    // Ensure we're using the exact redirect URI format
+    // Ensure we normalize the redirect URI format
+    if (!redirect_uri.endsWith('/auth/callback')) {
+      redirect_uri = `${origin}/auth/callback`
+    }
+    
     console.log('Google Auth - Using redirect URI:', redirect_uri)
     console.log('Google Auth - Request origin:', origin)
+    console.log('Google Auth - Full request URL:', req.url)
+    console.log('Google Auth - Request headers origin:', req.headers.get('origin'))
+    console.log('Google Auth - Request headers referer:', req.headers.get('referer'))
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
     

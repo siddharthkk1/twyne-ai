@@ -23,9 +23,17 @@ serve(async (req) => {
     
     // Get the origin from the request headers
     const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/');
-    const redirect_uri = `${origin}/auth/callback`;
+    let redirect_uri = `${origin}/auth/callback`;
+    
+    // Ensure we normalize the redirect URI format
+    if (!redirect_uri.endsWith('/auth/callback')) {
+      redirect_uri = `${origin}/auth/callback`
+    }
     
     console.log('Google Auth - Exchanging code for token with redirect URI:', redirect_uri)
+    console.log('Google Auth - Request origin:', origin)
+    console.log('Google Auth - Request headers origin:', req.headers.get('origin'))
+    console.log('Google Auth - Request headers referer:', req.headers.get('referer'))
     
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
