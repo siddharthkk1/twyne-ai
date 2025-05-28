@@ -1,17 +1,279 @@
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import {
   IoCheckmark
 } from "react-icons/io5";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselApi,
+} from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+interface Message {
+  id: number;
+  text: string;
+  sender: "ai" | "user";
+}
+
+// Define multiple conversation snapshots with proper typing
+const conversationSnapshots: Message[][] = [
+  // Travel conversation - Japan - Higher to deeper level
+  [
+    {
+      id: 1,
+      text: "If you could travel anywhere tomorrow, where would you go?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "I've always wanted to visit Japan, especially during cherry blossom season. I'm fascinated by the blend of ancient traditions and modern technology there.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "Japan sounds wonderful! What aspects of Japanese culture are you most interested in experiencing?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I'm really drawn to the food culture and the concept of wabi-sabi - finding beauty in imperfection. I'd love to explore rural villages in Hokkaido and art islands like Naoshima.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "That's fascinating. How do you usually approach visiting new places - do you prefer planning everything or leaving room for spontaneous discoveries?",
+      sender: "ai"
+    },
+    {
+      id: 6,
+      text: "I like having a loose framework but leaving plenty of room for wandering. Some of my best travel memories are from getting lost and stumbling upon unexpected places.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's a beautiful approach. What would you hope to learn about yourself through immersing in a culture so different from your own?",
+      sender: "ai"
+    }
+  ],
+  // Values conversation - Garden project - Medium level depth
+  [
+    {
+      id: 1,
+      text: "When you think about your life five years from now, what would make you feel fulfilled?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "I'd like to have found a better work-life balance. Success for me isn't just about career advancement, but having time for the people and activities that bring me joy.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "That's a thoughtful perspective. What kinds of activities or relationships do you find most meaningful outside of work?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I've been thinking about starting a community garden project. My grandmother was an avid gardener and taught me everything. It brought people together in a really special way.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "That sounds like a meaningful project. What aspects of community gardening appeal to you most - is it the gardening itself, the community building, or something else?",
+      sender: "ai"
+    },
+    {
+      id: 6,
+      text: "It's definitely a blend of both. There's something therapeutic about working with your hands in the soil, but watching neighbors become friends over shared harvests is the real magic.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "I love how you see that connection between nature and human relationships. What's one challenge you anticipate in starting this project, and how might you approach it?",
+      sender: "ai"
+    }
+  ],
+  // Music conversation - Moving from casual to deeper insights
+  [
+    {
+      id: 1,
+      text: "What kind of music do you enjoy listening to these days?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "Lately I've been obsessed with Billie Eilish's new album. Her sound has really evolved since her early work.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "I've heard her music has changed quite a bit! What do you appreciate most about her evolution as an artist?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "I love how she's gotten more vulnerable in her lyrics while experimenting with new sounds. 'When The Party's Over' is still one of my all-time favorites.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "That's a beautiful track. Do you generally connect more with lyrics or with the musical composition when you listen to songs?",
+      sender: "ai"
+    },
+    {
+      id: 6,
+      text: "It's the lyrics first, definitely. I need to feel like the artist is telling a truth that resonates with me. But the right melody can make those lyrics hit so much harder.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That makes sense. Has a particular song ever changed your perspective or helped you through a difficult time? What was it about that music that reached you?",
+      sender: "ai"
+    }
+  ],
+  // Dinner conversation - Deep, personal exploration
+  [
+    {
+      id: 1,
+      text: "If you could have dinner with anyone, living or dead, who would it be?",
+      sender: "ai"
+    },
+    {
+      id: 2,
+      text: "Definitely Anthony Bourdain. I've always admired how he connected with people through food and storytelling.",
+      sender: "user"
+    },
+    {
+      id: 3,
+      text: "That's interesting! What about him or his approach to connecting with others resonates with you?",
+      sender: "ai"
+    },
+    {
+      id: 4,
+      text: "His genuine curiosity about people's lives and stories. He never approached cultures as a tourist, but as someone trying to understand the human experience.",
+      sender: "user"
+    },
+    {
+      id: 5,
+      text: "Thanks for sharing that. It sounds like authenticity and genuine connections matter to you. What other qualities do you value in your relationships?",
+      sender: "ai"
+    },
+    {
+      id: 6,
+      text: "I think it's about presence - really listening rather than just waiting to speak. And vulnerability - being willing to share the messy parts of yourself, not just the highlights reel.",
+      sender: "user"
+    },
+    {
+      id: 7,
+      text: "That's profound. When was the last time you felt truly understood by someone? What made that interaction different from others?",
+      sender: "ai"
+    }
+  ]
+];
 
 export const ChatWithAISectionV2 = () => {
   const navigate = useNavigate();
+  const [isVisible, setIsVisible] = useState(false);
+  const [messages, setMessages] = useState<Message[]>(conversationSnapshots[0]);
+  const [hasScrollContent, setHasScrollContent] = useState(true);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const isMobileView = useIsMobile();
+  const [api, setApi] = useState<CarouselApi | null>(null);
+  
+  // Animation effect for element appearance
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const handleTryItNow = () => {
     navigate("/onboarding");
+  };
+
+  // More reliable scroll event handler using useEffect
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const handleViewportScroll = () => {
+      const buffer = 32; // ~padding + wiggle room
+      const isAtBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - buffer;
+      setHasScrollContent(!isAtBottom);
+    };
+
+    viewport.addEventListener("scroll", handleViewportScroll);
+
+    // Initial check
+    handleViewportScroll();
+
+    // Check again after content might have changed
+    const checkScrollPosition = () => {
+      setTimeout(handleViewportScroll, 100);
+    };
+    checkScrollPosition();
+
+    return () => {
+      viewport.removeEventListener("scroll", handleViewportScroll);
+    };
+  }, [messages]);
+  
+  // Handle carousel slide change
+  const handleSlideChange = (index: number) => {
+    if (index < 0) {
+      index = conversationSnapshots.length - 1;
+    } else if (index >= conversationSnapshots.length) {
+      index = 0;
+    }
+    
+    setActiveIndex(index);
+    
+    // Fade out the chat element
+    setIsVisible(false);
+    
+    // After a short delay, change the messages and fade them back in
+    setTimeout(() => {
+      setMessages(conversationSnapshots[index]);
+      setIsVisible(true);
+      setHasScrollContent(true);
+      
+      // Reset scroll position to top when changing conversations
+      if (viewportRef.current) {
+        viewportRef.current.scrollTop = 0;
+      }
+    }, 150); // Short transition time
+  };
+
+  // Handle carousel API changes
+  useEffect(() => {
+    if (!api) return;
+    
+    const handleSelect = () => {
+      const currentIndex = api.selectedScrollSnap();
+      setActiveIndex(currentIndex);
+      handleSlideChange(currentIndex);
+    };
+    
+    api.on("select", handleSelect);
+    return () => {
+      api.off("select", handleSelect);
+    };
+  }, [api]);
+  
+  // Function to scroll to bottom
+  const scrollToBottom = () => {
+    if (viewportRef.current) {
+      viewportRef.current.scrollTo({
+        top: viewportRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   };
 
   return (
@@ -66,62 +328,133 @@ export const ChatWithAISectionV2 = () => {
             </div>
           </div>
           
-          {/* Chat simulation - copied from original ChatWithAISection */}
+          {/* Chat simulation with carousel */}
           <div className="flex flex-col items-center w-full max-w-[600px]">
-            <div className="w-full max-w-[500px] h-[500px] relative border border-border/50 rounded-2xl bg-gradient-to-br from-background/80 to-background/60 shadow-lg overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5"></div>
-              
-              {/* Chat header */}
-              <div className="relative z-10 p-4 border-b border-border/50 bg-background/90 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-                    <MessageCircle className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-sm">Chat with Twyne AI</h3>
-                    <p className="text-xs text-muted-foreground">Getting to know you...</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Chat messages */}
-              <div className="relative z-10 p-4 space-y-4 h-[400px] overflow-hidden">
-                {/* AI message */}
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-primary to-secondary flex-shrink-0"></div>
-                  <div className="bg-muted/80 rounded-2xl rounded-tl-md p-3 max-w-[80%]">
-                    <p className="text-sm">Hey! I'm excited to get to know you. What's something you're really passionate about right now?</p>
-                  </div>
-                </div>
-                
-                {/* User message */}
-                <div className="flex items-start gap-3 justify-end">
-                  <div className="bg-primary/10 rounded-2xl rounded-tr-md p-3 max-w-[80%]">
-                    <p className="text-sm">I've been really into urban gardening lately. There's something magical about growing your own food in the city.</p>
-                  </div>
-                  <div className="w-6 h-6 rounded-full bg-accent flex-shrink-0"></div>
-                </div>
-                
-                {/* AI message */}
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-primary to-secondary flex-shrink-0"></div>
-                  <div className="bg-muted/80 rounded-2xl rounded-tl-md p-3 max-w-[80%]">
-                    <p className="text-sm">That's beautiful! I love how you describe it as "magical" - it sounds like you find real meaning in that connection to your food and environment. What got you started with urban gardening?</p>
-                  </div>
-                </div>
-                
-                {/* User typing indicator */}
-                <div className="flex items-start gap-3 justify-end">
-                  <div className="bg-primary/10 rounded-2xl rounded-tr-md p-3 max-w-[80%]">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-pulse"></div>
-                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            <Carousel 
+              className="w-full" 
+              setApi={setApi}
+              opts={{
+                align: "center",
+                loop: true,
+              }}
+            >
+              <CarouselContent>
+                {conversationSnapshots.map((snapshot, index) => (
+                  <CarouselItem key={index} className="flex justify-center">
+                    <div 
+                      className={`bg-background rounded-2xl shadow-lg p-6 border border-border/50 transition-opacity duration-150 w-full relative ${
+                        isVisible ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <MessageCircle className="h-5 w-5 text-primary" />
+                          </div>
+                          <h3 className="font-medium">Chat with Twyne</h3>
+                        </div>
+                      </div>
+                      
+                      {/* Scroll container with gradient fade and scroll arrow at the bottom */}
+                      <div className="relative">
+                        <ScrollArea 
+                          ref={scrollAreaRef} 
+                          viewportRef={viewportRef}
+                          className={`pr-2 overflow-visible ${isMobileView ? "h-[375px]" : "h-[300px]"}`}
+                        >
+                          <div className="space-y-4 pb-4">
+                            {messages.map((message) => (
+                              <div
+                                key={`${index}-${message.id}`}
+                                className={`animate-fade-in ${
+                                  message.sender === "user" ? "chat-bubble-user" : "chat-bubble-ai"
+                                }`}
+                              >
+                                {message.text}
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                        
+                        {/* Combined arrow indicator and gradient fade overlay */}
+                        {hasScrollContent && (
+                          <>
+                            {/* Arrow indicator with circular background */}
+                            <div 
+                              className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10 cursor-pointer"
+                              onClick={scrollToBottom}
+                            >
+                              <div className="bg-primary/70 rounded-full p-2 hover:bg-primary/90 transition-colors">
+                                <ArrowDown className="h-4 w-4 text-white" />
+                              </div>
+                            </div>
+                            {/* Gradient fade */}
+                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                          </>
+                        )}
+                      </div>
+                      
+                      {/* Input field at bottom of chat */}
+                      <div className="bg-muted/40 rounded-full px-4 py-3 flex items-center mt-4">
+                        <input 
+                          type="text" 
+                          placeholder="Tell me more about yourself..."
+                          className="bg-transparent flex-1 outline-none text-sm border-none focus:ring-0 shadow-none"
+                          disabled
+                        />
+                        <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <path d="M22 2L11 13"></path>
+                            <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                          </svg>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="w-6 h-6 rounded-full bg-accent flex-shrink-0"></div>
-                </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+            
+            {/* Conversation navigation controls (dots and arrows) */}
+            <div className="flex justify-center items-center mt-6 space-x-8">
+              {/* Left arrow button - Uses ProfileCard style */}
+              <Button 
+                onClick={() => handleSlideChange(activeIndex - 1)}
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Previous slide</span>
+              </Button>
+
+              {/* Dots */}
+              <div className="flex space-x-3">
+                {conversationSnapshots.map((_, index) => (
+                  <button 
+                    key={index}
+                    onClick={() => {
+                      handleSlideChange(index);
+                      api?.scrollTo(index);
+                    }}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      activeIndex === index ? 'bg-primary scale-125' : 'bg-muted'
+                    }`}
+                    aria-label={`View conversation ${index + 1}`}
+                  />
+                ))}
               </div>
+
+              {/* Right arrow button - Uses ProfileCard style */}
+              <Button 
+                onClick={() => handleSlideChange(activeIndex + 1)}
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-full bg-background border border-border/50 shadow-sm"
+              >
+                <ArrowRight className="h-4 w-4" />
+                <span className="sr-only">Next slide</span>
+              </Button>
             </div>
           </div>
         </div>
