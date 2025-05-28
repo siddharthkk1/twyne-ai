@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,89 +38,91 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log("User signed in, checking if new user...");
           
-          // Check if user has any profile data - delay this check to avoid deadlock
-          setTimeout(async () => {
-            try {
-              const { data: userData, error } = await supabase
+          // Keep loading true while we check for new user status
+          setIsLoading(true);
+          
+          try {
+            // Check if user has any profile data
+            const { data: userData, error } = await supabase
+              .from('user_data')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            
+            console.log("User data check result:", { userData, error });
+            
+            if (!userData && !error) {
+              console.log("New user detected - no user_data record exists");
+              setIsNewUser(true);
+              
+              // Create initial user_data record for new users
+              const { error: insertError } = await supabase
                 .from('user_data')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .maybeSingle();
+                .insert({
+                  user_id: session.user.id,
+                  profile_data: {},
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                });
               
-              console.log("User data check result:", { userData, error });
+              if (insertError) {
+                console.error("Error creating initial user_data:", insertError);
+              } else {
+                console.log("Created initial user_data record");
+              }
+            } else if (userData) {
+              // Check if profile_data is empty - if so, still consider them new
+              const hasProfileData = userData.profile_data && 
+                typeof userData.profile_data === 'object' && 
+                Object.keys(userData.profile_data).length > 0;
               
-              if (!userData && !error) {
-                console.log("New user detected - no user_data record exists");
-                setIsNewUser(true);
+              console.log("Existing user found, hasProfileData:", hasProfileData);
+              setIsNewUser(!hasProfileData);
+            }
+            
+            // Handle transferring onboarding data after sign in/up
+            const onboardingData = localStorage.getItem('onboarding_profile_data');
+            if (onboardingData) {
+              try {
+                const parsedData = JSON.parse(onboardingData);
+                console.log("Found onboarding data, transferring to user_data table");
                 
-                // Create initial user_data record for new users
-                const { error: insertError } = await supabase
+                // Save to user_data table
+                const { error: updateError } = await supabase
                   .from('user_data')
-                  .insert({
+                  .upsert({
                     user_id: session.user.id,
-                    profile_data: {},
+                    profile_data: parsedData,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
                   });
-                
-                if (insertError) {
-                  console.error("Error creating initial user_data:", insertError);
-                } else {
-                  console.log("Created initial user_data record");
-                }
-              } else if (userData) {
-                // Check if profile_data is empty - if so, still consider them new
-                const hasProfileData = userData.profile_data && 
-                  typeof userData.profile_data === 'object' && 
-                  Object.keys(userData.profile_data).length > 0;
-                
-                console.log("Existing user found, hasProfileData:", hasProfileData);
-                setIsNewUser(!hasProfileData);
-              }
-              
-              // Handle transferring onboarding data after sign in/up
-              const onboardingData = localStorage.getItem('onboarding_profile_data');
-              if (onboardingData) {
-                try {
-                  const parsedData = JSON.parse(onboardingData);
-                  console.log("Found onboarding data, transferring to user_data table");
-                  
-                  // Save to user_data table
-                  const { error: updateError } = await supabase
-                    .from('user_data')
-                    .upsert({
-                      user_id: session.user.id,
-                      profile_data: parsedData,
-                      created_at: new Date().toISOString(),
-                      updated_at: new Date().toISOString()
-                    });
 
-                  if (updateError) {
-                    console.error("Error transferring onboarding data:", updateError);
-                  } else {
-                    console.log("Successfully transferred onboarding data");
-                    localStorage.removeItem('onboarding_profile_data');
-                    setIsNewUser(false); // Clear new user flag since they now have data
-                    toast({
-                      title: "Profile Saved",
-                      description: "Your onboarding data has been saved to your account!",
-                    });
-                  }
-                } catch (e) {
-                  console.error("Could not parse onboarding data:", e);
+                if (updateError) {
+                  console.error("Error transferring onboarding data:", updateError);
+                } else {
+                  console.log("Successfully transferred onboarding data");
                   localStorage.removeItem('onboarding_profile_data');
+                  setIsNewUser(false); // Clear new user flag since they now have data
+                  toast({
+                    title: "Profile Saved",
+                    description: "Your onboarding data has been saved to your account!",
+                  });
                 }
+              } catch (e) {
+                console.error("Could not parse onboarding data:", e);
+                localStorage.removeItem('onboarding_profile_data');
               }
-              
-              // Fetch profile if user is logged in
-              fetchProfile(session.user.id);
-              
-            } catch (error) {
-              console.error("Error in auth state handler:", error);
-            } finally {
-              setIsLoading(false);
             }
-          }, 100);
+            
+            // Fetch profile if user is logged in
+            await fetchProfile(session.user.id);
+            
+          } catch (error) {
+            console.error("Error in auth state handler:", error);
+          } finally {
+            console.log("Setting isLoading to false, isNewUser:", isNewUser);
+            setIsLoading(false);
+          }
         } else if (!session) {
           // User signed out
           setProfile(null);

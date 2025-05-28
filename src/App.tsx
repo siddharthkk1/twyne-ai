@@ -28,9 +28,10 @@ const queryClient = new QueryClient();
 const HomeWrapper = () => {
   const { user, isLoading, isNewUser } = useAuth();
   
-  console.log("HomeWrapper - isLoading:", isLoading, "user:", user?.email, "isNewUser:", isNewUser);
+  console.log("HomeWrapper render - isLoading:", isLoading, "user:", user?.email, "isNewUser:", isNewUser);
   
   if (isLoading) {
+    console.log("HomeWrapper showing loading state");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -42,14 +43,15 @@ const HomeWrapper = () => {
     console.log("User logged in, isNewUser:", isNewUser);
     // If user is new (no profile data), redirect to onboarding
     if (isNewUser) {
-      console.log("Redirecting to onboarding");
+      console.log("Redirecting new user to onboarding");
       return <Navigate to="/onboarding" />;
     }
     // Otherwise redirect to mirror
-    console.log("Redirecting to mirror");
+    console.log("Redirecting existing user to mirror");
     return <Navigate to="/mirror" />;
   }
   
+  console.log("No user, showing landing page");
   return <Index />;
 };
 
