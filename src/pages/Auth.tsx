@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,29 +56,24 @@ const Auth = () => {
           navigate("/mirror");
         }
       } else {
-        // For signup from auth page, we don't have onboarding data
-        // Only pass metadata if we have a proper name
+        // Use the auth context's signUp function
         const emailPrefix = email.split('@')[0];
         
-        console.log("Signing up with:", {
+        const userData = {
+          username: emailPrefix.trim() || 'user',
+          fullName: emailPrefix.trim() || 'User',
+          avatarUrl: '',
+          has_onboarded: false,
+          profile_data: {}
+        };
+
+        console.log("Signing up with auth context:", {
           email,
           password: "***",
-          full_name: emailPrefix
+          userData
         });
 
-        // Create signup data object
-        const signupData: any = { email, password };
-        
-        // Only add metadata if emailPrefix is valid
-        if (emailPrefix && emailPrefix.trim() !== '') {
-          signupData.options = {
-            data: {
-              full_name: emailPrefix.trim()
-            }
-          };
-        }
-
-        const { data, error } = await supabase.auth.signUp(signupData);
+        const { error } = await signUp(email, password, userData);
 
         if (error) {
           console.error("Signup error:", error);
@@ -88,7 +82,7 @@ const Auth = () => {
             description: error.message,
             variant: "destructive",
           });
-        } else if (data.user) {
+        } else {
           toast({
             title: "Account created successfully",
             description: "Welcome to Twyne!",
