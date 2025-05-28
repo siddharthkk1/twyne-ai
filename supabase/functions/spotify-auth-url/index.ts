@@ -23,7 +23,7 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
     }
     
-    // Ensure we're using the exact redirect URI format
+    // Ensure we're using the correct redirect URI format
     console.log('Spotify Auth - Using redirect URI:', redirect_uri)
     
     const clientId = Deno.env.get('SPOTIFY_CLIENT_ID')

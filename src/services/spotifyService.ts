@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface SpotifyTokenResponse {
@@ -50,26 +49,8 @@ export class SpotifyService {
   private static readonly API_BASE = 'https://api.spotify.com/v1';
   
   static getAuthUrl(): string {
-    // Use a placeholder that will be replaced by the edge function
-    const params = new URLSearchParams({
-      client_id: 'SPOTIFY_CLIENT_ID_PLACEHOLDER',
-      response_type: 'code',
-      redirect_uri: `${window.location.origin}/settings`,
-      scope: [
-        'user-read-private',
-        'user-read-email', 
-        'user-top-read',
-        'user-read-recently-played',
-        'playlist-read-private',
-        'playlist-read-collaborative',
-        'user-library-read',
-        'user-follow-read'
-      ].join(' '),
-      state: 'spotify_auth'
-    });
-    
-    // Get the actual auth URL from our edge function
-    return `/api/spotify-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/settings`)}`;
+    // Get the actual auth URL from our edge function with correct redirect URI
+    return `/api/spotify-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/auth/callback`)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<SpotifyTokenResponse> {
