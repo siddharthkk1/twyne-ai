@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -278,7 +279,7 @@ const AccountConnectionButtons = () => {
       setIsConnectingSpotify(true);
       console.log('Initiating Spotify connection...');
       
-      const redirectUri = `https://9c0cff03-a326-49dd-8bfb-d6678231c2b3.lovableproject.com/auth/callback`;
+      const redirectUri = `${window.location.origin}/auth/callback`;
       console.log('Spotify - Using redirect URI:', redirectUri);
       
       const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
@@ -314,7 +315,7 @@ const AccountConnectionButtons = () => {
       setIsConnectingYoutube(true);
       console.log('Initiating YouTube connection...');
       
-      const redirectUri = `https://9c0cff03-a326-49dd-8bfb-d6678231c2b3.lovableproject.com/auth/callback`;
+      const redirectUri = `${window.location.origin}/auth/callback`;
       console.log('YouTube - Using redirect URI:', redirectUri);
       
       const { data, error } = await supabase.functions.invoke('google-auth-url', {
