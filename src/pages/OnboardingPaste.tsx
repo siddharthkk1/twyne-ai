@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/Logo";
+import type { Json } from '@/integrations/supabase/types';
 
 interface UserProfile {
   name: string;
@@ -118,8 +119,8 @@ const OnboardingPaste = () => {
           .from('user_data')
           .upsert({
             user_id: user.id,
-            profile_data: profileData,
-            conversation_data: { reflection_source: reflection },
+            profile_data: profileData as unknown as Json,
+            conversation_data: { reflection_source: reflection } as unknown as Json,
             updated_at: new Date().toISOString()
           });
 
