@@ -1,16 +1,13 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, isLoading, isNewUser } = useAuth();
-  const location = useLocation();
-  const isOnboardingPath = location.pathname === "/onboarding";
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -25,8 +22,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" />;
   }
 
-  // If this is a new user and they're not at onboarding, RedirectNewUser will handle it
-  // If they're already at onboarding, let them stay there
   return <>{children}</>;
 };
 
