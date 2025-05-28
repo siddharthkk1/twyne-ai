@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -62,75 +63,76 @@ const OnboardingPaste = () => {
     setIsGenerating(true);
 
     try {
-      // OpenAI API key from the existing code
-      const OPENAI_API_KEY = "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";
+      // Create a mock conversation structure for the edge function
+      const mockConversation = {
+        messages: [
+          {
+            role: "system",
+            content: "You are analyzing a user's self-reflection to create their profile."
+          },
+          {
+            role: "user", 
+            content: `Here is my self-reflection: ${reflection}`
+          }
+        ]
+      };
 
-      // Profile generation system prompt adapted for reflection
-      const SYSTEM_PROMPT = `
-You are Twyne, a warm, emotionally intelligent AI that helps people connect with others who match their vibe.
-The user has provided a reflection or self-description from ChatGPT, which contains insights about their personality, interests, values, and more.
-Your task is to create a structured profile based on this reflection. It should be comprehensive but personal.
-`;
-
-      // Send to OpenAI
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: `Here is a self-reflection about me from ChatGPT: "${reflection}"` }
-          ],
-          temperature: 0.7,
-          max_tokens: 1000
-        })
+      // Call the existing generate-profile edge function
+      const { data, error } = await supabase.functions.invoke('generate-profile', {
+        body: { conversation: mockConversation }
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+      if (error) {
+        throw new Error(`Profile generation failed: ${error.message}`);
       }
 
-      const data = await response.json();
-      const profileText = data.choices[0].message.content;
-      
-      // Extract the JSON part
-      let profileData: UserProfile;
-      try {
-        // Try to extract JSON if it's wrapped in text
-        const jsonMatch = profileText.match(/(\{[\s\S]*\})/);
-        const jsonString = jsonMatch ? jsonMatch[0] : profileText;
-        profileData = JSON.parse(jsonString);
-      } catch (error) {
-        console.error("Error parsing AI profile:", error);
-        // As a fallback, create a basic profile with the reflection as the summary
-        profileData = {
-          name: "You",
-          location: "",
-          interests: [],
-          socialStyle: "",
-          connectionPreferences: "",
-          personalInsights: [],
-          vibeSummary: reflection.substring(0, 500),
-          twyneTags: ["#ReflectiveUser"]
-        };
+      if (!data) {
+        throw new Error('No profile data received');
       }
+
+      console.log('Generated profile data:', data);
+      
+      // Use the profile data directly since it's already structured
+      const profileData: UserProfile = {
+        name: data.name || "You",
+        location: data.location || "",
+        interests: data.talkingPoints || [data.interestsAndPassions || ""],
+        socialStyle: data.socialStyle || "",
+        connectionPreferences: data.connectionPreferences || "",
+        personalInsights: [
+          data.vibeSummary || "",
+          data.personalitySummary || "",
+          data.coreValues || ""
+        ].filter(insight => insight.trim() !== ""),
+        vibeSummary: data.vibeSummary || reflection.substring(0, 500),
+        twyneTags: data.twyneTags || ["#ReflectiveUser"],
+        // Include all the additional fields from the AI response
+        ...data
+      };
 
       setUserProfile(profileData);
 
       // If user is logged in, save the profile
       if (user) {
-        await supabase.auth.updateUser({
-          data: { 
-            has_onboarded: true,
+        const { error: updateError } = await supabase
+          .from('user_data')
+          .upsert({
+            user_id: user.id,
             profile_data: profileData,
-            reflection_data: reflection
-          }
-        });
-        clearNewUserFlag();
+            conversation_data: { reflection_source: reflection },
+            updated_at: new Date().toISOString()
+          });
+
+        if (updateError) {
+          console.error("Error saving profile:", updateError);
+          toast({
+            title: "Profile generated but not saved",
+            description: "Your profile was created but couldn't be saved to your account.",
+            variant: "destructive",
+          });
+        } else {
+          clearNewUserFlag();
+        }
       }
 
       // Navigate to results page
