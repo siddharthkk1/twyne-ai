@@ -143,25 +143,43 @@ serve(async (req) => {
     }
 
     if (updateType === "update") {
-      // Profile update mode
+      // Profile update mode - use a more focused prompt to avoid token limits
       const updatePrompt = `You are Twyne, an AI assistant that helps users update their personal profiles based on new conversations.
 
-Current user profile data:
-${JSON.stringify(profileData, null, 2)}
+Current user profile (core fields only):
+Name: ${profileData.name || 'Not set'}
+Location: ${profileData.location || 'Not set'}
+Vibe Summary: ${profileData.vibeSummary || 'Not set'}
+One Liner: ${profileData.oneLiner || 'Not set'}
+Core Values: ${profileData.coreValues || 'Not set'}
+Goals: ${profileData.goals || 'Not set'}
 
 The user has had the following conversation with you in their Mirror chat:
 ${conversation.messages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 
-Your task is to analyze this conversation and update the existing profile data with any new information shared by the user. Follow these guidelines:
+Your task is to analyze this conversation and provide updates to the user's profile data. Only update fields where the user has explicitly shared new information. Keep existing data that wasn't contradicted or updated.
 
-1. Only update fields where the user has explicitly shared new information
-2. Keep existing data that wasn't contradicted or updated
-3. If the user corrects existing information, update it accordingly
-4. Don't make assumptions - only use information directly stated by the user
-5. Maintain the same JSON structure as the current profile
-6. Ensure all JSON strings are properly escaped and valid
+Return ONLY a valid JSON object with the updated fields. Include only the fields that need to be updated or added. Do not include any explanations, markdown formatting, or additional text. The response must be parseable JSON.
 
-Return ONLY a valid JSON object with the updated profile data. Do not include any explanations, markdown formatting, or additional text. The response must be parseable JSON.`;
+Focus on these core profile fields:
+- name
+- location  
+- vibeSummary
+- oneLiner
+- coreValues
+- goals
+- lifestyle
+- interestsAndPassions
+- personalitySummary
+- socialStyle
+- twyneTags (array)
+- talkingPoints (array)
+
+Example format:
+{
+  "vibeSummary": "Updated vibe summary here",
+  "goals": "Updated goals here"
+}`;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -174,8 +192,8 @@ Return ONLY a valid JSON object with the updated profile data. Do not include an
           messages: [
             { role: "system", content: updatePrompt }
           ],
-          temperature: 0.1, // Lower temperature for more consistent JSON output
-          max_tokens: 2000,
+          temperature: 0.1,
+          max_tokens: 1500, // Reduced to focus on core updates
         }),
       });
 
@@ -194,8 +212,11 @@ Return ONLY a valid JSON object with the updated profile data. Do not include an
       console.log("Raw OpenAI response for profile update:", updatedProfileText);
       
       try {
-        const updatedProfile = safeParseJSON(updatedProfileText);
-        console.log("Successfully parsed updated profile:", updatedProfile);
+        const profileUpdates = safeParseJSON(updatedProfileText);
+        console.log("Successfully parsed profile updates:", profileUpdates);
+        
+        // Merge updates with existing profile data
+        const updatedProfile = { ...profileData, ...profileUpdates };
         
         // Update the user's profile data
         const { error: updateError } = await supabaseService
