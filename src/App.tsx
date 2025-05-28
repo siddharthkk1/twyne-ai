@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,7 +26,7 @@ const queryClient = new QueryClient();
 
 // Homepage wrapper that redirects logged-in users
 const HomeWrapper = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isNewUser } = useAuth();
   
   if (isLoading) {
     return (
@@ -38,6 +37,11 @@ const HomeWrapper = () => {
   }
   
   if (user) {
+    // If user is new (no profile data), redirect to onboarding
+    if (isNewUser) {
+      return <Navigate to="/onboarding" />;
+    }
+    // Otherwise redirect to mirror
     return <Navigate to="/mirror" />;
   }
   

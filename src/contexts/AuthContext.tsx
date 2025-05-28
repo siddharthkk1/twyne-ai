@@ -36,8 +36,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle transferring onboarding data after sign in/up
+        // Check if this is a new user signup
         if (event === 'SIGNED_IN' && session?.user) {
+          // Check if user has any profile data
+          const { data: userData } = await supabase
+            .from('user_data')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          
+          // If no user data exists, this is likely a new user
+          if (!userData) {
+            console.log("New user detected, will redirect to onboarding");
+            setIsNewUser(true);
+          }
+          
+          // Handle transferring onboarding data after sign in/up
           const onboardingData = localStorage.getItem('onboarding_profile_data');
           if (onboardingData) {
             try {
@@ -59,6 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               } else {
                 console.log("Successfully transferred onboarding data");
                 localStorage.removeItem('onboarding_profile_data');
+                setIsNewUser(false); // Clear new user flag since they now have data
                 toast({
                   title: "Profile Saved",
                   description: "Your onboarding data has been saved to your account!",
@@ -113,17 +128,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           ...userData,
           profile_data: userData.profile_data
         });
+        setIsNewUser(false); // User has data, not new
         return;
       }
 
-      // If no user_data found, set profile to null
+      // If no user_data found, set profile to null and mark as new user
       if (userDataError || !userData) {
-        console.log('No user_data found, profile will be null');
+        console.log('No user_data found, marking as new user');
         setProfile(null);
+        setIsNewUser(true);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+      setIsNewUser(true);
     }
   };
 

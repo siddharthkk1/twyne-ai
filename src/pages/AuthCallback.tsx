@@ -127,7 +127,8 @@ const AuthCallback = () => {
 
           console.log('Complete Spotify data fetched:', spotifyData);
 
-          await MirrorDataService.storeConnectionData('spotify', spotifyData);
+          // Store in localStorage for immediate access (not in database raw_platform_data)
+          localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
 
           setStatus('Generating your music insights...');
           
@@ -147,9 +148,10 @@ const AuthCallback = () => {
             topAlbums: topAlbums.slice(0, 5)
           };
 
+          // Only store synthesized data, not raw data
           await MirrorDataService.storeMirrorData(
             { spotify: synthesizedSpotifyData },
-            { spotify: spotifyData }
+            {} // Don't store raw data
           );
 
           setStatus('Spotify connected successfully!');
@@ -192,7 +194,8 @@ const AuthCallback = () => {
 
           console.log('Complete YouTube data fetched:', youtubeData);
 
-          await MirrorDataService.storeConnectionData('youtube', youtubeData);
+          // Store in localStorage for immediate access (not in database raw_platform_data)
+          localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
 
           setStatus('Generating your content insights...');
           

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
@@ -35,7 +36,7 @@ export class MirrorDataService {
       spotify?: SynthesizedSpotifyData;
       youtube?: { summary: string };
     },
-    rawData: {
+    rawData?: {
       spotify?: any;
       youtube?: any;
     }
@@ -73,47 +74,11 @@ export class MirrorDataService {
         ...(synthesizedData.youtube && { youtube_summary: synthesizedData.youtube.summary })
       };
 
-      // Prepare raw data storage
-      const rawDataToStore: any = {};
-      
-      // Store raw Spotify data if not too large (limit to ~1MB)
-      if (rawData.spotify) {
-        const spotifySize = JSON.stringify(rawData.spotify).length;
-        if (spotifySize < 1000000) { // 1MB limit
-          rawDataToStore.spotify = rawData.spotify;
-        } else {
-          console.warn('Spotify data too large, storing summary only');
-          rawDataToStore.spotify = {
-            profile: rawData.spotify.profile,
-            topTracks: rawData.spotify.topTracks?.short_term?.slice(0, 50),
-            topArtists: rawData.spotify.topArtists?.short_term?.slice(0, 50),
-            summary: 'Full data truncated due to size'
-          };
-        }
-      }
-
-      // Store raw YouTube data if not too large
-      if (rawData.youtube) {
-        const youtubeSize = JSON.stringify(rawData.youtube).length;
-        if (youtubeSize < 1000000) { // 1MB limit
-          rawDataToStore.youtube = rawData.youtube;
-        } else {
-          console.warn('YouTube data too large, storing summary only');
-          rawDataToStore.youtube = {
-            channel: rawData.youtube.channel,
-            videos: rawData.youtube.videos?.slice(0, 50),
-            playlists: rawData.youtube.playlists?.slice(0, 50),
-            summary: 'Full data truncated due to size'
-          };
-        }
-      }
-
-      // Update user_data with both synthesized insights and raw data
+      // Update user_data with synthesized insights only (no raw data storage)
       const { error: updateError } = await supabase
         .from('user_data')
         .update({
           profile_data: updatedProfileData as any,
-          raw_platform_data: rawDataToStore as any,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -141,54 +106,25 @@ export class MirrorDataService {
         return {};
       }
 
-      // Get user's stored platform data
-      const { data: userData } = await supabase
-        .from('user_data')
-        .select('raw_platform_data, profile_data')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!userData) {
-        console.log('No user data found');
-        return {};
-      }
-
       const connectionData: { spotify?: any; youtube?: any } = {};
 
-      // Load raw platform data if available
-      if (userData.raw_platform_data && typeof userData.raw_platform_data === 'object') {
-        const rawData = userData.raw_platform_data as Record<string, any>;
-        
-        if (rawData.spotify) {
-          connectionData.spotify = rawData.spotify;
-          console.log('Loaded Spotify connection data from database');
-        }
-        
-        if (rawData.youtube) {
-          connectionData.youtube = rawData.youtube;
-          console.log('Loaded YouTube connection data from database');
-        }
-      }
-
-      // Also check localStorage as fallback and sync it to database if found
+      // Load from localStorage only (no longer storing in database)
       const localSpotifyData = localStorage.getItem('spotify_data');
       const localYouTubeData = localStorage.getItem('youtube_data');
       
-      if (localSpotifyData && !connectionData.spotify) {
+      if (localSpotifyData) {
         try {
           connectionData.spotify = JSON.parse(localSpotifyData);
-          console.log('Found Spotify data in localStorage, will sync to database');
+          console.log('Loaded Spotify data from localStorage');
         } catch (error) {
           console.error('Error parsing Spotify data from localStorage:', error);
         }
       }
       
-      if (localYouTubeData && !connectionData.youtube) {
+      if (localYouTubeData) {
         try {
           connectionData.youtube = JSON.parse(localYouTubeData);
-          console.log('Found YouTube data in localStorage, will sync to database');
+          console.log('Loaded YouTube data from localStorage');
         } catch (error) {
           console.error('Error parsing YouTube data from localStorage:', error);
         }
@@ -203,55 +139,9 @@ export class MirrorDataService {
 
   static async storeConnectionData(platform: 'spotify' | 'youtube', data: any) {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        console.error('User not authenticated');
-        // Still store in localStorage for anonymous users
-        localStorage.setItem(`${platform}_data`, JSON.stringify(data));
-        return;
-      }
-
-      // Store in localStorage for immediate access
+      // Only store in localStorage for immediate access (no database storage)
       localStorage.setItem(`${platform}_data`, JSON.stringify(data));
-
-      // Get current user data
-      const { data: userData } = await supabase
-        .from('user_data')
-        .select('raw_platform_data')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!userData) {
-        console.error('No user data found');
-        return;
-      }
-
-      // Update raw_platform_data
-      const currentRawData = userData.raw_platform_data && typeof userData.raw_platform_data === 'object'
-        ? userData.raw_platform_data as Record<string, any>
-        : {};
-
-      const updatedRawData = {
-        ...currentRawData,
-        [platform]: data
-      };
-
-      const { error: updateError } = await supabase
-        .from('user_data')
-        .update({
-          raw_platform_data: updatedRawData as any,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (updateError) {
-        console.error(`Error storing ${platform} connection data:`, updateError);
-        return;
-      }
-
-      console.log(`${platform} connection data stored successfully`);
+      console.log(`${platform} connection data stored in localStorage`);
     } catch (error) {
       console.error(`Error storing ${platform} connection data:`, error);
     }
