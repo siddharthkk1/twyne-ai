@@ -91,15 +91,21 @@ export const useOnboardingAI = () => {
     try {
       console.log("Generating profile from conversation:", finalConversation);
       
+      // Add userName to conversation data for profile generation
+      const conversationWithUser = {
+        ...finalConversation,
+        userName: userName
+      };
+      
       // Call the profile generation edge function
-      const profileData = await generateAIProfile(finalConversation);
+      const profileData = await generateAIProfile(conversationWithUser);
       
       console.log("Generated profile data:", profileData);
       
       // Ensure the profile has required fields and add legacy compatibility
       const completeProfile: UserProfile = {
-        // Core required fields
-        name: profileData.name || userName || "",
+        // Core required fields - prioritize userName over profileData.name
+        name: userName || profileData.name || "",
         location: profileData.location || "",
         
         // New AI-generated fields

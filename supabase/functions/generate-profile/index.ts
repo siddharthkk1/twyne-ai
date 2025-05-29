@@ -37,7 +37,7 @@ Raw Conversation:
 ${conversationText}
 
 🧱 Output Format:
-Return a single valid JSON object in the following structure. All fields must be included, even if empty ("" or []).
+Return ONLY a valid JSON object (no markdown formatting, no code blocks, no backticks) in the following structure. All fields must be included, even if empty ("" or []).
 
 {
   "vibeSummary": "",
@@ -91,7 +91,7 @@ Return a single valid JSON object in the following structure. All fields must be
 - Use full, thoughtful sentences. Never write just 1–2 words unless it's a list.
 - Avoid generic summaries. Make every detail feel specific and grounded in the user's story.
 - Don't make things up. If something is unclear, gently infer or acknowledge the gap.
-- Always return valid JSON and include all fields.`;
+- Return ONLY the JSON object, no markdown formatting or code blocks.`;
 
     // Call OpenAI API
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -128,20 +128,52 @@ Return a single valid JSON object in the following structure. All fields must be
 
     console.log('Generated profile content:', profileContent);
 
-    // Try to parse the JSON response
+    // Function to clean markdown formatting from OpenAI response
+    const cleanMarkdownJson = (content: string): string => {
+      // Remove markdown code blocks (```json ... ```)
+      let cleaned = content.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+      
+      // Remove any remaining backticks
+      cleaned = cleaned.replace(/```/g, '');
+      
+      // Trim whitespace
+      cleaned = cleaned.trim();
+      
+      return cleaned;
+    };
+
+    // Try to parse the JSON response with markdown cleanup
     let profileData;
     try {
-      profileData = JSON.parse(profileContent);
+      const cleanedContent = cleanMarkdownJson(profileContent);
+      console.log('Cleaned content for parsing:', cleanedContent);
+      profileData = JSON.parse(cleanedContent);
     } catch (parseError) {
       console.error('Error parsing profile JSON:', parseError);
       console.error('Raw content:', profileContent);
+      
+      // Extract user name from conversation for fallback
+      let extractedName = "";
+      try {
+        const userMessages = conversation.messages.filter((msg: any) => msg.role === 'user');
+        // Look for name patterns in user messages
+        for (const msg of userMessages) {
+          const nameMatch = msg.content.match(/my name is (\w+)|i'm (\w+)|call me (\w+)/i);
+          if (nameMatch) {
+            extractedName = nameMatch[1] || nameMatch[2] || nameMatch[3];
+            break;
+          }
+        }
+      } catch (nameError) {
+        console.error('Error extracting name:', nameError);
+      }
       
       // Return a basic profile structure if parsing fails
       profileData = {
         vibeSummary: "They seem like someone with a unique perspective on life.",
         oneLiner: "An interesting person worth getting to know.",
         twyneTags: [],
-        name: "",
+        name: extractedName,
         age: "",
         location: "",
         job: "",
@@ -185,6 +217,13 @@ Return a single valid JSON object in the following structure. All fields must be
         connectionActivities: ""
       };
     }
+
+    // Ensure name preservation - if no name in profile but we have it from conversation
+    if (!profileData.name && conversation.userName) {
+      profileData.name = conversation.userName;
+    }
+
+    console.log('Final profile data being returned:', profileData);
 
     return new Response(JSON.stringify(profileData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
