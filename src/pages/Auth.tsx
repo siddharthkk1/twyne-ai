@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +17,25 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, isLoading: authLoading, isNewUser } = useAuth();
   const navigate = useNavigate();
+
+  // Handle redirect after successful authentication
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log("Auth page: User authenticated, redirecting...", { user: user.email, isNewUser });
+      
+      // If user is new (no profile data), redirect to onboarding
+      if (isNewUser) {
+        console.log("Auth page: Redirecting new user to onboarding");
+        navigate("/onboarding");
+      } else {
+        // Otherwise redirect to mirror
+        console.log("Auth page: Redirecting existing user to mirror");
+        navigate("/mirror");
+      }
+    }
+  }, [user, authLoading, isNewUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +70,7 @@ const Auth = () => {
             variant: "destructive",
           });
         }
-        // Don't redirect here - let AuthContext handle it
+        // Redirect is handled by useEffect above
       } else {
         // Use the auth context's signUp function
         const emailPrefix = email.split('@')[0];
@@ -86,7 +103,7 @@ const Auth = () => {
             title: "Account created successfully",
             description: "Welcome to Twyne!",
           });
-          // Don't redirect here - let AuthContext handle it
+          // Redirect is handled by useEffect above
         }
       }
     } catch (error: any) {
@@ -108,7 +125,6 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Remove the hardcoded redirectTo - let auth context handle routing
           redirectTo: window.location.origin + '/auth/callback'
         }
       });
@@ -130,6 +146,24 @@ const Auth = () => {
       setIsGoogleLoading(false);
     }
   };
+
+  // Show loading state while auth is being processed
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  // If user is already authenticated, don't show auth form
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-4">
