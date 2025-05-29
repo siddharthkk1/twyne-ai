@@ -123,12 +123,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.log("Setting isLoading to false, isNewUser:", isNewUser);
             setIsLoading(false);
           }
-        } else if (!session) {
+        } else if (event === 'SIGNED_OUT' || !session) {
           // User signed out
           setProfile(null);
           setIsNewUser(false);
           setIsLoading(false);
         } else {
+          // For any other event, make sure loading is false
           setIsLoading(false);
         }
       }
