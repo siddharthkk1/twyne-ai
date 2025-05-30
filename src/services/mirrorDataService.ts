@@ -198,8 +198,8 @@ export class MirrorDataService {
           console.log('Loaded Spotify connection from database');
         }
         
-        if (connections.youtube?.profile) {
-          connectionData.youtube = { channel: connections.youtube.profile };
+        if (connections.youtube?.channel) {
+          connectionData.youtube = { channel: connections.youtube.channel };
           console.log('Loaded YouTube connection from database');
         }
       }
