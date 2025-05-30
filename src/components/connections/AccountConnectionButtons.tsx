@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -39,33 +38,44 @@ const AccountConnectionButtons = () => {
 
   const loadConnectionData = async () => {
     try {
-      console.log('Loading connection data...');
+      console.log('=== LOADING CONNECTION DATA IN COMPONENT ===');
+      console.log('Current user state:', user ? user.id : 'not authenticated');
+      
       const connectionData = await MirrorDataService.loadConnectionData();
-      console.log('Loaded connection data:', connectionData);
+      console.log('Loaded connection data in component:', JSON.stringify(connectionData, null, 2));
       
       if (connectionData.spotify) {
         // Handle both direct profile and nested profile structure
         const profile = connectionData.spotify.profile || connectionData.spotify;
+        console.log('Setting Spotify profile in component:', JSON.stringify(profile, null, 2));
         setSpotifyProfile(profile);
         setSpotifyToken('connected');
-        console.log('Set Spotify profile state:', profile);
+      } else {
+        console.log('No Spotify connection found');
+        setSpotifyProfile(null);
+        setSpotifyToken(null);
       }
       
       if (connectionData.youtube) {
         // Use the channel data from the stored YouTube data
-        setYoutubeChannel(connectionData.youtube.channel || connectionData.youtube);
+        const channel = connectionData.youtube.channel || connectionData.youtube;
+        console.log('Setting YouTube channel in component:', JSON.stringify(channel, null, 2));
+        setYoutubeChannel(channel);
         setGoogleToken('connected');
-        console.log('Set YouTube channel state:', connectionData.youtube.channel || connectionData.youtube);
+      } else {
+        console.log('No YouTube connection found');
+        setYoutubeChannel(null);
+        setGoogleToken(null);
       }
     } catch (error) {
-      console.error('Error loading connection data:', error);
+      console.error('Error loading connection data in component:', error);
       // Fallback to localStorage
       loadFromLocalStorage();
     }
   };
 
   const loadFromLocalStorage = () => {
-    console.log('Loading from localStorage as fallback...');
+    console.log('Loading from localStorage as fallback in component...');
     const savedSpotifyToken = localStorage.getItem('spotify_access_token');
     const savedSpotifyProfile = localStorage.getItem('spotify_profile');
     const savedGoogleToken = localStorage.getItem('google_access_token');
@@ -148,7 +158,7 @@ const AccountConnectionButtons = () => {
   const fetchSpotifyData = async (accessToken: string) => {
     try {
       setIsFetchingData(true);
-      console.log('Fetching comprehensive Spotify data...');
+      console.log('=== FETCHING COMPREHENSIVE SPOTIFY DATA ===');
       
       const [
         profile,
@@ -176,7 +186,7 @@ const AccountConnectionButtons = () => {
         SpotifyService.getFollowedArtists(accessToken)
       ]);
 
-      console.log('Fetched Spotify profile:', profile);
+      console.log('Fetched Spotify profile for storage:', JSON.stringify(profile, null, 2));
 
       const spotifyData = {
         profile,
@@ -196,17 +206,26 @@ const AccountConnectionButtons = () => {
         followedArtists
       };
 
+      // Update UI state immediately
       setSpotifyProfile(profile);
+      
+      // Store in localStorage for immediate access
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
       
-      // Store connection info in database
+      // Store connection info in database - pass the complete spotifyData object
       console.log('Storing Spotify connection data in database...');
+      console.log('Data structure being passed to storeConnectionData:', JSON.stringify(spotifyData, null, 2));
       await MirrorDataService.storeConnectionData('spotify', spotifyData);
       
       console.log('Spotify data fetched and stored successfully');
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch Spotify data. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsFetchingData(false);
     }
@@ -363,6 +382,13 @@ const AccountConnectionButtons = () => {
       description: "Your YouTube account has been disconnected.",
     });
   };
+
+  // Enhanced debug logging for UI state
+  console.log('=== COMPONENT UI STATE ===');
+  console.log('spotifyProfile state:', spotifyProfile);
+  console.log('youtubeChannel state:', youtubeChannel);
+  console.log('spotifyToken state:', spotifyToken);
+  console.log('googleToken state:', googleToken);
 
   return (
     <div className="space-y-4">
