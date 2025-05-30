@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import RedirectNewUser from "./components/RedirectNewUser";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import OnboardingChat from "./pages/OnboardingChat";
@@ -63,7 +62,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <RedirectNewUser />
           <Routes>
             <Route path="/" element={<HomeWrapper />} />
             <Route path="/landing-v2" element={<LandingV2 />} />

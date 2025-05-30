@@ -35,11 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isNewUser, setIsNewUser] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   
-  // Use refs to prevent race conditions and track initialization
-  const initializationComplete = useRef(false);
+  // Use refs to prevent race conditions
   const profileLoadingRef = useRef(false);
-  const sessionCheckRef = useRef<NodeJS.Timeout | null>(null);
-  const authStateListenerSetup = useRef(false);
 
   // Session recovery function
   const refreshSession = async () => {
@@ -70,166 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
     }
   };
-
-  // Periodic session validation
-  useEffect(() => {
-    const validateSession = async () => {
-      if (!session) return;
-      
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          console.log('AuthContext: Session validation failed, clearing auth state');
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          setIsNewUser(false);
-        }
-      } catch (error) {
-        console.error('AuthContext: Session validation error:', error);
-      }
-    };
-
-    // Validate session every 5 minutes
-    if (session) {
-      sessionCheckRef.current = setInterval(validateSession, 5 * 60 * 1000);
-    }
-
-    return () => {
-      if (sessionCheckRef.current) {
-        clearInterval(sessionCheckRef.current);
-      }
-    };
-  }, [session]);
-
-  useEffect(() => {
-    console.log('AuthContext: Starting initialization...');
-    
-    const initializeAuth = async () => {
-      try {
-        // Set up auth state listener first
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            console.log('AuthContext: Auth state changed:', event, !!session);
-            
-            // Update session and user state synchronously
-            setSession(session);
-            setUser(session?.user ?? null);
-            
-            // Handle specific auth events
-            if (event === 'SIGNED_OUT') {
-              console.log('AuthContext: User signed out, clearing local data');
-              // Clear any cached data on sign out
-              localStorage.removeItem('spotify_profile');
-              localStorage.removeItem('spotify_data');
-              localStorage.removeItem('spotify_raw_data');
-              localStorage.removeItem('spotify_access_token');
-              localStorage.removeItem('spotify_refresh_token');
-              localStorage.removeItem('youtube_channel');
-              localStorage.removeItem('youtube_data');
-              localStorage.removeItem('google_access_token');
-              localStorage.removeItem('google_refresh_token');
-              setProfile(null);
-              setIsNewUser(false);
-              profileLoadingRef.current = false;
-            }
-            
-            if (event === 'TOKEN_REFRESHED') {
-              console.log('AuthContext: Token refreshed successfully');
-            }
-            
-            if (event === 'SIGNED_IN') {
-              console.log('AuthContext: User signed in successfully');
-            }
-            
-            // Load user profile when user signs in (deferred to prevent deadlock)
-            if (session?.user && !profileLoadingRef.current) {
-              setTimeout(() => {
-                loadUserProfile(session.user.id);
-              }, 0);
-            } else if (!session?.user) {
-              setProfile(null);
-              setIsNewUser(false);
-              profileLoadingRef.current = false;
-            }
-
-            // Mark initialization as complete after first auth state event
-            if (!initializationComplete.current) {
-              console.log('AuthContext: Initialization complete via auth state change');
-              initializationComplete.current = true;
-              setIsLoading(false);
-            }
-          }
-        );
-
-        authStateListenerSetup.current = true;
-
-        // Get initial session after setting up the listener
-        console.log('AuthContext: Getting initial session...');
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('AuthContext: Error getting initial session:', error);
-          // Try to refresh session if get session fails
-          await refreshSession();
-        } else {
-          console.log('AuthContext: Initial session loaded:', !!initialSession);
-          
-          // Only update state if auth listener hasn't fired yet
-          if (!initializationComplete.current) {
-            setSession(initialSession);
-            setUser(initialSession?.user ?? null);
-            
-            // Load user profile if session exists
-            if (initialSession?.user) {
-              setTimeout(() => {
-                loadUserProfile(initialSession.user.id);
-              }, 0);
-            }
-            
-            // Mark initialization complete
-            console.log('AuthContext: Initialization complete via initial session');
-            initializationComplete.current = true;
-            setIsLoading(false);
-          }
-        }
-
-        // Handle page visibility changes to refresh session when returning to tab
-        const handleVisibilityChange = () => {
-          if (!document.hidden && session) {
-            refreshSession();
-          }
-        };
-        
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        return () => {
-          console.log('AuthContext: Cleaning up auth subscription');
-          subscription.unsubscribe();
-          document.removeEventListener('visibilitychange', handleVisibilityChange);
-          if (sessionCheckRef.current) {
-            clearInterval(sessionCheckRef.current);
-          }
-        };
-
-      } catch (error) {
-        console.error('AuthContext: Error in initialization:', error);
-        // Ensure loading is set to false even if initialization fails
-        if (!initializationComplete.current) {
-          console.log('AuthContext: Initialization complete due to error');
-          initializationComplete.current = true;
-          setIsLoading(false);
-        }
-      }
-    };
-
-    const cleanup = initializeAuth();
-    
-    return () => {
-      cleanup.then(cleanupFn => cleanupFn?.());
-    };
-  }, []); // Empty dependency array to run only once
 
   const loadUserProfile = async (userId: string) => {
     if (profileLoadingRef.current) {
@@ -277,9 +114,108 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  useEffect(() => {
+    console.log('AuthContext: Starting initialization...');
+    
+    let mounted = true;
+    
+    const initializeAuth = async () => {
+      try {
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+            
+            console.log('AuthContext: Auth state changed:', event, !!session);
+            
+            setSession(session);
+            setUser(session?.user ?? null);
+            
+            if (event === 'SIGNED_OUT') {
+              console.log('AuthContext: User signed out, clearing local data');
+              localStorage.removeItem('spotify_profile');
+              localStorage.removeItem('spotify_data');
+              localStorage.removeItem('spotify_raw_data');
+              localStorage.removeItem('spotify_access_token');
+              localStorage.removeItem('spotify_refresh_token');
+              localStorage.removeItem('youtube_channel');
+              localStorage.removeItem('youtube_data');
+              localStorage.removeItem('google_access_token');
+              localStorage.removeItem('google_refresh_token');
+              setProfile(null);
+              setIsNewUser(false);
+              profileLoadingRef.current = false;
+            }
+            
+            if (session?.user && !profileLoadingRef.current) {
+              setTimeout(() => {
+                if (mounted) {
+                  loadUserProfile(session.user.id);
+                }
+              }, 0);
+            } else if (!session?.user) {
+              setProfile(null);
+              setIsNewUser(false);
+              profileLoadingRef.current = false;
+            }
+            
+            // Set loading to false after processing auth change
+            if (mounted) {
+              setIsLoading(false);
+            }
+          }
+        );
+
+        // Get initial session
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('AuthContext: Error getting initial session:', error);
+        } else {
+          console.log('AuthContext: Initial session loaded:', !!initialSession);
+          
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          
+          if (initialSession?.user) {
+            setTimeout(() => {
+              if (mounted) {
+                loadUserProfile(initialSession.user.id);
+              }
+            }, 0);
+          }
+        }
+        
+        // Set loading to false after initial session check
+        if (mounted) {
+          setIsLoading(false);
+        }
+
+        return () => {
+          console.log('AuthContext: Cleaning up auth subscription');
+          subscription.unsubscribe();
+        };
+
+      } catch (error) {
+        console.error('AuthContext: Error in initialization:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    const cleanup = initializeAuth();
+    
+    return () => {
+      mounted = false;
+      cleanup.then(cleanupFn => cleanupFn?.());
+    };
+  }, []);
+
   const signIn = async (email: string, password: string) => {
     try {
-      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -293,14 +229,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('AuthContext: Sign in exception:', error);
       return { error };
-    } finally {
-      // Don't set loading to false here - let auth state change handle it
     }
   };
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
-      setIsLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -317,8 +250,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('AuthContext: Sign up exception:', error);
       return { error };
-    } finally {
-      // Don't set loading to false here - let auth state change handle it
     }
   };
 
@@ -329,7 +260,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       console.log('AuthContext: Signing out user...');
-      setIsLoading(true);
       
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -350,18 +280,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('google_access_token');
       localStorage.removeItem('google_refresh_token');
       
-      // Clear state immediately
-      setSession(null);
-      setUser(null);
-      setProfile(null);
-      setIsNewUser(false);
-      profileLoadingRef.current = false;
+      // State will be cleared by the auth state change listener
       
     } catch (error) {
       console.error('AuthContext: Error in signOut:', error);
       throw error;
-    } finally {
-      // Don't set loading to false here - let auth state change handle it
     }
   };
 
