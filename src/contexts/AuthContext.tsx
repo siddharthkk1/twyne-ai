@@ -127,8 +127,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data) {
         console.log('User profile loaded:', data);
-        setProfile(data.profile_data || {});
-        setIsNewUser(!data.profile_data || Object.keys(data.profile_data).length === 0);
+        // Safely handle the profile_data which is of type Json
+        const profileData = data.profile_data;
+        if (profileData && typeof profileData === 'object' && !Array.isArray(profileData)) {
+          setProfile(profileData as UserProfile);
+          setIsNewUser(!profileData || Object.keys(profileData).length === 0);
+        } else {
+          setProfile(null);
+          setIsNewUser(true);
+        }
       } else {
         console.log('No user profile found - new user');
         setProfile(null);
