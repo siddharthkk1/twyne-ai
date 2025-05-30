@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
@@ -17,25 +17,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { signIn, signUp, user, isLoading: authLoading, isNewUser } = useAuth();
-  const navigate = useNavigate();
-
-  // Handle redirect after successful authentication
-  useEffect(() => {
-    if (!authLoading && user) {
-      console.log("Auth page: User authenticated, redirecting...", { user: user.email, isNewUser });
-      
-      // If user is new (no profile data), redirect to onboarding
-      if (isNewUser) {
-        console.log("Auth page: Redirecting new user to onboarding");
-        navigate("/onboarding");
-      } else {
-        // Otherwise redirect to mirror
-        console.log("Auth page: Redirecting existing user to mirror");
-        navigate("/mirror");
-      }
-    }
-  }, [user, authLoading, isNewUser, navigate]);
+  const { signIn, signUp, isLoading: authLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +51,12 @@ const Auth = () => {
             description: error.message,
             variant: "destructive",
           });
+        } else {
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
         }
-        // Redirect is handled by useEffect above
       } else {
         // Use the auth context's signUp function
         const emailPrefix = email.split('@')[0];
@@ -103,7 +89,6 @@ const Auth = () => {
             title: "Account created successfully",
             description: "Welcome to Twyne!",
           });
-          // Redirect is handled by useEffect above
         }
       }
     } catch (error: any) {
@@ -147,17 +132,8 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while auth is being processed
+  // Show loading state while auth context is initializing
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
-  // If user is already authenticated, don't show auth form
-  if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
