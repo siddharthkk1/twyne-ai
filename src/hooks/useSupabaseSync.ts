@@ -16,24 +16,25 @@ export const useSupabaseSync = () => {
     
     try {
       if (user) {
-        console.log("User auth state: Authenticated, saving to user_data table");
+        console.log("User auth state: Authenticated, updating user_data table");
         
-        // For authenticated users, save to user_data table
+        // For authenticated users, update the user_data table with onboarding completion
         const { error } = await supabase
           .from('user_data')
-          .insert({
-            user_id: user.id,
+          .update({
             profile_data: profile as unknown as Json,
             conversation_data: conversation as unknown as Json,
-            prompt_mode: promptMode || 'structured'
-          });
+            prompt_mode: promptMode || 'structured',
+            has_completed_onboarding: true
+          })
+          .eq('user_id', user.id);
 
         if (error) {
-          console.error("Error saving user data:", error);
+          console.error("Error updating user data:", error);
           throw error;
         }
 
-        console.log("User data saved successfully for authenticated user");
+        console.log("User data updated successfully for authenticated user");
         clearNewUserFlag();
       } else {
         console.log("User auth state: Anonymous");

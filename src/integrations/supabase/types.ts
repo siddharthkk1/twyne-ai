@@ -43,6 +43,7 @@ export type Database = {
         Row: {
           conversation_data: Json | null
           created_at: string
+          has_completed_onboarding: boolean
           id: string
           platform_connections: Json | null
           profile_data: Json
@@ -54,6 +55,7 @@ export type Database = {
         Insert: {
           conversation_data?: Json | null
           created_at?: string
+          has_completed_onboarding?: boolean
           id?: string
           platform_connections?: Json | null
           profile_data?: Json
@@ -65,6 +67,7 @@ export type Database = {
         Update: {
           conversation_data?: Json | null
           created_at?: string
+          has_completed_onboarding?: boolean
           id?: string
           platform_connections?: Json | null
           profile_data?: Json

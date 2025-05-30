@@ -10,6 +10,7 @@ interface UserProfile {
   bio?: string;
   location?: string;
   profile_data?: any;
+  has_completed_onboarding?: boolean;
   [key: string]: any;
 }
 
@@ -91,15 +92,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data) {
         console.log('User profile loaded:', data);
+        // Check the has_completed_onboarding flag to determine if user is new
+        const hasCompletedOnboarding = data.has_completed_onboarding || false;
+        
         // Safely handle the profile_data which is of type Json
         const profileData = data.profile_data;
         if (profileData && typeof profileData === 'object' && !Array.isArray(profileData)) {
-          setProfile(profileData as UserProfile);
-          setIsNewUser(!profileData || Object.keys(profileData).length === 0);
+          setProfile({ ...profileData as UserProfile, has_completed_onboarding: hasCompletedOnboarding });
         } else {
-          setProfile(null);
-          setIsNewUser(true);
+          setProfile({ has_completed_onboarding: hasCompletedOnboarding });
         }
+        
+        setIsNewUser(!hasCompletedOnboarding);
       } else {
         console.log('No user profile found - new user');
         setProfile(null);
