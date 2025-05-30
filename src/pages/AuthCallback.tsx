@@ -157,7 +157,7 @@ const AuthCallback = () => {
         topGenres
       });
 
-      // Store connection data in platform_connections (WITHOUT synthesizedData)
+      // Store connection metadata only (profile + tokens) in platform_connections
       const spotifyConnectionData = {
         profile,
         tokens: {
@@ -170,7 +170,7 @@ const AuthCallback = () => {
       // Store data locally for immediate access - only profile
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       
-      // Store connection data in database (platform_connections)
+      // Store connection metadata in database (platform_connections)
       await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
       
       // Store AI insights in profile_data - convert AI insights to match SynthesizedSpotifyData format
@@ -239,14 +239,6 @@ const AuthCallback = () => {
         YouTubeService.getWatchLaterPlaylist(tokenData.access_token)
       ]);
 
-      const youtubeData = {
-        videos,
-        playlists,
-        subscriptions,
-        likedVideos,
-        watchLater
-      };
-
       // Transform YouTube data for AI analysis - use safe property access
       const youtubeAnalysisData = {
         likedVideos: likedVideos.map(video => ({
@@ -274,22 +266,20 @@ const AuthCallback = () => {
       console.log('Generating YouTube AI insights...');
       const youtubeInsights = await AIProfileService.generateYouTubeProfile(youtubeAnalysisData);
 
-      // Store connection data in platform_connections (WITHOUT rawData)
+      // Store connection metadata only (channel + tokens) in platform_connections
       const youtubeConnectionData = {
         channel,
         tokens: {
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
           expires_at: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : null
-        },
-        data: youtubeData
+        }
       };
 
       // Store data locally for immediate access
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
-      localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
       
-      // Store connection data in database (platform_connections)
+      // Store connection metadata in database (platform_connections)
       await MirrorDataService.storeConnectionData('youtube', youtubeConnectionData);
       
       // Store AI insights in profile_data - youtubeInsights is already a string

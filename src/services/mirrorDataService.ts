@@ -46,7 +46,6 @@ interface PlatformConnections {
     channel: any;
     tokens?: PlatformTokens;
     connected_at: string;
-    data?: any;
   };
 }
 
@@ -55,10 +54,6 @@ export class MirrorDataService {
     synthesizedData: {
       spotify?: SynthesizedSpotifyData;
       youtube?: { summary: string };
-    },
-    rawData?: {
-      spotify?: any;
-      youtube?: any;
     }
   ) {
     try {
@@ -166,7 +161,7 @@ export class MirrorDataService {
         }
       }
 
-      // Prepare the connection data structure - EXCLUDE synthesizedData
+      // Prepare the connection data structure - only metadata (profile + tokens)
       let connectionData: any = {
         connected_at: new Date().toISOString()
       };
@@ -184,7 +179,6 @@ export class MirrorDataService {
         if (connectionInfo.tokens) {
           connectionData.tokens = connectionInfo.tokens;
         }
-        // NOTE: Explicitly NOT storing synthesizedData in platform_connections
       } else if (platform === 'youtube') {
         const channel = connectionInfo.channel || connectionInfo;
         
@@ -197,10 +191,6 @@ export class MirrorDataService {
         if (connectionInfo.tokens) {
           connectionData.tokens = connectionInfo.tokens;
         }
-        if (connectionInfo.data) {
-          connectionData.data = connectionInfo.data;
-        }
-        // NOTE: Explicitly NOT storing rawData in platform_connections
       }
 
       // Update connections with new platform data
@@ -275,8 +265,7 @@ export class MirrorDataService {
           if (youtubeChannel.id && youtubeChannel.snippet) {
             connectionData.youtube = {
               channel: youtubeChannel,
-              tokens: connections.youtube.tokens,
-              data: connections.youtube.data
+              tokens: connections.youtube.tokens
             };
           }
         }
