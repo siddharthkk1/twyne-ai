@@ -98,6 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data) {
         console.log('User profile loaded:', data);
+        console.log('Profile data:', data.profile_data);
+        console.log('SSO data:', data.sso_data);
         
         // Check if user has completed onboarding
         const hasCompletedOnboarding = data.has_completed_onboarding || false;
