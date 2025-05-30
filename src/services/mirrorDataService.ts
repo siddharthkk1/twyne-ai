@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
@@ -112,14 +113,15 @@ export class MirrorDataService {
 
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
+        console.error('Authentication error:', authError);
         console.log('User not authenticated, storing in localStorage only');
         localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-        return;
+        return { success: false, error: 'Not authenticated' };
       }
 
       console.log('User authenticated:', user.id);
 
-      // Get current user data
+      // Get current user data with error handling
       const { data: userData, error: fetchError } = await supabase
         .from('user_data')
         .select('*')
@@ -130,20 +132,49 @@ export class MirrorDataService {
 
       if (fetchError) {
         console.error('Error fetching user data:', fetchError);
-        return;
+        localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+        return { success: false, error: fetchError.message };
       }
 
       if (!userData) {
         console.error('No user data found for user:', user.id);
-        return;
+        // Create user data if it doesn't exist
+        console.log('Creating new user data entry...');
+        const { data: newUserData, error: createError } = await supabase
+          .from('user_data')
+          .insert({
+            user_id: user.id,
+            profile_data: {},
+            platform_connections: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating user data:', createError);
+          localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+          return { success: false, error: createError.message };
+        }
+
+        console.log('Created new user data:', newUserData);
+        // Use the newly created user data
+        userData = newUserData;
       }
 
       console.log('Current user data found:', userData.id);
 
-      // Get current platform connections
-      const currentConnections = userData.platform_connections && typeof userData.platform_connections === 'object'
-        ? userData.platform_connections as PlatformConnections
-        : {};
+      // Get current platform connections with proper type handling
+      let currentConnections: PlatformConnections = {};
+      
+      if (userData.platform_connections) {
+        if (typeof userData.platform_connections === 'object' && userData.platform_connections !== null) {
+          currentConnections = userData.platform_connections as PlatformConnections;
+        } else {
+          console.warn('Invalid platform_connections format, resetting to empty object');
+        }
+      }
 
       console.log('Current connections before update:', JSON.stringify(currentConnections, null, 2));
 
@@ -156,12 +187,12 @@ export class MirrorDataService {
       if (platform === 'spotify') {
         // Extract profile from connectionInfo - it could be at connectionInfo.profile or just connectionInfo
         const profile = connectionInfo.profile || connectionInfo;
-        console.log('Extracted Spotify profile:', JSON.stringify(profile, null, 2));
+        console.log('Extracted Spotify profile for storage:', JSON.stringify(profile, null, 2));
         connectionData.profile = profile;
       } else if (platform === 'youtube') {
         // Extract channel from connectionInfo
         const channel = connectionInfo.channel || connectionInfo;
-        console.log('Extracted YouTube channel:', JSON.stringify(channel, null, 2));
+        console.log('Extracted YouTube channel for storage:', JSON.stringify(channel, null, 2));
         connectionData.channel = channel;
       }
 
@@ -173,40 +204,77 @@ export class MirrorDataService {
 
       console.log('Updated connections to store:', JSON.stringify(updatedConnections, null, 2));
 
-      // Update the database
-      const { error: updateError, data: updateResult } = await supabase
-        .from('user_data')
-        .update({
-          platform_connections: updatedConnections as any,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .eq('id', userData.id)
-        .select();
+      // Update the database with retry logic
+      let updateAttempts = 0;
+      const maxAttempts = 3;
+      let updateSuccess = false;
 
-      if (updateError) {
-        console.error(`Error storing ${platform} connection data:`, updateError);
-        return;
+      while (updateAttempts < maxAttempts && !updateSuccess) {
+        updateAttempts++;
+        console.log(`Database update attempt ${updateAttempts}/${maxAttempts}`);
+
+        const { error: updateError, data: updateResult } = await supabase
+          .from('user_data')
+          .update({
+            platform_connections: updatedConnections as any,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .eq('id', userData.id)
+          .select();
+
+        if (updateError) {
+          console.error(`Database update attempt ${updateAttempts} failed:`, updateError);
+          
+          if (updateAttempts === maxAttempts) {
+            console.error(`All ${maxAttempts} database update attempts failed. Storing in localStorage only.`);
+            localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+            return { success: false, error: updateError.message };
+          }
+          
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000 * updateAttempts));
+        } else {
+          updateSuccess = true;
+          console.log(`${platform} connection data stored successfully in database on attempt ${updateAttempts}`);
+          console.log('Update result:', updateResult);
+        }
       }
 
-      console.log(`${platform} connection data stored successfully in database`);
-      console.log('Update result:', updateResult);
-
       // Verify the data was stored correctly
-      const { data: verifyData } = await supabase
+      const { data: verifyData, error: verifyError } = await supabase
         .from('user_data')
         .select('platform_connections')
         .eq('user_id', user.id)
         .eq('id', userData.id)
         .single();
 
-      console.log('Verification - data in database:', JSON.stringify(verifyData, null, 2));
+      if (verifyError) {
+        console.error('Verification query failed:', verifyError);
+      } else {
+        console.log('Verification - data in database:', JSON.stringify(verifyData, null, 2));
+        
+        // Check if our data is actually there
+        const storedConnections = verifyData.platform_connections as PlatformConnections;
+        if (storedConnections && storedConnections[platform]) {
+          console.log(`✅ ${platform} connection data verified in database`);
+        } else {
+          console.error(`❌ ${platform} connection data NOT found in database after update`);
+          localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+          return { success: false, error: 'Data verification failed' };
+        }
+      }
 
       // Also store in localStorage for immediate access
       localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-      console.log(`${platform} data also stored in localStorage`);
+      console.log(`${platform} data also stored in localStorage for immediate access`);
+      
+      return { success: true };
     } catch (error) {
-      console.error(`Error storing ${platform} connection data:`, error);
+      console.error(`Critical error storing ${platform} connection data:`, error);
+      // Fallback to localStorage
+      localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
@@ -225,7 +293,7 @@ export class MirrorDataService {
 
       console.log('User authenticated, loading from database for user:', user.id);
 
-      // Get user data from database
+      // Get user data from database with error handling
       const { data: userData, error: fetchError } = await supabase
         .from('user_data')
         .select('platform_connections')
@@ -235,7 +303,7 @@ export class MirrorDataService {
         .maybeSingle();
 
       if (fetchError) {
-        console.error('Error fetching user data:', fetchError);
+        console.error('Error fetching user data from database:', fetchError);
         return this.loadFromLocalStorage();
       }
 
@@ -246,50 +314,50 @@ export class MirrorDataService {
       // Load from database if available
       if (userData?.platform_connections && typeof userData.platform_connections === 'object') {
         const connections = userData.platform_connections as PlatformConnections;
-        console.log('Parsed platform connections:', JSON.stringify(connections, null, 2));
+        console.log('Parsed platform connections from database:', JSON.stringify(connections, null, 2));
         
         if (connections.spotify?.profile) {
           connectionData.spotify = { profile: connections.spotify.profile };
-          console.log('Loaded Spotify connection from database:', JSON.stringify(connectionData.spotify, null, 2));
+          console.log('✅ Loaded Spotify connection from database:', JSON.stringify(connectionData.spotify, null, 2));
         }
         
         if (connections.youtube?.channel) {
           connectionData.youtube = { channel: connections.youtube.channel };
-          console.log('Loaded YouTube connection from database:', JSON.stringify(connectionData.youtube, null, 2));
+          console.log('✅ Loaded YouTube connection from database:', JSON.stringify(connectionData.youtube, null, 2));
         }
       }
 
-      // Fallback to localStorage if nothing in database
-      if (!connectionData.spotify && !connectionData.youtube) {
-        console.log('No database connections found, falling back to localStorage');
-        return this.loadFromLocalStorage();
-      }
-
-      // Also check localStorage and merge if needed for immediate access
+      // Always check localStorage for comparison and potential fallback
       const localStorageData = this.loadFromLocalStorage();
       console.log('Local storage data for comparison:', JSON.stringify(localStorageData, null, 2));
       
-      return {
+      // Use database data if available, otherwise fallback to localStorage
+      const finalData = {
         spotify: connectionData.spotify || localStorageData.spotify,
         youtube: connectionData.youtube || localStorageData.youtube
       };
+
+      console.log('Final connection data to return:', JSON.stringify(finalData, null, 2));
+      return finalData;
     } catch (error) {
-      console.error('Error loading connection data from database:', error);
+      console.error('Critical error loading connection data from database:', error);
       return this.loadFromLocalStorage();
     }
   }
 
   static async removeConnectionData(platform: 'spotify' | 'youtube') {
     try {
+      console.log(`=== REMOVING ${platform.toUpperCase()} CONNECTION DATA ===`);
+      
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         console.log('User not authenticated, removing from localStorage only');
         localStorage.removeItem(`${platform}_data`);
-        return;
+        return { success: true };
       }
 
       // Get current user data
-      const { data: userData } = await supabase
+      const { data: userData, error: fetchError } = await supabase
         .from('user_data')
         .select('*')
         .eq('user_id', user.id)
@@ -297,9 +365,16 @@ export class MirrorDataService {
         .limit(1)
         .maybeSingle();
 
+      if (fetchError) {
+        console.error('Error fetching user data for removal:', fetchError);
+        localStorage.removeItem(`${platform}_data`);
+        return { success: false, error: fetchError.message };
+      }
+
       if (!userData) {
-        console.error('No user data found');
-        return;
+        console.error('No user data found for removal');
+        localStorage.removeItem(`${platform}_data`);
+        return { success: true };
       }
 
       // Get current platform connections
@@ -310,6 +385,8 @@ export class MirrorDataService {
       // Remove the specific platform
       const updatedConnections = { ...currentConnections };
       delete updatedConnections[platform];
+
+      console.log('Removing platform connection, updated connections:', JSON.stringify(updatedConnections, null, 2));
 
       // Update the database
       const { error: updateError } = await supabase
@@ -322,43 +399,56 @@ export class MirrorDataService {
         .eq('id', userData.id);
 
       if (updateError) {
-        console.error(`Error removing ${platform} connection data:`, updateError);
-        return;
+        console.error(`Error removing ${platform} connection data from database:`, updateError);
+        localStorage.removeItem(`${platform}_data`);
+        return { success: false, error: updateError.message };
       }
 
-      console.log(`${platform} connection data removed successfully`);
+      console.log(`✅ ${platform} connection data removed successfully from database`);
 
       // Also remove from localStorage
       localStorage.removeItem(`${platform}_data`);
+      console.log(`✅ ${platform} connection data removed from localStorage`);
+      
+      return { success: true };
     } catch (error) {
-      console.error(`Error removing ${platform} connection data:`, error);
+      console.error(`Critical error removing ${platform} connection data:`, error);
+      localStorage.removeItem(`${platform}_data`);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
   private static loadFromLocalStorage(): { spotify?: any; youtube?: any } {
     const connectionData: { spotify?: any; youtube?: any } = {};
     
-    const localSpotifyData = localStorage.getItem('spotify_data');
-    const localYouTubeData = localStorage.getItem('youtube_data');
-    
-    if (localSpotifyData) {
-      try {
-        connectionData.spotify = JSON.parse(localSpotifyData);
-        console.log('Loaded Spotify data from localStorage');
-      } catch (error) {
-        console.error('Error parsing Spotify data from localStorage:', error);
+    try {
+      const localSpotifyData = localStorage.getItem('spotify_data');
+      const localYouTubeData = localStorage.getItem('youtube_data');
+      
+      if (localSpotifyData) {
+        try {
+          const parsedSpotifyData = JSON.parse(localSpotifyData);
+          connectionData.spotify = parsedSpotifyData;
+          console.log('✅ Loaded Spotify data from localStorage');
+        } catch (error) {
+          console.error('Error parsing Spotify data from localStorage:', error);
+        }
       }
-    }
-    
-    if (localYouTubeData) {
-      try {
-        connectionData.youtube = JSON.parse(localYouTubeData);
-        console.log('Loaded YouTube data from localStorage');
-      } catch (error) {
-        console.error('Error parsing YouTube data from localStorage:', error);
+      
+      if (localYouTubeData) {
+        try {
+          const parsedYouTubeData = JSON.parse(localYouTubeData);
+          connectionData.youtube = parsedYouTubeData;
+          console.log('✅ Loaded YouTube data from localStorage');
+        } catch (error) {
+          console.error('Error parsing YouTube data from localStorage:', error);
+        }
       }
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
     }
 
+    console.log('Final localStorage data:', JSON.stringify(connectionData, null, 2));
     return connectionData;
   }
 }
