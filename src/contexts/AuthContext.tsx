@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -99,7 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data) {
         console.log('User profile loaded:', data);
-        // Check the has_completed_onboarding flag to determine if user is new
+        
+        // Check if user has completed onboarding
         const hasCompletedOnboarding = data.has_completed_onboarding || false;
         
         // Check if this is an SSO user by looking at sso_data
@@ -108,13 +108,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         let userProfile: UserProfile = { has_completed_onboarding: hasCompletedOnboarding };
         
-        // If there's SSO data, this is an SSO user
+        // If there's meaningful SSO data, this is an SSO user
         if (ssoData && typeof ssoData === 'object' && !Array.isArray(ssoData) && Object.keys(ssoData).length > 0) {
           console.log('SSO user detected with sso_data:', ssoData);
           userProfile = { ...userProfile, ...ssoData as UserProfile, sso_data: ssoData };
-          // For SSO users, if they haven't completed onboarding, they're new
-          setIsNewUser(!hasCompletedOnboarding);
-        } else if (profileData && typeof profileData === 'object' && !Array.isArray(profileData)) {
+          
+          // For Google SSO users, check if they have completed onboarding
+          // If they haven't, they should go through onboarding regardless of having SSO data
+          if (!hasCompletedOnboarding) {
+            console.log('SSO user has not completed onboarding - treating as new user');
+            setIsNewUser(true);
+          } else {
+            console.log('SSO user has completed onboarding - treating as existing user');
+            setIsNewUser(false);
+          }
+        } else if (profileData && typeof profileData === 'object' && !Array.isArray(profileData) && Object.keys(profileData).length > 0) {
           // Regular user with profile data
           console.log('Regular user with profile_data:', profileData);
           userProfile = { ...userProfile, ...profileData as UserProfile, profile_data: profileData };
@@ -155,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!mounted) return;
             
             console.log('AuthContext: Auth state changed:', event, !!session);
+            console.log('AuthContext: Session user metadata:', session?.user?.user_metadata);
+            console.log('AuthContext: Session app metadata:', session?.user?.app_metadata);
             
             setSession(session);
             setUser(session?.user ?? null);
@@ -203,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLoading(false);
         } else {
           console.log('AuthContext: Initial session loaded:', !!initialSession);
+          console.log('AuthContext: Initial session user metadata:', initialSession?.user?.user_metadata);
           
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
