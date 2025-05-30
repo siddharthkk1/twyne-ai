@@ -121,8 +121,8 @@ export class MirrorDataService {
 
       console.log('User authenticated:', user.id);
 
-      // Get current user data with error handling
-      const { data: userData, error: fetchError } = await supabase
+      // Get current user data with error handling - use let instead of const so we can reassign
+      let { data: userData, error: fetchError } = await supabase
         .from('user_data')
         .select('*')
         .eq('user_id', user.id)
