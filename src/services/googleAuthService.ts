@@ -13,8 +13,21 @@ export class GoogleAuthService {
   private static readonly AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
   
   static getYouTubeAuthUrl(): string {
-    // Get the actual auth URL from our edge function with correct redirect URI
-    return `/api/google-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/auth/callback`)}`;
+    // Determine the correct origin based on current domain
+    const currentOrigin = window.location.origin;
+    
+    // Handle different domains
+    let authUrlBase;
+    if (currentOrigin.includes('lovableproject.com')) {
+      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
+    } else if (currentOrigin.includes('lovable.app')) {
+      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
+    } else {
+      // Local development or other domains
+      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
+    }
+    
+    return `${authUrlBase}?redirect_uri=${encodeURIComponent(`${currentOrigin}/auth/callback`)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<GoogleTokenResponse> {
@@ -23,6 +36,7 @@ export class GoogleAuthService {
     });
     
     if (error) {
+      console.error('Google token exchange error:', error);
       throw new Error('Failed to exchange code for token');
     }
     

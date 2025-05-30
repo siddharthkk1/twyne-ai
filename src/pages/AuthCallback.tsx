@@ -108,7 +108,63 @@ const AuthCallback = () => {
         SpotifyService.getFollowedArtists(tokenData.access_token)
       ]);
 
-      const spotifyData = {
+      // Combine all tracks and artists for processing
+      const allTracks = [
+        ...topTracksShort,
+        ...topTracksMedium, 
+        ...topTracksLong,
+        ...recentlyPlayed,
+        ...savedTracks
+      ];
+
+      const allArtists = [
+        ...topArtistsShort,
+        ...topArtistsMedium,
+        ...topArtistsLong,
+        ...followedArtists
+      ];
+
+      // Extract genres from artists
+      const genreCount: Record<string, number> = {};
+      allArtists.forEach(artist => {
+        if (artist.genres) {
+          artist.genres.forEach(genre => {
+            genreCount[genre] = (genreCount[genre] || 0) + 1;
+          });
+        }
+      });
+
+      const topGenres = Object.entries(genreCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 10)
+        .map(([genre]) => genre);
+
+      // Create synthesized data structure that matches component expectations
+      const synthesizedData = {
+        topTracks: topTracksMedium.slice(0, 20).map((track, index) => ({
+          rank: index + 1,
+          title: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          imageUrl: track.album.images[0]?.url || ''
+        })),
+        topArtists: topArtistsMedium.slice(0, 20).map((artist, index) => ({
+          rank: index + 1,
+          name: artist.name,
+          imageUrl: artist.images[0]?.url || ''
+        })),
+        topGenres,
+        topAlbums: allTracks
+          .map(track => track.album)
+          .filter((album, index, arr) => 
+            arr.findIndex(a => a.id === album.id) === index
+          )
+          .slice(0, 10),
+        // Store full data for AI processing
+        fullTopTracks: topTracksMedium,
+        fullTopArtists: topArtistsMedium
+      };
+
+      const rawSpotifyData = {
         profile,
         topTracks: {
           short_term: topTracksShort,
@@ -128,13 +184,13 @@ const AuthCallback = () => {
 
       // Store data locally
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
-      localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
+      localStorage.setItem('spotify_data', JSON.stringify(synthesizedData));
+      localStorage.setItem('spotify_raw_data', JSON.stringify(rawSpotifyData));
       
-      // Store in database if user is authenticated
-      if (user) {
-        await MirrorDataService.storeMirrorData({}, { spotify: spotifyData });
-        console.log('Spotify data stored in database successfully');
-      }
+      console.log('Spotify data stored successfully:', {
+        synthesized: synthesizedData,
+        raw: rawSpotifyData
+      });
       
       toast({
         title: "Spotify Connected!",
@@ -191,11 +247,7 @@ const AuthCallback = () => {
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
       localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
       
-      // Store in database if user is authenticated
-      if (user) {
-        await MirrorDataService.storeMirrorData({}, { youtube: youtubeData });
-        console.log('YouTube data stored in database successfully');
-      }
+      console.log('YouTube data stored successfully:', youtubeData);
       
       toast({
         title: "YouTube Connected!",

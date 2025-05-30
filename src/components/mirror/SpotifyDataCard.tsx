@@ -27,19 +27,11 @@ interface SpotifyData {
     artists: Array<{ name: string }>;
     images: Array<{ url: string }>;
   }>;
-  // For backwards compatibility with old data format
+  // For backwards compatibility and AI processing
   fullTopTracks?: Array<{
     name: string;
     artists: Array<{ name: string }>;
     album: { name: string; images: Array<{ url: string }> };
-    audio_features?: {
-      danceability: number;
-      energy: number;
-      valence: number;
-      tempo: number;
-      acousticness: number;
-      instrumentalness: number;
-    };
   }>;
   fullTopArtists?: Array<{
     name: string;
@@ -57,7 +49,6 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(data);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [spotifyInsights, setSpotifyInsights] = useState<any>(null);
-  const [rawSpotifyData, setRawSpotifyData] = useState<any>(null);
 
   // Try to load data from localStorage if not provided
   useEffect(() => {
@@ -68,7 +59,6 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           const parsed = JSON.parse(storedData);
           console.log('Loaded Spotify data from localStorage:', parsed);
           setSpotifyData(parsed);
-          setRawSpotifyData(parsed);
         } catch (error) {
           console.error('Error parsing stored Spotify data:', error);
         }
@@ -109,7 +99,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
         .then(insights => {
           console.log('Generated Spotify insights:', insights);
           
-          // Convert the insights to match our SynthesizedSpotifyData format
+          // Convert the insights to match our display format
           const synthesizedInsights = {
             topSongs: Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks.slice(0, 5) : [],
             topArtists: Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists.slice(0, 5) : [],
@@ -120,23 +110,22 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           };
           
           setSpotifyInsights(synthesizedInsights);
-          
-          // Get raw Spotify data from localStorage
-          const rawSpotifyData = localStorage.getItem('spotify_data');
-          const parsedRawData = rawSpotifyData ? JSON.parse(rawSpotifyData) : null;
-
-          // Store both synthesized and raw data
-          import('../../services/mirrorDataService').then(({ MirrorDataService }) => {
-            MirrorDataService.storeMirrorData(
-              { spotify: synthesizedInsights },
-              { spotify: parsedRawData }
-            );
-          });
-
           setIsDataStored(true);
         })
         .catch(error => {
           console.error('Error generating Spotify insights:', error);
+          // Set fallback insights
+          setSpotifyInsights({
+            vibeSummary: "Your music taste reflects a unique personality that loves discovering new sounds.",
+            traitDisplay: {
+              valence: 50,
+              energy: 50,
+              danceability: 50,
+              tempo: 120,
+              acousticness: 30,
+              instrumentalness: 10
+            }
+          });
         })
         .finally(() => {
           setIsGeneratingSummary(false);
@@ -144,7 +133,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     }
   }, [spotifyData, isDataStored, isGeneratingSummary, spotifyInsights]);
 
-  if (!spotifyData && !spotifyInsights && !rawSpotifyData) {
+  if (!spotifyData && !spotifyInsights) {
     return (
       <Card className="border border-border bg-card">
         <CardHeader>
@@ -158,11 +147,11 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     );
   }
 
-  // Use raw data first for displaying tracks/artists, then fall back to insights for summary
-  const displayDataForLists = rawSpotifyData || spotifyData;
-  const safeTracks = Array.isArray(displayDataForLists?.topTracks) ? displayDataForLists.topTracks : [];
-  const safeArtists = Array.isArray(displayDataForLists?.topArtists) ? displayDataForLists.topArtists : [];
-  const safeGenres = Array.isArray(displayDataForLists?.topGenres) ? displayDataForLists.topGenres : [];
+  // Use the current data for displaying lists
+  const displayData = spotifyData;
+  const safeTracks = Array.isArray(displayData?.topTracks) ? displayData.topTracks : [];
+  const safeArtists = Array.isArray(displayData?.topArtists) ? displayData.topArtists : [];
+  const safeGenres = Array.isArray(displayData?.topGenres) ? displayData.topGenres : [];
 
   return (
     <Card className="border border-border bg-card">
@@ -171,7 +160,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           <Music className="h-5 w-5" />
           Spotify Music Profile
         </CardTitle>
-        <CardDescription>Your all-time musical personality based on listening habits</CardDescription>
+        <CardDescription>Your musical personality based on listening habits</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Vibe Summary */}
@@ -299,7 +288,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           <div>
             <h3 className="font-medium mb-3">Top Genres</h3>
             <div className="flex flex-wrap gap-2">
-              {safeGenres.slice(0, 5).map((genre, index) => (
+              {safeGenres.slice(0, 8).map((genre, index) => (
                 <Badge key={index} variant="outline" className="bg-secondary/5 text-secondary">
                   {genre}
                 </Badge>

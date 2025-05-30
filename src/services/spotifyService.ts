@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface SpotifyTokenResponse {
@@ -21,7 +22,11 @@ interface SpotifyTrack {
   id: string;
   name: string;
   artists: Array<{ name: string }>;
-  album: { name: string; images: Array<{ url: string }> };
+  album: { 
+    id: string;
+    name: string; 
+    images: Array<{ url: string }> 
+  };
   external_urls: { spotify: string };
   popularity: number;
 }
@@ -49,8 +54,21 @@ export class SpotifyService {
   private static readonly API_BASE = 'https://api.spotify.com/v1';
   
   static getAuthUrl(): string {
-    // Get the actual auth URL from our edge function with correct redirect URI
-    return `/api/spotify-auth-url?redirect_uri=${encodeURIComponent(`${window.location.origin}/auth/callback`)}`;
+    // Determine the correct origin based on current domain
+    const currentOrigin = window.location.origin;
+    
+    // Handle different domains
+    let authUrlBase;
+    if (currentOrigin.includes('lovableproject.com')) {
+      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
+    } else if (currentOrigin.includes('lovable.app')) {
+      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
+    } else {
+      // Local development or other domains
+      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
+    }
+    
+    return `${authUrlBase}?redirect_uri=${encodeURIComponent(`${currentOrigin}/auth/callback`)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<SpotifyTokenResponse> {
@@ -59,6 +77,7 @@ export class SpotifyService {
     });
     
     if (error) {
+      console.error('Spotify token exchange error:', error);
       throw new Error('Failed to exchange code for token');
     }
     
