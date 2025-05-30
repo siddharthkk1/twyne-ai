@@ -12,10 +12,9 @@ interface YouTubeDataCardProps {
 const YouTubeDataCard: React.FC<YouTubeDataCardProps> = () => {
   const { user } = useAuth();
   const [youtubeInsights, setYoutubeInsights] = useState<any>(null);
-  const [youtubeChannel, setYoutubeChannel] = useState<any>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
-  // Load AI insights from profile_data and connection metadata from platform_connections
+  // Load AI insights from profile_data
   useEffect(() => {
     const loadYouTubeData = async () => {
       if (!user) return;
@@ -25,7 +24,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = () => {
       try {
         const { data: userData, error } = await supabase
           .from('user_data')
-          .select('profile_data, platform_connections')
+          .select('profile_data')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
@@ -40,15 +39,6 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = () => {
               setYoutubeInsights({ summary: profileData.youtube_summary });
             }
           }
-
-          // Load connection metadata from platform_connections
-          if (userData.platform_connections) {
-            const connections = userData.platform_connections as any;
-            if (connections.youtube?.channel) {
-              console.log('Loaded YouTube channel from platform_connections:', connections.youtube.channel);
-              setYoutubeChannel(connections.youtube.channel);
-            }
-          }
         }
       } catch (error) {
         console.error('Error loading YouTube data:', error);
@@ -60,7 +50,7 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = () => {
     loadYouTubeData();
   }, [user]);
 
-  if (!youtubeInsights && !youtubeChannel && !isLoadingInsights) {
+  if (!youtubeInsights && !isLoadingInsights) {
     return (
       <Card className="border border-border bg-card">
         <CardHeader>
@@ -101,31 +91,6 @@ const YouTubeDataCard: React.FC<YouTubeDataCardProps> = () => {
             </p>
           )}
         </div>
-
-        {/* Channel Info if available */}
-        {youtubeChannel && (
-          <div>
-            <h3 className="font-medium mb-3">Connected Channel</h3>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-              {youtubeChannel.snippet?.thumbnails?.default?.url && (
-                <img 
-                  src={youtubeChannel.snippet.thumbnails.default.url} 
-                  alt="YouTube Channel" 
-                  className="w-12 h-12 rounded-full"
-                />
-              )}
-              <div>
-                <p className="font-medium">{youtubeChannel.snippet?.title || 'Connected Channel'}</p>
-                <p className="text-sm text-muted-foreground">
-                  {youtubeChannel.statistics?.subscriberCount ? 
-                    parseInt(youtubeChannel.statistics.subscriberCount).toLocaleString() + ' subscribers' :
-                    'YouTube connected'
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
