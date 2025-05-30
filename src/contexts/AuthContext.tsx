@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
@@ -23,6 +23,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
   clearNewUserFlag: () => void;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,10 +34,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isNewUser, setIsNewUser] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  
+  // Use refs to prevent race conditions
+  const initializationComplete = useRef(false);
+  const profileLoadingRef = useRef(false);
+  const sessionCheckRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Session recovery function
+  const refreshSession = async () => {
+    try {
+      console.log('AuthContext: Refreshing session...');
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        console.error('AuthContext: Session refresh failed:', error);
+        // Clear invalid session
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        return;
+      }
+      
+      console.log('AuthContext: Session refreshed successfully');
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        loadUserProfile(session.user.id);
+      }
+    } catch (error) {
+      console.error('AuthContext: Error refreshing session:', error);
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+    }
+  };
+
+  // Periodic session validation
+  useEffect(() => {
+    const validateSession = async () => {
+      if (!session) return;
+      
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          console.log('AuthContext: Session validation failed, clearing auth state');
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setIsNewUser(false);
+        }
+      } catch (error) {
+        console.error('AuthContext: Session validation error:', error);
+      }
+    };
+
+    // Validate session every 5 minutes
+    if (session) {
+      sessionCheckRef.current = setInterval(validateSession, 5 * 60 * 1000);
+    }
+
+    return () => {
+      if (sessionCheckRef.current) {
+        clearInterval(sessionCheckRef.current);
+      }
+    };
+  }, [session]);
 
   useEffect(() => {
-    let isInitialLoad = true;
-
+    console.log('AuthContext: Initializing auth state...');
+    
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -46,19 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Only set loading to false after initial session check
-        if (!isInitialLoad) {
+        // Mark initialization as complete after first event
+        if (!initializationComplete.current) {
+          initializationComplete.current = true;
           setIsLoading(false);
-        }
-        
-        // Load user profile when user signs in
-        if (session?.user) {
-          setTimeout(() => {
-            loadUserProfile(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setIsNewUser(false);
         }
         
         // Handle specific auth events
@@ -68,14 +127,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('spotify_profile');
           localStorage.removeItem('spotify_data');
           localStorage.removeItem('spotify_raw_data');
+          localStorage.removeItem('spotify_access_token');
+          localStorage.removeItem('spotify_refresh_token');
           localStorage.removeItem('youtube_channel');
           localStorage.removeItem('youtube_data');
+          localStorage.removeItem('google_access_token');
+          localStorage.removeItem('google_refresh_token');
           setProfile(null);
           setIsNewUser(false);
+          profileLoadingRef.current = false;
         }
         
         if (event === 'TOKEN_REFRESHED') {
           console.log('AuthContext: Token refreshed successfully');
+        }
+        
+        if (event === 'SIGNED_IN') {
+          console.log('AuthContext: User signed in successfully');
+        }
+        
+        // Load user profile when user signs in (deferred to prevent deadlock)
+        if (session?.user && !profileLoadingRef.current) {
+          setTimeout(() => {
+            loadUserProfile(session.user.id);
+          }, 0);
+        } else if (!session?.user) {
+          setProfile(null);
+          setIsNewUser(false);
+          profileLoadingRef.current = false;
         }
       }
     );
@@ -88,34 +167,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (error) {
           console.error('AuthContext: Error getting initial session:', error);
+          // Try to refresh session if get session fails
+          await refreshSession();
         } else {
           console.log('AuthContext: Initial session loaded:', !!initialSession);
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
           
-          // Load user profile if session exists
-          if (initialSession?.user) {
-            await loadUserProfile(initialSession.user.id);
+          // Only update state if we haven't received auth events yet
+          if (!initializationComplete.current) {
+            setSession(initialSession);
+            setUser(initialSession?.user ?? null);
+            
+            // Load user profile if session exists
+            if (initialSession?.user) {
+              setTimeout(() => {
+                loadUserProfile(initialSession.user.id);
+              }, 0);
+            }
           }
         }
       } catch (error) {
         console.error('AuthContext: Error in getInitialSession:', error);
+        // Attempt session recovery
+        await refreshSession();
       } finally {
-        isInitialLoad = false;
-        setIsLoading(false);
+        // Ensure loading is set to false even if initialization fails
+        if (!initializationComplete.current) {
+          initializationComplete.current = true;
+          setIsLoading(false);
+        }
       }
     };
 
     getInitialSession();
 
+    // Handle page visibility changes to refresh session when returning to tab
+    const handleVisibilityChange = () => {
+      if (!document.hidden && session) {
+        refreshSession();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       console.log('AuthContext: Cleaning up auth subscription');
       subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (sessionCheckRef.current) {
+        clearInterval(sessionCheckRef.current);
+      }
     };
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   const loadUserProfile = async (userId: string) => {
+    if (profileLoadingRef.current) {
+      console.log('AuthContext: Profile already loading, skipping...');
+      return;
+    }
+    
+    profileLoadingRef.current = true;
+    
     try {
+      console.log('AuthContext: Loading user profile for:', userId);
       const { data, error } = await supabase
         .from('user_data')
         .select('*')
@@ -147,23 +260,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error in loadUserProfile:', error);
       setProfile(null);
       setIsNewUser(true);
+    } finally {
+      profileLoadingRef.current = false;
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      if (error) {
+        console.error('AuthContext: Sign in error:', error);
+      }
+      
       return { error };
     } catch (error) {
+      console.error('AuthContext: Sign in exception:', error);
       return { error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -171,9 +296,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: userData || {}
         }
       });
+      
+      if (error) {
+        console.error('AuthContext: Sign up error:', error);
+      }
+      
       return { error };
     } catch (error) {
+      console.error('AuthContext: Sign up exception:', error);
       return { error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -194,14 +327,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('AuthContext: Sign out successful');
       
-      // Clear local storage
+      // Clear local storage immediately
       localStorage.removeItem('spotify_profile');
       localStorage.removeItem('spotify_data');
       localStorage.removeItem('spotify_raw_data');
       localStorage.removeItem('spotify_access_token');
+      localStorage.removeItem('spotify_refresh_token');
       localStorage.removeItem('youtube_channel');
       localStorage.removeItem('youtube_data');
       localStorage.removeItem('google_access_token');
+      localStorage.removeItem('google_refresh_token');
+      
+      // Clear state immediately
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      setIsNewUser(false);
+      profileLoadingRef.current = false;
       
     } catch (error) {
       console.error('AuthContext: Error in signOut:', error);
@@ -221,6 +363,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     clearNewUserFlag,
+    refreshSession,
   };
 
   return (

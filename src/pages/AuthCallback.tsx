@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,11 +10,15 @@ import { toast } from '@/components/ui/use-toast';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshSession } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasHandledCallback, setHasHandledCallback] = useState(false);
 
   useEffect(() => {
     const handleCallback = async () => {
+      // Prevent duplicate processing
+      if (hasHandledCallback) return;
+      
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       const state = urlParams.get('state');
@@ -35,9 +38,19 @@ const AuthCallback = () => {
 
       // If we have a code and state, this is an OAuth callback
       if (code && state) {
+        setHasHandledCallback(true);
         setIsProcessing(true);
         
         try {
+          // Ensure we have a valid session before processing
+          if (!user) {
+            console.log('AuthCallback: No user session, refreshing...');
+            await refreshSession();
+            
+            // Wait a bit for auth state to update
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
           if (state === 'spotify_auth') {
             await handleSpotifyCallback(code);
           } else if (state === 'youtube_auth') {
@@ -54,13 +67,21 @@ const AuthCallback = () => {
             description: "Failed to connect your account. Please try again.",
             variant: "destructive",
           });
+          // Navigate to mirror even on error to prevent getting stuck
+          navigate('/mirror');
         } finally {
           setIsProcessing(false);
         }
       } else {
         // Regular auth callback - let auth settle and redirect
         const timer = setTimeout(() => {
-          navigate('/');
+          if (!isLoading) {
+            if (user) {
+              navigate('/mirror');
+            } else {
+              navigate('/');
+            }
+          }
         }, 1000);
 
         return () => clearTimeout(timer);
@@ -68,7 +89,7 @@ const AuthCallback = () => {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, user, isLoading, refreshSession, hasHandledCallback]);
 
   const handleSpotifyCallback = async (code: string) => {
     try {

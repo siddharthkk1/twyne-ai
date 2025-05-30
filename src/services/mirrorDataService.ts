@@ -49,6 +49,47 @@ interface PlatformConnections {
   };
 }
 
+// Retry utility function
+const retryOperation = async <T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise<T> => {
+  let lastError: any;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      console.warn(`Operation failed (attempt ${attempt}/${maxRetries}):`, error);
+      
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      }
+    }
+  }
+  
+  throw lastError;
+};
+
+// Enhanced auth validation
+const validateAuth = async (): Promise<{ user: any; error?: any }> => {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('MirrorDataService: Auth validation failed:', authError);
+      return { user: null, error: authError || 'No authenticated user' };
+    }
+    
+    return { user };
+  } catch (error) {
+    console.error('MirrorDataService: Auth validation exception:', error);
+    return { user: null, error };
+  }
+};
+
 export class MirrorDataService {
   static async storeMirrorData(
     synthesizedData: {
@@ -56,14 +97,15 @@ export class MirrorDataService {
       youtube?: { summary: string };
     }
   ) {
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+    return retryOperation(async () => {
+      const { user, error: authError } = await validateAuth();
       if (authError || !user) {
-        return;
+        console.warn('MirrorDataService: No authenticated user for storeMirrorData');
+        return { success: false, error: 'Authentication required' };
       }
 
       // Get current user data
-      const { data: userData } = await supabase
+      const { data: userData, error: fetchError } = await supabase
         .from('user_data')
         .select('*')
         .eq('user_id', user.id)
@@ -71,8 +113,14 @@ export class MirrorDataService {
         .limit(1)
         .maybeSingle();
 
+      if (fetchError) {
+        console.error('MirrorDataService: Error fetching user data:', fetchError);
+        throw fetchError;
+      }
+
       if (!userData) {
-        return;
+        console.warn('MirrorDataService: No user data found for storeMirrorData');
+        return { success: false, error: 'User data not found' };
       }
 
       // Safely handle profile_data
@@ -98,19 +146,21 @@ export class MirrorDataService {
         .eq('id', userData.id);
 
       if (updateError) {
-        console.error('Error storing mirror data:', updateError);
+        console.error('MirrorDataService: Error storing mirror data:', updateError);
+        throw updateError;
       }
-    } catch (error) {
-      console.error('Error in storeMirrorData:', error);
-    }
+      
+      return { success: true };
+    });
   }
 
   static async storeConnectionData(platform: 'spotify' | 'youtube', connectionInfo: any) {
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+    return retryOperation(async () => {
+      const { user, error: authError } = await validateAuth();
       if (authError || !user) {
+        console.warn(`MirrorDataService: No authenticated user for ${platform} connection`);
         localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-        return { success: false, error: 'Not authenticated' };
+        return { success: false, error: 'Authentication required' };
       }
 
       // Get current user data
@@ -123,8 +173,9 @@ export class MirrorDataService {
         .maybeSingle();
 
       if (fetchError) {
+        console.error('MirrorDataService: Error fetching user data for connection:', fetchError);
         localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-        return { success: false, error: fetchError.message };
+        throw fetchError;
       }
 
       if (!userData) {
@@ -141,8 +192,9 @@ export class MirrorDataService {
           .single();
 
         if (createError) {
+          console.error('MirrorDataService: Error creating user data:', createError);
           localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-          return { success: false, error: createError.message };
+          throw createError;
         }
 
         userData = newUserData;
@@ -157,6 +209,7 @@ export class MirrorDataService {
             currentConnections = userData.platform_connections as PlatformConnections;
           }
         } catch (error) {
+          console.warn('MirrorDataService: Invalid platform connections data, resetting');
           currentConnections = {};
         }
       }
@@ -171,8 +224,10 @@ export class MirrorDataService {
         const profile = connectionInfo.profile || connectionInfo;
         
         if (!profile || !profile.id) {
+          const error = 'Invalid Spotify profile data';
+          console.error('MirrorDataService:', error);
           localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-          return { success: false, error: 'Invalid Spotify profile data' };
+          throw new Error(error);
         }
         
         connectionData.profile = profile;
@@ -183,8 +238,10 @@ export class MirrorDataService {
         const channel = connectionInfo.channel || connectionInfo;
         
         if (!channel || !channel.id) {
+          const error = 'Invalid YouTube channel data';
+          console.error('MirrorDataService:', error);
           localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-          return { success: false, error: 'Invalid YouTube channel data' };
+          throw new Error(error);
         }
         
         connectionData.channel = channel;
@@ -210,15 +267,13 @@ export class MirrorDataService {
         .eq('id', userData.id);
 
       if (updateError) {
+        console.error('MirrorDataService: Error updating platform connections:', updateError);
         localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-        return { success: false, error: updateError.message };
+        throw updateError;
       }
 
       return { success: true };
-    } catch (error) {
-      localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+    });
   }
 
   static async loadConnectionData(): Promise<{
@@ -226,8 +281,9 @@ export class MirrorDataService {
     youtube?: any;
   }> {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const { user, error: authError } = await validateAuth();
       if (authError || !user) {
+        console.warn('MirrorDataService: No authenticated user for loadConnectionData');
         return this.loadFromLocalStorage();
       }
 
@@ -241,6 +297,7 @@ export class MirrorDataService {
         .maybeSingle();
 
       if (fetchError) {
+        console.error('MirrorDataService: Error loading connection data:', fetchError);
         return this.loadFromLocalStorage();
       }
 
@@ -279,18 +336,17 @@ export class MirrorDataService {
         youtube: connectionData.youtube || localStorageData.youtube
       };
     } catch (error) {
+      console.error('MirrorDataService: Exception in loadConnectionData:', error);
       return this.loadFromLocalStorage();
     }
   }
 
   static async removeConnectionData(platform: 'spotify' | 'youtube') {
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+    return retryOperation(async () => {
+      const { user, error: authError } = await validateAuth();
       if (authError || !user) {
-        localStorage.removeItem(`${platform}_data`);
-        localStorage.removeItem(`${platform}_profile`);
-        localStorage.removeItem(`${platform}_access_token`);
-        localStorage.removeItem(`${platform}_refresh_token`);
+        console.warn(`MirrorDataService: No authenticated user for removing ${platform} connection`);
+        this.clearLocalStorageForPlatform(platform);
         return { success: true };
       }
 
@@ -304,18 +360,14 @@ export class MirrorDataService {
         .maybeSingle();
 
       if (fetchError) {
-        localStorage.removeItem(`${platform}_data`);
-        localStorage.removeItem(`${platform}_profile`);
-        localStorage.removeItem(`${platform}_access_token`);
-        localStorage.removeItem(`${platform}_refresh_token`);
-        return { success: false, error: fetchError.message };
+        console.error('MirrorDataService: Error fetching user data for removal:', fetchError);
+        this.clearLocalStorageForPlatform(platform);
+        throw fetchError;
       }
 
       if (!userData) {
-        localStorage.removeItem(`${platform}_data`);
-        localStorage.removeItem(`${platform}_profile`);
-        localStorage.removeItem(`${platform}_access_token`);
-        localStorage.removeItem(`${platform}_refresh_token`);
+        console.warn('MirrorDataService: No user data found for removal');
+        this.clearLocalStorageForPlatform(platform);
         return { success: true };
       }
 
@@ -352,27 +404,39 @@ export class MirrorDataService {
         .eq('id', userData.id);
 
       if (updateError) {
-        localStorage.removeItem(`${platform}_data`);
-        localStorage.removeItem(`${platform}_profile`);
-        localStorage.removeItem(`${platform}_access_token`);
-        localStorage.removeItem(`${platform}_refresh_token`);
-        return { success: false, error: updateError.message };
+        console.error('MirrorDataService: Error removing platform connection:', updateError);
+        this.clearLocalStorageForPlatform(platform);
+        throw updateError;
       }
 
       // Also remove from localStorage
-      localStorage.removeItem(`${platform}_data`);
-      localStorage.removeItem(`${platform}_profile`);
-      localStorage.removeItem(`${platform}_access_token`);
-      localStorage.removeItem(`${platform}_refresh_token`);
+      this.clearLocalStorageForPlatform(platform);
       
       return { success: true };
-    } catch (error) {
-      localStorage.removeItem(`${platform}_data`);
-      localStorage.removeItem(`${platform}_profile`);
-      localStorage.removeItem(`${platform}_access_token`);
-      localStorage.removeItem(`${platform}_refresh_token`);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    });
+  }
+
+  private static clearLocalStorageForPlatform(platform: 'spotify' | 'youtube') {
+    const keys = [
+      `${platform}_data`,
+      `${platform}_profile`,
+      `${platform}_access_token`,
+      `${platform}_refresh_token`
+    ];
+    
+    if (platform === 'spotify') {
+      keys.push('spotify_raw_data');
+    } else if (platform === 'youtube') {
+      keys.push('youtube_channel', 'google_access_token', 'google_refresh_token');
     }
+    
+    keys.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        console.warn(`Failed to remove ${key} from localStorage:`, error);
+      }
+    });
   }
 
   private static loadFromLocalStorage(): { spotify?: any; youtube?: any } {
