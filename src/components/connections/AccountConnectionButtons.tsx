@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -38,6 +39,7 @@ const AccountConnectionButtons = () => {
 
   const loadConnectionData = async () => {
     try {
+      console.log('Loading connection data...');
       const connectionData = await MirrorDataService.loadConnectionData();
       console.log('Loaded connection data:', connectionData);
       
@@ -46,14 +48,14 @@ const AccountConnectionButtons = () => {
         const profile = connectionData.spotify.profile || connectionData.spotify;
         setSpotifyProfile(profile);
         setSpotifyToken('connected');
-        console.log('Loaded Spotify profile:', profile);
+        console.log('Set Spotify profile state:', profile);
       }
       
       if (connectionData.youtube) {
         // Use the channel data from the stored YouTube data
         setYoutubeChannel(connectionData.youtube.channel || connectionData.youtube);
         setGoogleToken('connected');
-        console.log('Loaded YouTube channel:', connectionData.youtube.channel || connectionData.youtube);
+        console.log('Set YouTube channel state:', connectionData.youtube.channel || connectionData.youtube);
       }
     } catch (error) {
       console.error('Error loading connection data:', error);
@@ -63,6 +65,7 @@ const AccountConnectionButtons = () => {
   };
 
   const loadFromLocalStorage = () => {
+    console.log('Loading from localStorage as fallback...');
     const savedSpotifyToken = localStorage.getItem('spotify_access_token');
     const savedSpotifyProfile = localStorage.getItem('spotify_profile');
     const savedGoogleToken = localStorage.getItem('google_access_token');
@@ -173,6 +176,8 @@ const AccountConnectionButtons = () => {
         SpotifyService.getFollowedArtists(accessToken)
       ]);
 
+      console.log('Fetched Spotify profile:', profile);
+
       const spotifyData = {
         profile,
         topTracks: {
@@ -196,9 +201,10 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
       
       // Store connection info in database
+      console.log('Storing Spotify connection data in database...');
       await MirrorDataService.storeConnectionData('spotify', spotifyData);
       
-      console.log('Spotify data fetched successfully:', spotifyData);
+      console.log('Spotify data fetched and stored successfully');
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
     } finally {

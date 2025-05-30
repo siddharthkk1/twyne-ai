@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
@@ -115,6 +114,8 @@ export class MirrorDataService {
         return;
       }
 
+      console.log(`Storing ${platform} connection data:`, connectionInfo);
+
       // Get current user data
       const { data: userData } = await supabase
         .from('user_data')
@@ -134,14 +135,26 @@ export class MirrorDataService {
         ? userData.platform_connections as PlatformConnections
         : {};
 
-      // Update connections with new platform data
+      console.log('Current connections before update:', currentConnections);
+
+      // Update connections with new platform data - fix the data structure issue
       const updatedConnections: PlatformConnections = {
         ...currentConnections,
         [platform]: {
-          profile: platform === 'spotify' ? connectionInfo.profile : connectionInfo.channel,
+          profile: platform === 'spotify' ? connectionInfo.profile : undefined,
+          channel: platform === 'youtube' ? connectionInfo.channel : undefined,
           connected_at: new Date().toISOString()
         }
       };
+
+      // Remove undefined properties to keep the data clean
+      if (platform === 'spotify') {
+        delete (updatedConnections[platform] as any).channel;
+      } else if (platform === 'youtube') {
+        delete (updatedConnections[platform] as any).profile;
+      }
+
+      console.log('Updated connections to store:', updatedConnections);
 
       // Update the database
       const { error: updateError } = await supabase
@@ -158,7 +171,7 @@ export class MirrorDataService {
         return;
       }
 
-      console.log(`${platform} connection data stored successfully`);
+      console.log(`${platform} connection data stored successfully in database`);
 
       // Also store in localStorage for immediate access
       localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
@@ -187,20 +200,23 @@ export class MirrorDataService {
         .limit(1)
         .maybeSingle();
 
+      console.log('Raw user data from database:', userData);
+
       const connectionData: { spotify?: any; youtube?: any } = {};
 
       // Load from database if available
       if (userData?.platform_connections && typeof userData.platform_connections === 'object') {
         const connections = userData.platform_connections as PlatformConnections;
+        console.log('Parsed platform connections:', connections);
         
         if (connections.spotify?.profile) {
           connectionData.spotify = { profile: connections.spotify.profile };
-          console.log('Loaded Spotify connection from database');
+          console.log('Loaded Spotify connection from database:', connectionData.spotify);
         }
         
         if (connections.youtube?.channel) {
           connectionData.youtube = { channel: connections.youtube.channel };
-          console.log('Loaded YouTube connection from database');
+          console.log('Loaded YouTube connection from database:', connectionData.youtube);
         }
       }
 
@@ -210,7 +226,14 @@ export class MirrorDataService {
         return this.loadFromLocalStorage();
       }
 
-      return connectionData;
+      // Also check localStorage and merge if needed for immediate access
+      const localStorageData = this.loadFromLocalStorage();
+      console.log('Local storage data:', localStorageData);
+      
+      return {
+        spotify: connectionData.spotify || localStorageData.spotify,
+        youtube: connectionData.youtube || localStorageData.youtube
+      };
     } catch (error) {
       console.error('Error loading connection data from database:', error);
       return this.loadFromLocalStorage();
