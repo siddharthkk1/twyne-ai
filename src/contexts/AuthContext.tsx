@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(null);
         setUser(null);
         setProfile(null);
+        setIsLoading(false);
         return;
       }
       
@@ -59,13 +59,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        loadUserProfile(session.user.id);
+        await loadUserProfile(session.user.id);
+      } else {
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('AuthContext: Error refreshing session:', error);
       setSession(null);
       setUser(null);
       setProfile(null);
+      setIsLoading(false);
     }
   };
 
@@ -87,6 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading user profile:', error);
+        setProfile(null);
+        setIsNewUser(true);
         return;
       }
 
@@ -115,6 +120,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsNewUser(true);
     } finally {
       profileLoadingRef.current = false;
+      // Only set loading to false after profile loading is complete
+      setIsLoading(false);
     }
   };
 
@@ -149,9 +156,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setProfile(null);
               setIsNewUser(false);
               profileLoadingRef.current = false;
+              setIsLoading(false);
             }
             
             if (session?.user && !profileLoadingRef.current) {
+              // Keep loading true while we load the profile
+              setIsLoading(true);
               setTimeout(() => {
                 if (mounted) {
                   loadUserProfile(session.user.id);
@@ -161,10 +171,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setProfile(null);
               setIsNewUser(false);
               profileLoadingRef.current = false;
-            }
-            
-            // Set loading to false after processing auth change
-            if (mounted) {
               setIsLoading(false);
             }
           }
@@ -177,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (error) {
           console.error('AuthContext: Error getting initial session:', error);
+          setIsLoading(false);
         } else {
           console.log('AuthContext: Initial session loaded:', !!initialSession);
           
@@ -184,17 +191,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(initialSession?.user ?? null);
           
           if (initialSession?.user) {
+            // Keep loading true while we load the profile
+            setIsLoading(true);
             setTimeout(() => {
               if (mounted) {
                 loadUserProfile(initialSession.user.id);
               }
             }, 0);
+          } else {
+            // No session, set loading to false
+            setIsLoading(false);
           }
-        }
-        
-        // Set loading to false after initial session check
-        if (mounted) {
-          setIsLoading(false);
         }
 
         return () => {
