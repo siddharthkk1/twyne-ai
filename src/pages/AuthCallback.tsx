@@ -154,16 +154,15 @@ const AuthCallback = () => {
         })),
         topGenres,
         topAlbums: allTracks
-          .map(track => track.album)
+          .map(track => ({
+            name: track.album.name,
+            artists: track.artists || [{ name: 'Unknown Artist' }],
+            images: track.album.images || []
+          }))
           .filter((album, index, arr) => 
-            arr.findIndex(a => a.id === album.id) === index
+            arr.findIndex(a => a.name === album.name) === index
           )
-          .slice(0, 10)
-          .map(album => ({
-            name: album.name,
-            artists: album.artists || [{ name: 'Unknown Artist' }],
-            images: album.images || []
-          })),
+          .slice(0, 10),
         // Store full long-term data for AI processing
         fullTopTracks: topTracksLong,
         fullTopArtists: topArtistsLong
@@ -257,14 +256,14 @@ const AuthCallback = () => {
         watchLater
       };
 
-      // Transform YouTube data for AI analysis
+      // Transform YouTube data for AI analysis - use safe property access
       const youtubeAnalysisData = {
         likedVideos: likedVideos.map(video => ({
           title: video.snippet.title,
           description: video.snippet.description,
           channelTitle: video.snippet.channelTitle,
-          tags: video.snippet.tags || [],
-          categoryId: video.snippet.categoryId
+          tags: (video.snippet as any).tags || [],
+          categoryId: (video.snippet as any).categoryId || null
         })),
         subscriptions: subscriptions.map(sub => ({
           title: sub.snippet.title,
@@ -275,8 +274,8 @@ const AuthCallback = () => {
         watchHistory: videos.slice(0, 15).map(video => ({
           title: video.snippet.title,
           description: video.snippet.description,
-          tags: video.snippet.tags || [],
-          categoryId: video.snippet.categoryId
+          tags: (video.snippet as any).tags || [],
+          categoryId: (video.snippet as any).categoryId || null
         }))
       };
 
