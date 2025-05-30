@@ -38,10 +38,8 @@ const AuthCallback = () => {
         
         try {
           if (state === 'spotify_auth') {
-            console.log('Processing Spotify OAuth callback...');
             await handleSpotifyCallback(code);
           } else if (state === 'youtube_auth') {
-            console.log('Processing YouTube OAuth callback...');
             await handleYouTubeCallback(code);
           } else {
             console.log('Unknown OAuth state:', state);
@@ -61,7 +59,6 @@ const AuthCallback = () => {
       } else {
         // Regular auth callback - let auth settle and redirect
         const timer = setTimeout(() => {
-          console.log('Regular auth callback complete, redirecting to home');
           navigate('/');
         }, 1000);
 
@@ -76,10 +73,12 @@ const AuthCallback = () => {
     try {
       // Exchange code for token
       const tokenData = await SpotifyService.exchangeCodeForToken(code);
-      console.log('Spotify token exchange successful');
       
-      // Store token
+      // Store token locally for immediate use
       localStorage.setItem('spotify_access_token', tokenData.access_token);
+      if (tokenData.refresh_token) {
+        localStorage.setItem('spotify_refresh_token', tokenData.refresh_token);
+      }
       
       // Fetch comprehensive Spotify data
       const [
@@ -164,42 +163,47 @@ const AuthCallback = () => {
         fullTopArtists: topArtistsLong
       };
 
-      const rawSpotifyData = {
+      const spotifyConnectionData = {
         profile,
-        topTracks: {
-          short_term: topTracksShort,
-          medium_term: topTracksMedium,
-          long_term: topTracksLong
+        tokens: {
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : null
         },
-        topArtists: {
-          short_term: topArtistsShort,
-          medium_term: topArtistsMedium,
-          long_term: topArtistsLong
-        },
-        recentlyPlayed,
-        playlists,
-        savedTracks,
-        followedArtists
+        synthesizedData,
+        rawData: {
+          topTracks: {
+            short_term: topTracksShort,
+            medium_term: topTracksMedium,
+            long_term: topTracksLong
+          },
+          topArtists: {
+            short_term: topArtistsShort,
+            medium_term: topArtistsMedium,
+            long_term: topArtistsLong
+          },
+          recentlyPlayed,
+          playlists,
+          savedTracks,
+          followedArtists
+        }
       };
 
-      // Store data locally
+      // Store data locally for immediate access
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       localStorage.setItem('spotify_data', JSON.stringify(synthesizedData));
-      localStorage.setItem('spotify_raw_data', JSON.stringify(rawSpotifyData));
       
-      console.log('Spotify data stored successfully:', {
-        synthesized: synthesizedData,
-        raw: rawSpotifyData
-      });
+      // Store connection data in database
+      await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
       
       toast({
         title: "Spotify Connected!",
         description: "Successfully connected your Spotify account and fetched your data.",
       });
       
-      // Clear URL parameters and redirect to mirror
+      // Clear URL parameters and redirect to connections
       window.history.replaceState({}, document.title, window.location.pathname);
-      navigate('/mirror');
+      navigate('/connections');
       
     } catch (error) {
       console.error('Error in Spotify callback:', error);
@@ -211,14 +215,15 @@ const AuthCallback = () => {
     try {
       // Exchange code for token
       const tokenData = await GoogleAuthService.exchangeCodeForToken(code);
-      console.log('YouTube token exchange successful');
       
-      // Store token
+      // Store token locally for immediate use
       localStorage.setItem('google_access_token', tokenData.access_token);
+      if (tokenData.refresh_token) {
+        localStorage.setItem('google_refresh_token', tokenData.refresh_token);
+      }
       
       // Fetch comprehensive YouTube data
       const channel = await YouTubeService.getChannelInfo(tokenData.access_token);
-      console.log('YouTube channel info:', channel);
       
       const [
         videos,
@@ -234,29 +239,37 @@ const AuthCallback = () => {
         YouTubeService.getWatchLaterPlaylist(tokenData.access_token)
       ]);
 
-      const youtubeData = {
+      const youtubeConnectionData = {
         channel,
-        videos,
-        playlists,
-        subscriptions,
-        likedVideos,
-        watchLater
+        tokens: {
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : null
+        },
+        data: {
+          videos,
+          playlists,
+          subscriptions,
+          likedVideos,
+          watchLater
+        }
       };
 
-      // Store data locally
+      // Store data locally for immediate access
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
-      localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
+      localStorage.setItem('youtube_data', JSON.stringify(youtubeConnectionData.data));
       
-      console.log('YouTube data stored successfully:', youtubeData);
+      // Store connection data in database
+      await MirrorDataService.storeConnectionData('youtube', youtubeConnectionData);
       
       toast({
         title: "YouTube Connected!",
         description: "Successfully connected your YouTube account and fetched your data.",
       });
       
-      // Clear URL parameters and redirect to mirror
+      // Clear URL parameters and redirect to connections
       window.history.replaceState({}, document.title, window.location.pathname);
-      navigate('/mirror');
+      navigate('/connections');
       
     } catch (error) {
       console.error('Error in YouTube callback:', error);

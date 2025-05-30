@@ -28,7 +28,6 @@ interface SpotifyData {
     artists: Array<{ name: string }>;
     images: Array<{ url: string }>;
   }>;
-  // For backwards compatibility and AI processing
   fullTopTracks?: Array<{
     name: string;
     artists: Array<{ name: string }>;
@@ -46,7 +45,6 @@ interface SpotifyDataCardProps {
 }
 
 const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
-  const [isDataStored, setIsDataStored] = useState(false);
   const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(data);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [spotifyInsights, setSpotifyInsights] = useState<any>(null);
@@ -55,19 +53,22 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   useEffect(() => {
     const loadSpotifyData = async () => {
       if (!spotifyData) {
-        console.log('🔄 Loading Spotify data for SpotifyDataCard...');
-        
         try {
-          // First try to load from MirrorDataService
           const connectionData = await MirrorDataService.loadConnectionData();
           
           if (connectionData.spotify) {
-            console.log('✅ Loaded Spotify data from MirrorDataService for card');
+            // Prioritize synthesized data from database
+            if (connectionData.spotify.synthesizedData) {
+              setSpotifyData(connectionData.spotify.synthesizedData);
+              return;
+            }
+            
+            // Fallback to direct spotify data
             setSpotifyData(connectionData.spotify);
             return;
           }
         } catch (error) {
-          console.error('❌ Error loading from MirrorDataService:', error);
+          console.error('Error loading from MirrorDataService:', error);
         }
         
         // Fallback to localStorage
@@ -75,10 +76,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
         if (storedData) {
           try {
             const parsed = JSON.parse(storedData);
-            console.log('✅ Loaded Spotify data from localStorage for card:', parsed);
             setSpotifyData(parsed);
           } catch (error) {
-            console.error('❌ Error parsing stored Spotify data:', error);
+            console.error('Error parsing stored Spotify data:', error);
           }
         }
       }
@@ -89,7 +89,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
 
   // Generate and store Spotify insights when component mounts with data
   useEffect(() => {
-    if (spotifyData && !isDataStored && !isGeneratingSummary && !spotifyInsights) {
+    if (spotifyData && !isGeneratingSummary && !spotifyInsights) {
       setIsGeneratingSummary(true);
       
       // Use full data if available, otherwise convert simplified data for AI analysis
@@ -113,14 +113,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
         topGenres: Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres : []
       };
 
-      console.log('Processing Spotify data for AI analysis:', dataForAI);
-
       // Generate AI insights
       AIProfileService.generateSpotifyProfile(dataForAI)
         .then(insights => {
-          console.log('Generated Spotify insights:', insights);
-          
-          // Convert the insights to match our display format
           const synthesizedInsights = {
             topSongs: Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks.slice(0, 5) : [],
             topArtists: Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists.slice(0, 5) : [],
@@ -131,11 +126,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           };
           
           setSpotifyInsights(synthesizedInsights);
-          setIsDataStored(true);
         })
         .catch(error => {
           console.error('Error generating Spotify insights:', error);
-          // Set fallback insights
           setSpotifyInsights({
             vibeSummary: "Your music taste reflects a unique personality that loves discovering new sounds.",
             traitDisplay: {
@@ -152,7 +145,7 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
           setIsGeneratingSummary(false);
         });
     }
-  }, [spotifyData, isDataStored, isGeneratingSummary, spotifyInsights]);
+  }, [spotifyData, isGeneratingSummary, spotifyInsights]);
 
   if (!spotifyData && !spotifyInsights) {
     return (
