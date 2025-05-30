@@ -158,7 +158,12 @@ const AuthCallback = () => {
           .filter((album, index, arr) => 
             arr.findIndex(a => a.id === album.id) === index
           )
-          .slice(0, 10),
+          .slice(0, 10)
+          .map(album => ({
+            name: album.name,
+            artists: album.artists || [{ name: 'Unknown Artist' }],
+            images: album.images || []
+          })),
         // Store full long-term data for AI processing
         fullTopTracks: topTracksLong,
         fullTopArtists: topArtistsLong
@@ -252,9 +257,32 @@ const AuthCallback = () => {
         watchLater
       };
 
+      // Transform YouTube data for AI analysis
+      const youtubeAnalysisData = {
+        likedVideos: likedVideos.map(video => ({
+          title: video.snippet.title,
+          description: video.snippet.description,
+          channelTitle: video.snippet.channelTitle,
+          tags: video.snippet.tags || [],
+          categoryId: video.snippet.categoryId
+        })),
+        subscriptions: subscriptions.map(sub => ({
+          title: sub.snippet.title,
+          description: sub.snippet.description,
+          topicCategories: [],
+          keywords: []
+        })),
+        watchHistory: videos.slice(0, 15).map(video => ({
+          title: video.snippet.title,
+          description: video.snippet.description,
+          tags: video.snippet.tags || [],
+          categoryId: video.snippet.categoryId
+        }))
+      };
+
       // Generate AI insights for YouTube
       console.log('Generating YouTube AI insights...');
-      const youtubeInsights = await AIProfileService.generateYouTubeProfile(youtubeData);
+      const youtubeInsights = await AIProfileService.generateYouTubeProfile(youtubeAnalysisData);
 
       // Store connection data in platform_connections (WITHOUT rawData)
       const youtubeConnectionData = {
@@ -274,9 +302,9 @@ const AuthCallback = () => {
       // Store connection data in database (platform_connections)
       await MirrorDataService.storeConnectionData('youtube', youtubeConnectionData);
       
-      // Store AI insights in profile_data
+      // Store AI insights in profile_data - youtubeInsights is already a string
       await MirrorDataService.storeMirrorData({
-        youtube: { summary: youtubeInsights.summary }
+        youtube: { summary: youtubeInsights }
       });
       
       toast({
