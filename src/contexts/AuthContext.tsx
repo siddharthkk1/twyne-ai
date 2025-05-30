@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,7 @@ interface UserProfile {
   bio?: string;
   location?: string;
   profile_data?: any;
+  sso_data?: any;
   has_completed_onboarding?: boolean;
   [key: string]: any;
 }
@@ -100,15 +102,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Check the has_completed_onboarding flag to determine if user is new
         const hasCompletedOnboarding = data.has_completed_onboarding || false;
         
-        // Safely handle the profile_data which is of type Json
+        // Check if this is an SSO user by looking at sso_data
+        const ssoData = data.sso_data;
         const profileData = data.profile_data;
-        if (profileData && typeof profileData === 'object' && !Array.isArray(profileData)) {
-          setProfile({ ...profileData as UserProfile, has_completed_onboarding: hasCompletedOnboarding });
+        
+        let userProfile: UserProfile = { has_completed_onboarding: hasCompletedOnboarding };
+        
+        // If there's SSO data, this is an SSO user
+        if (ssoData && typeof ssoData === 'object' && !Array.isArray(ssoData) && Object.keys(ssoData).length > 0) {
+          console.log('SSO user detected with sso_data:', ssoData);
+          userProfile = { ...userProfile, ...ssoData as UserProfile, sso_data: ssoData };
+          // For SSO users, if they haven't completed onboarding, they're new
+          setIsNewUser(!hasCompletedOnboarding);
+        } else if (profileData && typeof profileData === 'object' && !Array.isArray(profileData)) {
+          // Regular user with profile data
+          console.log('Regular user with profile_data:', profileData);
+          userProfile = { ...userProfile, ...profileData as UserProfile, profile_data: profileData };
+          setIsNewUser(!hasCompletedOnboarding);
         } else {
-          setProfile({ has_completed_onboarding: hasCompletedOnboarding });
+          // User with no meaningful data - definitely new
+          console.log('User with no profile or SSO data - new user');
+          setIsNewUser(true);
         }
         
-        setIsNewUser(!hasCompletedOnboarding);
+        setProfile(userProfile);
       } else {
         console.log('No user profile found - new user');
         setProfile(null);
