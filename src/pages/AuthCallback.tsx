@@ -139,15 +139,15 @@ const AuthCallback = () => {
         .slice(0, 10)
         .map(([genre]) => genre);
 
-      // Create synthesized data structure that matches component expectations
+      // Create synthesized data structure using LONG-TERM data for main display
       const synthesizedData = {
-        topTracks: topTracksMedium.slice(0, 20).map((track, index) => ({
+        topTracks: topTracksLong.slice(0, 20).map((track, index) => ({
           rank: index + 1,
           title: track.name,
           artist: track.artists.map(a => a.name).join(', '),
           imageUrl: track.album.images[0]?.url || ''
         })),
-        topArtists: topArtistsMedium.slice(0, 20).map((artist, index) => ({
+        topArtists: topArtistsLong.slice(0, 20).map((artist, index) => ({
           rank: index + 1,
           name: artist.name,
           imageUrl: artist.images[0]?.url || ''
@@ -159,9 +159,9 @@ const AuthCallback = () => {
             arr.findIndex(a => a.id === album.id) === index
           )
           .slice(0, 10),
-        // Store full data for AI processing
-        fullTopTracks: topTracksMedium,
-        fullTopArtists: topArtistsMedium
+        // Store full long-term data for AI processing
+        fullTopTracks: topTracksLong,
+        fullTopArtists: topArtistsLong
       };
 
       const rawSpotifyData = {

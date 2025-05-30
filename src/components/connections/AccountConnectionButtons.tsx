@@ -45,9 +45,10 @@ const AccountConnectionButtons = () => {
         console.log('Loaded connection data from database:', connectionData);
         
         if (connectionData.spotify) {
-          setSpotifyProfile(connectionData.spotify.profile || connectionData.spotify);
+          const profile = connectionData.spotify.profile || connectionData.spotify;
+          setSpotifyProfile(profile);
           setSpotifyToken('connected');
-          console.log('Loaded Spotify profile from database:', connectionData.spotify.profile || connectionData.spotify);
+          console.log('Loaded Spotify profile from database:', profile);
         }
         
         if (connectionData.youtube) {
@@ -78,7 +79,9 @@ const AccountConnectionButtons = () => {
     }
     if (savedSpotifyProfile) {
       try {
-        setSpotifyProfile(JSON.parse(savedSpotifyProfile));
+        const profile = JSON.parse(savedSpotifyProfile);
+        setSpotifyProfile(profile);
+        console.log('Loaded Spotify profile from localStorage:', profile);
       } catch (error) {
         console.error('Error parsing Spotify profile from localStorage:', error);
       }
@@ -352,6 +355,7 @@ const AccountConnectionButtons = () => {
     localStorage.removeItem('spotify_access_token');
     localStorage.removeItem('spotify_profile');
     localStorage.removeItem('spotify_data');
+    localStorage.removeItem('spotify_raw_data');
     
     if (user) {
       try {
@@ -404,17 +408,20 @@ const AccountConnectionButtons = () => {
           {spotifyProfile ? (
             <div className="space-y-3 p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                {spotifyProfile.images?.[0] && (
+                {spotifyProfile.images?.[0]?.url && (
                   <img 
                     src={spotifyProfile.images[0].url} 
-                    alt="Profile" 
+                    alt="Spotify Profile" 
                     className="w-12 h-12 rounded-full"
                   />
                 )}
                 <div>
-                  <p className="font-medium">{spotifyProfile.display_name}</p>
+                  <p className="font-medium">{spotifyProfile.display_name || 'Connected User'}</p>
                   <p className="text-sm text-muted-foreground">
-                    {spotifyProfile.followers?.total} followers
+                    {spotifyProfile.followers?.total ? 
+                      `${spotifyProfile.followers.total.toLocaleString()} followers` : 
+                      'Spotify connected'
+                    }
                   </p>
                 </div>
               </div>
@@ -458,16 +465,16 @@ const AccountConnectionButtons = () => {
                 {youtubeChannel.snippet?.thumbnails?.default?.url && (
                   <img 
                     src={youtubeChannel.snippet.thumbnails.default.url} 
-                    alt="Channel" 
+                    alt="YouTube Channel" 
                     className="w-12 h-12 rounded-full"
                   />
                 )}
                 <div>
-                  <p className="font-medium">{youtubeChannel.snippet?.title}</p>
+                  <p className="font-medium">{youtubeChannel.snippet?.title || 'Connected Channel'}</p>
                   <p className="text-sm text-muted-foreground">
                     {youtubeChannel.statistics?.subscriberCount ? 
                       parseInt(youtubeChannel.statistics.subscriberCount).toLocaleString() + ' subscribers' :
-                      'Channel connected'
+                      'YouTube connected'
                     }
                   </p>
                 </div>
