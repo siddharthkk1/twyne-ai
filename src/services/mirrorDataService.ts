@@ -30,6 +30,17 @@ interface SynthesizedSpotifyData {
   };
 }
 
+interface PlatformConnections {
+  spotify?: {
+    profile: any;
+    connected_at: string;
+  };
+  youtube?: {
+    channel: any;
+    connected_at: string;
+  };
+}
+
 export class MirrorDataService {
   static async storeMirrorData(
     synthesizedData: {
@@ -95,6 +106,67 @@ export class MirrorDataService {
     }
   }
 
+  static async storeConnectionData(platform: 'spotify' | 'youtube', connectionInfo: any) {
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('User not authenticated, storing in localStorage only');
+        localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+        return;
+      }
+
+      // Get current user data
+      const { data: userData } = await supabase
+        .from('user_data')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!userData) {
+        console.error('No user data found');
+        return;
+      }
+
+      // Get current platform connections
+      const currentConnections = userData.platform_connections && typeof userData.platform_connections === 'object'
+        ? userData.platform_connections as PlatformConnections
+        : {};
+
+      // Update connections with new platform data
+      const updatedConnections: PlatformConnections = {
+        ...currentConnections,
+        [platform]: {
+          profile: platform === 'spotify' ? connectionInfo.profile : connectionInfo.channel,
+          connected_at: new Date().toISOString()
+        }
+      };
+
+      // Update the database
+      const { error: updateError } = await supabase
+        .from('user_data')
+        .update({
+          platform_connections: updatedConnections as any,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('id', userData.id);
+
+      if (updateError) {
+        console.error(`Error storing ${platform} connection data:`, updateError);
+        return;
+      }
+
+      console.log(`${platform} connection data stored successfully`);
+
+      // Also store in localStorage for immediate access
+      localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+    } catch (error) {
+      console.error(`Error storing ${platform} connection data:`, error);
+    }
+  }
+
   static async loadConnectionData(): Promise<{
     spotify?: any;
     youtube?: any;
@@ -102,48 +174,129 @@ export class MirrorDataService {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('User not authenticated, cannot load connection data');
-        return {};
+        console.log('User not authenticated, loading from localStorage only');
+        return this.loadFromLocalStorage();
       }
+
+      // Get user data from database
+      const { data: userData } = await supabase
+        .from('user_data')
+        .select('platform_connections')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       const connectionData: { spotify?: any; youtube?: any } = {};
 
-      // Load from localStorage only (no longer storing in database)
-      const localSpotifyData = localStorage.getItem('spotify_data');
-      const localYouTubeData = localStorage.getItem('youtube_data');
-      
-      if (localSpotifyData) {
-        try {
-          connectionData.spotify = JSON.parse(localSpotifyData);
-          console.log('Loaded Spotify data from localStorage');
-        } catch (error) {
-          console.error('Error parsing Spotify data from localStorage:', error);
+      // Load from database if available
+      if (userData?.platform_connections && typeof userData.platform_connections === 'object') {
+        const connections = userData.platform_connections as PlatformConnections;
+        
+        if (connections.spotify?.profile) {
+          connectionData.spotify = { profile: connections.spotify.profile };
+          console.log('Loaded Spotify connection from database');
+        }
+        
+        if (connections.youtube?.profile) {
+          connectionData.youtube = { channel: connections.youtube.profile };
+          console.log('Loaded YouTube connection from database');
         }
       }
-      
-      if (localYouTubeData) {
-        try {
-          connectionData.youtube = JSON.parse(localYouTubeData);
-          console.log('Loaded YouTube data from localStorage');
-        } catch (error) {
-          console.error('Error parsing YouTube data from localStorage:', error);
-        }
+
+      // Fallback to localStorage if nothing in database
+      if (!connectionData.spotify && !connectionData.youtube) {
+        console.log('No database connections found, falling back to localStorage');
+        return this.loadFromLocalStorage();
       }
 
       return connectionData;
     } catch (error) {
-      console.error('Error loading connection data:', error);
-      return {};
+      console.error('Error loading connection data from database:', error);
+      return this.loadFromLocalStorage();
     }
   }
 
-  static async storeConnectionData(platform: 'spotify' | 'youtube', data: any) {
+  static async removeConnectionData(platform: 'spotify' | 'youtube') {
     try {
-      // Only store in localStorage for immediate access (no database storage)
-      localStorage.setItem(`${platform}_data`, JSON.stringify(data));
-      console.log(`${platform} connection data stored in localStorage`);
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('User not authenticated, removing from localStorage only');
+        localStorage.removeItem(`${platform}_data`);
+        return;
+      }
+
+      // Get current user data
+      const { data: userData } = await supabase
+        .from('user_data')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!userData) {
+        console.error('No user data found');
+        return;
+      }
+
+      // Get current platform connections
+      const currentConnections = userData.platform_connections && typeof userData.platform_connections === 'object'
+        ? userData.platform_connections as PlatformConnections
+        : {};
+
+      // Remove the specific platform
+      const updatedConnections = { ...currentConnections };
+      delete updatedConnections[platform];
+
+      // Update the database
+      const { error: updateError } = await supabase
+        .from('user_data')
+        .update({
+          platform_connections: updatedConnections as any,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('id', userData.id);
+
+      if (updateError) {
+        console.error(`Error removing ${platform} connection data:`, updateError);
+        return;
+      }
+
+      console.log(`${platform} connection data removed successfully`);
+
+      // Also remove from localStorage
+      localStorage.removeItem(`${platform}_data`);
     } catch (error) {
-      console.error(`Error storing ${platform} connection data:`, error);
+      console.error(`Error removing ${platform} connection data:`, error);
     }
+  }
+
+  private static loadFromLocalStorage(): { spotify?: any; youtube?: any } {
+    const connectionData: { spotify?: any; youtube?: any } = {};
+    
+    const localSpotifyData = localStorage.getItem('spotify_data');
+    const localYouTubeData = localStorage.getItem('youtube_data');
+    
+    if (localSpotifyData) {
+      try {
+        connectionData.spotify = JSON.parse(localSpotifyData);
+        console.log('Loaded Spotify data from localStorage');
+      } catch (error) {
+        console.error('Error parsing Spotify data from localStorage:', error);
+      }
+    }
+    
+    if (localYouTubeData) {
+      try {
+        connectionData.youtube = JSON.parse(localYouTubeData);
+        console.log('Loaded YouTube data from localStorage');
+      } catch (error) {
+        console.error('Error parsing YouTube data from localStorage:', error);
+      }
+    }
+
+    return connectionData;
   }
 }

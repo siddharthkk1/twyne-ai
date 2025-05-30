@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -38,33 +37,27 @@ const AccountConnectionButtons = () => {
   }, [user]);
 
   const loadConnectionData = async () => {
-    if (user) {
-      // For authenticated users, load from database first
-      try {
-        const connectionData = await MirrorDataService.loadConnectionData();
-        console.log('Loaded connection data from database:', connectionData);
-        
-        if (connectionData.spotify) {
-          // Handle both direct profile and nested profile structure
-          const profile = connectionData.spotify.profile || connectionData.spotify;
-          setSpotifyProfile(profile);
-          setSpotifyToken('connected');
-          console.log('Loaded Spotify profile from database:', profile);
-        }
-        
-        if (connectionData.youtube) {
-          // Use the channel data from the stored YouTube data
-          setYoutubeChannel(connectionData.youtube.channel || connectionData.youtube);
-          setGoogleToken('connected');
-          console.log('Loaded YouTube channel from database:', connectionData.youtube.channel || connectionData.youtube);
-        }
-      } catch (error) {
-        console.error('Error loading connection data from database:', error);
-        // Fallback to localStorage
-        loadFromLocalStorage();
+    try {
+      const connectionData = await MirrorDataService.loadConnectionData();
+      console.log('Loaded connection data:', connectionData);
+      
+      if (connectionData.spotify) {
+        // Handle both direct profile and nested profile structure
+        const profile = connectionData.spotify.profile || connectionData.spotify;
+        setSpotifyProfile(profile);
+        setSpotifyToken('connected');
+        console.log('Loaded Spotify profile:', profile);
       }
-    } else {
-      // For anonymous users, load from localStorage only
+      
+      if (connectionData.youtube) {
+        // Use the channel data from the stored YouTube data
+        setYoutubeChannel(connectionData.youtube.channel || connectionData.youtube);
+        setGoogleToken('connected');
+        console.log('Loaded YouTube channel:', connectionData.youtube.channel || connectionData.youtube);
+      }
+    } catch (error) {
+      console.error('Error loading connection data:', error);
+      // Fallback to localStorage
       loadFromLocalStorage();
     }
   };
@@ -202,17 +195,8 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
       
-      if (user) {
-        try {
-          await MirrorDataService.storeMirrorData(
-            {},
-            { spotify: spotifyData }
-          );
-          console.log('Spotify data stored in database successfully');
-        } catch (error) {
-          console.error('Error storing Spotify data in database:', error);
-        }
-      }
+      // Store connection info in database
+      await MirrorDataService.storeConnectionData('spotify', spotifyData);
       
       console.log('Spotify data fetched successfully:', spotifyData);
     } catch (error) {
@@ -258,17 +242,8 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
       localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
       
-      if (user) {
-        try {
-          await MirrorDataService.storeMirrorData(
-            {},
-            { youtube: youtubeData }
-          );
-          console.log('YouTube data stored in database successfully');
-        } catch (error) {
-          console.error('Error storing YouTube data in database:', error);
-        }
-      }
+      // Store connection info in database
+      await MirrorDataService.storeConnectionData('youtube', youtubeData);
       
       console.log('YouTube data fetched successfully:', youtubeData);
     } catch (error) {
@@ -358,17 +333,8 @@ const AccountConnectionButtons = () => {
     localStorage.removeItem('spotify_data');
     localStorage.removeItem('spotify_raw_data');
     
-    if (user) {
-      try {
-        await MirrorDataService.storeMirrorData(
-          {},
-          { spotify: null }
-        );
-        console.log('Spotify data removed from database');
-      } catch (error) {
-        console.error('Error removing Spotify data from database:', error);
-      }
-    }
+    // Remove from database
+    await MirrorDataService.removeConnectionData('spotify');
     
     toast({
       title: "Spotify Disconnected",
@@ -383,17 +349,8 @@ const AccountConnectionButtons = () => {
     localStorage.removeItem('youtube_channel');
     localStorage.removeItem('youtube_data');
     
-    if (user) {
-      try {
-        await MirrorDataService.storeMirrorData(
-          {},
-          { youtube: null }
-        );
-        console.log('YouTube data removed from database');
-      } catch (error) {
-        console.error('Error removing YouTube data from database:', error);
-      }
-    }
+    // Remove from database
+    await MirrorDataService.removeConnectionData('youtube');
     
     toast({
       title: "YouTube Disconnected",

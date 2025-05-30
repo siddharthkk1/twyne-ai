@@ -44,9 +44,9 @@ export type Database = {
           conversation_data: Json | null
           created_at: string
           id: string
+          platform_connections: Json | null
           profile_data: Json
           prompt_mode: string | null
-          raw_platform_data: Json | null
           sso_data: Json | null
           updated_at: string
           user_id: string
@@ -55,9 +55,9 @@ export type Database = {
           conversation_data?: Json | null
           created_at?: string
           id?: string
+          platform_connections?: Json | null
           profile_data?: Json
           prompt_mode?: string | null
-          raw_platform_data?: Json | null
           sso_data?: Json | null
           updated_at?: string
           user_id: string
@@ -66,9 +66,9 @@ export type Database = {
           conversation_data?: Json | null
           created_at?: string
           id?: string
+          platform_connections?: Json | null
           profile_data?: Json
           prompt_mode?: string | null
-          raw_platform_data?: Json | null
           sso_data?: Json | null
           updated_at?: string
           user_id?: string
