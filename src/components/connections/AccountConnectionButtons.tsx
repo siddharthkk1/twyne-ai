@@ -45,6 +45,7 @@ const AccountConnectionButtons = () => {
         console.log('Loaded connection data from database:', connectionData);
         
         if (connectionData.spotify) {
+          // Handle both direct profile and nested profile structure
           const profile = connectionData.spotify.profile || connectionData.spotify;
           setSpotifyProfile(profile);
           setSpotifyToken('connected');

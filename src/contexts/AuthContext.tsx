@@ -35,32 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        console.log('AuthContext: Getting initial session...');
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('AuthContext: Error getting initial session:', error);
-        } else {
-          console.log('AuthContext: Initial session loaded:', !!initialSession);
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
-          
-          // Load user profile if session exists
-          if (initialSession?.user) {
-            await loadUserProfile(initialSession.user.id);
-          }
-        }
-      } catch (error) {
-        console.error('AuthContext: Error in getInitialSession:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    let isInitialLoad = true;
 
-    // Set up auth state listener
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('AuthContext: Auth state changed:', event, !!session);
@@ -69,8 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Only set loading to false if we're not already done with initial load
-        if (event !== 'INITIAL_SESSION') {
+        // Only set loading to false after initial session check
+        if (!isInitialLoad) {
           setIsLoading(false);
         }
         
@@ -104,6 +81,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Get initial session after setting up the listener
+    const getInitialSession = async () => {
+      try {
+        console.log('AuthContext: Getting initial session...');
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('AuthContext: Error getting initial session:', error);
+        } else {
+          console.log('AuthContext: Initial session loaded:', !!initialSession);
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          
+          // Load user profile if session exists
+          if (initialSession?.user) {
+            await loadUserProfile(initialSession.user.id);
+          }
+        }
+      } catch (error) {
+        console.error('AuthContext: Error in getInitialSession:', error);
+      } finally {
+        isInitialLoad = false;
+        setIsLoading(false);
+      }
+    };
+
     getInitialSession();
 
     return () => {
