@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Music, TrendingUp, Heart, Disc, User } from 'lucide-react';
-import { MirrorDataService } from '@/services/mirrorDataService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -20,79 +19,39 @@ interface SimplifiedArtist {
   imageUrl: string;
 }
 
-interface SpotifyData {
+interface SpotifyInsights {
+  topSongs: SimplifiedTrack[];
   topArtists: SimplifiedArtist[];
-  topTracks: SimplifiedTrack[];
   topGenres: string[];
   topAlbums?: Array<{
     name: string;
     artists: Array<{ name: string }>;
     images: Array<{ url: string }>;
   }>;
-  fullTopTracks?: Array<{
-    name: string;
-    artists: Array<{ name: string }>;
-    album: { name: string; images: Array<{ url: string }> };
-  }>;
-  fullTopArtists?: Array<{
-    name: string;
-    images: Array<{ url: string }>;
-    genres: string[];
-  }>;
+  vibeSummary?: string;
+  traitDisplay?: {
+    valence: number;
+    energy: number;
+    danceability: number;
+    tempo: number;
+    acousticness: number;
+    instrumentalness: number;
+  };
 }
 
 interface SpotifyDataCardProps {
-  data: SpotifyData | null;
+  data?: any; // Keep for backwards compatibility but not used
 }
 
-const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
+const SpotifyDataCard: React.FC<SpotifyDataCardProps> = () => {
   const { user } = useAuth();
-  const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(data);
-  const [spotifyInsights, setSpotifyInsights] = useState<any>(null);
+  const [spotifyInsights, setSpotifyInsights] = useState<SpotifyInsights | null>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
-  // Load data from MirrorDataService and localStorage
-  useEffect(() => {
-    const loadSpotifyData = async () => {
-      if (!spotifyData) {
-        try {
-          const connectionData = await MirrorDataService.loadConnectionData();
-          
-          if (connectionData.spotify) {
-            // Prioritize synthesized data from database
-            if (connectionData.spotify.synthesizedData) {
-              setSpotifyData(connectionData.spotify.synthesizedData);
-              return;
-            }
-            
-            // Fallback to direct spotify data
-            setSpotifyData(connectionData.spotify);
-            return;
-          }
-        } catch (error) {
-          console.error('Error loading from MirrorDataService:', error);
-        }
-        
-        // Fallback to localStorage
-        const storedData = localStorage.getItem('spotify_data');
-        if (storedData) {
-          try {
-            const parsed = JSON.parse(storedData);
-            setSpotifyData(parsed);
-          } catch (error) {
-            console.error('Error parsing stored Spotify data:', error);
-          }
-        }
-      }
-    };
-
-    loadSpotifyData();
-  }, [spotifyData]);
-
-  // Load AI insights from profile_data
+  // Load AI insights from profile_data - single source of truth
   useEffect(() => {
     const loadSpotifyInsights = async () => {
-      if (!user || spotifyInsights) return;
+      if (!user) return;
       
       setIsLoadingInsights(true);
       
@@ -120,9 +79,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     };
 
     loadSpotifyInsights();
-  }, [user, spotifyInsights]);
+  }, [user]);
 
-  if (!spotifyData && !spotifyInsights) {
+  if (!spotifyInsights && !isLoadingInsights) {
     return (
       <Card className="border border-border bg-card">
         <CardHeader>
@@ -136,11 +95,28 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     );
   }
 
-  // Use the current data for displaying lists
-  const displayData = spotifyData;
-  const safeTracks = Array.isArray(displayData?.topTracks) ? displayData.topTracks : [];
-  const safeArtists = Array.isArray(displayData?.topArtists) ? displayData.topArtists : [];
-  const safeGenres = Array.isArray(displayData?.topGenres) ? displayData.topGenres : [];
+  if (isLoadingInsights) {
+    return (
+      <Card className="border border-border bg-card">
+        <CardHeader>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Music className="h-5 w-5" />
+            Spotify Music Profile
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground">Loading your music insights...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const safeTracks = Array.isArray(spotifyInsights?.topSongs) ? spotifyInsights.topSongs : [];
+  const safeArtists = Array.isArray(spotifyInsights?.topArtists) ? spotifyInsights.topArtists : [];
+  const safeGenres = Array.isArray(spotifyInsights?.topGenres) ? spotifyInsights.topGenres : [];
 
   return (
     <Card className="border border-border bg-card">
@@ -158,16 +134,9 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             <Heart className="h-4 w-4" />
             Your Music Vibe
           </h3>
-          {isLoadingInsights ? (
-            <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <p className="text-sm text-muted-foreground">Loading your music insights...</p>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {spotifyInsights?.vibeSummary || "Your music taste reflects a unique personality that loves discovering new sounds."}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            {spotifyInsights?.vibeSummary || "Your music taste reflects a unique personality that loves discovering new sounds."}
+          </p>
         </div>
 
         {/* Trait Display */}

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
@@ -40,7 +41,6 @@ interface PlatformConnections {
     profile: any;
     tokens?: PlatformTokens;
     connected_at: string;
-    synthesizedData?: any;
   };
   youtube?: {
     channel: any;
@@ -166,7 +166,7 @@ export class MirrorDataService {
         }
       }
 
-      // Prepare the connection data structure - EXCLUDE rawData
+      // Prepare the connection data structure - EXCLUDE synthesizedData
       let connectionData: any = {
         connected_at: new Date().toISOString()
       };
@@ -184,10 +184,7 @@ export class MirrorDataService {
         if (connectionInfo.tokens) {
           connectionData.tokens = connectionInfo.tokens;
         }
-        if (connectionInfo.synthesizedData) {
-          connectionData.synthesizedData = connectionInfo.synthesizedData;
-        }
-        // NOTE: Explicitly NOT storing rawData in platform_connections
+        // NOTE: Explicitly NOT storing synthesizedData in platform_connections
       } else if (platform === 'youtube') {
         const channel = connectionInfo.channel || connectionInfo;
         
@@ -268,8 +265,7 @@ export class MirrorDataService {
           if (spotifyProfile.id && spotifyProfile.display_name) {
             connectionData.spotify = {
               profile: spotifyProfile,
-              tokens: connections.spotify.tokens,
-              synthesizedData: connections.spotify.synthesizedData
+              tokens: connections.spotify.tokens
             };
           }
         }
@@ -343,11 +339,24 @@ export class MirrorDataService {
       const updatedConnections = { ...currentConnections };
       delete updatedConnections[platform];
 
+      // Also remove from profile_data
+      const currentProfileData = userData.profile_data && typeof userData.profile_data === 'object'
+        ? userData.profile_data as Record<string, any>
+        : {};
+      
+      const updatedProfileData = { ...currentProfileData };
+      if (platform === 'spotify') {
+        delete updatedProfileData.spotify_insights;
+      } else if (platform === 'youtube') {
+        delete updatedProfileData.youtube_summary;
+      }
+
       // Update the database
       const { error: updateError } = await supabase
         .from('user_data')
         .update({
           platform_connections: updatedConnections as any,
+          profile_data: updatedProfileData as any,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -381,17 +390,7 @@ export class MirrorDataService {
     const connectionData: { spotify?: any; youtube?: any } = {};
     
     try {
-      const localSpotifyData = localStorage.getItem('spotify_data');
       const localYouTubeData = localStorage.getItem('youtube_data');
-      
-      if (localSpotifyData) {
-        try {
-          const parsedSpotifyData = JSON.parse(localSpotifyData);
-          connectionData.spotify = parsedSpotifyData;
-        } catch (error) {
-          console.error('Error parsing Spotify data from localStorage:', error);
-        }
-      }
       
       if (localYouTubeData) {
         try {

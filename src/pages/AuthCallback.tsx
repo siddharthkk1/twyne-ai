@@ -139,36 +139,7 @@ const AuthCallback = () => {
         .slice(0, 10)
         .map(([genre]) => genre);
 
-      // Create synthesized data structure using LONG-TERM data for main display
-      const synthesizedData = {
-        topTracks: topTracksLong.slice(0, 20).map((track, index) => ({
-          rank: index + 1,
-          title: track.name,
-          artist: track.artists.map(a => a.name).join(', '),
-          imageUrl: track.album.images[0]?.url || ''
-        })),
-        topArtists: topArtistsLong.slice(0, 20).map((artist, index) => ({
-          rank: index + 1,
-          name: artist.name,
-          imageUrl: artist.images[0]?.url || ''
-        })),
-        topGenres,
-        topAlbums: allTracks
-          .map(track => ({
-            name: track.album.name,
-            artists: track.artists || [{ name: 'Unknown Artist' }],
-            images: track.album.images || []
-          }))
-          .filter((album, index, arr) => 
-            arr.findIndex(a => a.name === album.name) === index
-          )
-          .slice(0, 10),
-        // Store full long-term data for AI processing
-        fullTopTracks: topTracksLong,
-        fullTopArtists: topArtistsLong
-      };
-
-      // Generate AI insights using the comprehensive data - fix the topAlbums structure
+      // Generate AI insights using the comprehensive data
       console.log('Generating Spotify AI insights...');
       const spotifyInsights = await AIProfileService.generateSpotifyProfile({
         topTracks: topTracksLong,
@@ -186,20 +157,18 @@ const AuthCallback = () => {
         topGenres
       });
 
-      // Store connection data in platform_connections (WITHOUT rawData)
+      // Store connection data in platform_connections (WITHOUT synthesizedData)
       const spotifyConnectionData = {
         profile,
         tokens: {
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
           expires_at: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : null
-        },
-        synthesizedData
+        }
       };
 
-      // Store data locally for immediate access
+      // Store data locally for immediate access - only profile
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
-      localStorage.setItem('spotify_data', JSON.stringify(synthesizedData));
       
       // Store connection data in database (platform_connections)
       await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
@@ -211,13 +180,13 @@ const AuthCallback = () => {
           title: song.name,
           artist: song.artists.map(a => a.name).join(', '),
           imageUrl: song.album.images[0]?.url || ''
-        })) || synthesizedData.topTracks.slice(0, 5),
+        })) || [],
         topArtists: spotifyInsights.topArtists?.map((artist, index) => ({
           rank: index + 1,
           name: artist.name,
           imageUrl: artist.images[0]?.url || ''
-        })) || synthesizedData.topArtists.slice(0, 5),
-        topAlbums: spotifyInsights.topAlbums || synthesizedData.topAlbums.slice(0, 5),
+        })) || [],
+        topAlbums: spotifyInsights.topAlbums || [],
         topGenres: spotifyInsights.topGenres || topGenres.slice(0, 5),
         vibeSummary: spotifyInsights.vibeSummary,
         traitDisplay: spotifyInsights.traitDisplay
