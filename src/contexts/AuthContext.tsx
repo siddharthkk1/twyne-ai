@@ -2,12 +2,27 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+
+interface UserProfile {
+  username?: string;
+  full_name?: string;
+  bio?: string;
+  location?: string;
+  profile_data?: any;
+  [key: string]: any;
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isNewUser: boolean;
+  profile: UserProfile | null;
   signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
+  clearNewUserFlag: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,6 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     // Get initial session
@@ -30,6 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('AuthContext: Initial session loaded:', !!initialSession);
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
+          
+          // Load user profile if session exists
+          if (initialSession?.user) {
+            await loadUserProfile(initialSession.user.id);
+          }
         }
       } catch (error) {
         console.error('AuthContext: Error in getInitialSession:', error);
@@ -52,6 +74,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLoading(false);
         }
         
+        // Load user profile when user signs in
+        if (session?.user) {
+          setTimeout(() => {
+            loadUserProfile(session.user.id);
+          }, 0);
+        } else {
+          setProfile(null);
+          setIsNewUser(false);
+        }
+        
         // Handle specific auth events
         if (event === 'SIGNED_OUT') {
           console.log('AuthContext: User signed out, clearing local data');
@@ -61,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('spotify_raw_data');
           localStorage.removeItem('youtube_channel');
           localStorage.removeItem('youtube_data');
+          setProfile(null);
+          setIsNewUser(false);
         }
         
         if (event === 'TOKEN_REFRESHED') {
@@ -77,6 +111,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+
+      if (data) {
+        console.log('User profile loaded:', data);
+        setProfile(data.profile_data || {});
+        setIsNewUser(!data.profile_data || Object.keys(data.profile_data).length === 0);
+      } else {
+        console.log('No user profile found - new user');
+        setProfile(null);
+        setIsNewUser(true);
+      }
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
+      setProfile(null);
+      setIsNewUser(true);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const signUp = async (email: string, password: string, userData?: any) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData || {}
+        }
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const clearNewUserFlag = () => {
+    setIsNewUser(false);
+  };
 
   const signOut = async () => {
     try {
@@ -112,7 +206,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     isLoading,
+    isNewUser,
+    profile,
     signOut,
+    signIn,
+    signUp,
+    clearNewUserFlag,
   };
 
   return (
