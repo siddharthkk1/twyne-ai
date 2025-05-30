@@ -168,15 +168,19 @@ const AuthCallback = () => {
         fullTopArtists: topArtistsLong
       };
 
-      // Generate AI insights using the comprehensive data
+      // Generate AI insights using the comprehensive data - fix the topAlbums structure
       console.log('Generating Spotify AI insights...');
       const spotifyInsights = await AIProfileService.generateSpotifyProfile({
         topTracks: topTracksLong,
         topArtists: topArtistsLong,
         topAlbums: allTracks
-          .map(track => track.album)
+          .map(track => ({
+            name: track.album.name,
+            artists: track.artists || [{ name: 'Unknown Artist' }],
+            images: track.album.images || []
+          }))
           .filter((album, index, arr) => 
-            arr.findIndex(a => a.id === album.id) === index
+            arr.findIndex(a => a.name === album.name) === index
           )
           .slice(0, 10),
         topGenres
@@ -200,9 +204,27 @@ const AuthCallback = () => {
       // Store connection data in database (platform_connections)
       await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
       
-      // Store AI insights in profile_data
+      // Store AI insights in profile_data - convert AI insights to match SynthesizedSpotifyData format
+      const formattedInsights = {
+        topSongs: spotifyInsights.topSongs?.map((song, index) => ({
+          rank: index + 1,
+          title: song.name,
+          artist: song.artists.map(a => a.name).join(', '),
+          imageUrl: song.album.images[0]?.url || ''
+        })) || synthesizedData.topTracks.slice(0, 5),
+        topArtists: spotifyInsights.topArtists?.map((artist, index) => ({
+          rank: index + 1,
+          name: artist.name,
+          imageUrl: artist.images[0]?.url || ''
+        })) || synthesizedData.topArtists.slice(0, 5),
+        topAlbums: spotifyInsights.topAlbums || synthesizedData.topAlbums.slice(0, 5),
+        topGenres: spotifyInsights.topGenres || topGenres.slice(0, 5),
+        vibeSummary: spotifyInsights.vibeSummary,
+        traitDisplay: spotifyInsights.traitDisplay
+      };
+      
       await MirrorDataService.storeMirrorData({
-        spotify: spotifyInsights
+        spotify: formattedInsights
       });
       
       toast({
