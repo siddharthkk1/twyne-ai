@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface SynthesizedSpotifyData {
@@ -42,7 +41,6 @@ interface PlatformConnections {
     tokens?: PlatformTokens;
     connected_at: string;
     synthesizedData?: any;
-    rawData?: any;
   };
   youtube?: {
     channel: any;
@@ -168,7 +166,7 @@ export class MirrorDataService {
         }
       }
 
-      // Prepare the connection data structure
+      // Prepare the connection data structure - EXCLUDE rawData
       let connectionData: any = {
         connected_at: new Date().toISOString()
       };
@@ -189,9 +187,7 @@ export class MirrorDataService {
         if (connectionInfo.synthesizedData) {
           connectionData.synthesizedData = connectionInfo.synthesizedData;
         }
-        if (connectionInfo.rawData) {
-          connectionData.rawData = connectionInfo.rawData;
-        }
+        // NOTE: Explicitly NOT storing rawData in platform_connections
       } else if (platform === 'youtube') {
         const channel = connectionInfo.channel || connectionInfo;
         
@@ -207,6 +203,7 @@ export class MirrorDataService {
         if (connectionInfo.data) {
           connectionData.data = connectionInfo.data;
         }
+        // NOTE: Explicitly NOT storing rawData in platform_connections
       }
 
       // Update connections with new platform data
@@ -272,8 +269,7 @@ export class MirrorDataService {
             connectionData.spotify = {
               profile: spotifyProfile,
               tokens: connections.spotify.tokens,
-              synthesizedData: connections.spotify.synthesizedData,
-              rawData: connections.spotify.rawData
+              synthesizedData: connections.spotify.synthesizedData
             };
           }
         }

@@ -6,6 +6,7 @@ import { SpotifyService } from '@/services/spotifyService';
 import { GoogleAuthService } from '@/services/googleAuthService';
 import { YouTubeService } from '@/services/youtubeService';
 import { MirrorDataService } from '@/services/mirrorDataService';
+import { AIProfileService } from '@/services/aiProfileService';
 import { toast } from '@/components/ui/use-toast';
 
 const AuthCallback = () => {
@@ -163,6 +164,21 @@ const AuthCallback = () => {
         fullTopArtists: topArtistsLong
       };
 
+      // Generate AI insights using the comprehensive data
+      console.log('Generating Spotify AI insights...');
+      const spotifyInsights = await AIProfileService.generateSpotifyProfile({
+        topTracks: topTracksLong,
+        topArtists: topArtistsLong,
+        topAlbums: allTracks
+          .map(track => track.album)
+          .filter((album, index, arr) => 
+            arr.findIndex(a => a.id === album.id) === index
+          )
+          .slice(0, 10),
+        topGenres
+      });
+
+      // Store connection data in platform_connections (WITHOUT rawData)
       const spotifyConnectionData = {
         profile,
         tokens: {
@@ -170,40 +186,29 @@ const AuthCallback = () => {
           refresh_token: tokenData.refresh_token,
           expires_at: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : null
         },
-        synthesizedData,
-        rawData: {
-          topTracks: {
-            short_term: topTracksShort,
-            medium_term: topTracksMedium,
-            long_term: topTracksLong
-          },
-          topArtists: {
-            short_term: topArtistsShort,
-            medium_term: topArtistsMedium,
-            long_term: topArtistsLong
-          },
-          recentlyPlayed,
-          playlists,
-          savedTracks,
-          followedArtists
-        }
+        synthesizedData
       };
 
       // Store data locally for immediate access
       localStorage.setItem('spotify_profile', JSON.stringify(profile));
       localStorage.setItem('spotify_data', JSON.stringify(synthesizedData));
       
-      // Store connection data in database
+      // Store connection data in database (platform_connections)
       await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
+      
+      // Store AI insights in profile_data
+      await MirrorDataService.storeMirrorData({
+        spotify: spotifyInsights
+      });
       
       toast({
         title: "Spotify Connected!",
-        description: "Successfully connected your Spotify account and fetched your data.",
+        description: "Successfully connected your Spotify account and generated AI insights.",
       });
       
-      // Clear URL parameters and redirect to connections
+      // Clear URL parameters and redirect to mirror
       window.history.replaceState({}, document.title, window.location.pathname);
-      navigate('/connections');
+      navigate('/mirror');
       
     } catch (error) {
       console.error('Error in Spotify callback:', error);
@@ -239,6 +244,19 @@ const AuthCallback = () => {
         YouTubeService.getWatchLaterPlaylist(tokenData.access_token)
       ]);
 
+      const youtubeData = {
+        videos,
+        playlists,
+        subscriptions,
+        likedVideos,
+        watchLater
+      };
+
+      // Generate AI insights for YouTube
+      console.log('Generating YouTube AI insights...');
+      const youtubeInsights = await AIProfileService.generateYouTubeProfile(youtubeData);
+
+      // Store connection data in platform_connections (WITHOUT rawData)
       const youtubeConnectionData = {
         channel,
         tokens: {
@@ -246,30 +264,29 @@ const AuthCallback = () => {
           refresh_token: tokenData.refresh_token,
           expires_at: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : null
         },
-        data: {
-          videos,
-          playlists,
-          subscriptions,
-          likedVideos,
-          watchLater
-        }
+        data: youtubeData
       };
 
       // Store data locally for immediate access
       localStorage.setItem('youtube_channel', JSON.stringify(channel));
-      localStorage.setItem('youtube_data', JSON.stringify(youtubeConnectionData.data));
+      localStorage.setItem('youtube_data', JSON.stringify(youtubeData));
       
-      // Store connection data in database
+      // Store connection data in database (platform_connections)
       await MirrorDataService.storeConnectionData('youtube', youtubeConnectionData);
+      
+      // Store AI insights in profile_data
+      await MirrorDataService.storeMirrorData({
+        youtube: { summary: youtubeInsights.summary }
+      });
       
       toast({
         title: "YouTube Connected!",
-        description: "Successfully connected your YouTube account and fetched your data.",
+        description: "Successfully connected your YouTube account and generated AI insights.",
       });
       
-      // Clear URL parameters and redirect to connections
+      // Clear URL parameters and redirect to mirror
       window.history.replaceState({}, document.title, window.location.pathname);
-      navigate('/connections');
+      navigate('/mirror');
       
     } catch (error) {
       console.error('Error in YouTube callback:', error);
@@ -282,7 +299,7 @@ const AuthCallback = () => {
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
         <p className="text-lg">
-          {isProcessing ? 'Processing connection...' : 'Completing authentication...'}
+          {isProcessing ? 'Processing connection and generating insights...' : 'Completing authentication...'}
         </p>
       </div>
     </div>

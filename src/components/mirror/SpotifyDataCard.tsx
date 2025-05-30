@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Music, TrendingUp, Heart, Disc, User } from 'lucide-react';
-import { AIProfileService } from '@/services/aiProfileService';
 import { MirrorDataService } from '@/services/mirrorDataService';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SimplifiedTrack {
   rank: number;
@@ -45,9 +46,10 @@ interface SpotifyDataCardProps {
 }
 
 const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
+  const { user } = useAuth();
   const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(data);
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [spotifyInsights, setSpotifyInsights] = useState<any>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
   // Load data from MirrorDataService and localStorage
   useEffect(() => {
@@ -87,65 +89,38 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
     loadSpotifyData();
   }, [spotifyData]);
 
-  // Generate and store Spotify insights when component mounts with data
+  // Load AI insights from profile_data
   useEffect(() => {
-    if (spotifyData && !isGeneratingSummary && !spotifyInsights) {
-      setIsGeneratingSummary(true);
+    const loadSpotifyInsights = async () => {
+      if (!user || spotifyInsights) return;
       
-      // Use full data if available, otherwise convert simplified data for AI analysis
-      const dataForAI = spotifyData.fullTopTracks && spotifyData.fullTopArtists ? {
-        topTracks: spotifyData.fullTopTracks,
-        topArtists: spotifyData.fullTopArtists,
-        topAlbums: Array.isArray(spotifyData.topAlbums) ? spotifyData.topAlbums : [],
-        topGenres: Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres : []
-      } : {
-        topTracks: Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks.map(track => ({
-          name: track.title,
-          artists: [{ name: track.artist }],
-          album: { name: '', images: [{ url: track.imageUrl }] }
-        })) : [],
-        topArtists: Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists.map(artist => ({
-          name: artist.name,
-          images: [{ url: artist.imageUrl }],
-          genres: []
-        })) : [],
-        topAlbums: Array.isArray(spotifyData.topAlbums) ? spotifyData.topAlbums : [],
-        topGenres: Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres : []
-      };
+      setIsLoadingInsights(true);
+      
+      try {
+        const { data: userData, error } = await supabase
+          .from('user_data')
+          .select('profile_data')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      // Generate AI insights
-      AIProfileService.generateSpotifyProfile(dataForAI)
-        .then(insights => {
-          const synthesizedInsights = {
-            topSongs: Array.isArray(spotifyData.topTracks) ? spotifyData.topTracks.slice(0, 5) : [],
-            topArtists: Array.isArray(spotifyData.topArtists) ? spotifyData.topArtists.slice(0, 5) : [],
-            topGenres: Array.isArray(spotifyData.topGenres) ? spotifyData.topGenres.slice(0, 5) : [],
-            topAlbums: Array.isArray(spotifyData.topAlbums) ? spotifyData.topAlbums.slice(0, 5) : [],
-            vibeSummary: insights.vibeSummary,
-            traitDisplay: insights.traitDisplay
-          };
-          
-          setSpotifyInsights(synthesizedInsights);
-        })
-        .catch(error => {
-          console.error('Error generating Spotify insights:', error);
-          setSpotifyInsights({
-            vibeSummary: "Your music taste reflects a unique personality that loves discovering new sounds.",
-            traitDisplay: {
-              valence: 50,
-              energy: 50,
-              danceability: 50,
-              tempo: 120,
-              acousticness: 30,
-              instrumentalness: 10
-            }
-          });
-        })
-        .finally(() => {
-          setIsGeneratingSummary(false);
-        });
-    }
-  }, [spotifyData, isGeneratingSummary, spotifyInsights]);
+        if (!error && userData?.profile_data) {
+          const profileData = userData.profile_data as any;
+          if (profileData.spotify_insights) {
+            console.log('Loaded Spotify insights from profile_data:', profileData.spotify_insights);
+            setSpotifyInsights(profileData.spotify_insights);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading Spotify insights:', error);
+      } finally {
+        setIsLoadingInsights(false);
+      }
+    };
+
+    loadSpotifyInsights();
+  }, [user, spotifyInsights]);
 
   if (!spotifyData && !spotifyInsights) {
     return (
@@ -183,10 +158,10 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
             <Heart className="h-4 w-4" />
             Your Music Vibe
           </h3>
-          {isGeneratingSummary ? (
+          {isLoadingInsights ? (
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <p className="text-sm text-muted-foreground">Analyzing your music taste...</p>
+              <p className="text-sm text-muted-foreground">Loading your music insights...</p>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
