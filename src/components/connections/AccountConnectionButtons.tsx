@@ -45,28 +45,42 @@ const AccountConnectionButtons = () => {
       const connectionData = await MirrorDataService.loadConnectionData();
       console.log('✅ Loaded connection data in component:', JSON.stringify(connectionData, null, 2));
       
-      // Handle Spotify connection
+      // Handle Spotify connection with enhanced validation
       if (connectionData.spotify) {
-        // Handle both direct profile and nested profile structure
         const profile = connectionData.spotify.profile || connectionData.spotify;
-        console.log('Setting Spotify profile in component state:', JSON.stringify(profile, null, 2));
-        setSpotifyProfile(profile);
-        setSpotifyToken('connected');
-        console.log('✅ Spotify profile set in UI state');
+        console.log('Processing Spotify profile in component:', JSON.stringify(profile, null, 2));
+        
+        // Validate Spotify profile has required fields
+        if (profile && profile.id && (profile.display_name || profile.name)) {
+          setSpotifyProfile(profile);
+          setSpotifyToken('connected');
+          console.log('✅ Valid Spotify profile set in UI state');
+        } else {
+          console.warn('⚠️ Invalid Spotify profile data, clearing UI state');
+          setSpotifyProfile(null);
+          setSpotifyToken(null);
+        }
       } else {
         console.log('❌ No Spotify connection found, clearing UI state');
         setSpotifyProfile(null);
         setSpotifyToken(null);
       }
       
-      // Handle YouTube connection
+      // Handle YouTube connection with enhanced validation
       if (connectionData.youtube) {
-        // Use the channel data from the stored YouTube data
         const channel = connectionData.youtube.channel || connectionData.youtube;
-        console.log('Setting YouTube channel in component state:', JSON.stringify(channel, null, 2));
-        setYoutubeChannel(channel);
-        setGoogleToken('connected');
-        console.log('✅ YouTube channel set in UI state');
+        console.log('Processing YouTube channel in component:', JSON.stringify(channel, null, 2));
+        
+        // Validate YouTube channel has required fields
+        if (channel && channel.id && channel.snippet) {
+          setYoutubeChannel(channel);
+          setGoogleToken('connected');
+          console.log('✅ Valid YouTube channel set in UI state');
+        } else {
+          console.warn('⚠️ Invalid YouTube channel data, clearing UI state');
+          setYoutubeChannel(null);
+          setGoogleToken(null);
+        }
       } else {
         console.log('❌ No YouTube connection found, clearing UI state');
         setYoutubeChannel(null);
@@ -84,21 +98,33 @@ const AccountConnectionButtons = () => {
     try {
       const savedSpotifyToken = localStorage.getItem('spotify_access_token');
       const savedSpotifyProfile = localStorage.getItem('spotify_profile');
+      const savedSpotifyData = localStorage.getItem('spotify_data');
       const savedGoogleToken = localStorage.getItem('google_access_token');
       const savedYouTubeData = localStorage.getItem('youtube_data');
       
-      if (savedSpotifyToken) {
-        setSpotifyToken(savedSpotifyToken);
-        console.log('✅ Spotify token loaded from localStorage');
-      }
-      
-      if (savedSpotifyProfile) {
+      // Handle Spotify data with priority: spotify_data > spotify_profile
+      if (savedSpotifyData) {
+        try {
+          const spotifyData = JSON.parse(savedSpotifyData);
+          const profile = spotifyData.profile || spotifyData;
+          if (profile && profile.id) {
+            setSpotifyProfile(profile);
+            setSpotifyToken(savedSpotifyToken || 'connected');
+            console.log('✅ Spotify data loaded from spotify_data localStorage');
+          }
+        } catch (error) {
+          console.error('❌ Error parsing spotify_data from localStorage:', error);
+        }
+      } else if (savedSpotifyProfile) {
         try {
           const profile = JSON.parse(savedSpotifyProfile);
-          setSpotifyProfile(profile);
-          console.log('✅ Spotify profile loaded from localStorage:', profile);
+          if (profile && profile.id) {
+            setSpotifyProfile(profile);
+            setSpotifyToken(savedSpotifyToken || 'connected');
+            console.log('✅ Spotify profile loaded from spotify_profile localStorage');
+          }
         } catch (error) {
-          console.error('❌ Error parsing Spotify profile from localStorage:', error);
+          console.error('❌ Error parsing spotify_profile from localStorage:', error);
         }
       }
       
@@ -110,9 +136,11 @@ const AccountConnectionButtons = () => {
       if (savedYouTubeData) {
         try {
           const youtubeData = JSON.parse(savedYouTubeData);
-          // Use channel data if available
-          setYoutubeChannel(youtubeData.channel || youtubeData);
-          console.log('✅ YouTube channel loaded from localStorage');
+          const channel = youtubeData.channel || youtubeData;
+          if (channel && channel.id) {
+            setYoutubeChannel(channel);
+            console.log('✅ YouTube channel loaded from localStorage');
+          }
         } catch (error) {
           console.error('❌ Error parsing YouTube data from localStorage:', error);
         }
@@ -203,6 +231,11 @@ const AccountConnectionButtons = () => {
 
       console.log('✅ Fetched Spotify profile for storage:', JSON.stringify(profile, null, 2));
 
+      // Validate profile data
+      if (!profile || !profile.id) {
+        throw new Error('Invalid Spotify profile data received');
+      }
+
       const spotifyData = {
         profile,
         topTracks: {
@@ -221,7 +254,7 @@ const AccountConnectionButtons = () => {
         followedArtists
       };
 
-      // Update UI state immediately
+      // Update UI state immediately with validated profile
       setSpotifyProfile(profile);
       console.log('✅ Spotify profile set in component state immediately');
       
@@ -230,30 +263,33 @@ const AccountConnectionButtons = () => {
       localStorage.setItem('spotify_data', JSON.stringify(spotifyData));
       console.log('✅ Spotify data stored in localStorage');
       
-      // Store connection info in database - pass the complete spotifyData object
+      // Store connection info in database
       console.log('🔄 Storing Spotify connection data in database...');
-      console.log('Data structure being passed to storeConnectionData:', JSON.stringify(spotifyData, null, 2));
-      
       const storeResult = await MirrorDataService.storeConnectionData('spotify', spotifyData);
       
       if (storeResult?.success) {
         console.log('✅ Spotify connection data stored successfully in database');
         
-        // Verify the data is properly loaded back
+        // Verify the data persistence
         setTimeout(async () => {
           console.log('🔄 Verifying Spotify data persistence...');
           const verificationData = await MirrorDataService.loadConnectionData();
-          if (verificationData.spotify) {
+          if (verificationData.spotify && verificationData.spotify.profile) {
             console.log('✅ Spotify data persistence verified');
           } else {
             console.error('❌ Spotify data persistence verification failed');
+            toast({
+              title: "Data Persistence Warning",
+              description: "Spotify connected but data may not persist across sessions.",
+              variant: "destructive",
+            });
           }
         }, 2000);
       } else {
         console.error('❌ Failed to store Spotify connection data in database:', storeResult?.error);
         toast({
-          title: "Warning",
-          description: "Spotify connected but data may not persist. Please reconnect if needed.",
+          title: "Database Storage Warning",
+          description: "Spotify connected but may not persist. Data saved locally only.",
           variant: "destructive",
         });
       }
@@ -487,7 +523,9 @@ const AccountConnectionButtons = () => {
                   />
                 )}
                 <div>
-                  <p className="font-medium">{spotifyProfile.display_name || 'Connected User'}</p>
+                  <p className="font-medium">
+                    {spotifyProfile.display_name || spotifyProfile.name || 'Spotify User'}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {spotifyProfile.followers?.total ? 
                       `${spotifyProfile.followers.total.toLocaleString()} followers` : 

@@ -121,7 +121,7 @@ export class MirrorDataService {
 
       console.log('User authenticated:', user.id);
 
-      // Get current user data with error handling - use let instead of const so we can reassign
+      // Get current user data with robust error handling
       let { data: userData, error: fetchError } = await supabase
         .from('user_data')
         .select('*')
@@ -137,9 +137,7 @@ export class MirrorDataService {
       }
 
       if (!userData) {
-        console.error('No user data found for user:', user.id);
-        // Create user data if it doesn't exist
-        console.log('Creating new user data entry...');
+        console.log('No user data found, creating new entry...');
         const { data: newUserData, error: createError } = await supabase
           .from('user_data')
           .insert({
@@ -158,40 +156,55 @@ export class MirrorDataService {
           return { success: false, error: createError.message };
         }
 
-        console.log('Created new user data:', newUserData);
-        // Use the newly created user data
         userData = newUserData;
       }
 
       console.log('Current user data found:', userData.id);
 
-      // Get current platform connections with proper type handling
+      // Safely parse existing platform connections
       let currentConnections: PlatformConnections = {};
       
       if (userData.platform_connections) {
-        if (typeof userData.platform_connections === 'object' && userData.platform_connections !== null) {
-          currentConnections = userData.platform_connections as PlatformConnections;
-        } else {
-          console.warn('Invalid platform_connections format, resetting to empty object');
+        try {
+          if (typeof userData.platform_connections === 'object' && userData.platform_connections !== null) {
+            currentConnections = userData.platform_connections as PlatformConnections;
+          }
+        } catch (error) {
+          console.warn('Error parsing platform_connections, resetting:', error);
+          currentConnections = {};
         }
       }
 
       console.log('Current connections before update:', JSON.stringify(currentConnections, null, 2));
 
-      // Prepare the connection data structure
+      // Prepare the connection data structure with proper validation
       let connectionData: any = {
         connected_at: new Date().toISOString()
       };
 
-      // Handle platform-specific data structure
+      // Handle platform-specific data structure and validate required fields
       if (platform === 'spotify') {
-        // Extract profile from connectionInfo - it could be at connectionInfo.profile or just connectionInfo
         const profile = connectionInfo.profile || connectionInfo;
+        
+        // Validate required Spotify profile fields
+        if (!profile || !profile.id) {
+          console.error('Invalid Spotify profile data - missing required fields');
+          localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+          return { success: false, error: 'Invalid Spotify profile data' };
+        }
+        
         console.log('Extracted Spotify profile for storage:', JSON.stringify(profile, null, 2));
         connectionData.profile = profile;
       } else if (platform === 'youtube') {
-        // Extract channel from connectionInfo
         const channel = connectionInfo.channel || connectionInfo;
+        
+        // Validate required YouTube channel fields
+        if (!channel || !channel.id) {
+          console.error('Invalid YouTube channel data - missing required fields');
+          localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+          return { success: false, error: 'Invalid YouTube channel data' };
+        }
+        
         console.log('Extracted YouTube channel for storage:', JSON.stringify(channel, null, 2));
         connectionData.channel = channel;
       }
@@ -204,42 +217,24 @@ export class MirrorDataService {
 
       console.log('Updated connections to store:', JSON.stringify(updatedConnections, null, 2));
 
-      // Update the database with retry logic
-      let updateAttempts = 0;
-      const maxAttempts = 3;
-      let updateSuccess = false;
+      // Perform database update with enhanced error handling
+      const { error: updateError, data: updateResult } = await supabase
+        .from('user_data')
+        .update({
+          platform_connections: updatedConnections as any,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('id', userData.id)
+        .select();
 
-      while (updateAttempts < maxAttempts && !updateSuccess) {
-        updateAttempts++;
-        console.log(`Database update attempt ${updateAttempts}/${maxAttempts}`);
-
-        const { error: updateError, data: updateResult } = await supabase
-          .from('user_data')
-          .update({
-            platform_connections: updatedConnections as any,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
-          .eq('id', userData.id)
-          .select();
-
-        if (updateError) {
-          console.error(`Database update attempt ${updateAttempts} failed:`, updateError);
-          
-          if (updateAttempts === maxAttempts) {
-            console.error(`All ${maxAttempts} database update attempts failed. Storing in localStorage only.`);
-            localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-            return { success: false, error: updateError.message };
-          }
-          
-          // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000 * updateAttempts));
-        } else {
-          updateSuccess = true;
-          console.log(`${platform} connection data stored successfully in database on attempt ${updateAttempts}`);
-          console.log('Update result:', updateResult);
-        }
+      if (updateError) {
+        console.error('Database update failed:', updateError);
+        localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+        return { success: false, error: updateError.message };
       }
+
+      console.log('Database update successful:', updateResult);
 
       // Verify the data was stored correctly
       const { data: verifyData, error: verifyError } = await supabase
@@ -251,28 +246,29 @@ export class MirrorDataService {
 
       if (verifyError) {
         console.error('Verification query failed:', verifyError);
-      } else {
-        console.log('Verification - data in database:', JSON.stringify(verifyData, null, 2));
-        
-        // Check if our data is actually there
-        const storedConnections = verifyData.platform_connections as PlatformConnections;
-        if (storedConnections && storedConnections[platform]) {
-          console.log(`✅ ${platform} connection data verified in database`);
-        } else {
-          console.error(`❌ ${platform} connection data NOT found in database after update`);
-          localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-          return { success: false, error: 'Data verification failed' };
-        }
+        localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+        return { success: false, error: 'Data verification failed' };
       }
 
-      // Also store in localStorage for immediate access
-      localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
-      console.log(`${platform} data also stored in localStorage for immediate access`);
-      
-      return { success: true };
+      console.log('Verification - data in database:', JSON.stringify(verifyData, null, 2));
+
+      // Check if our data is actually there
+      const storedConnections = verifyData.platform_connections as PlatformConnections;
+      if (storedConnections && storedConnections[platform]) {
+        console.log(`✅ ${platform} connection data verified in database`);
+        
+        // Store in localStorage for immediate access
+        localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+        console.log(`${platform} data also stored in localStorage for immediate access`);
+        
+        return { success: true };
+      } else {
+        console.error(`❌ ${platform} connection data NOT found in database after update`);
+        localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
+        return { success: false, error: 'Data verification failed - not found after update' };
+      }
     } catch (error) {
       console.error(`Critical error storing ${platform} connection data:`, error);
-      // Fallback to localStorage
       localStorage.setItem(`${platform}_data`, JSON.stringify(connectionInfo));
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -311,27 +307,38 @@ export class MirrorDataService {
 
       const connectionData: { spotify?: any; youtube?: any } = {};
 
-      // Load from database if available
+      // Load from database if available with enhanced validation
       if (userData?.platform_connections && typeof userData.platform_connections === 'object') {
         const connections = userData.platform_connections as PlatformConnections;
         console.log('Parsed platform connections from database:', JSON.stringify(connections, null, 2));
         
         if (connections.spotify?.profile) {
-          connectionData.spotify = { profile: connections.spotify.profile };
-          console.log('✅ Loaded Spotify connection from database:', JSON.stringify(connectionData.spotify, null, 2));
+          // Validate Spotify profile data
+          const spotifyProfile = connections.spotify.profile;
+          if (spotifyProfile.id && spotifyProfile.display_name) {
+            connectionData.spotify = { profile: spotifyProfile };
+            console.log('✅ Loaded valid Spotify connection from database');
+          } else {
+            console.warn('⚠️ Invalid Spotify profile data in database, skipping');
+          }
         }
         
         if (connections.youtube?.channel) {
-          connectionData.youtube = { channel: connections.youtube.channel };
-          console.log('✅ Loaded YouTube connection from database:', JSON.stringify(connectionData.youtube, null, 2));
+          // Validate YouTube channel data
+          const youtubeChannel = connections.youtube.channel;
+          if (youtubeChannel.id && youtubeChannel.snippet) {
+            connectionData.youtube = { channel: youtubeChannel };
+            console.log('✅ Loaded valid YouTube connection from database');
+          } else {
+            console.warn('⚠️ Invalid YouTube channel data in database, skipping');
+          }
         }
       }
 
-      // Always check localStorage for comparison and potential fallback
+      // Fallback to localStorage if database data is incomplete
       const localStorageData = this.loadFromLocalStorage();
       console.log('Local storage data for comparison:', JSON.stringify(localStorageData, null, 2));
       
-      // Use database data if available, otherwise fallback to localStorage
       const finalData = {
         spotify: connectionData.spotify || localStorageData.spotify,
         youtube: connectionData.youtube || localStorageData.youtube

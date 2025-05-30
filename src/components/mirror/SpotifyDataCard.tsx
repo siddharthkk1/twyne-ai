@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Music, TrendingUp, Heart, Disc, User } from 'lucide-react';
 import { AIProfileService } from '@/services/aiProfileService';
+import { MirrorDataService } from '@/services/mirrorDataService';
 
 interface SimplifiedTrack {
   rank: number;
@@ -50,20 +51,40 @@ const SpotifyDataCard: React.FC<SpotifyDataCardProps> = ({ data }) => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [spotifyInsights, setSpotifyInsights] = useState<any>(null);
 
-  // Try to load data from localStorage if not provided
+  // Load data from MirrorDataService and localStorage
   useEffect(() => {
-    if (!spotifyData) {
-      const storedData = localStorage.getItem('spotify_data');
-      if (storedData) {
+    const loadSpotifyData = async () => {
+      if (!spotifyData) {
+        console.log('🔄 Loading Spotify data for SpotifyDataCard...');
+        
         try {
-          const parsed = JSON.parse(storedData);
-          console.log('Loaded Spotify data from localStorage:', parsed);
-          setSpotifyData(parsed);
+          // First try to load from MirrorDataService
+          const connectionData = await MirrorDataService.loadConnectionData();
+          
+          if (connectionData.spotify) {
+            console.log('✅ Loaded Spotify data from MirrorDataService for card');
+            setSpotifyData(connectionData.spotify);
+            return;
+          }
         } catch (error) {
-          console.error('Error parsing stored Spotify data:', error);
+          console.error('❌ Error loading from MirrorDataService:', error);
+        }
+        
+        // Fallback to localStorage
+        const storedData = localStorage.getItem('spotify_data');
+        if (storedData) {
+          try {
+            const parsed = JSON.parse(storedData);
+            console.log('✅ Loaded Spotify data from localStorage for card:', parsed);
+            setSpotifyData(parsed);
+          } catch (error) {
+            console.error('❌ Error parsing stored Spotify data:', error);
+          }
         }
       }
-    }
+    };
+
+    loadSpotifyData();
   }, [spotifyData]);
 
   // Generate and store Spotify insights when component mounts with data
