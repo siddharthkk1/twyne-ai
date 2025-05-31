@@ -67,4 +67,48 @@ export class GoogleAuthService {
       throw error;
     }
   }
+
+  /**
+   * Get YouTube OAuth URL for connecting YouTube accounts
+   */
+  static getYouTubeAuthUrl(): string {
+    // Use the edge function to get the YouTube auth URL
+    const origin = window.location.origin;
+    const redirectUri = `${origin}/youtube/callback`;
+    
+    // Call the edge function that generates the YouTube auth URL
+    return `${origin}/api/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
+  }
+
+  /**
+   * Exchange authorization code for access token
+   * @param code - Authorization code from OAuth callback
+   */
+  static async exchangeCodeForToken(code: string) {
+    try {
+      console.log('🔄 GoogleAuthService: Exchanging code for token');
+      
+      const response = await fetch('/api/google-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ GoogleAuthService: Token exchange failed:', errorText);
+        throw new Error(`Token exchange failed: ${response.status}`);
+      }
+
+      const tokenData = await response.json();
+      console.log('✅ GoogleAuthService: Token exchange successful');
+      
+      return tokenData;
+    } catch (error) {
+      console.error('❌ GoogleAuthService: Error exchanging code for token:', error);
+      throw error;
+    }
+  }
 }

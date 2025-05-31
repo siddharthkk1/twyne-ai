@@ -23,7 +23,6 @@ const GoogleAuthTest = () => {
       console.log('🔍 GoogleAuthTest: User found after OAuth');
       console.log('📊 GoogleAuthTest: User metadata:', user.user_metadata);
       console.log('📊 GoogleAuthTest: App metadata:', user.app_metadata);
-      console.log('📊 GoogleAuthTest: Raw user metadata:', user.raw_user_meta_data);
     }
   }, [user]);
 
@@ -211,13 +210,6 @@ const GoogleAuthTest = () => {
                     <Label>User Metadata:</Label>
                     <pre className="text-xs bg-muted p-3 rounded overflow-auto">
                       {JSON.stringify(user.user_metadata, null, 2)}
-                    </pre>
-                  </div>
-                  
-                  <div>
-                    <Label>Raw User Metadata (includes OAuth data):</Label>
-                    <pre className="text-xs bg-muted p-3 rounded overflow-auto">
-                      {JSON.stringify(user.raw_user_meta_data, null, 2)}
                     </pre>
                   </div>
                   
