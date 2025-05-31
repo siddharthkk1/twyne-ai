@@ -27,22 +27,84 @@ const GoogleAuthTest = () => {
   }, [user]);
 
   const handleTestGoogleAuth = async () => {
-    console.log('🚀 GoogleAuthTest: Starting validation test');
+    console.log('🚀 GoogleAuthTest: Starting simplified OAuth test');
     setIsLoading(true);
 
     try {
-      // Store test data in localStorage (simulating onboarding data)
-      const testDataString = JSON.stringify(testData);
-      localStorage.setItem('oauth_test_data', testDataString);
+      // Prepare test data as onboarding data
+      const testProfile = {
+        name: testData.name,
+        age: testData.age,
+        interestsAndPassions: testData.interests,
+        // Add minimal required fields
+        vibeSummary: "Test user profile",
+        oneLiner: "Testing Google OAuth flow",
+        twyneTags: ["test", "oauth"],
+        // Add other required fields with defaults
+        location: "",
+        job: "",
+        school: "",
+        ethnicity: "",
+        religion: "",
+        hometown: "",
+        lifestyle: "",
+        favoriteProducts: "",
+        style: "",
+        favoriteMoviesAndShows: "",
+        favoriteMusic: "",
+        favoriteBooks: "",
+        favoritePodcastsOrYouTube: "",
+        talkingPoints: [],
+        favoriteActivities: "",
+        favoriteSpots: "",
+        coreValues: "",
+        lifePhilosophy: "",
+        goals: "",
+        personalitySummary: "",
+        bigFiveTraits: {
+          openness: "",
+          conscientiousness: "",
+          extraversion: "",
+          agreeableness: "",
+          neuroticism: ""
+        },
+        quirks: "",
+        communicationStyle: "",
+        upbringing: "",
+        majorTurningPoints: "",
+        recentLifeContext: "",
+        socialStyle: "",
+        loveLanguageOrFriendStyle: "",
+        socialNeeds: "",
+        connectionPreferences: "",
+        dealBreakers: "",
+        boundariesAndPetPeeves: "",
+        connectionActivities: ""
+      };
       
-      console.log('💾 GoogleAuthTest: Test data stored:', testData);
-      console.log('📍 GoogleAuthTest: Current URL before OAuth:', window.location.href);
+      const testConversation = {
+        messages: [
+          { role: "system", content: "Test conversation" },
+          { role: "user", content: "This is a test message" },
+          { role: "assistant", content: "This is a test response" }
+        ],
+        userAnswers: ["This is a test message"]
+      };
       
-      // Get the auth URL and redirect
-      const authUrl = GoogleAuthService.getYouTubeAuthUrl();
-      console.log('🔗 GoogleAuthTest: Redirecting to Google OAuth:', authUrl);
+      console.log('💾 GoogleAuthTest: Test data prepared:', {
+        profileName: testProfile.name,
+        conversationMessageCount: testConversation.messages.length
+      });
       
-      window.location.href = authUrl;
+      // Use the new Google auth service with test data
+      await GoogleAuthService.initiateGoogleAuth({
+        profile: testProfile,
+        conversation: testConversation,
+        userName: testData.name,
+        promptMode: 'structured'
+      });
+      
+      // OAuth flow will handle the redirect automatically
       
     } catch (error) {
       console.error('❌ GoogleAuthTest: Error in test:', error);
@@ -63,7 +125,7 @@ const GoogleAuthTest = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">
-              Google OAuth Data Preservation Test
+              Google OAuth Data Preservation Test (Simplified)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -71,7 +133,7 @@ const GoogleAuthTest = () => {
               <>
                 <div className="space-y-4">
                   <p className="text-muted-foreground text-center">
-                    This test validates that we can preserve data through Google OAuth flow.
+                    This test validates that we can preserve data through Google OAuth using Supabase's native flow.
                     Enter some test data below, then sign in with Google.
                   </p>
                   
@@ -116,7 +178,7 @@ const GoogleAuthTest = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Redirecting to Google...
+                      Starting OAuth flow...
                     </>
                   ) : (
                     'Test Google OAuth with Data Preservation'
@@ -153,24 +215,16 @@ const GoogleAuthTest = () => {
                       {JSON.stringify(user.app_metadata, null, 2)}
                     </pre>
                   </div>
-                  
-                  <div>
-                    <Label>Test Data from localStorage:</Label>
-                    <pre className="text-xs bg-muted p-3 rounded overflow-auto">
-                      {localStorage.getItem('oauth_test_data') || 'No test data found'}
-                    </pre>
-                  </div>
                 </div>
                 
                 <Button 
                   onClick={() => {
-                    localStorage.removeItem('oauth_test_data');
                     window.location.href = '/google-auth-test';
                   }}
                   variant="outline"
                   className="w-full"
                 >
-                  Clear Data & Test Again
+                  Test Again
                 </Button>
               </div>
             )}

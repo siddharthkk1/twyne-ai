@@ -163,64 +163,31 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
   };
 
   const handleGoogleAuth = async () => {
-    console.log('🔄 CreateAccountPrompt: Starting Google OAuth process with enhanced data preservation');
+    console.log('🔄 CreateAccountPrompt: Starting Google OAuth with native Supabase flow');
     
     setIsGoogleLoading(true);
     
     try {
-      // Enhanced data preservation before OAuth - store everything we have
-      console.log('💾 CreateAccountPrompt: Preserving onboarding data before OAuth...');
+      // Prepare onboarding data for OAuth
+      const onboardingData = {
+        profile: onboardingProfileData,
+        conversation: onboardingConversationData,
+        userName: userName || onboardingProfileData?.name || '',
+        promptMode: localStorage.getItem('onboardingPromptMode') || 'structured'
+      };
       
-      if (onboardingProfileData) {
-        const dataToPreserve = {
-          profile: JSON.stringify(onboardingProfileData),
-          userName: userName || onboardingProfileData.name || '',
-          conversation: onboardingConversationData ? JSON.stringify(onboardingConversationData) : null,
-          promptMode: localStorage.getItem('onboardingPromptMode') || 'structured',
-          timestamp: Date.now(),
-          source: 'createAccountPrompt'
-        };
-        
-        console.log('📊 CreateAccountPrompt: Data to preserve:', {
-          hasProfile: !!dataToPreserve.profile,
-          userName: dataToPreserve.userName,
-          hasConversation: !!dataToPreserve.conversation,
-          promptMode: dataToPreserve.promptMode
-        });
-        
-        // Store in multiple locations for redundancy
-        localStorage.setItem('onboardingProfile', dataToPreserve.profile);
-        localStorage.setItem('onboardingUserName', dataToPreserve.userName);
-        localStorage.setItem('onboardingPromptMode', dataToPreserve.promptMode);
-        if (dataToPreserve.conversation) {
-          localStorage.setItem('onboardingConversation', dataToPreserve.conversation);
-        }
-        
-        // Also store with OAuth-specific keys
-        localStorage.setItem('oauth_onboardingProfile', dataToPreserve.profile);
-        localStorage.setItem('oauth_onboardingUserName', dataToPreserve.userName);
-        localStorage.setItem('oauth_onboardingPromptMode', dataToPreserve.promptMode);
-        if (dataToPreserve.conversation) {
-          localStorage.setItem('oauth_onboardingConversation', dataToPreserve.conversation);
-        }
-        
-        // Store complete backup in sessionStorage
-        sessionStorage.setItem('onboardingBackup', JSON.stringify(dataToPreserve));
-        
-        console.log('✅ CreateAccountPrompt: Data preservation completed');
-      } else {
-        console.log('⚠️ CreateAccountPrompt: No onboarding data to preserve');
-      }
+      console.log('📊 CreateAccountPrompt: Onboarding data to preserve:', {
+        hasProfile: !!onboardingData.profile,
+        userName: onboardingData.userName,
+        hasConversation: !!onboardingData.conversation,
+        promptMode: onboardingData.promptMode
+      });
       
-      // Add context flag to indicate we're coming from onboarding results
-      localStorage.setItem('oauth_context', 'onboarding_results');
+      // Use the new simplified Google auth service
+      await GoogleAuthService.initiateGoogleAuth(onboardingData);
       
-      // Use the enhanced Google auth URL that will redirect to /auth/callback
-      console.log('🔄 CreateAccountPrompt: Getting Google auth URL...');
-      const authUrl = GoogleAuthService.getYouTubeAuthUrl();
-      
-      console.log('🚀 CreateAccountPrompt: Redirecting to Google OAuth:', authUrl);
-      window.location.href = authUrl;
+      // The OAuth flow will handle the redirect automatically
+      // No need to manually redirect or handle the response
       
     } catch (error: any) {
       console.error('❌ CreateAccountPrompt: Error in Google OAuth:', error);
