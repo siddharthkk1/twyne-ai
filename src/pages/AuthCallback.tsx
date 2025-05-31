@@ -6,13 +6,16 @@ import { toast } from '@/components/ui/use-toast';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const { user, isLoading, isNewUser, refreshSession } = useAuth();
+  const { user, isLoading, isNewUser } = useAuth();
   const [hasHandledCallback, setHasHandledCallback] = useState(false);
 
   useEffect(() => {
     const handleCallback = async () => {
       // Prevent duplicate processing
-      if (hasHandledCallback) return;
+      if (hasHandledCallback) {
+        console.log('AuthCallback: Already handled callback, skipping');
+        return;
+      }
       
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get('error');
@@ -29,45 +32,48 @@ const AuthCallback = () => {
         return;
       }
 
-      setHasHandledCallback(true);
-
-      // This callback is now only for user authentication (Google SSO, etc.)
-      // Platform integrations (Spotify/YouTube) have their own dedicated callback routes
+      console.log('AuthCallback: Processing callback - isLoading:', isLoading, 'user:', !!user, 'isNewUser:', isNewUser);
       
-      // Wait for auth to settle and redirect appropriately
-      const timer = setTimeout(() => {
-        if (!isLoading) {
-          if (user) {
-            console.log('AuthCallback: Redirecting user - isNewUser:', isNewUser);
-            if (isNewUser) {
-              console.log('AuthCallback: Redirecting new user to onboarding');
-              navigate('/onboarding');
-            } else {
-              console.log('AuthCallback: Redirecting existing user to mirror');
-              navigate('/mirror');
-            }
+      // Only proceed if auth is not loading
+      if (!isLoading) {
+        setHasHandledCallback(true);
+        
+        if (user) {
+          console.log('AuthCallback: User authenticated - isNewUser:', isNewUser);
+          if (isNewUser) {
+            console.log('AuthCallback: Redirecting new user to onboarding');
+            navigate('/onboarding');
           } else {
-            console.log('AuthCallback: No user found, redirecting to home');
-            navigate('/');
+            console.log('AuthCallback: Redirecting existing user to mirror');
+            navigate('/mirror');
           }
+        } else {
+          console.log('AuthCallback: No user found, redirecting to home');
+          navigate('/');
         }
-      }, 1000);
-
-      return () => clearTimeout(timer);
+      } else {
+        console.log('AuthCallback: Still loading, waiting for auth to complete');
+      }
     };
 
     handleCallback();
-  }, [navigate, user, isLoading, isNewUser, refreshSession, hasHandledCallback]);
+  }, [isLoading, user, isNewUser, navigate, hasHandledCallback]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
         <p className="text-lg">Completing authentication...</p>
-        {!isLoading && (
+        {!isLoading && user && (
           <p className="text-sm text-gray-500 mt-2">
-            {user ? (isNewUser ? 'Setting up your profile...' : 'Taking you to your mirror...') : 'Verifying credentials...'}
+            {isNewUser ? 'Setting up your profile...' : 'Taking you to your mirror...'}
           </p>
+        )}
+        {!isLoading && !user && (
+          <p className="text-sm text-gray-500 mt-2">Verifying credentials...</p>
+        )}
+        {isLoading && (
+          <p className="text-sm text-gray-500 mt-2">Loading your account...</p>
         )}
       </div>
     </div>
