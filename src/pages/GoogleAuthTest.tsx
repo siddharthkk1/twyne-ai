@@ -18,7 +18,6 @@ const GoogleAuthTest = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Check if we have user data after OAuth
     if (user) {
       console.log('🔍 GoogleAuthTest: User found after OAuth');
       console.log('📊 GoogleAuthTest: User metadata:', user.user_metadata);
@@ -27,7 +26,7 @@ const GoogleAuthTest = () => {
   }, [user]);
 
   const handleTestGoogleAuth = async () => {
-    console.log('🚀 GoogleAuthTest: Starting simplified OAuth test');
+    console.log('🚀 GoogleAuthTest: Starting OAuth test with state parameter approach');
     setIsLoading(true);
 
     try {
@@ -37,9 +36,9 @@ const GoogleAuthTest = () => {
         age: testData.age,
         interestsAndPassions: testData.interests,
         // Add minimal required fields
-        vibeSummary: "Test user profile for Google OAuth data preservation",
-        oneLiner: "Testing Google OAuth flow with Supabase native integration",
-        twyneTags: ["test", "oauth", "google"],
+        vibeSummary: "Test user profile for Google OAuth data preservation with state parameter",
+        oneLiner: "Testing Google OAuth flow with database state storage",
+        twyneTags: ["test", "oauth", "google", "state-parameter"],
         // Add other required fields with defaults
         location: "",
         job: "",
@@ -84,23 +83,23 @@ const GoogleAuthTest = () => {
       
       const testConversation = {
         messages: [
-          { role: "system", content: "Test conversation for OAuth data preservation" },
-          { role: "user", content: "This is a test message to verify data preservation through OAuth" },
-          { role: "assistant", content: "This is a test response to validate the conversation data storage" }
+          { role: "system", content: "Test conversation for OAuth data preservation with state parameter" },
+          { role: "user", content: "This is a test message to verify state parameter data preservation" },
+          { role: "assistant", content: "This is a test response to validate the state parameter storage method" }
         ],
-        userAnswers: ["This is a test message to verify data preservation through OAuth"]
+        userAnswers: ["This is a test message to verify state parameter data preservation"]
       };
       
-      console.log('💾 GoogleAuthTest: Test data prepared:', {
+      console.log('💾 GoogleAuthTest: Test data prepared for state parameter approach:', {
         profileName: testProfile.name,
         conversationMessageCount: testConversation.messages.length,
         testDataKeys: Object.keys(testData)
       });
       
-      // Store context for callback
+      // Store context for callback (fallback only)
       localStorage.setItem('oauth_context', 'google_auth_test');
       
-      // Use the simplified Google auth service with test data
+      // Use the new state parameter Google auth service
       await GoogleAuthService.initiateGoogleAuth({
         profile: testProfile,
         conversation: testConversation,
@@ -129,7 +128,7 @@ const GoogleAuthTest = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">
-              Google OAuth Data Preservation Test (Simplified)
+              Google OAuth Test with State Parameter
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -137,8 +136,8 @@ const GoogleAuthTest = () => {
               <>
                 <div className="space-y-4">
                   <p className="text-muted-foreground text-center">
-                    This test validates that we can preserve onboarding data through Google OAuth using Supabase's native flow.
-                    The data should be stored in the database trigger and available after authentication.
+                    This test validates the new state parameter approach for preserving onboarding data through Google OAuth.
+                    Data is stored in the database before OAuth and retrieved using the state parameter after authentication.
                   </p>
                   
                   <div className="space-y-3">
@@ -185,7 +184,7 @@ const GoogleAuthTest = () => {
                       Starting OAuth flow...
                     </>
                   ) : (
-                    'Test Google OAuth with Data Preservation'
+                    'Test Google OAuth with State Parameter'
                   )}
                 </Button>
               </>
