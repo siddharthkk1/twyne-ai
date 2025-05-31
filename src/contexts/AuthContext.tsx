@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('AuthContext: No user_data found - this is a brand new user');
         setProfile(null);
         setIsNewUser(true);
+        console.log('AuthContext: Setting isNewUser to true (no user_data)');
         return;
       }
 
@@ -105,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('AuthContext: This indicates the database trigger may not be working');
         setProfile(null);
         setIsNewUser(true);
+        console.log('AuthContext: Setting isNewUser to true (empty user_data)');
         return;
       }
 
@@ -118,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const hasCompletedOnboarding = userData.has_completed_onboarding || false;
       
       let userProfile: UserProfile = { has_completed_onboarding: hasCompletedOnboarding };
+      let newUserFlag = false;
       
       // Check if there's meaningful SSO data (Google OAuth users)
       if (userData.sso_data && typeof userData.sso_data === 'object' && !Array.isArray(userData.sso_data) && Object.keys(userData.sso_data).length > 0) {
@@ -127,30 +131,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // For Google SSO users, they should always go through onboarding if they haven't completed it
         // Google SSO provides basic info but we still need to collect additional profile data
         if (!hasCompletedOnboarding) {
-          console.log('AuthContext: Google SSO user has not completed onboarding - redirecting to onboarding');
-          setIsNewUser(true);
+          console.log('AuthContext: Google SSO user has not completed onboarding - setting as new user');
+          newUserFlag = true;
         } else {
           console.log('AuthContext: Google SSO user has completed onboarding - treating as existing user');
-          setIsNewUser(false);
+          newUserFlag = false;
         }
       } else if (userData.profile_data && typeof userData.profile_data === 'object' && !Array.isArray(userData.profile_data) && Object.keys(userData.profile_data).length > 0) {
         // Regular user with profile data
         console.log('AuthContext: Regular user with profile_data:', userData.profile_data);
         userProfile = { ...userProfile, ...userData.profile_data as UserProfile, profile_data: userData.profile_data };
-        setIsNewUser(!hasCompletedOnboarding);
+        newUserFlag = !hasCompletedOnboarding;
       } else {
         // User with no meaningful data - definitely new
         console.log('AuthContext: User with no profile or SSO data - new user');
-        setIsNewUser(true);
+        newUserFlag = true;
       }
       
       setProfile(userProfile);
+      setIsNewUser(newUserFlag);
       console.log('AuthContext: Final user profile set:', userProfile);
-      console.log('AuthContext: isNewUser flag set to:', isNewUser);
+      console.log('AuthContext: Setting isNewUser to:', newUserFlag);
     } catch (error) {
       console.error('AuthContext: Error in loadUserProfile:', error);
       setProfile(null);
       setIsNewUser(true);
+      console.log('AuthContext: Setting isNewUser to true (error case)');
     } finally {
       profileLoadingRef.current = false;
       // Only set loading to false after profile loading is complete
