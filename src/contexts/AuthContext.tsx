@@ -107,17 +107,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         let userProfile: UserProfile = { has_completed_onboarding: hasCompletedOnboarding };
         
-        // Check if there's meaningful SSO data
+        // Check if there's meaningful SSO data (Google OAuth users)
         if (data.sso_data && typeof data.sso_data === 'object' && !Array.isArray(data.sso_data) && Object.keys(data.sso_data).length > 0) {
           console.log('SSO user detected with sso_data:', data.sso_data);
           userProfile = { ...userProfile, ...data.sso_data as UserProfile, sso_data: data.sso_data };
           
-          // For SSO users, they should go through onboarding if they haven't completed it
+          // For Google SSO users, they should always go through onboarding if they haven't completed it
+          // Google SSO provides basic info but we still need to collect additional profile data
           if (!hasCompletedOnboarding) {
-            console.log('SSO user has not completed onboarding - treating as new user');
+            console.log('Google SSO user has not completed onboarding - redirecting to onboarding');
             setIsNewUser(true);
           } else {
-            console.log('SSO user has completed onboarding - treating as existing user');
+            console.log('Google SSO user has completed onboarding - treating as existing user');
             setIsNewUser(false);
           }
         } else if (data.profile_data && typeof data.profile_data === 'object' && !Array.isArray(data.profile_data) && Object.keys(data.profile_data).length > 0) {
@@ -133,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         setProfile(userProfile);
         console.log('Final user profile set:', userProfile);
-        console.log('isNewUser flag set to:', !hasCompletedOnboarding || Object.keys(userProfile).length <= 1);
+        console.log('isNewUser flag set to:', isNewUser);
       } else {
         console.log('No user profile found - new user');
         setProfile(null);
@@ -214,6 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           console.log('AuthContext: Initial session loaded:', !!initialSession);
           console.log('AuthContext: Initial session user metadata:', initialSession?.user?.user_metadata);
+          console.log('AuthContext: Initial session user app metadata:', initialSession?.user?.app_metadata);
           
           setSession(initialSession);
           setUser(initialSession?.user ?? null);

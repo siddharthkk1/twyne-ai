@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,9 +24,15 @@ const Auth = () => {
   // Handle redirect after successful authentication
   useEffect(() => {
     if (!authLoading && user) {
-      console.log("Auth page: User authenticated, redirecting...", { user: user.email, isNewUser });
+      console.log("Auth page: User authenticated, redirecting...", { 
+        user: user.email, 
+        isNewUser,
+        userMetadata: user.user_metadata,
+        appMetadata: user.app_metadata 
+      });
       
       // If user is new (no profile data or hasn't completed onboarding), redirect to onboarding
+      // This includes Google SSO users who haven't completed onboarding
       if (isNewUser) {
         console.log("Auth page: Redirecting new user to onboarding");
         navigate("/onboarding");
@@ -117,14 +124,20 @@ const Auth = () => {
     setIsGoogleLoading(true);
     
     try {
+      console.log("Starting Google OAuth flow...");
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth/callback'
+          redirectTo: window.location.origin + '/auth/callback',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         }
       });
       
       if (error) {
+        console.error("Google OAuth error:", error);
         toast({
           title: "Google sign in failed",
           description: error.message,
@@ -132,7 +145,9 @@ const Auth = () => {
         });
         setIsGoogleLoading(false);
       }
+      // Don't set loading to false here if no error - user will be redirected
     } catch (error: any) {
+      console.error("Google OAuth exception:", error);
       toast({
         title: "Error",
         description: error.message || "Something went wrong with Google sign in.",
