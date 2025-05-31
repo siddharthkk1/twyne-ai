@@ -18,7 +18,6 @@ interface UserProfile {
   socialStyle: string;
   connectionPreferences: string;
   personalInsights: string[];
-  // Additional fields
   vibeSummary?: string;
   socialNeeds?: string;
   coreValues?: string;
@@ -26,7 +25,6 @@ interface UserProfile {
   twyneTags?: string[];
   vibeWords?: string[];
   goals?: string;
-  // ...other fields from original UserProfile
 }
 
 const OnboardingPaste = () => {
@@ -51,6 +49,57 @@ const OnboardingPaste = () => {
     });
   };
 
+  // Enhanced localStorage storage with verification
+  const storeOnboardingDataSecurely = async (profileData: UserProfile, conversationData: any, promptMode: string) => {
+    try {
+      console.log('OnboardingPaste: Storing data in localStorage...');
+      
+      // Store data with timestamp for verification
+      const timestamp = Date.now();
+      const dataToStore = {
+        profile: profileData,
+        conversation: conversationData,
+        userName: profileData.name || "",
+        promptMode: promptMode,
+        timestamp: timestamp
+      };
+      
+      // Store individual items
+      localStorage.setItem('onboardingProfile', JSON.stringify(profileData));
+      localStorage.setItem('onboardingUserName', profileData.name || "");
+      localStorage.setItem('onboardingConversation', JSON.stringify(conversationData));
+      localStorage.setItem('onboardingPromptMode', promptMode);
+      localStorage.setItem('onboardingTimestamp', timestamp.toString());
+      
+      // Store a backup combined object
+      localStorage.setItem('onboardingDataBackup', JSON.stringify(dataToStore));
+      
+      console.log('OnboardingPaste: Data stored successfully');
+      
+      // Verify storage immediately
+      const verifyProfile = localStorage.getItem('onboardingProfile');
+      const verifyUserName = localStorage.getItem('onboardingUserName');
+      const verifyConversation = localStorage.getItem('onboardingConversation');
+      const verifyPromptMode = localStorage.getItem('onboardingPromptMode');
+      
+      console.log('OnboardingPaste: Storage verification:', {
+        profile: !!verifyProfile,
+        userName: !!verifyUserName,
+        conversation: !!verifyConversation,
+        promptMode: !!verifyPromptMode
+      });
+      
+      if (!verifyProfile || !verifyPromptMode) {
+        throw new Error('Failed to verify localStorage storage');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('OnboardingPaste: Error storing to localStorage:', error);
+      return false;
+    }
+  };
+
   const generateProfile = async () => {
     if (!reflection.trim()) {
       toast({
@@ -64,6 +113,8 @@ const OnboardingPaste = () => {
     setIsGenerating(true);
 
     try {
+      console.log('OnboardingPaste: Starting profile generation...');
+      
       // Create a mock conversation structure for the edge function
       const mockConversation = {
         messages: [
@@ -78,6 +129,8 @@ const OnboardingPaste = () => {
         ]
       };
 
+      console.log('OnboardingPaste: Calling generate-profile edge function...');
+      
       // Call the existing generate-profile edge function
       const { data, error } = await supabase.functions.invoke('generate-profile', {
         body: { conversation: mockConversation }
@@ -91,7 +144,7 @@ const OnboardingPaste = () => {
         throw new Error('No profile data received');
       }
 
-      console.log('Generated profile data:', data);
+      console.log('OnboardingPaste: Generated profile data:', data);
       
       // Use the profile data directly since it's already structured
       const profileData: UserProfile = {
@@ -113,48 +166,67 @@ const OnboardingPaste = () => {
 
       setUserProfile(profileData);
 
-      // Store data in localStorage with GPT Paste prompt mode
-      localStorage.setItem('onboardingProfile', JSON.stringify(profileData));
-      localStorage.setItem('onboardingUserName', profileData.name || "");
-      localStorage.setItem('onboardingConversation', JSON.stringify({ 
+      // Enhanced localStorage storage
+      const conversationData = { 
         messages: mockConversation.messages,
-        userAnswers: [reflection]
-      }));
-      localStorage.setItem('onboardingPromptMode', 'gpt-paste');
+        userAnswers: [reflection],
+        source: 'gpt-paste',
+        timestamp: Date.now()
+      };
+      
+      const promptMode = 'gpt-paste';
+      
+      console.log('OnboardingPaste: Storing onboarding data...');
+      
+      const storageSuccess = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
+      
+      if (!storageSuccess) {
+        console.warn('OnboardingPaste: Failed to store data in localStorage');
+        toast({
+          title: "Warning",
+          description: "Profile generated but may not persist through authentication.",
+          variant: "destructive",
+        });
+      }
 
-      // If user is logged in, save the profile
+      // If user is logged in, save the profile immediately
       if (user) {
+        console.log('OnboardingPaste: User is authenticated, saving to database...');
+        
         const { error: updateError } = await supabase
           .from('user_data')
           .upsert({
             user_id: user.id,
             profile_data: profileData as unknown as Json,
-            conversation_data: { 
-              reflection_source: reflection,
-              messages: mockConversation.messages,
-              userAnswers: [reflection]
-            } as unknown as Json,
-            prompt_mode: 'gpt-paste',
+            conversation_data: conversationData as unknown as Json,
+            prompt_mode: promptMode,
             has_completed_onboarding: true,
             updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id',
+            ignoreDuplicates: false
           });
 
         if (updateError) {
-          console.error("Error saving profile:", updateError);
+          console.error("OnboardingPaste: Error saving profile:", updateError);
           toast({
             title: "Profile generated but not saved",
             description: "Your profile was created but couldn't be saved to your account.",
             variant: "destructive",
           });
         } else {
+          console.log('OnboardingPaste: Profile saved successfully to database');
           clearNewUserFlag();
         }
+      } else {
+        console.log('OnboardingPaste: User not authenticated, data stored in localStorage for later transfer');
       }
 
       // Navigate to results page
       navigate("/onboarding-results", { state: { userProfile: profileData } });
+      
     } catch (error) {
-      console.error("Error generating profile:", error);
+      console.error("OnboardingPaste: Error generating profile:", error);
       toast({
         title: "Error",
         description: "Failed to generate your profile. Please try again.",
