@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { SpotifyService } from '@/services/spotifyService';
@@ -11,9 +11,16 @@ const SpotifyCallback = () => {
   const navigate = useNavigate();
   const { user, refreshSession } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
     const handleSpotifyCallback = async () => {
+      // Prevent duplicate processing
+      if (hasProcessedRef.current) {
+        console.log('SpotifyCallback: Already processed, skipping');
+        return;
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
       const state = urlParams.get('state');
@@ -27,6 +34,8 @@ const SpotifyCallback = () => {
           description: "There was an error connecting to Spotify. Please try again.",
           variant: "destructive",
         });
+        // Clear URL and redirect
+        window.history.replaceState({}, document.title, window.location.pathname);
         navigate('/mirror');
         return;
       }
@@ -38,9 +47,13 @@ const SpotifyCallback = () => {
         return;
       }
 
+      // Mark as processing to prevent duplicate runs
+      hasProcessedRef.current = true;
       setIsProcessing(true);
       
       try {
+        console.log('SpotifyCallback: Starting processing with code:', code.substring(0, 10) + '...');
+        
         // Ensure we have a valid user session
         if (!user) {
           console.log('SpotifyCallback: No user session, refreshing...');
@@ -51,7 +64,9 @@ const SpotifyCallback = () => {
         }
         
         // Exchange code for token
+        console.log('SpotifyCallback: Exchanging code for token...');
         const tokenData = await SpotifyService.exchangeCodeForToken(code);
+        console.log('SpotifyCallback: Token exchange successful');
         
         // Store token locally for immediate use
         localStorage.setItem('spotify_access_token', tokenData.access_token);
@@ -60,6 +75,7 @@ const SpotifyCallback = () => {
         }
         
         // Fetch comprehensive Spotify data
+        console.log('SpotifyCallback: Fetching Spotify data...');
         const [
           profile,
           topTracksShort,
@@ -85,6 +101,8 @@ const SpotifyCallback = () => {
           SpotifyService.getSavedTracks(tokenData.access_token),
           SpotifyService.getFollowedArtists(tokenData.access_token)
         ]);
+
+        console.log('SpotifyCallback: Data fetched successfully');
 
         // Combine all tracks and artists for processing
         const allTracks = [
@@ -118,7 +136,7 @@ const SpotifyCallback = () => {
           .map(([genre]) => genre);
 
         // Generate AI insights using the comprehensive data
-        console.log('Generating Spotify AI insights...');
+        console.log('SpotifyCallback: Generating AI insights...');
         const spotifyInsights = await AIProfileService.generateSpotifyProfile({
           topTracks: topTracksLong,
           topArtists: topArtistsLong,
@@ -149,6 +167,7 @@ const SpotifyCallback = () => {
         localStorage.setItem('spotify_profile', JSON.stringify(profile));
         
         // Store connection metadata in database (platform_connections)
+        console.log('SpotifyCallback: Storing connection data...');
         await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
         
         // Store AI insights in profile_data - convert AI insights to match SynthesizedSpotifyData format
@@ -170,6 +189,7 @@ const SpotifyCallback = () => {
           traitDisplay: spotifyInsights.traitDisplay
         };
         
+        console.log('SpotifyCallback: Storing mirror data...');
         await MirrorDataService.storeMirrorData({
           spotify: formattedInsights
         });
@@ -179,17 +199,22 @@ const SpotifyCallback = () => {
           description: "Successfully connected your Spotify account and generated AI insights.",
         });
         
+        console.log('SpotifyCallback: Success! Redirecting to mirror...');
+        
         // Clear URL parameters and redirect to mirror
         window.history.replaceState({}, document.title, window.location.pathname);
         navigate('/mirror');
         
       } catch (error) {
         console.error('Error in Spotify callback:', error);
+        hasProcessedRef.current = false; // Reset on error to allow retry
         toast({
           title: "Spotify Connection Failed",
           description: "Failed to connect your Spotify account. Please try again.",
           variant: "destructive",
         });
+        // Clear URL and redirect
+        window.history.replaceState({}, document.title, window.location.pathname);
         navigate('/mirror');
       } finally {
         setIsProcessing(false);
@@ -197,7 +222,7 @@ const SpotifyCallback = () => {
     };
 
     handleSpotifyCallback();
-  }, [navigate, user, refreshSession]);
+  }, []); // Remove all dependencies to prevent re-runs
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
