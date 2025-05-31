@@ -49,10 +49,16 @@ const OnboardingPaste = () => {
     });
   };
 
-  // Enhanced localStorage storage with multiple backup strategies
+  // Enhanced localStorage storage with multiple backup strategies and detailed logging
   const storeOnboardingDataSecurely = async (profileData: UserProfile, conversationData: any, promptMode: string) => {
     try {
-      console.log('OnboardingPaste: Starting enhanced data storage...');
+      console.log('🚀 OnboardingPaste: Starting enhanced data storage...');
+      console.log('📊 OnboardingPaste: Input data:', {
+        profileName: profileData.name,
+        profileKeys: Object.keys(profileData),
+        conversationKeys: Object.keys(conversationData),
+        promptMode: promptMode
+      });
       
       const timestamp = Date.now();
       const dataToStore = {
@@ -63,33 +69,47 @@ const OnboardingPaste = () => {
         timestamp: timestamp
       };
       
+      console.log('📊 OnboardingPaste: Consolidated data to store:', {
+        hasProfile: !!dataToStore.profile,
+        hasConversation: !!dataToStore.conversation,
+        userName: dataToStore.userName,
+        promptMode: dataToStore.promptMode,
+        timestamp: dataToStore.timestamp
+      });
+      
       // Strategy 1: Standard localStorage storage
       localStorage.setItem('onboardingProfile', JSON.stringify(profileData));
       localStorage.setItem('onboardingUserName', profileData.name || "");
       localStorage.setItem('onboardingConversation', JSON.stringify(conversationData));
       localStorage.setItem('onboardingPromptMode', promptMode);
       localStorage.setItem('onboardingTimestamp', timestamp.toString());
+      console.log('💾 OnboardingPaste: Strategy 1 - Standard localStorage completed');
       
       // Strategy 2: Backup in sessionStorage
       sessionStorage.setItem('onboardingProfile', JSON.stringify(profileData));
       sessionStorage.setItem('onboardingUserName', profileData.name || "");
       sessionStorage.setItem('onboardingConversation', JSON.stringify(conversationData));
       sessionStorage.setItem('onboardingPromptMode', promptMode);
+      console.log('💾 OnboardingPaste: Strategy 2 - SessionStorage backup completed');
       
       // Strategy 3: Combined backup object with unique key
       const backupKey = `onboardingBackup_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem(backupKey, JSON.stringify(dataToStore));
       localStorage.setItem('latestBackupKey', backupKey);
       sessionStorage.setItem('onboardingBackup', JSON.stringify(dataToStore));
+      console.log('💾 OnboardingPaste: Strategy 3 - Combined backup completed with key:', backupKey);
       
       // Strategy 4: OAuth-ready prefixed storage
       localStorage.setItem('oauth_onboardingProfile', JSON.stringify(profileData));
       localStorage.setItem('oauth_onboardingUserName', profileData.name || "");
       localStorage.setItem('oauth_onboardingConversation', JSON.stringify(conversationData));
       localStorage.setItem('oauth_onboardingPromptMode', promptMode);
+      console.log('💾 OnboardingPaste: Strategy 4 - OAuth-prefixed storage completed');
       
       // Strategy 5: Store in temp database for additional safety
       const tempId = `temp_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('🗄️ OnboardingPaste: Strategy 5 - Attempting database storage with ID:', tempId);
+      
       const { error: tempError } = await supabase
         .from('onboarding_data')
         .insert({
@@ -102,18 +122,23 @@ const OnboardingPaste = () => {
       
       if (!tempError) {
         localStorage.setItem('tempOnboardingId', tempId);
-        console.log('OnboardingPaste: Stored backup in temp database with ID:', tempId);
+        console.log('✅ OnboardingPaste: Strategy 5 - Database storage successful with ID:', tempId);
+      } else {
+        console.error('❌ OnboardingPaste: Strategy 5 - Database storage failed:', tempError);
       }
       
-      console.log('OnboardingPaste: Enhanced data storage completed successfully');
+      console.log('✅ OnboardingPaste: All enhanced data storage strategies completed');
       
       // Immediate verification
       const verification = {
         localStorage: {
           profile: !!localStorage.getItem('onboardingProfile'),
           userName: !!localStorage.getItem('onboardingUserName'),
+          userNameValue: localStorage.getItem('onboardingUserName'),
           conversation: !!localStorage.getItem('onboardingConversation'),
-          promptMode: !!localStorage.getItem('onboardingPromptMode')
+          promptMode: !!localStorage.getItem('onboardingPromptMode'),
+          promptModeValue: localStorage.getItem('onboardingPromptMode'),
+          latestBackupKey: localStorage.getItem('latestBackupKey')
         },
         sessionStorage: {
           profile: !!sessionStorage.getItem('onboardingProfile'),
@@ -121,15 +146,25 @@ const OnboardingPaste = () => {
         },
         oauthPrefixed: {
           profile: !!localStorage.getItem('oauth_onboardingProfile'),
-          userName: !!localStorage.getItem('oauth_onboardingUserName')
+          userName: !!localStorage.getItem('oauth_onboardingUserName'),
+          userNameValue: localStorage.getItem('oauth_onboardingUserName')
+        },
+        tempDatabase: {
+          hasTempId: !!localStorage.getItem('tempOnboardingId'),
+          tempIdValue: localStorage.getItem('tempOnboardingId')
         }
       };
       
-      console.log('OnboardingPaste: Storage verification:', verification);
+      console.log('📊 OnboardingPaste: Storage verification completed:', verification);
       
       return true;
     } catch (error) {
-      console.error('OnboardingPaste: Error in enhanced storage:', error);
+      console.error('❌ OnboardingPaste: Error in enhanced storage:', error);
+      console.error('❌ OnboardingPaste: Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       return false;
     }
   };
@@ -147,7 +182,8 @@ const OnboardingPaste = () => {
     setIsGenerating(true);
 
     try {
-      console.log('OnboardingPaste: Starting profile generation...');
+      console.log('🚀 OnboardingPaste: Starting profile generation...');
+      console.log('📊 OnboardingPaste: Reflection length:', reflection.length);
       
       // Create a mock conversation structure for the edge function
       const mockConversation = {
@@ -163,7 +199,7 @@ const OnboardingPaste = () => {
         ]
       };
 
-      console.log('OnboardingPaste: Calling generate-profile edge function...');
+      console.log('🔄 OnboardingPaste: Calling generate-profile edge function...');
       
       // Call the existing generate-profile edge function
       const { data, error } = await supabase.functions.invoke('generate-profile', {
@@ -171,14 +207,17 @@ const OnboardingPaste = () => {
       });
 
       if (error) {
+        console.error('❌ OnboardingPaste: Profile generation error:', error);
         throw new Error(`Profile generation failed: ${error.message}`);
       }
 
       if (!data) {
+        console.error('❌ OnboardingPaste: No profile data received');
         throw new Error('No profile data received');
       }
 
-      console.log('OnboardingPaste: Generated profile data:', data);
+      console.log('✅ OnboardingPaste: Generated profile data received');
+      console.log('📊 OnboardingPaste: Profile data keys:', Object.keys(data));
       
       // Use the profile data directly since it's already structured
       const profileData: UserProfile = {
@@ -198,6 +237,12 @@ const OnboardingPaste = () => {
         ...data
       };
 
+      console.log('📊 OnboardingPaste: Final profile data:', {
+        name: profileData.name,
+        profileKeys: Object.keys(profileData),
+        personalInsightsCount: profileData.personalInsights.length
+      });
+
       setUserProfile(profileData);
 
       // Enhanced data storage with multiple strategies
@@ -210,12 +255,12 @@ const OnboardingPaste = () => {
       
       const promptMode = 'gpt-paste';
       
-      console.log('OnboardingPaste: Storing onboarding data with enhanced strategies...');
+      console.log('💾 OnboardingPaste: Storing onboarding data with enhanced strategies...');
       
       const storageSuccess = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
       
       if (!storageSuccess) {
-        console.warn('OnboardingPaste: Some storage strategies failed, but continuing...');
+        console.warn('⚠️ OnboardingPaste: Some storage strategies failed, but continuing...');
         toast({
           title: "Warning",
           description: "Profile generated but may not persist through authentication.",
@@ -225,7 +270,11 @@ const OnboardingPaste = () => {
 
       // If user is logged in, save the profile immediately
       if (user) {
-        console.log('OnboardingPaste: User is authenticated, saving to database...');
+        console.log('✅ OnboardingPaste: User is authenticated, saving to database...');
+        console.log('📊 OnboardingPaste: Authenticated user:', {
+          id: user.id,
+          email: user.email
+        });
         
         const { error: updateError } = await supabase
           .from('user_data')
@@ -242,25 +291,37 @@ const OnboardingPaste = () => {
           });
 
         if (updateError) {
-          console.error("OnboardingPaste: Error saving profile:", updateError);
+          console.error("❌ OnboardingPaste: Error saving profile:", updateError);
+          console.error("❌ OnboardingPaste: Save error details:", {
+            message: updateError.message,
+            details: updateError.details,
+            hint: updateError.hint,
+            code: updateError.code
+          });
           toast({
             title: "Profile generated but not saved",
             description: "Your profile was created but couldn't be saved to your account.",
             variant: "destructive",
           });
         } else {
-          console.log('OnboardingPaste: Profile saved successfully to database');
+          console.log('✅ OnboardingPaste: Profile saved successfully to database');
           clearNewUserFlag();
         }
       } else {
-        console.log('OnboardingPaste: User not authenticated, data stored securely for later transfer');
+        console.log('⚠️ OnboardingPaste: User not authenticated, data stored securely for later transfer');
       }
 
       // Navigate to results page
+      console.log('🚀 OnboardingPaste: Navigating to results page');
       navigate("/onboarding-results", { state: { userProfile: profileData } });
       
     } catch (error) {
-      console.error("OnboardingPaste: Error generating profile:", error);
+      console.error("❌ OnboardingPaste: Error generating profile:", error);
+      console.error("❌ OnboardingPaste: Generation error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast({
         title: "Error",
         description: "Failed to generate your profile. Please try again.",
