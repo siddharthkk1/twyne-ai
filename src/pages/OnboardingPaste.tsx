@@ -113,6 +113,15 @@ const OnboardingPaste = () => {
 
       setUserProfile(profileData);
 
+      // Store data in localStorage with GPT Paste prompt mode
+      localStorage.setItem('onboardingProfile', JSON.stringify(profileData));
+      localStorage.setItem('onboardingUserName', profileData.name || "");
+      localStorage.setItem('onboardingConversation', JSON.stringify({ 
+        messages: mockConversation.messages,
+        userAnswers: [reflection]
+      }));
+      localStorage.setItem('onboardingPromptMode', 'gpt-paste');
+
       // If user is logged in, save the profile
       if (user) {
         const { error: updateError } = await supabase
@@ -120,7 +129,13 @@ const OnboardingPaste = () => {
           .upsert({
             user_id: user.id,
             profile_data: profileData as unknown as Json,
-            conversation_data: { reflection_source: reflection } as unknown as Json,
+            conversation_data: { 
+              reflection_source: reflection,
+              messages: mockConversation.messages,
+              userAnswers: [reflection]
+            } as unknown as Json,
+            prompt_mode: 'gpt-paste',
+            has_completed_onboarding: true,
             updated_at: new Date().toISOString()
           });
 

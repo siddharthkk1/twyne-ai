@@ -8,7 +8,7 @@ export const useSupabaseSync = () => {
   const saveOnboardingData = async (
     profile: UserProfile, 
     conversation: Conversation, 
-    promptMode: PromptModeType,
+    promptMode: PromptModeType | string,
     user: any,
     clearNewUserFlag: () => void
   ) => {
@@ -18,13 +18,17 @@ export const useSupabaseSync = () => {
       if (user) {
         console.log("User auth state: Authenticated, updating user_data table");
         
+        // Store the prompt mode in localStorage for potential OAuth flow
+        const finalPromptMode = promptMode || 'structured';
+        localStorage.setItem('onboardingPromptMode', finalPromptMode);
+        
         // For authenticated users, update the user_data table with onboarding completion
         const { error } = await supabase
           .from('user_data')
           .update({
             profile_data: profile as unknown as Json,
             conversation_data: conversation as unknown as Json,
-            prompt_mode: promptMode || 'structured',
+            prompt_mode: finalPromptMode,
             has_completed_onboarding: true
           })
           .eq('user_id', user.id);
@@ -39,7 +43,14 @@ export const useSupabaseSync = () => {
       } else {
         console.log("User auth state: Anonymous");
         
-        // For anonymous users, generate a temporary ID and save to onboarding_data
+        // For anonymous users, store in localStorage and generate temporary record
+        const finalPromptMode = promptMode || 'structured';
+        localStorage.setItem('onboardingProfile', JSON.stringify(profile));
+        localStorage.setItem('onboardingUserName', profile.name || '');
+        localStorage.setItem('onboardingConversation', JSON.stringify(conversation));
+        localStorage.setItem('onboardingPromptMode', finalPromptMode);
+        
+        // Generate a temporary ID and save to onboarding_data
         const tempUserId = crypto.randomUUID();
         console.log("Saving to onboarding_data table for anonymous user:", tempUserId);
 
@@ -49,7 +60,7 @@ export const useSupabaseSync = () => {
             user_id: tempUserId,
             profile_data: profile as unknown as Json,
             conversation_data: conversation as unknown as Json,
-            prompt_mode: promptMode || 'structured',
+            prompt_mode: finalPromptMode,
             is_anonymous: true
           });
 

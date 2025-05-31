@@ -86,16 +86,22 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         // Wait a moment for auth state to update
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // Get the stored prompt mode from localStorage
+        const storedPromptMode = localStorage.getItem('onboardingPromptMode') || 'structured';
+        
         // Now save onboarding data to user_data table if we have it
         if (onboardingProfileData) {
           try {
+            const conversationData = onboardingConversationData || {};
+            
             const { error: userDataError } = await supabase
               .from('user_data')
               .upsert({
                 user_id: data.user.id,
                 profile_data: onboardingProfileData as unknown as Json,
-                conversation_data: (onboardingConversationData || {}) as unknown as Json,
-                prompt_mode: 'structured',
+                conversation_data: conversationData as unknown as Json,
+                prompt_mode: storedPromptMode,
+                has_completed_onboarding: true,
                 updated_at: new Date().toISOString()
               });
 
@@ -108,6 +114,13 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
               });
             } else {
               console.log("Successfully saved onboarding data to user_data table");
+              
+              // Clean up localStorage after successful save
+              localStorage.removeItem('onboardingProfile');
+              localStorage.removeItem('onboardingUserName');
+              localStorage.removeItem('onboardingConversation');
+              localStorage.removeItem('onboardingPromptMode');
+              
               toast({
                 title: "Account created successfully!",
                 description: "Welcome to Twyne! Your profile has been saved.",
