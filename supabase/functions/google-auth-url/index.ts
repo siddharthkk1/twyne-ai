@@ -26,10 +26,8 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${origin}/auth/callback`
     }
     
-    // Ensure we normalize the redirect URI format
-    if (!redirect_uri.endsWith('/auth/callback')) {
-      redirect_uri = `${origin}/auth/callback`
-    }
+    // DO NOT normalize the redirect URI - use it as provided
+    // This allows for dedicated callback routes like /auth/callback/youtube
     
     console.log('Google Auth - Using redirect URI:', redirect_uri)
     console.log('Google Auth - Request origin:', origin)

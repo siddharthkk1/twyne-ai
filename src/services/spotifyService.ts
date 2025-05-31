@@ -56,19 +56,13 @@ export class SpotifyService {
     // Determine the correct origin based on current domain
     const currentOrigin = window.location.origin;
     
-    // Use dedicated Spotify callback route
+    // Use dedicated Spotify callback route - MUST match what's configured in Spotify App
     const redirectUri = `${currentOrigin}/auth/callback/spotify`;
     
-    // Handle different domains
-    let authUrlBase;
-    if (currentOrigin.includes('lovableproject.com')) {
-      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
-    } else if (currentOrigin.includes('lovable.app')) {
-      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
-    } else {
-      // Local development or other domains
-      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
-    }
+    // Use the same function base for all domains
+    const authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
+    
+    console.log('SpotifyService: Requesting Spotify auth with redirect URI:', redirectUri);
     
     return `${authUrlBase}?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }

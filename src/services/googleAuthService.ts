@@ -16,19 +16,13 @@ export class GoogleAuthService {
     // Determine the correct origin based on current domain
     const currentOrigin = window.location.origin;
     
-    // Use dedicated YouTube callback route
+    // Use dedicated YouTube callback route - MUST match what's configured in Google Cloud Console
     const redirectUri = `${currentOrigin}/auth/callback/youtube`;
     
-    // Handle different domains
-    let authUrlBase;
-    if (currentOrigin.includes('lovableproject.com')) {
-      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
-    } else if (currentOrigin.includes('lovable.app')) {
-      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
-    } else {
-      // Local development or other domains
-      authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
-    }
+    // Handle different domains - use the same function for all
+    const authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
+    
+    console.log('GoogleAuthService: Requesting YouTube auth with redirect URI:', redirectUri);
     
     return `${authUrlBase}?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
