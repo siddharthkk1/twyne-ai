@@ -1,8 +1,9 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export class GoogleAuthService {
   /**
-   * Initiate Google OAuth flow with onboarding data preservation using redirect URL query parameter
+   * Initiate Google OAuth flow with onboarding data preservation using OAuth metadata
    * @param onboardingData - Optional onboarding data to preserve through OAuth
    */
   static async initiateGoogleAuth(onboardingData?: {
@@ -11,15 +12,19 @@ export class GoogleAuthService {
     userName?: string;
     promptMode?: string;
   }) {
-    console.log('🚀 GoogleAuthService: Starting Google OAuth with redirect URL query parameter approach');
+    console.log('🚀 GoogleAuthService: Starting Google OAuth with OAuth metadata approach');
     
     try {
-      let redirectTo = `${window.location.origin}/auth/callback`;
-      let onboardingId: string | null = null;
+      const redirectTo = `${window.location.origin}/auth/callback`;
       
-      // If we have onboarding data, store it in the database first
+      // Prepare OAuth options with onboarding data
+      let oauthOptions: any = {
+        redirectTo
+      };
+      
+      // If we have onboarding data, include it in the OAuth metadata
       if (onboardingData) {
-        console.log('📊 GoogleAuthService: Storing onboarding data in database before OAuth');
+        console.log('📊 GoogleAuthService: Including onboarding data in OAuth metadata');
         console.log('📊 GoogleAuthService: Data details:', {
           hasProfile: !!onboardingData.profile,
           hasConversation: !!onboardingData.conversation,
@@ -27,57 +32,34 @@ export class GoogleAuthService {
           promptMode: onboardingData.promptMode
         });
         
-        // Store onboarding data in the onboarding_data table
-        const { data: onboardingRecord, error: storeError } = await supabase
-          .from('onboarding_data')
-          .insert({
-            profile_data: onboardingData.profile || {},
-            conversation_data: onboardingData.conversation || {},
-            prompt_mode: onboardingData.promptMode || 'structured',
-            is_anonymous: true, // Mark as anonymous since no user_id yet
-            user_id: crypto.randomUUID() // Temporary ID, will be updated after auth
-          })
-          .select('id')
-          .single();
+        // Include onboarding data in OAuth options
+        oauthOptions.data = {
+          onboarding_profile: onboardingData.profile || {},
+          onboarding_conversation: onboardingData.conversation || {},
+          onboarding_prompt_mode: onboardingData.promptMode || 'structured',
+          onboarding_user_name: onboardingData.userName || ''
+        };
         
-        if (storeError) {
-          console.error('❌ GoogleAuthService: Error storing onboarding data:', storeError);
-          throw storeError;
-        }
-        
-        if (onboardingRecord) {
-          onboardingId = onboardingRecord.id;
-          console.log('✅ GoogleAuthService: Stored onboarding data with ID:', onboardingId);
-          
-          // Embed the onboarding ID in the redirect URL as a query parameter
-          redirectTo = `${window.location.origin}/auth/callback?onboarding_id=${onboardingId}`;
-          
-          // Store the temporary record ID for cleanup if needed
-          localStorage.setItem('temp_onboarding_id', onboardingId);
-        }
+        console.log('✅ GoogleAuthService: OAuth metadata prepared with onboarding data');
       }
       
-      console.log('🔗 GoogleAuthService: Redirect URL with onboarding ID:', redirectTo);
+      console.log('🔗 GoogleAuthService: Starting OAuth with options:', {
+        redirectTo,
+        hasData: !!oauthOptions.data
+      });
       
-      // Use Supabase's native Google OAuth
+      // Use Supabase's native Google OAuth with metadata
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo
-        }
+        options: oauthOptions
       });
       
       if (error) {
         console.error('❌ GoogleAuthService: OAuth initiation failed:', error);
-        // Clean up stored data if OAuth initiation fails
-        if (onboardingId) {
-          await supabase.from('onboarding_data').delete().eq('id', onboardingId);
-          localStorage.removeItem('temp_onboarding_id');
-        }
         throw error;
       }
       
-      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with redirect URL query parameter');
+      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with metadata approach');
       
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in OAuth flow:', error);
@@ -86,7 +68,7 @@ export class GoogleAuthService {
   }
 
   /**
-   * Retrieve onboarding data using onboarding ID
+   * Retrieve onboarding data using onboarding ID (legacy support)
    * @param onboardingId - Onboarding ID from URL query parameter
    */
   static async retrieveOnboardingData(onboardingId: string) {
@@ -130,7 +112,7 @@ export class GoogleAuthService {
   }
 
   /**
-   * Clean up temporary onboarding data record
+   * Clean up temporary onboarding data record (legacy support)
    * @param onboardingId - Onboarding ID identifying the record to clean up
    */
   static async cleanupOnboardingData(onboardingId: string) {
