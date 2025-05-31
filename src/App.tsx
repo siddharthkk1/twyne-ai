@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import SpotifyCallback from "./pages/SpotifyCallback";
 import YouTubeCallback from "./pages/YouTubeCallback";
+import GoogleAuthTest from "./pages/GoogleAuthTest";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/google-auth-test" element={<GoogleAuthTest />} />
             {/* Separate callback routes for different OAuth flows */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/callback/spotify" element={<SpotifyCallback />} />
