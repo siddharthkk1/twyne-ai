@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface SpotifyTokenResponse {
@@ -57,6 +56,9 @@ export class SpotifyService {
     // Determine the correct origin based on current domain
     const currentOrigin = window.location.origin;
     
+    // Use dedicated Spotify callback route
+    const redirectUri = `${currentOrigin}/auth/callback/spotify`;
+    
     // Handle different domains
     let authUrlBase;
     if (currentOrigin.includes('lovableproject.com')) {
@@ -68,7 +70,7 @@ export class SpotifyService {
       authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
     }
     
-    return `${authUrlBase}?redirect_uri=${encodeURIComponent(`${currentOrigin}/auth/callback`)}`;
+    return `${authUrlBase}?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<SpotifyTokenResponse> {

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,8 @@ import OnboardingResults from "./pages/OnboardingResults";
 import Mirror from "./pages/Mirror";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import SpotifyCallback from "./pages/SpotifyCallback";
+import YouTubeCallback from "./pages/YouTubeCallback";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -67,8 +70,10 @@ const App = () => (
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
-            {/* Move auth callback route outside of protected routes */}
+            {/* Separate callback routes for different OAuth flows */}
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/callback/spotify" element={<SpotifyCallback />} />
+            <Route path="/auth/callback/youtube" element={<YouTubeCallback />} />
             {/* Onboarding routes without authentication protection */}
             <Route path="/onboarding" element={<OnboardingSelection />} />
             <Route path="/onboarding-chat" element={<OnboardingChat />} />

@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { SpotifyService } from "@/services/spotifyService";
+import { GoogleAuthService } from "@/services/googleAuthService";
 import { useAuth } from "@/contexts/AuthContext";
 import { MirrorDataService } from "@/services/mirrorDataService";
 
@@ -48,22 +48,10 @@ const AccountConnectionButtons = () => {
     try {
       setIsConnectingSpotify(true);
       
-      const redirectUri = `${window.location.origin}/auth/callback`;
+      // Use the updated SpotifyService method that uses the dedicated callback route
+      const authUrl = SpotifyService.getAuthUrl();
+      window.location.href = authUrl;
       
-      const { data, error } = await supabase.functions.invoke('spotify-auth-url', {
-        body: { redirect_uri: redirectUri }
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data?.authUrl) {
-        window.location.href = data.authUrl;
-      } else {
-        const fallbackUrl = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
-        window.location.href = fallbackUrl;
-      }
     } catch (error) {
       console.error('Error connecting to Spotify:', error);
       toast({
@@ -79,22 +67,10 @@ const AccountConnectionButtons = () => {
     try {
       setIsConnectingYoutube(true);
       
-      const redirectUri = `${window.location.origin}/auth/callback`;
+      // Use the updated GoogleAuthService method that uses the dedicated callback route
+      const authUrl = GoogleAuthService.getYouTubeAuthUrl();
+      window.location.href = authUrl;
       
-      const { data, error } = await supabase.functions.invoke('google-auth-url', {
-        body: { redirect_uri: redirectUri }
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data?.authUrl) {
-        window.location.href = data.authUrl;
-      } else {
-        const fallbackUrl = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
-        window.location.href = fallbackUrl;
-      }
     } catch (error) {
       console.error('Error connecting to YouTube:', error);
       toast({

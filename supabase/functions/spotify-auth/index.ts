@@ -21,7 +21,10 @@ serve(async (req) => {
       throw new Error('Spotify credentials not configured')
     }
     
-    console.log('Spotify Auth - Exchanging code for token with redirect URI:', `${req.headers.get('origin')}/auth/callback`)
+    // Use the dedicated Spotify callback route
+    const redirectUri = `${req.headers.get('origin')}/auth/callback/spotify`
+    
+    console.log('Spotify Auth - Exchanging code for token with redirect URI:', redirectUri)
     
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -32,7 +35,7 @@ serve(async (req) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: `${req.headers.get('origin')}/auth/callback`
+        redirect_uri: redirectUri
       })
     })
     

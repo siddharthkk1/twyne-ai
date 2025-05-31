@@ -17,10 +17,10 @@ serve(async (req) => {
     // Handle both GET and POST requests
     if (req.method === 'GET') {
       const url = new URL(req.url)
-      redirect_uri = url.searchParams.get('redirect_uri') || `${req.headers.get('origin')}/auth/callback`
+      redirect_uri = url.searchParams.get('redirect_uri') || `${req.headers.get('origin')}/auth/callback/spotify`
     } else {
       const body = await req.json()
-      redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback`
+      redirect_uri = body.redirect_uri || `${req.headers.get('origin')}/auth/callback/spotify`
     }
     
     // Ensure we're using the correct redirect URI format

@@ -16,6 +16,9 @@ export class GoogleAuthService {
     // Determine the correct origin based on current domain
     const currentOrigin = window.location.origin;
     
+    // Use dedicated YouTube callback route
+    const redirectUri = `${currentOrigin}/auth/callback/youtube`;
+    
     // Handle different domains
     let authUrlBase;
     if (currentOrigin.includes('lovableproject.com')) {
@@ -27,7 +30,7 @@ export class GoogleAuthService {
       authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url`;
     }
     
-    return `${authUrlBase}?redirect_uri=${encodeURIComponent(`${currentOrigin}/auth/callback`)}`;
+    return `${authUrlBase}?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
   
   static async exchangeCodeForToken(code: string): Promise<GoogleTokenResponse> {
