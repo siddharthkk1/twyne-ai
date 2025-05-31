@@ -100,23 +100,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('User profile loaded:', data);
         console.log('Profile data:', data.profile_data);
         console.log('SSO data:', data.sso_data);
+        console.log('has_completed_onboarding:', data.has_completed_onboarding);
         
         // Check if user has completed onboarding
         const hasCompletedOnboarding = data.has_completed_onboarding || false;
         
-        // Check if this is an SSO user by looking at sso_data
-        const ssoData = data.sso_data;
-        const profileData = data.profile_data;
-        
         let userProfile: UserProfile = { has_completed_onboarding: hasCompletedOnboarding };
         
-        // If there's meaningful SSO data, this is an SSO user
-        if (ssoData && typeof ssoData === 'object' && !Array.isArray(ssoData) && Object.keys(ssoData).length > 0) {
-          console.log('SSO user detected with sso_data:', ssoData);
-          userProfile = { ...userProfile, ...ssoData as UserProfile, sso_data: ssoData };
+        // Check if there's meaningful SSO data
+        if (data.sso_data && typeof data.sso_data === 'object' && !Array.isArray(data.sso_data) && Object.keys(data.sso_data).length > 0) {
+          console.log('SSO user detected with sso_data:', data.sso_data);
+          userProfile = { ...userProfile, ...data.sso_data as UserProfile, sso_data: data.sso_data };
           
-          // For Google SSO users, check if they have completed onboarding
-          // If they haven't, they should go through onboarding regardless of having SSO data
+          // For SSO users, they should go through onboarding if they haven't completed it
           if (!hasCompletedOnboarding) {
             console.log('SSO user has not completed onboarding - treating as new user');
             setIsNewUser(true);
@@ -124,10 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('SSO user has completed onboarding - treating as existing user');
             setIsNewUser(false);
           }
-        } else if (profileData && typeof profileData === 'object' && !Array.isArray(profileData) && Object.keys(profileData).length > 0) {
+        } else if (data.profile_data && typeof data.profile_data === 'object' && !Array.isArray(data.profile_data) && Object.keys(data.profile_data).length > 0) {
           // Regular user with profile data
-          console.log('Regular user with profile_data:', profileData);
-          userProfile = { ...userProfile, ...profileData as UserProfile, profile_data: profileData };
+          console.log('Regular user with profile_data:', data.profile_data);
+          userProfile = { ...userProfile, ...data.profile_data as UserProfile, profile_data: data.profile_data };
           setIsNewUser(!hasCompletedOnboarding);
         } else {
           // User with no meaningful data - definitely new
@@ -136,6 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         
         setProfile(userProfile);
+        console.log('Final user profile set:', userProfile);
+        console.log('isNewUser flag set to:', !hasCompletedOnboarding || Object.keys(userProfile).length <= 1);
       } else {
         console.log('No user profile found - new user');
         setProfile(null);
