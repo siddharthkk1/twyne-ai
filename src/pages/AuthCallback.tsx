@@ -24,6 +24,10 @@ const AuthCallback = () => {
         userEmail: user?.email
       });
       
+      // Check OAuth context to understand where we came from
+      const oauthContext = localStorage.getItem('oauth_context');
+      console.log('🔍 AuthCallback: OAuth context:', oauthContext);
+      
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
         console.log('⚠️ AuthCallback: Already handled callback or processing, skipping');
@@ -42,9 +46,10 @@ const AuthCallback = () => {
         hasCode: !!code, 
         codeLength: code?.length || 0,
         state,
-        fullUrl: window.location.href
+        fullUrl: window.location.href,
+        oauthContext
       });
-      setDebugInfo(`URL params - error: ${!!error}, code: ${!!code}, state: ${state}`);
+      setDebugInfo(`URL params - error: ${!!error}, code: ${!!code}, state: ${state}, context: ${oauthContext}`);
 
       // Handle OAuth errors
       if (error) {
@@ -55,7 +60,16 @@ const AuthCallback = () => {
           description: "There was an error during authentication. Please try again.",
           variant: "destructive",
         });
-        navigate('/');
+        
+        // Clean up OAuth context
+        localStorage.removeItem('oauth_context');
+        
+        // If we came from onboarding results, go back there
+        if (oauthContext === 'onboarding_results') {
+          navigate('/onboarding-results');
+        } else {
+          navigate('/');
+        }
         return;
       }
 
@@ -65,10 +79,11 @@ const AuthCallback = () => {
         isLoading,
         hasUser: !!user,
         userMetadata: user?.user_metadata,
-        userAppMetadata: user?.app_metadata
+        userAppMetadata: user?.app_metadata,
+        oauthContext
       });
       
-      setDebugInfo(`Processing - code: ${!!code}, loading: ${isLoading}, user: ${!!user}`);
+      setDebugInfo(`Processing - code: ${!!code}, loading: ${isLoading}, user: ${!!user}, context: ${oauthContext}`);
       
       // Log current storage state before processing
       console.log('📊 AuthCallback: Pre-processing storage state:');
@@ -81,7 +96,9 @@ const AuthCallback = () => {
         latestBackupKey: localStorage.getItem('latestBackupKey'),
         oauthProfile: localStorage.getItem('oauth_onboardingProfile'),
         oauthUserName: localStorage.getItem('oauth_onboardingUserName'),
-        tempId: localStorage.getItem('tempOnboardingId')
+        tempId: localStorage.getItem('tempOnboardingId'),
+        standardProfile: localStorage.getItem('onboardingProfile'),
+        standardUserName: localStorage.getItem('onboardingUserName')
       };
       
       console.log('📊 AuthCallback: Preserved data check:', {
@@ -91,7 +108,10 @@ const AuthCallback = () => {
         hasOauthUserName: !!preservedData.oauthUserName,
         oauthUserNameValue: preservedData.oauthUserName,
         hasTempId: !!preservedData.tempId,
-        tempIdValue: preservedData.tempId
+        tempIdValue: preservedData.tempId,
+        hasStandardProfile: !!preservedData.standardProfile,
+        hasStandardUserName: !!preservedData.standardUserName,
+        standardUserNameValue: preservedData.standardUserName
       });
       
       // If we have a code but no user yet, we might be in the middle of OAuth flow
@@ -142,8 +162,16 @@ const AuthCallback = () => {
           
           if (!sessionRefreshed && !user) {
             console.warn('⚠️ AuthCallback: Session refresh failed after all attempts');
-            setDebugInfo('Session refresh failed, redirecting to home');
-            navigate('/');
+            setDebugInfo('Session refresh failed, redirecting based on context');
+            
+            // Clean up OAuth context
+            localStorage.removeItem('oauth_context');
+            
+            if (oauthContext === 'onboarding_results') {
+              navigate('/onboarding-results');
+            } else {
+              navigate('/');
+            }
             return;
           }
           
@@ -168,7 +196,8 @@ const AuthCallback = () => {
           createdAt: user.created_at,
           lastSignInAt: user.last_sign_in_at,
           userMetadata: user.user_metadata,
-          appMetadata: user.app_metadata
+          appMetadata: user.app_metadata,
+          oauthContext
         });
         
         setHasHandledCallback(true);
@@ -194,10 +223,24 @@ const AuthCallback = () => {
           // Clear URL parameters before redirecting
           window.history.replaceState({}, document.title, window.location.pathname);
           
+          // Clean up OAuth context
+          localStorage.removeItem('oauth_context');
+          
           // Add a small delay before navigation
           await new Promise(resolve => setTimeout(resolve, 500));
           
           console.log('🚀 AuthCallback: Navigating to final destination');
+          
+          // Special handling for onboarding results context
+          if (oauthContext === 'onboarding_results' && redirectPath === '/mirror') {
+            // If we came from onboarding results and successfully transferred data, go to mirror
+            console.log('✅ AuthCallback: Onboarding context - redirecting to mirror with success message');
+            toast({
+              title: "Account created successfully!",
+              description: "Welcome to Twyne! Your profile has been saved.",
+            });
+          }
+          
           navigate(redirectPath);
           
         } catch (error) {
@@ -208,25 +251,42 @@ const AuthCallback = () => {
             name: error.name
           });
           setDebugInfo(`Post-auth error: ${error.message}`);
-          // Fallback to onboarding on error
-          console.log('🔄 AuthCallback: Falling back to onboarding due to error');
-          navigate('/onboarding');
+          
+          // Clean up OAuth context
+          localStorage.removeItem('oauth_context');
+          
+          // Fallback based on context
+          console.log('🔄 AuthCallback: Falling back due to error, context:', oauthContext);
+          if (oauthContext === 'onboarding_results') {
+            navigate('/onboarding-results');
+          } else {
+            navigate('/onboarding');
+          }
         } finally {
           setIsProcessing(false);
         }
       } else if (!isLoading && !user && !code) {
-        console.log('🚪 AuthCallback: No user and no code, redirecting to home');
-        setDebugInfo('No user and no code, redirecting home');
-        navigate('/');
+        console.log('🚪 AuthCallback: No user and no code, redirecting based on context');
+        setDebugInfo('No user and no code, redirecting based on context');
+        
+        // Clean up OAuth context
+        localStorage.removeItem('oauth_context');
+        
+        if (oauthContext === 'onboarding_results') {
+          navigate('/onboarding-results');
+        } else {
+          navigate('/');
+        }
       } else {
         console.log('⏳ AuthCallback: Still loading or waiting for auth completion');
         console.log('🔍 AuthCallback: Current state:', { 
           isLoading, 
           hasUser: !!user, 
           hasCode: !!code,
-          userId: user?.id
+          userId: user?.id,
+          oauthContext
         });
-        setDebugInfo(`Waiting - loading: ${isLoading}, user: ${!!user}, code: ${!!code}`);
+        setDebugInfo(`Waiting - loading: ${isLoading}, user: ${!!user}, code: ${!!code}, context: ${oauthContext}`);
       }
     };
 

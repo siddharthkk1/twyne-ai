@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, Conversation } from '@/types/chat';
 import type { Json } from '@/integrations/supabase/types';
@@ -50,32 +49,9 @@ export class OAuthSuccessHandler {
       console.error('❌ OAuthSuccessHandler: Strategy 1 ERROR - Error reading sessionStorage:', error);
     }
     
-    // Strategy 2: Try localStorage backup with latest key
+    // Strategy 2: Try OAuth-prefixed items (most likely for our flow)
     try {
-      console.log('🔍 OAuthSuccessHandler: Strategy 2 - Checking localStorage backup...');
-      const latestBackupKey = localStorage.getItem('latestBackupKey');
-      console.log('🔍 OAuthSuccessHandler: Latest backup key:', latestBackupKey);
-      if (latestBackupKey) {
-        const backupData = localStorage.getItem(latestBackupKey);
-        if (backupData) {
-          recoveredData = JSON.parse(backupData);
-          recoverySource = 'localStorage-backup';
-          console.log('✅ OAuthSuccessHandler: Strategy 2 SUCCESS - Recovered data from localStorage backup');
-          console.log('📊 OAuthSuccessHandler: LocalStorage backup data keys:', Object.keys(recoveredData));
-          return { ...recoveredData, recoverySource };
-        } else {
-          console.log('❌ OAuthSuccessHandler: Strategy 2 FAILED - Backup key exists but no data found');
-        }
-      } else {
-        console.log('❌ OAuthSuccessHandler: Strategy 2 FAILED - No latest backup key found');
-      }
-    } catch (error) {
-      console.error('❌ OAuthSuccessHandler: Strategy 2 ERROR - Error reading localStorage backup:', error);
-    }
-    
-    // Strategy 3: Try OAuth-prefixed items
-    try {
-      console.log('🔍 OAuthSuccessHandler: Strategy 3 - Checking OAuth-prefixed storage...');
+      console.log('🔍 OAuthSuccessHandler: Strategy 2 - Checking OAuth-prefixed storage...');
       const oauthProfile = localStorage.getItem('oauth_onboardingProfile') || sessionStorage.getItem('oauth_onboardingProfile');
       const oauthUserName = localStorage.getItem('oauth_onboardingUserName') || sessionStorage.getItem('oauth_onboardingUserName');
       const oauthConversation = localStorage.getItem('oauth_onboardingConversation') || sessionStorage.getItem('oauth_onboardingConversation');
@@ -99,18 +75,76 @@ export class OAuthSuccessHandler {
           source: 'oauth-prefixed'
         };
         recoverySource = 'oauth-prefixed';
-        console.log('✅ OAuthSuccessHandler: Strategy 3 SUCCESS - Recovered data from OAuth-prefixed storage');
+        console.log('✅ OAuthSuccessHandler: Strategy 2 SUCCESS - Recovered data from OAuth-prefixed storage');
         return { ...recoveredData, recoverySource };
       } else {
-        console.log('❌ OAuthSuccessHandler: Strategy 3 FAILED - No OAuth-prefixed data found');
+        console.log('❌ OAuthSuccessHandler: Strategy 2 FAILED - No OAuth-prefixed data found');
       }
     } catch (error) {
-      console.error('❌ OAuthSuccessHandler: Strategy 3 ERROR - Error reading OAuth-prefixed data:', error);
+      console.error('❌ OAuthSuccessHandler: Strategy 2 ERROR - Error reading OAuth-prefixed data:', error);
     }
     
-    // Strategy 4: Try temporary database storage
+    // Strategy 3: Try standard localStorage (fallback)
     try {
-      console.log('🔍 OAuthSuccessHandler: Strategy 4 - Checking temporary database storage...');
+      console.log('🔍 OAuthSuccessHandler: Strategy 3 - Checking standard localStorage...');
+      const profile = localStorage.getItem('onboardingProfile');
+      const userName = localStorage.getItem('onboardingUserName');
+      const conversation = localStorage.getItem('onboardingConversation');
+      const promptMode = localStorage.getItem('onboardingPromptMode');
+      
+      console.log('📊 OAuthSuccessHandler: Standard localStorage check:', {
+        hasProfile: !!profile,
+        hasUserName: !!userName,
+        userNameValue: userName,
+        hasConversation: !!conversation,
+        hasPromptMode: !!promptMode,
+        promptModeValue: promptMode
+      });
+      
+      if (profile || userName || conversation) {
+        recoveredData = {
+          profile,
+          userName,
+          conversation,
+          promptMode,
+          source: 'standard-localStorage'
+        };
+        recoverySource = 'standard-localStorage';
+        console.log('✅ OAuthSuccessHandler: Strategy 3 SUCCESS - Recovered data from standard localStorage');
+        return { ...recoveredData, recoverySource };
+      } else {
+        console.log('❌ OAuthSuccessHandler: Strategy 3 FAILED - No standard localStorage data found');
+      }
+    } catch (error) {
+      console.error('❌ OAuthSuccessHandler: Strategy 3 ERROR - Error reading standard localStorage:', error);
+    }
+    
+    // Strategy 4: Try localStorage backup with latest key
+    try {
+      console.log('🔍 OAuthSuccessHandler: Strategy 4 - Checking localStorage backup...');
+      const latestBackupKey = localStorage.getItem('latestBackupKey');
+      console.log('🔍 OAuthSuccessHandler: Latest backup key:', latestBackupKey);
+      if (latestBackupKey) {
+        const backupData = localStorage.getItem(latestBackupKey);
+        if (backupData) {
+          recoveredData = JSON.parse(backupData);
+          recoverySource = 'localStorage-backup';
+          console.log('✅ OAuthSuccessHandler: Strategy 4 SUCCESS - Recovered data from localStorage backup');
+          console.log('📊 OAuthSuccessHandler: LocalStorage backup data keys:', Object.keys(recoveredData));
+          return { ...recoveredData, recoverySource };
+        } else {
+          console.log('❌ OAuthSuccessHandler: Strategy 4 FAILED - Backup key exists but no data found');
+        }
+      } else {
+        console.log('❌ OAuthSuccessHandler: Strategy 4 FAILED - No latest backup key found');
+      }
+    } catch (error) {
+      console.error('❌ OAuthSuccessHandler: Strategy 4 ERROR - Error reading localStorage backup:', error);
+    }
+    
+    // Strategy 5: Try temporary database storage
+    try {
+      console.log('🔍 OAuthSuccessHandler: Strategy 5 - Checking temporary database storage...');
       const tempId = localStorage.getItem('tempOnboardingId');
       console.log('🔍 OAuthSuccessHandler: Temp ID found:', tempId);
       if (tempId) {
@@ -136,7 +170,7 @@ export class OAuthSuccessHandler {
             source: 'temp-database'
           };
           recoverySource = 'temp-database';
-          console.log('✅ OAuthSuccessHandler: Strategy 4 SUCCESS - Recovered data from temp database');
+          console.log('✅ OAuthSuccessHandler: Strategy 5 SUCCESS - Recovered data from temp database');
           console.log('📊 OAuthSuccessHandler: Database data details:', {
             profileDataKeys: Object.keys(data.profile_data || {}),
             conversationDataKeys: Object.keys(data.conversation_data || {}),
@@ -151,48 +185,13 @@ export class OAuthSuccessHandler {
           
           return { ...recoveredData, recoverySource };
         } else {
-          console.log('❌ OAuthSuccessHandler: Strategy 4 FAILED - No temp database data found or error occurred');
+          console.log('❌ OAuthSuccessHandler: Strategy 5 FAILED - No temp database data found or error occurred');
         }
       } else {
-        console.log('❌ OAuthSuccessHandler: Strategy 4 FAILED - No temp ID found');
+        console.log('❌ OAuthSuccessHandler: Strategy 5 FAILED - No temp ID found');
       }
     } catch (error) {
-      console.error('❌ OAuthSuccessHandler: Strategy 4 ERROR - Error reading temp database:', error);
-    }
-    
-    // Strategy 5: Try standard localStorage (might still be there)
-    try {
-      console.log('🔍 OAuthSuccessHandler: Strategy 5 - Checking standard localStorage...');
-      const profile = localStorage.getItem('onboardingProfile');
-      const userName = localStorage.getItem('onboardingUserName');
-      const conversation = localStorage.getItem('onboardingConversation');
-      const promptMode = localStorage.getItem('onboardingPromptMode');
-      
-      console.log('📊 OAuthSuccessHandler: Standard localStorage check:', {
-        hasProfile: !!profile,
-        hasUserName: !!userName,
-        userNameValue: userName,
-        hasConversation: !!conversation,
-        hasPromptMode: !!promptMode,
-        promptModeValue: promptMode
-      });
-      
-      if (profile || userName || conversation) {
-        recoveredData = {
-          profile,
-          userName,
-          conversation,
-          promptMode,
-          source: 'standard-localStorage'
-        };
-        recoverySource = 'standard-localStorage';
-        console.log('✅ OAuthSuccessHandler: Strategy 5 SUCCESS - Recovered data from standard localStorage');
-        return { ...recoveredData, recoverySource };
-      } else {
-        console.log('❌ OAuthSuccessHandler: Strategy 5 FAILED - No standard localStorage data found');
-      }
-    } catch (error) {
-      console.error('❌ OAuthSuccessHandler: Strategy 5 ERROR - Error reading standard localStorage:', error);
+      console.error('❌ OAuthSuccessHandler: Strategy 5 ERROR - Error reading temp database:', error);
     }
     
     console.log('❌ OAuthSuccessHandler: ALL STRATEGIES FAILED - No onboarding data could be recovered');
@@ -241,11 +240,50 @@ export class OAuthSuccessHandler {
           // Create minimal profile from available data
           userProfile = {
             name: recoveredData.userName || "User",
-            location: "",
-            interests: [],
-            socialStyle: "",
-            connectionPreferences: "",
-            personalInsights: []
+            "vibeSummary": "",
+            "oneLiner": "",
+            "twyneTags": [],
+            "age": "",
+            "location": "",
+            "job": "",
+            "school": "",
+            "ethnicity": "",
+            "religion": "",
+            "hometown": "",
+            "lifestyle": "",
+            "favoriteProducts": "",
+            "style": "",
+            "interestsAndPassions": "",
+            "favoriteMoviesAndShows": "",
+            "favoriteMusic": "",
+            "favoriteBooks": "",
+            "favoritePodcastsOrYouTube": "",
+            "talkingPoints": [],
+            "favoriteActivities": "",
+            "favoriteSpots": "",
+            "coreValues": "",
+            "lifePhilosophy": "",
+            "goals": "",
+            "personalitySummary": "",
+            "bigFiveTraits": {
+              "openness": "",
+              "conscientiousness": "",
+              "extraversion": "",
+              "agreeableness": "",
+              "neuroticism": ""
+            },
+            "quirks": "",
+            "communicationStyle": "",
+            "upbringing": "",
+            "majorTurningPoints": "",
+            "recentLifeContext": "",
+            "socialStyle": "",
+            "loveLanguageOrFriendStyle": "",
+            "socialNeeds": "",
+            "connectionPreferences": "",
+            "dealBreakers": "",
+            "boundariesAndPetPeeves": "",
+            "connectionActivities": ""
           };
           console.log('✅ OAuthSuccessHandler: Created minimal profile from userName:', recoveredData.userName);
         }
@@ -275,11 +313,50 @@ export class OAuthSuccessHandler {
         // Create fallback profile
         userProfile = {
           name: recoveredData.userName || "User",
-          location: "",
-          interests: [],
-          socialStyle: "",
-          connectionPreferences: "",
-          personalInsights: []
+          "vibeSummary": "",
+          "oneLiner": "",
+          "twyneTags": [],
+          "age": "",
+          "location": "",
+          "job": "",
+          "school": "",
+          "ethnicity": "",
+          "religion": "",
+          "hometown": "",
+          "lifestyle": "",
+          "favoriteProducts": "",
+          "style": "",
+          "interestsAndPassions": "",
+          "favoriteMoviesAndShows": "",
+          "favoriteMusic": "",
+          "favoriteBooks": "",
+          "favoritePodcastsOrYouTube": "",
+          "talkingPoints": [],
+          "favoriteActivities": "",
+          "favoriteSpots": "",
+          "coreValues": "",
+          "lifePhilosophy": "",
+          "goals": "",
+          "personalitySummary": "",
+          "bigFiveTraits": {
+            "openness": "",
+            "conscientiousness": "",
+            "extraversion": "",
+            "agreeableness": "",
+            "neuroticism": ""
+          },
+          "quirks": "",
+          "communicationStyle": "",
+          "upbringing": "",
+          "majorTurningPoints": "",
+          "recentLifeContext": "",
+          "socialStyle": "",
+          "loveLanguageOrFriendStyle": "",
+          "socialNeeds": "",
+          "connectionPreferences": "",
+          "dealBreakers": "",
+          "boundariesAndPetPeeves": "",
+          "connectionActivities": ""
         };
         conversation = null;
         console.log('🔄 OAuthSuccessHandler: Created fallback profile due to parse error');
@@ -292,7 +369,7 @@ export class OAuthSuccessHandler {
       }
       
       // Determine prompt mode with fallback
-      const finalPromptMode = recoveredData.promptMode || 'gpt-paste';
+      const finalPromptMode = recoveredData.promptMode || 'structured';
       console.log('📊 OAuthSuccessHandler: Using prompt mode:', finalPromptMode);
       
       console.log('🗄️ OAuthSuccessHandler: Preparing to update user_data table...');

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
+import { GoogleAuthService } from "@/services/googleAuthService";
 import type { Json } from '@/integrations/supabase/types';
 import type { UserProfile, Conversation } from '@/types/chat';
 
@@ -161,30 +163,72 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
   };
 
   const handleGoogleAuth = async () => {
+    console.log('🔄 CreateAccountPrompt: Starting Google OAuth process with enhanced data preservation');
+    
     setIsGoogleLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + '/mirror'
-        }
-      });
+      // Enhanced data preservation before OAuth - store everything we have
+      console.log('💾 CreateAccountPrompt: Preserving onboarding data before OAuth...');
       
-      if (error) {
-        toast({
-          title: "Google sign in failed",
-          description: error.message,
-          variant: "destructive",
+      if (onboardingProfileData) {
+        const dataToPreserve = {
+          profile: JSON.stringify(onboardingProfileData),
+          userName: userName || onboardingProfileData.name || '',
+          conversation: onboardingConversationData ? JSON.stringify(onboardingConversationData) : null,
+          promptMode: localStorage.getItem('onboardingPromptMode') || 'structured',
+          timestamp: Date.now(),
+          source: 'createAccountPrompt'
+        };
+        
+        console.log('📊 CreateAccountPrompt: Data to preserve:', {
+          hasProfile: !!dataToPreserve.profile,
+          userName: dataToPreserve.userName,
+          hasConversation: !!dataToPreserve.conversation,
+          promptMode: dataToPreserve.promptMode
         });
+        
+        // Store in multiple locations for redundancy
+        localStorage.setItem('onboardingProfile', dataToPreserve.profile);
+        localStorage.setItem('onboardingUserName', dataToPreserve.userName);
+        localStorage.setItem('onboardingPromptMode', dataToPreserve.promptMode);
+        if (dataToPreserve.conversation) {
+          localStorage.setItem('onboardingConversation', dataToPreserve.conversation);
+        }
+        
+        // Also store with OAuth-specific keys
+        localStorage.setItem('oauth_onboardingProfile', dataToPreserve.profile);
+        localStorage.setItem('oauth_onboardingUserName', dataToPreserve.userName);
+        localStorage.setItem('oauth_onboardingPromptMode', dataToPreserve.promptMode);
+        if (dataToPreserve.conversation) {
+          localStorage.setItem('oauth_onboardingConversation', dataToPreserve.conversation);
+        }
+        
+        // Store complete backup in sessionStorage
+        sessionStorage.setItem('onboardingBackup', JSON.stringify(dataToPreserve));
+        
+        console.log('✅ CreateAccountPrompt: Data preservation completed');
+      } else {
+        console.log('⚠️ CreateAccountPrompt: No onboarding data to preserve');
       }
+      
+      // Add context flag to indicate we're coming from onboarding results
+      localStorage.setItem('oauth_context', 'onboarding_results');
+      
+      // Use the enhanced Google auth URL that will redirect to /auth/callback
+      console.log('🔄 CreateAccountPrompt: Getting Google auth URL...');
+      const authUrl = GoogleAuthService.getYouTubeAuthUrl();
+      
+      console.log('🚀 CreateAccountPrompt: Redirecting to Google OAuth:', authUrl);
+      window.location.href = authUrl;
+      
     } catch (error: any) {
+      console.error('❌ CreateAccountPrompt: Error in Google OAuth:', error);
       toast({
-        title: "Error",
+        title: "Google sign in failed",
         description: error.message || "Something went wrong with Google sign in.",
         variant: "destructive",
       });
-    } finally {
       setIsGoogleLoading(false);
     }
   };
