@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +5,7 @@ import { SpotifyService } from '@/services/spotifyService';
 import { MirrorDataService } from '@/services/mirrorDataService';
 import { AIProfileService } from '@/services/aiProfileService';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const SpotifyCallback = () => {
   const navigate = useNavigate();
