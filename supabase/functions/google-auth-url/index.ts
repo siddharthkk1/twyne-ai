@@ -12,10 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    let redirect_uri: string;
+    // Get the origin from the request headers with better fallback
+    const origin = req.headers.get('origin') || 
+                   req.headers.get('referer')?.split('/').slice(0, 3).join('/') ||
+                   'https://preview--twyne-ai.lovable.app';
     
-    // Get the origin from the request headers
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/');
+    let redirect_uri: string;
     
     // Handle both GET and POST requests
     if (req.method === 'GET') {
@@ -26,20 +28,19 @@ serve(async (req) => {
       redirect_uri = body.redirect_uri || `${origin}/auth/callback`
     }
     
-    // DO NOT normalize the redirect URI - use it as provided
-    // This allows for dedicated callback routes like /auth/callback/youtube
-    
-    console.log('Google Auth - Using redirect URI:', redirect_uri)
-    console.log('Google Auth - Request origin:', origin)
-    console.log('Google Auth - Full request URL:', req.url)
-    console.log('Google Auth - Request headers origin:', req.headers.get('origin'))
-    console.log('Google Auth - Request headers referer:', req.headers.get('referer'))
+    console.log('Google Auth URL - Request details:');
+    console.log('Google Auth URL - Method:', req.method);
+    console.log('Google Auth URL - Origin:', origin);
+    console.log('Google Auth URL - Using redirect URI:', redirect_uri);
+    console.log('Google Auth URL - Request URL:', req.url);
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID')
     
     if (!clientId) {
       throw new Error('Google client ID not configured')
     }
+    
+    console.log('Google Auth URL - Client ID configured:', !!clientId);
     
     const params = new URLSearchParams({
       client_id: clientId,
@@ -57,7 +58,8 @@ serve(async (req) => {
     
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
     
-    console.log('Google Auth URL generated:', authUrl)
+    console.log('Google Auth URL generated successfully');
+    console.log('Google Auth URL length:', authUrl.length);
     
     // For GET requests, redirect directly
     if (req.method === 'GET') {

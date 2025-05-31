@@ -28,7 +28,7 @@ const SpotifyCallback = () => {
 
       // Handle OAuth errors
       if (error) {
-        console.error('Spotify OAuth error:', error);
+        console.error('SpotifyCallback: OAuth error detected:', error);
         toast({
           title: "Spotify Connection Failed",
           description: "There was an error connecting to Spotify. Please try again.",
@@ -42,7 +42,7 @@ const SpotifyCallback = () => {
 
       // Verify this is a Spotify callback
       if (!code || state !== 'spotify_auth') {
-        console.error('Invalid Spotify callback parameters');
+        console.error('SpotifyCallback: Invalid callback parameters', { code: !!code, state });
         navigate('/mirror');
         return;
       }
@@ -52,16 +52,51 @@ const SpotifyCallback = () => {
       setIsProcessing(true);
       
       try {
-        console.log('SpotifyCallback: Starting processing with code:', code.substring(0, 10) + '...');
+        console.log('SpotifyCallback: Starting processing');
+        console.log('SpotifyCallback: Code length:', code.length);
+        console.log('SpotifyCallback: Current user:', !!user);
         
-        // Ensure we have a valid user session
-        if (!user) {
-          console.log('SpotifyCallback: No user session, refreshing...');
-          await refreshSession();
+        // Ensure we have a valid user session with retry logic
+        let currentUser = user;
+        let sessionAttempts = 0;
+        const maxSessionAttempts = 3;
+        
+        while (!currentUser && sessionAttempts < maxSessionAttempts) {
+          sessionAttempts++;
+          console.log(`SpotifyCallback: No user session, refreshing... (attempt ${sessionAttempts}/${maxSessionAttempts})`);
           
-          // Wait a bit for auth state to update
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            await refreshSession();
+            
+            // Wait for session to update
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Check if we now have a user
+            const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+            currentUser = refreshedUser;
+            
+            if (currentUser) {
+              console.log('SpotifyCallback: Session refresh successful');
+              break;
+            }
+          } catch (refreshError) {
+            console.error(`SpotifyCallback: Session refresh attempt ${sessionAttempts} failed:`, refreshError);
+          }
         }
+        
+        if (!currentUser) {
+          console.error('SpotifyCallback: No authenticated user after retries');
+          toast({
+            title: "Authentication Required",
+            description: "Please sign in to connect your Spotify account.",
+            variant: "destructive",
+          });
+          window.history.replaceState({}, document.title, window.location.pathname);
+          navigate('/auth');
+          return;
+        }
+        
+        console.log('SpotifyCallback: Authenticated user confirmed:', currentUser.id);
         
         // Exchange code for token
         console.log('SpotifyCallback: Exchanging code for token...');
@@ -102,7 +137,7 @@ const SpotifyCallback = () => {
           SpotifyService.getFollowedArtists(tokenData.access_token)
         ]);
 
-        console.log('SpotifyCallback: Data fetched successfully');
+        console.log('SpotifyCallback: All Spotify data fetched successfully');
 
         // Combine all tracks and artists for processing
         const allTracks = [
@@ -166,9 +201,35 @@ const SpotifyCallback = () => {
         // Store data locally for immediate access - only profile
         localStorage.setItem('spotify_profile', JSON.stringify(profile));
         
-        // Store connection metadata in database (platform_connections)
         console.log('SpotifyCallback: Storing connection data...');
-        await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
+        
+        // Use retry logic for database operations
+        let connectionStored = false;
+        let connectionAttempts = 0;
+        const maxConnectionAttempts = 3;
+        
+        while (!connectionStored && connectionAttempts < maxConnectionAttempts) {
+          connectionAttempts++;
+          console.log(`SpotifyCallback: Storing connection data (attempt ${connectionAttempts}/${maxConnectionAttempts})`);
+          
+          try {
+            const connectionResult = await MirrorDataService.storeConnectionData('spotify', spotifyConnectionData);
+            if (connectionResult.success) {
+              connectionStored = true;
+              console.log('SpotifyCallback: Connection data stored successfully');
+            } else {
+              console.warn('SpotifyCallback: Connection storage returned false:', connectionResult.error);
+            }
+          } catch (connectionError) {
+            console.error(`SpotifyCallback: Connection storage attempt ${connectionAttempts} failed:`, connectionError);
+            if (connectionAttempts === maxConnectionAttempts) {
+              // Continue anyway as we have the data locally
+              console.warn('SpotifyCallback: Continuing despite connection storage failure');
+            } else {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+        }
         
         // Store AI insights in profile_data - convert AI insights to match SynthesizedSpotifyData format
         const formattedInsights = {
@@ -190,9 +251,33 @@ const SpotifyCallback = () => {
         };
         
         console.log('SpotifyCallback: Storing mirror data...');
-        await MirrorDataService.storeMirrorData({
-          spotify: formattedInsights
-        });
+        
+        // Use retry logic for mirror data storage
+        let mirrorStored = false;
+        let mirrorAttempts = 0;
+        const maxMirrorAttempts = 3;
+        
+        while (!mirrorStored && mirrorAttempts < maxMirrorAttempts) {
+          mirrorAttempts++;
+          console.log(`SpotifyCallback: Storing mirror data (attempt ${mirrorAttempts}/${maxMirrorAttempts})`);
+          
+          try {
+            const mirrorResult = await MirrorDataService.storeMirrorData({
+              spotify: formattedInsights
+            });
+            if (mirrorResult.success) {
+              mirrorStored = true;
+              console.log('SpotifyCallback: Mirror data stored successfully');
+            } else {
+              console.warn('SpotifyCallback: Mirror storage returned false:', mirrorResult.error);
+            }
+          } catch (mirrorError) {
+            console.error(`SpotifyCallback: Mirror storage attempt ${mirrorAttempts} failed:`, mirrorError);
+            if (mirrorAttempts < maxMirrorAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+        }
         
         toast({
           title: "Spotify Connected!",
@@ -206,7 +291,7 @@ const SpotifyCallback = () => {
         navigate('/mirror');
         
       } catch (error) {
-        console.error('Error in Spotify callback:', error);
+        console.error('SpotifyCallback: Error in processing:', error);
         hasProcessedRef.current = false; // Reset on error to allow retry
         toast({
           title: "Spotify Connection Failed",

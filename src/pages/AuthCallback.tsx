@@ -7,7 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshSession } = useAuth();
   const [hasHandledCallback, setHasHandledCallback] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -21,10 +21,11 @@ const AuthCallback = () => {
       
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get('error');
+      const code = urlParams.get('code');
 
       // Handle OAuth errors
       if (error) {
-        console.error('OAuth error:', error);
+        console.error('AuthCallback: OAuth error detected:', error);
         toast({
           title: "Authentication Failed",
           description: "There was an error during authentication. Please try again.",
@@ -34,7 +35,33 @@ const AuthCallback = () => {
         return;
       }
 
-      console.log('AuthCallback: Processing callback - isLoading:', isLoading, 'user:', !!user);
+      console.log('AuthCallback: Processing callback');
+      console.log('AuthCallback: Has code parameter:', !!code);
+      console.log('AuthCallback: Auth loading state:', isLoading);
+      console.log('AuthCallback: User authenticated:', !!user);
+      
+      // If we have a code but no user yet, we might be in the middle of OAuth flow
+      // Wait a bit for the auth process to complete
+      if (code && !user && !isLoading) {
+        console.log('AuthCallback: Code present but no user, refreshing session...');
+        
+        setIsProcessing(true);
+        
+        try {
+          // Attempt to refresh the session to pick up the new authentication
+          await refreshSession();
+          
+          // Give a moment for the session to update
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+        } catch (error) {
+          console.error('AuthCallback: Error refreshing session:', error);
+        } finally {
+          setIsProcessing(false);
+        }
+        
+        return; // Exit and let the next effect run handle the authenticated user
+      }
       
       // Only proceed if auth is not loading and we have a user
       if (!isLoading && user) {
@@ -43,11 +70,18 @@ const AuthCallback = () => {
         
         try {
           console.log('AuthCallback: User authenticated, handling post-auth redirection');
+          console.log('AuthCallback: User ID:', user.id);
+          console.log('AuthCallback: User email:', user.email);
+          console.log('AuthCallback: User metadata:', user.user_metadata);
           
           // Use the OAuth success handler to determine where to redirect
           const redirectPath = await OAuthSuccessHandler.handlePostAuthRedirection(user.id);
           
           console.log('AuthCallback: Redirecting to:', redirectPath);
+          
+          // Clear URL parameters before redirecting
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
           navigate(redirectPath);
           
         } catch (error) {
@@ -57,16 +91,17 @@ const AuthCallback = () => {
         } finally {
           setIsProcessing(false);
         }
-      } else if (!isLoading && !user) {
-        console.log('AuthCallback: No user found after auth completion, redirecting to home');
+      } else if (!isLoading && !user && !code) {
+        console.log('AuthCallback: No user and no code, redirecting to home');
         navigate('/');
       } else {
-        console.log('AuthCallback: Still loading, waiting for auth to complete');
+        console.log('AuthCallback: Still loading or waiting for auth completion');
+        console.log('AuthCallback: isLoading:', isLoading, 'user:', !!user, 'code:', !!code);
       }
     };
 
     handleCallback();
-  }, [isLoading, user, navigate, hasHandledCallback, isProcessing]);
+  }, [isLoading, user, navigate, hasHandledCallback, isProcessing, refreshSession]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">

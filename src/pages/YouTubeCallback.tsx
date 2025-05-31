@@ -6,6 +6,7 @@ import { GoogleAuthService } from '@/services/googleAuthService';
 import { MirrorDataService } from '@/services/mirrorDataService';
 import { AIProfileService } from '@/services/aiProfileService';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const YouTubeCallback = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const YouTubeCallback = () => {
 
       // Handle OAuth errors
       if (error) {
-        console.error('YouTube OAuth error:', error);
+        console.error('YouTubeCallback: OAuth error detected:', error);
         toast({
           title: "YouTube Connection Failed",
           description: "There was an error connecting to YouTube. Please try again.",
@@ -42,7 +43,7 @@ const YouTubeCallback = () => {
 
       // Verify this is a YouTube callback
       if (!code || state !== 'youtube_auth') {
-        console.error('Invalid YouTube callback parameters');
+        console.error('YouTubeCallback: Invalid callback parameters', { code: !!code, state });
         navigate('/mirror');
         return;
       }
@@ -52,16 +53,51 @@ const YouTubeCallback = () => {
       setIsProcessing(true);
       
       try {
-        console.log('YouTubeCallback: Starting processing with code:', code.substring(0, 10) + '...');
+        console.log('YouTubeCallback: Starting processing');
+        console.log('YouTubeCallback: Code length:', code.length);
+        console.log('YouTubeCallback: Current user:', !!user);
         
-        // Ensure we have a valid user session
-        if (!user) {
-          console.log('YouTubeCallback: No user session, refreshing...');
-          await refreshSession();
+        // Ensure we have a valid user session with retry logic
+        let currentUser = user;
+        let sessionAttempts = 0;
+        const maxSessionAttempts = 3;
+        
+        while (!currentUser && sessionAttempts < maxSessionAttempts) {
+          sessionAttempts++;
+          console.log(`YouTubeCallback: No user session, refreshing... (attempt ${sessionAttempts}/${maxSessionAttempts})`);
           
-          // Wait a bit for auth state to update
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            await refreshSession();
+            
+            // Wait for session to update
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Check if we now have a user
+            const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+            currentUser = refreshedUser;
+            
+            if (currentUser) {
+              console.log('YouTubeCallback: Session refresh successful');
+              break;
+            }
+          } catch (refreshError) {
+            console.error(`YouTubeCallback: Session refresh attempt ${sessionAttempts} failed:`, refreshError);
+          }
         }
+        
+        if (!currentUser) {
+          console.error('YouTubeCallback: No authenticated user after retries');
+          toast({
+            title: "Authentication Required",
+            description: "Please sign in to connect your YouTube account.",
+            variant: "destructive",
+          });
+          window.history.replaceState({}, document.title, window.location.pathname);
+          navigate('/auth');
+          return;
+        }
+        
+        console.log('YouTubeCallback: Authenticated user confirmed:', currentUser.id);
         
         // Exchange code for token
         console.log('YouTubeCallback: Exchanging code for token...');
@@ -84,9 +120,35 @@ const YouTubeCallback = () => {
           }
         };
 
-        // Store connection metadata in database (platform_connections)
         console.log('YouTubeCallback: Storing connection data...');
-        await MirrorDataService.storeConnectionData('youtube', youtubeConnectionData);
+        
+        // Use retry logic for database operations
+        let connectionStored = false;
+        let connectionAttempts = 0;
+        const maxConnectionAttempts = 3;
+        
+        while (!connectionStored && connectionAttempts < maxConnectionAttempts) {
+          connectionAttempts++;
+          console.log(`YouTubeCallback: Storing connection data (attempt ${connectionAttempts}/${maxConnectionAttempts})`);
+          
+          try {
+            const connectionResult = await MirrorDataService.storeConnectionData('youtube', youtubeConnectionData);
+            if (connectionResult.success) {
+              connectionStored = true;
+              console.log('YouTubeCallback: Connection data stored successfully');
+            } else {
+              console.warn('YouTubeCallback: Connection storage returned false:', connectionResult.error);
+            }
+          } catch (connectionError) {
+            console.error(`YouTubeCallback: Connection storage attempt ${connectionAttempts} failed:`, connectionError);
+            if (connectionAttempts === maxConnectionAttempts) {
+              // Continue anyway as we have the data locally
+              console.warn('YouTubeCallback: Continuing despite connection storage failure');
+            } else {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+        }
         
         toast({
           title: "YouTube Connected!",
@@ -100,7 +162,7 @@ const YouTubeCallback = () => {
         navigate('/mirror');
         
       } catch (error) {
-        console.error('Error in YouTube callback:', error);
+        console.error('YouTubeCallback: Error in processing:', error);
         hasProcessedRef.current = false; // Reset on error to allow retry
         toast({
           title: "YouTube Connection Failed",

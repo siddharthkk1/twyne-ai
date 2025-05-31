@@ -21,19 +21,18 @@ serve(async (req) => {
       throw new Error('Google credentials not configured')
     }
     
-    // Get the origin from the request headers
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/');
-    let redirect_uri = `${origin}/auth/callback`;
+    // Get the origin from the request headers with better fallback handling
+    const origin = req.headers.get('origin') || 
+                   req.headers.get('referer')?.split('/').slice(0, 3).join('/') ||
+                   'https://preview--twyne-ai.lovable.app';
     
-    // Ensure we normalize the redirect URI format
-    if (!redirect_uri.endsWith('/auth/callback')) {
-      redirect_uri = `${origin}/auth/callback`
-    }
+    // Use the standard auth callback route - this will ensure proper session handling
+    const redirect_uri = `${origin}/auth/callback`;
     
-    console.log('Google Auth - Exchanging code for token with redirect URI:', redirect_uri)
-    console.log('Google Auth - Request origin:', origin)
-    console.log('Google Auth - Request headers origin:', req.headers.get('origin'))
-    console.log('Google Auth - Request headers referer:', req.headers.get('referer'))
+    console.log('Google Auth - Token exchange attempt');
+    console.log('Google Auth - Using redirect URI:', redirect_uri);
+    console.log('Google Auth - Request origin:', origin);
+    console.log('Google Auth - Client ID configured:', !!clientId);
     
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -51,12 +50,14 @@ serve(async (req) => {
     
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text()
-      console.error('Google token exchange failed:', errorText)
-      throw new Error('Failed to exchange code for token')
+      console.error('Google token exchange failed with status:', tokenResponse.status)
+      console.error('Google token exchange error response:', errorText)
+      throw new Error(`Token exchange failed: ${tokenResponse.status}`)
     }
     
     const tokenData = await tokenResponse.json()
     console.log('Google token exchange successful')
+    console.log('Google token data keys:', Object.keys(tokenData))
     
     return new Response(
       JSON.stringify(tokenData),
