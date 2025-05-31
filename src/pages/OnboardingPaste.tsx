@@ -49,12 +49,11 @@ const OnboardingPaste = () => {
     });
   };
 
-  // Enhanced localStorage storage with verification
+  // Enhanced localStorage storage with multiple backup strategies
   const storeOnboardingDataSecurely = async (profileData: UserProfile, conversationData: any, promptMode: string) => {
     try {
-      console.log('OnboardingPaste: Storing data in localStorage...');
+      console.log('OnboardingPaste: Starting enhanced data storage...');
       
-      // Store data with timestamp for verification
       const timestamp = Date.now();
       const dataToStore = {
         profile: profileData,
@@ -64,38 +63,73 @@ const OnboardingPaste = () => {
         timestamp: timestamp
       };
       
-      // Store individual items
+      // Strategy 1: Standard localStorage storage
       localStorage.setItem('onboardingProfile', JSON.stringify(profileData));
       localStorage.setItem('onboardingUserName', profileData.name || "");
       localStorage.setItem('onboardingConversation', JSON.stringify(conversationData));
       localStorage.setItem('onboardingPromptMode', promptMode);
       localStorage.setItem('onboardingTimestamp', timestamp.toString());
       
-      // Store a backup combined object
-      localStorage.setItem('onboardingDataBackup', JSON.stringify(dataToStore));
+      // Strategy 2: Backup in sessionStorage
+      sessionStorage.setItem('onboardingProfile', JSON.stringify(profileData));
+      sessionStorage.setItem('onboardingUserName', profileData.name || "");
+      sessionStorage.setItem('onboardingConversation', JSON.stringify(conversationData));
+      sessionStorage.setItem('onboardingPromptMode', promptMode);
       
-      console.log('OnboardingPaste: Data stored successfully');
+      // Strategy 3: Combined backup object with unique key
+      const backupKey = `onboardingBackup_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem(backupKey, JSON.stringify(dataToStore));
+      localStorage.setItem('latestBackupKey', backupKey);
+      sessionStorage.setItem('onboardingBackup', JSON.stringify(dataToStore));
       
-      // Verify storage immediately
-      const verifyProfile = localStorage.getItem('onboardingProfile');
-      const verifyUserName = localStorage.getItem('onboardingUserName');
-      const verifyConversation = localStorage.getItem('onboardingConversation');
-      const verifyPromptMode = localStorage.getItem('onboardingPromptMode');
+      // Strategy 4: OAuth-ready prefixed storage
+      localStorage.setItem('oauth_onboardingProfile', JSON.stringify(profileData));
+      localStorage.setItem('oauth_onboardingUserName', profileData.name || "");
+      localStorage.setItem('oauth_onboardingConversation', JSON.stringify(conversationData));
+      localStorage.setItem('oauth_onboardingPromptMode', promptMode);
       
-      console.log('OnboardingPaste: Storage verification:', {
-        profile: !!verifyProfile,
-        userName: !!verifyUserName,
-        conversation: !!verifyConversation,
-        promptMode: !!verifyPromptMode
-      });
+      // Strategy 5: Store in temp database for additional safety
+      const tempId = `temp_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+      const { error: tempError } = await supabase
+        .from('onboarding_data')
+        .insert({
+          user_id: tempId,
+          profile_data: profileData as unknown as Json,
+          conversation_data: conversationData as unknown as Json,
+          prompt_mode: promptMode,
+          is_anonymous: true
+        });
       
-      if (!verifyProfile || !verifyPromptMode) {
-        throw new Error('Failed to verify localStorage storage');
+      if (!tempError) {
+        localStorage.setItem('tempOnboardingId', tempId);
+        console.log('OnboardingPaste: Stored backup in temp database with ID:', tempId);
       }
+      
+      console.log('OnboardingPaste: Enhanced data storage completed successfully');
+      
+      // Immediate verification
+      const verification = {
+        localStorage: {
+          profile: !!localStorage.getItem('onboardingProfile'),
+          userName: !!localStorage.getItem('onboardingUserName'),
+          conversation: !!localStorage.getItem('onboardingConversation'),
+          promptMode: !!localStorage.getItem('onboardingPromptMode')
+        },
+        sessionStorage: {
+          profile: !!sessionStorage.getItem('onboardingProfile'),
+          backup: !!sessionStorage.getItem('onboardingBackup')
+        },
+        oauthPrefixed: {
+          profile: !!localStorage.getItem('oauth_onboardingProfile'),
+          userName: !!localStorage.getItem('oauth_onboardingUserName')
+        }
+      };
+      
+      console.log('OnboardingPaste: Storage verification:', verification);
       
       return true;
     } catch (error) {
-      console.error('OnboardingPaste: Error storing to localStorage:', error);
+      console.error('OnboardingPaste: Error in enhanced storage:', error);
       return false;
     }
   };
@@ -166,7 +200,7 @@ const OnboardingPaste = () => {
 
       setUserProfile(profileData);
 
-      // Enhanced localStorage storage
+      // Enhanced data storage with multiple strategies
       const conversationData = { 
         messages: mockConversation.messages,
         userAnswers: [reflection],
@@ -176,12 +210,12 @@ const OnboardingPaste = () => {
       
       const promptMode = 'gpt-paste';
       
-      console.log('OnboardingPaste: Storing onboarding data...');
+      console.log('OnboardingPaste: Storing onboarding data with enhanced strategies...');
       
       const storageSuccess = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
       
       if (!storageSuccess) {
-        console.warn('OnboardingPaste: Failed to store data in localStorage');
+        console.warn('OnboardingPaste: Some storage strategies failed, but continuing...');
         toast({
           title: "Warning",
           description: "Profile generated but may not persist through authentication.",
@@ -219,7 +253,7 @@ const OnboardingPaste = () => {
           clearNewUserFlag();
         }
       } else {
-        console.log('OnboardingPaste: User not authenticated, data stored in localStorage for later transfer');
+        console.log('OnboardingPaste: User not authenticated, data stored securely for later transfer');
       }
 
       // Navigate to results page

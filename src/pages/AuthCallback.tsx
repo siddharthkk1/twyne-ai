@@ -59,7 +59,7 @@ const AuthCallback = () => {
         try {
           // Enhanced session refresh with multiple attempts
           let sessionRefreshed = false;
-          const maxSessionAttempts = 3;
+          const maxSessionAttempts = 5; // Increased attempts
           
           for (let attempt = 1; attempt <= maxSessionAttempts; attempt++) {
             console.log(`AuthCallback: Session refresh attempt ${attempt}/${maxSessionAttempts}`);
@@ -68,8 +68,8 @@ const AuthCallback = () => {
             try {
               await refreshSession();
               
-              // Wait for session to potentially update
-              await new Promise(resolve => setTimeout(resolve, 1500));
+              // Wait longer for session to potentially update
+              await new Promise(resolve => setTimeout(resolve, 2000)); // Increased wait time
               
               // Check if we now have a user
               if (user) {
@@ -83,7 +83,9 @@ const AuthCallback = () => {
             }
             
             if (attempt < maxSessionAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              // Exponential backoff
+              const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
             }
           }
           
@@ -118,10 +120,10 @@ const AuthCallback = () => {
           
           setDebugInfo(`Authenticated user: ${user.email}, processing redirection...`);
           
-          // Add a small delay to ensure all auth state is settled
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Add a longer delay to ensure all auth state is settled and allow time for data recovery
+          await new Promise(resolve => setTimeout(resolve, 1500)); // Increased delay
           
-          // Use the OAuth success handler to determine where to redirect
+          // Use the enhanced OAuth success handler
           const redirectPath = await OAuthSuccessHandler.handlePostAuthRedirection(user.id);
           
           console.log('AuthCallback: Redirecting to:', redirectPath);
@@ -131,7 +133,7 @@ const AuthCallback = () => {
           window.history.replaceState({}, document.title, window.location.pathname);
           
           // Add a small delay before navigation
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 500));
           
           navigate(redirectPath);
           
