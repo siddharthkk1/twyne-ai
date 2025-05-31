@@ -23,6 +23,7 @@ const GoogleAuthTest = () => {
       console.log('🔍 GoogleAuthTest: User found after OAuth');
       console.log('📊 GoogleAuthTest: User metadata:', user.user_metadata);
       console.log('📊 GoogleAuthTest: App metadata:', user.app_metadata);
+      console.log('📊 GoogleAuthTest: Raw user metadata:', user.raw_user_meta_data);
     }
   }, [user]);
 
@@ -37,9 +38,9 @@ const GoogleAuthTest = () => {
         age: testData.age,
         interestsAndPassions: testData.interests,
         // Add minimal required fields
-        vibeSummary: "Test user profile",
-        oneLiner: "Testing Google OAuth flow",
-        twyneTags: ["test", "oauth"],
+        vibeSummary: "Test user profile for Google OAuth data preservation",
+        oneLiner: "Testing Google OAuth flow with Supabase native integration",
+        twyneTags: ["test", "oauth", "google"],
         // Add other required fields with defaults
         location: "",
         job: "",
@@ -84,19 +85,23 @@ const GoogleAuthTest = () => {
       
       const testConversation = {
         messages: [
-          { role: "system", content: "Test conversation" },
-          { role: "user", content: "This is a test message" },
-          { role: "assistant", content: "This is a test response" }
+          { role: "system", content: "Test conversation for OAuth data preservation" },
+          { role: "user", content: "This is a test message to verify data preservation through OAuth" },
+          { role: "assistant", content: "This is a test response to validate the conversation data storage" }
         ],
-        userAnswers: ["This is a test message"]
+        userAnswers: ["This is a test message to verify data preservation through OAuth"]
       };
       
       console.log('💾 GoogleAuthTest: Test data prepared:', {
         profileName: testProfile.name,
-        conversationMessageCount: testConversation.messages.length
+        conversationMessageCount: testConversation.messages.length,
+        testDataKeys: Object.keys(testData)
       });
       
-      // Use the new Google auth service with test data
+      // Store context for callback
+      localStorage.setItem('oauth_context', 'google_auth_test');
+      
+      // Use the simplified Google auth service with test data
       await GoogleAuthService.initiateGoogleAuth({
         profile: testProfile,
         conversation: testConversation,
@@ -133,8 +138,8 @@ const GoogleAuthTest = () => {
               <>
                 <div className="space-y-4">
                   <p className="text-muted-foreground text-center">
-                    This test validates that we can preserve data through Google OAuth using Supabase's native flow.
-                    Enter some test data below, then sign in with Google.
+                    This test validates that we can preserve onboarding data through Google OAuth using Supabase's native flow.
+                    The data should be stored in the database trigger and available after authentication.
                   </p>
                   
                   <div className="space-y-3">
@@ -206,6 +211,13 @@ const GoogleAuthTest = () => {
                     <Label>User Metadata:</Label>
                     <pre className="text-xs bg-muted p-3 rounded overflow-auto">
                       {JSON.stringify(user.user_metadata, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  <div>
+                    <Label>Raw User Metadata (includes OAuth data):</Label>
+                    <pre className="text-xs bg-muted p-3 rounded overflow-auto">
+                      {JSON.stringify(user.raw_user_meta_data, null, 2)}
                     </pre>
                   </div>
                   

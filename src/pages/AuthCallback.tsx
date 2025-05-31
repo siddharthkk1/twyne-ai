@@ -14,7 +14,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('🚀 AuthCallback: Starting callback handler');
+      console.log('🚀 AuthCallback: Starting simplified callback handler');
       console.log('🔍 AuthCallback: Initial state:', {
         hasHandledCallback,
         isProcessing,
@@ -38,18 +38,16 @@ const AuthCallback = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get('error');
       const code = urlParams.get('code');
-      const state = urlParams.get('state');
 
       console.log('🔍 AuthCallback: URL parameters:', { 
         hasError: !!error, 
         errorValue: error,
         hasCode: !!code, 
         codeLength: code?.length || 0,
-        state,
         fullUrl: window.location.href,
         oauthContext
       });
-      setDebugInfo(`URL params - error: ${!!error}, code: ${!!code}, state: ${state}, context: ${oauthContext}`);
+      setDebugInfo(`URL params - error: ${!!error}, code: ${!!code}, context: ${oauthContext}`);
 
       // Handle OAuth errors
       if (error) {
@@ -73,47 +71,6 @@ const AuthCallback = () => {
         return;
       }
 
-      console.log('🔄 AuthCallback: Processing callback');
-      console.log('🔍 AuthCallback: Auth state details:', {
-        hasCode: !!code,
-        isLoading,
-        hasUser: !!user,
-        userMetadata: user?.user_metadata,
-        userAppMetadata: user?.app_metadata,
-        oauthContext
-      });
-      
-      setDebugInfo(`Processing - code: ${!!code}, loading: ${isLoading}, user: ${!!user}, context: ${oauthContext}`);
-      
-      // Log current storage state before processing
-      console.log('📊 AuthCallback: Pre-processing storage state:');
-      console.log('📊 AuthCallback: localStorage keys:', Object.keys(localStorage));
-      console.log('📊 AuthCallback: sessionStorage keys:', Object.keys(sessionStorage));
-      
-      // Check for preserved onboarding data
-      const preservedData = {
-        sessionBackup: sessionStorage.getItem('onboardingBackup'),
-        latestBackupKey: localStorage.getItem('latestBackupKey'),
-        oauthProfile: localStorage.getItem('oauth_onboardingProfile'),
-        oauthUserName: localStorage.getItem('oauth_onboardingUserName'),
-        tempId: localStorage.getItem('tempOnboardingId'),
-        standardProfile: localStorage.getItem('onboardingProfile'),
-        standardUserName: localStorage.getItem('onboardingUserName')
-      };
-      
-      console.log('📊 AuthCallback: Preserved data check:', {
-        hasSessionBackup: !!preservedData.sessionBackup,
-        hasLatestBackupKey: !!preservedData.latestBackupKey,
-        hasOauthProfile: !!preservedData.oauthProfile,
-        hasOauthUserName: !!preservedData.oauthUserName,
-        oauthUserNameValue: preservedData.oauthUserName,
-        hasTempId: !!preservedData.tempId,
-        tempIdValue: preservedData.tempId,
-        hasStandardProfile: !!preservedData.standardProfile,
-        hasStandardUserName: !!preservedData.standardUserName,
-        standardUserNameValue: preservedData.standardUserName
-      });
-      
       // If we have a code but no user yet, we might be in the middle of OAuth flow
       if (code && !user && !isLoading) {
         console.log('🔄 AuthCallback: Code present but no user, refreshing session...');
@@ -122,47 +79,16 @@ const AuthCallback = () => {
         setIsProcessing(true);
         
         try {
-          // Enhanced session refresh with multiple attempts
-          let sessionRefreshed = false;
-          const maxSessionAttempts = 5; // Increased attempts
+          // Try to refresh session to get the authenticated user
+          await refreshSession();
           
-          for (let attempt = 1; attempt <= maxSessionAttempts; attempt++) {
-            console.log(`🔄 AuthCallback: Session refresh attempt ${attempt}/${maxSessionAttempts}`);
-            setDebugInfo(`Session refresh attempt ${attempt}/${maxSessionAttempts}`);
-            
-            try {
-              await refreshSession();
-              
-              // Wait longer for session to potentially update
-              await new Promise(resolve => setTimeout(resolve, 2000)); // Increased wait time
-              
-              // Check if we now have a user
-              if (user) {
-                console.log('✅ AuthCallback: Session refresh successful, user found');
-                console.log('🔍 AuthCallback: New user details:', {
-                  id: user.id,
-                  email: user.email,
-                  createdAt: user.created_at
-                });
-                sessionRefreshed = true;
-                break;
-              }
-            } catch (refreshError) {
-              console.error(`❌ AuthCallback: Session refresh attempt ${attempt} failed:`, refreshError);
-              setDebugInfo(`Session refresh attempt ${attempt} failed: ${refreshError.message}`);
-            }
-            
-            if (attempt < maxSessionAttempts) {
-              // Exponential backoff
-              const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-              console.log(`⏳ AuthCallback: Waiting ${waitTime}ms before next attempt`);
-              await new Promise(resolve => setTimeout(resolve, waitTime));
-            }
-          }
+          // Wait for session to potentially update
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
-          if (!sessionRefreshed && !user) {
-            console.warn('⚠️ AuthCallback: Session refresh failed after all attempts');
-            setDebugInfo('Session refresh failed, redirecting based on context');
+          // Check if we now have a user
+          if (!user) {
+            console.warn('⚠️ AuthCallback: Session refresh completed but no user found');
+            setDebugInfo('Session refresh completed but no user found');
             
             // Clean up OAuth context
             localStorage.removeItem('oauth_context');
@@ -209,11 +135,11 @@ const AuthCallback = () => {
           
           setDebugInfo(`Authenticated user: ${user.email}, processing redirection...`);
           
-          // Add a longer delay to ensure all auth state is settled and allow time for data recovery
+          // Add a delay to ensure all auth state is settled
           console.log('⏳ AuthCallback: Waiting for auth state to settle...');
-          await new Promise(resolve => setTimeout(resolve, 1500)); // Increased delay
+          await new Promise(resolve => setTimeout(resolve, 1500));
           
-          // Use the enhanced OAuth success handler
+          // Use the OAuth success handler
           console.log('🔄 AuthCallback: Calling OAuthSuccessHandler.handlePostAuthRedirection');
           const redirectPath = await OAuthSuccessHandler.handlePostAuthRedirection(user.id);
           
@@ -245,11 +171,6 @@ const AuthCallback = () => {
           
         } catch (error) {
           console.error('❌ AuthCallback: Error in post-auth handling:', error);
-          console.error('❌ AuthCallback: Error details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-          });
           setDebugInfo(`Post-auth error: ${error.message}`);
           
           // Clean up OAuth context

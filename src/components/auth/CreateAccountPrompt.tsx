@@ -183,7 +183,10 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         promptMode: onboardingData.promptMode
       });
       
-      // Use the new simplified Google auth service
+      // Store context for callback page
+      localStorage.setItem('oauth_context', 'onboarding_results');
+      
+      // Use the simplified Google auth service
       await GoogleAuthService.initiateGoogleAuth(onboardingData);
       
       // The OAuth flow will handle the redirect automatically

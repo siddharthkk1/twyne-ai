@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export class GoogleAuthService {
   /**
-   * Initiate Google OAuth flow with onboarding data preservation
+   * Initiate Google OAuth flow with onboarding data preservation using Supabase native flow
    * @param onboardingData - Optional onboarding data to preserve through OAuth
    */
   static async initiateGoogleAuth(onboardingData?: {
@@ -12,12 +12,16 @@ export class GoogleAuthService {
     userName?: string;
     promptMode?: string;
   }) {
-    console.log('🚀 GoogleAuthService: Starting Google OAuth with Supabase native flow');
+    console.log('🚀 GoogleAuthService: Starting simplified Google OAuth with Supabase native flow');
     
     try {
-      // Prepare options for OAuth with data preservation
+      // Prepare redirect URL
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      console.log('🔗 GoogleAuthService: Redirect URL:', redirectTo);
+      
+      // Prepare options for OAuth
       const options: any = {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
       };
       
       // If we have onboarding data, pass it through OAuth metadata
@@ -29,13 +33,19 @@ export class GoogleAuthService {
           promptMode: onboardingData.promptMode
         });
         
-        // Pass onboarding data through OAuth options.data
+        // Pass onboarding data through OAuth options.data which gets stored in raw_user_meta_data
         options.data = {
           onboarding_profile: onboardingData.profile,
           onboarding_conversation: onboardingData.conversation,
           onboarding_user_name: onboardingData.userName,
           onboarding_prompt_mode: onboardingData.promptMode || 'structured'
         };
+        
+        console.log('💾 GoogleAuthService: OAuth data prepared:', {
+          dataKeys: Object.keys(options.data),
+          profileName: onboardingData.profile?.name,
+          conversationLength: onboardingData.conversation?.messages?.length || 0
+        });
       }
       
       // Use Supabase's native Google OAuth
@@ -50,34 +60,11 @@ export class GoogleAuthService {
       }
       
       console.log('✅ GoogleAuthService: OAuth flow initiated successfully');
-      return { success: true };
+      // The browser will redirect to Google, so we don't return here
       
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in OAuth flow:', error);
       throw error;
     }
-  }
-  
-  /**
-   * Legacy method for backward compatibility - now uses native Supabase OAuth
-   */
-  static getYouTubeAuthUrl(): string {
-    console.warn('⚠️ GoogleAuthService: getYouTubeAuthUrl is deprecated, use initiateGoogleAuth instead');
-    
-    // For backward compatibility, initiate OAuth without data
-    this.initiateGoogleAuth().catch(error => {
-      console.error('❌ GoogleAuthService: Legacy OAuth failed:', error);
-    });
-    
-    // Return empty string since we're handling the redirect internally
-    return '';
-  }
-  
-  /**
-   * Legacy method for backward compatibility - no longer needed with native OAuth
-   */
-  static async exchangeCodeForToken(code: string): Promise<any> {
-    console.warn('⚠️ GoogleAuthService: exchangeCodeForToken is deprecated with native Supabase OAuth');
-    throw new Error('Token exchange is handled automatically by Supabase OAuth');
   }
 }
