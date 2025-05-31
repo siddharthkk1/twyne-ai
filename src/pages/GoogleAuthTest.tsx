@@ -26,7 +26,7 @@ const GoogleAuthTest = () => {
   }, [user]);
 
   const handleTestGoogleAuth = async () => {
-    console.log('🚀 GoogleAuthTest: Starting OAuth test with state parameter approach');
+    console.log('🚀 GoogleAuthTest: Starting OAuth test with redirect URL query parameter approach');
     setIsLoading(true);
 
     try {
@@ -36,9 +36,9 @@ const GoogleAuthTest = () => {
         age: testData.age,
         interestsAndPassions: testData.interests,
         // Add minimal required fields
-        vibeSummary: "Test user profile for Google OAuth data preservation with state parameter",
-        oneLiner: "Testing Google OAuth flow with database state storage",
-        twyneTags: ["test", "oauth", "google", "state-parameter"],
+        vibeSummary: "Test user profile for Google OAuth data preservation with redirect URL query parameter",
+        oneLiner: "Testing Google OAuth flow with redirect URL parameter storage",
+        twyneTags: ["test", "oauth", "google", "redirect-url"],
         // Add other required fields with defaults
         location: "",
         job: "",
@@ -83,14 +83,14 @@ const GoogleAuthTest = () => {
       
       const testConversation = {
         messages: [
-          { role: "system", content: "Test conversation for OAuth data preservation with state parameter" },
-          { role: "user", content: "This is a test message to verify state parameter data preservation" },
-          { role: "assistant", content: "This is a test response to validate the state parameter storage method" }
+          { role: "system", content: "Test conversation for OAuth data preservation with redirect URL query parameter" },
+          { role: "user", content: "This is a test message to verify redirect URL parameter data preservation" },
+          { role: "assistant", content: "This is a test response to validate the redirect URL parameter storage method" }
         ],
-        userAnswers: ["This is a test message to verify state parameter data preservation"]
+        userAnswers: ["This is a test message to verify redirect URL parameter data preservation"]
       };
       
-      console.log('💾 GoogleAuthTest: Test data prepared for state parameter approach:', {
+      console.log('💾 GoogleAuthTest: Test data prepared for redirect URL query parameter approach:', {
         profileName: testProfile.name,
         conversationMessageCount: testConversation.messages.length,
         testDataKeys: Object.keys(testData)
@@ -99,7 +99,7 @@ const GoogleAuthTest = () => {
       // Store context for callback (fallback only)
       localStorage.setItem('oauth_context', 'google_auth_test');
       
-      // Use the new state parameter Google auth service
+      // Use the new redirect URL query parameter Google auth service
       await GoogleAuthService.initiateGoogleAuth({
         profile: testProfile,
         conversation: testConversation,
@@ -128,7 +128,7 @@ const GoogleAuthTest = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">
-              Google OAuth Test with State Parameter
+              Google OAuth Test with Redirect URL Query Parameter
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -136,8 +136,8 @@ const GoogleAuthTest = () => {
               <>
                 <div className="space-y-4">
                   <p className="text-muted-foreground text-center">
-                    This test validates the new state parameter approach for preserving onboarding data through Google OAuth.
-                    Data is stored in the database before OAuth and retrieved using the state parameter after authentication.
+                    This test validates the new redirect URL query parameter approach for preserving onboarding data through Google OAuth.
+                    Data is stored in the database before OAuth and the record ID is embedded in the redirect URL as a query parameter.
                   </p>
                   
                   <div className="space-y-3">
@@ -184,7 +184,7 @@ const GoogleAuthTest = () => {
                       Starting OAuth flow...
                     </>
                   ) : (
-                    'Test Google OAuth with State Parameter'
+                    'Test Google OAuth with Redirect URL Query Parameter'
                   )}
                 </Button>
               </>

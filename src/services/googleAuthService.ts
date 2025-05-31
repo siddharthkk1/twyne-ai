@@ -1,9 +1,8 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export class GoogleAuthService {
   /**
-   * Initiate Google OAuth flow with onboarding data preservation using state parameter
+   * Initiate Google OAuth flow with onboarding data preservation using redirect URL query parameter
    * @param onboardingData - Optional onboarding data to preserve through OAuth
    */
   static async initiateGoogleAuth(onboardingData?: {
@@ -12,14 +11,11 @@ export class GoogleAuthService {
     userName?: string;
     promptMode?: string;
   }) {
-    console.log('🚀 GoogleAuthService: Starting Google OAuth with state parameter approach');
+    console.log('🚀 GoogleAuthService: Starting Google OAuth with redirect URL query parameter approach');
     
     try {
-      // Prepare redirect URL
-      const redirectTo = `${window.location.origin}/auth/callback`;
-      console.log('🔗 GoogleAuthService: Redirect URL:', redirectTo);
-      
-      let stateParam = undefined;
+      let redirectTo = `${window.location.origin}/auth/callback`;
+      let onboardingId: string | null = null;
       
       // If we have onboarding data, store it in the database first
       if (onboardingData) {
@@ -50,44 +46,38 @@ export class GoogleAuthService {
         }
         
         if (onboardingRecord) {
-          stateParam = onboardingRecord.id;
-          console.log('✅ GoogleAuthService: Stored onboarding data with ID:', stateParam);
+          onboardingId = onboardingRecord.id;
+          console.log('✅ GoogleAuthService: Stored onboarding data with ID:', onboardingId);
+          
+          // Embed the onboarding ID in the redirect URL as a query parameter
+          redirectTo = `${window.location.origin}/auth/callback?onboarding_id=${onboardingId}`;
           
           // Store the temporary record ID for cleanup if needed
-          localStorage.setItem('temp_onboarding_id', stateParam);
+          localStorage.setItem('temp_onboarding_id', onboardingId);
         }
       }
       
-      // Prepare options for OAuth
-      const options: any = {
-        redirectTo,
-      };
-      
-      // Add state parameter if we have stored data
-      if (stateParam) {
-        options.queryParams = {
-          state: stateParam
-        };
-        console.log('🔗 GoogleAuthService: Added state parameter:', stateParam);
-      }
+      console.log('🔗 GoogleAuthService: Redirect URL with onboarding ID:', redirectTo);
       
       // Use Supabase's native Google OAuth
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options
+        options: {
+          redirectTo
+        }
       });
       
       if (error) {
         console.error('❌ GoogleAuthService: OAuth initiation failed:', error);
         // Clean up stored data if OAuth initiation fails
-        if (stateParam) {
-          await supabase.from('onboarding_data').delete().eq('id', stateParam);
+        if (onboardingId) {
+          await supabase.from('onboarding_data').delete().eq('id', onboardingId);
           localStorage.removeItem('temp_onboarding_id');
         }
         throw error;
       }
       
-      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with state parameter');
+      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with redirect URL query parameter');
       
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in OAuth flow:', error);
@@ -96,17 +86,17 @@ export class GoogleAuthService {
   }
 
   /**
-   * Retrieve onboarding data using state parameter
-   * @param stateParam - State parameter from OAuth callback
+   * Retrieve onboarding data using onboarding ID
+   * @param onboardingId - Onboarding ID from URL query parameter
    */
-  static async retrieveOnboardingData(stateParam: string) {
+  static async retrieveOnboardingData(onboardingId: string) {
     try {
-      console.log('🔍 GoogleAuthService: Retrieving onboarding data for state:', stateParam);
+      console.log('🔍 GoogleAuthService: Retrieving onboarding data for ID:', onboardingId);
       
       const { data, error } = await supabase
         .from('onboarding_data')
         .select('*')
-        .eq('id', stateParam)
+        .eq('id', onboardingId)
         .eq('is_anonymous', true)
         .single();
       
@@ -131,7 +121,7 @@ export class GoogleAuthService {
         };
       }
       
-      console.log('⚠️ GoogleAuthService: No onboarding data found for state parameter');
+      console.log('⚠️ GoogleAuthService: No onboarding data found for ID');
       return null;
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in retrieveOnboardingData:', error);
@@ -141,16 +131,16 @@ export class GoogleAuthService {
 
   /**
    * Clean up temporary onboarding data record
-   * @param stateParam - State parameter identifying the record to clean up
+   * @param onboardingId - Onboarding ID identifying the record to clean up
    */
-  static async cleanupOnboardingData(stateParam: string) {
+  static async cleanupOnboardingData(onboardingId: string) {
     try {
-      console.log('🧹 GoogleAuthService: Cleaning up onboarding data for state:', stateParam);
+      console.log('🧹 GoogleAuthService: Cleaning up onboarding data for ID:', onboardingId);
       
       const { error } = await supabase
         .from('onboarding_data')
         .delete()
-        .eq('id', stateParam)
+        .eq('id', onboardingId)
         .eq('is_anonymous', true);
       
       if (error) {

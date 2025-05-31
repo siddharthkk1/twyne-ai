@@ -15,7 +15,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('🚀 AuthCallback: Starting state parameter callback handler');
+      console.log('🚀 AuthCallback: Starting redirect URL query parameter callback handler');
       
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
@@ -27,27 +27,27 @@ const AuthCallback = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get('error');
       const code = urlParams.get('code');
-      const state = urlParams.get('state');
+      const onboardingId = urlParams.get('onboarding_id');
 
       console.log('🔍 AuthCallback: URL parameters:', { 
         hasError: !!error, 
         errorValue: error,
         hasCode: !!code, 
         codeLength: code?.length || 0,
-        hasState: !!state,
-        stateValue: state,
+        hasOnboardingId: !!onboardingId,
+        onboardingIdValue: onboardingId,
         fullUrl: window.location.href
       });
-      setDebugInfo(`URL params - error: ${!!error}, code: ${!!code}, state: ${!!state}`);
+      setDebugInfo(`URL params - error: ${!!error}, code: ${!!code}, onboarding_id: ${!!onboardingId}`);
 
       // Handle OAuth errors
       if (error) {
         console.error('❌ AuthCallback: OAuth error detected:', error);
         setDebugInfo(`OAuth error: ${error}`);
         
-        // Clean up any stored data if we have a state parameter
-        if (state) {
-          await GoogleAuthService.cleanupOnboardingData(state);
+        // Clean up any stored data if we have an onboarding ID
+        if (onboardingId) {
+          await GoogleAuthService.cleanupOnboardingData(onboardingId);
         }
         
         toast({
@@ -94,22 +94,22 @@ const AuthCallback = () => {
           id: user.id,
           email: user.email,
           provider: user.app_metadata?.provider,
-          hasState: !!state
+          hasOnboardingId: !!onboardingId
         });
         
         setHasHandledCallback(true);
         setIsProcessing(true);
-        setDebugInfo('Processing authenticated user with state parameter...');
+        setDebugInfo('Processing authenticated user with redirect URL query parameter...');
         
         try {
           let onboardingDataTransferred = false;
           
-          // If we have a state parameter, try to retrieve and transfer onboarding data
-          if (state) {
-            console.log('🔍 AuthCallback: Processing state parameter:', state);
-            setDebugInfo(`Processing onboarding data for state: ${state}`);
+          // If we have an onboarding ID in the URL, try to retrieve and transfer onboarding data
+          if (onboardingId) {
+            console.log('🔍 AuthCallback: Processing onboarding ID from URL:', onboardingId);
+            setDebugInfo(`Processing onboarding data for ID: ${onboardingId}`);
             
-            const onboardingData = await GoogleAuthService.retrieveOnboardingData(state);
+            const onboardingData = await GoogleAuthService.retrieveOnboardingData(onboardingId);
             
             if (onboardingData) {
               console.log('✅ AuthCallback: Retrieved onboarding data, transferring to user profile');
@@ -149,14 +149,14 @@ const AuthCallback = () => {
               }
               
               // Clean up the temporary onboarding data record
-              await GoogleAuthService.cleanupOnboardingData(state);
+              await GoogleAuthService.cleanupOnboardingData(onboardingId);
             } else {
-              console.log('⚠️ AuthCallback: No onboarding data found for state parameter');
-              setDebugInfo('No onboarding data found for state parameter');
+              console.log('⚠️ AuthCallback: No onboarding data found for ID');
+              setDebugInfo('No onboarding data found for ID');
             }
           } else {
-            console.log('⚠️ AuthCallback: No state parameter found in callback');
-            setDebugInfo('No state parameter found');
+            console.log('⚠️ AuthCallback: No onboarding ID found in URL');
+            setDebugInfo('No onboarding ID found in URL');
           }
           
           // Add a delay to ensure all database operations are complete
@@ -195,9 +195,9 @@ const AuthCallback = () => {
           console.error('❌ AuthCallback: Error in post-auth handling:', error);
           setDebugInfo(`Post-auth error: ${error.message}`);
           
-          // Clean up state data if we have it
-          if (state) {
-            await GoogleAuthService.cleanupOnboardingData(state);
+          // Clean up onboarding data if we have it
+          if (onboardingId) {
+            await GoogleAuthService.cleanupOnboardingData(onboardingId);
           }
           
           navigate('/onboarding');
