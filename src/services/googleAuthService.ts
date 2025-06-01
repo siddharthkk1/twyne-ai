@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from '@/types/chat';
 
@@ -93,7 +94,7 @@ export class GoogleAuthService {
               .from('onboarding_data')
               .update({
                 profile_data: onboardingData.profile || {},
-                onboarding_conversation: conversationToStore,
+                onboarding_conversation: conversationToStore as unknown as any,
                 onboarding_mode: onboardingData.promptMode || 'structured'
               })
               .eq('id', tempOnboardingId);
@@ -103,7 +104,7 @@ export class GoogleAuthService {
               .insert({
                 id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                onboarding_conversation: conversationToStore,
+                onboarding_conversation: conversationToStore as unknown as any,
                 onboarding_mode: onboardingData.promptMode || 'structured'
               });
           }
@@ -231,6 +232,16 @@ export class GoogleAuthService {
   }
 
   /**
+   * Helper function to validate conversation structure
+   */
+  private static isValidConversation(data: any): data is Conversation {
+    return data && 
+           typeof data === 'object' && 
+           Array.isArray(data.messages) && 
+           Array.isArray(data.userAnswers);
+  }
+
+  /**
    * ENHANCED: Retrieve onboarding data with improved conversation validation
    * @param onboardingId - Onboarding ID from URL query parameter or localStorage
    */
@@ -248,22 +259,16 @@ export class GoogleAuthService {
       if (localProfile && localConversation && localTempId === onboardingId) {
         console.log('✅ GoogleAuthService: Retrieved onboarding data from localStorage');
         
-        let parsedConversation;
+        let parsedConversation: Conversation;
         try {
-          parsedConversation = JSON.parse(localConversation);
+          const rawConversation = JSON.parse(localConversation);
           
           // ENHANCED: Validate conversation structure and provide defaults
-          if (!parsedConversation || typeof parsedConversation !== 'object') {
+          if (!this.isValidConversation(rawConversation)) {
             console.warn('⚠️ GoogleAuthService: Invalid conversation structure, using defaults');
             parsedConversation = { messages: [], userAnswers: [] };
-          }
-          
-          // Ensure required arrays exist
-          if (!parsedConversation.messages || !Array.isArray(parsedConversation.messages)) {
-            parsedConversation.messages = [];
-          }
-          if (!parsedConversation.userAnswers || !Array.isArray(parsedConversation.userAnswers)) {
-            parsedConversation.userAnswers = [];
+          } else {
+            parsedConversation = rawConversation;
           }
           
           console.log('📊 GoogleAuthService: Validated conversation data from localStorage:', {
@@ -301,18 +306,14 @@ export class GoogleAuthService {
         console.log('✅ GoogleAuthService: Successfully retrieved onboarding data from database');
         
         // ENHANCED: Validate conversation data from database
-        let conversationData = data.onboarding_conversation;
-        if (!conversationData || typeof conversationData !== 'object') {
+        const rawConversationData = data.onboarding_conversation;
+        let conversationData: Conversation;
+        
+        if (this.isValidConversation(rawConversationData)) {
+          conversationData = rawConversationData;
+        } else {
           console.warn('⚠️ GoogleAuthService: Invalid conversation data from database, using defaults');
           conversationData = { messages: [], userAnswers: [] };
-        }
-        
-        // Ensure required arrays exist
-        if (!conversationData.messages || !Array.isArray(conversationData.messages)) {
-          conversationData.messages = [];
-        }
-        if (!conversationData.userAnswers || !Array.isArray(conversationData.userAnswers)) {
-          conversationData.userAnswers = [];
         }
         
         console.log('📊 GoogleAuthService: Validated conversation data from database:', {
@@ -323,7 +324,7 @@ export class GoogleAuthService {
         return {
           id: data.id,
           profile: data.profile_data,
-          conversation: conversationData as Conversation,
+          conversation: conversationData,
           promptMode: data.onboarding_mode
         };
       }
