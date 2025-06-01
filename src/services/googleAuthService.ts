@@ -20,7 +20,13 @@ export class GoogleAuthService {
       // Store onboarding data in localStorage for retrieval after OAuth
       if (onboardingData) {
         console.log('💾 GoogleAuthService: Storing onboarding data in localStorage');
+        
+        // Clean up any existing session first
+        await this.cleanupExistingSessions();
+        
+        // Generate proper UUID for the session
         const tempOnboardingId = crypto.randomUUID();
+        console.log('🔑 GoogleAuthService: Generated session UUID:', tempOnboardingId);
         
         // Store in localStorage with temp ID for retrieval
         localStorage.setItem('temp_onboarding_id', tempOnboardingId);
@@ -28,15 +34,16 @@ export class GoogleAuthService {
         localStorage.setItem('onboarding_conversation', JSON.stringify(onboardingData.conversation || {}));
         localStorage.setItem('onboarding_user_name', onboardingData.userName || '');
         localStorage.setItem('onboarding_prompt_mode', onboardingData.promptMode || 'structured');
+        localStorage.setItem('onboarding_timestamp', Date.now().toString());
         
         console.log('✅ GoogleAuthService: Onboarding data stored with temp ID:', tempOnboardingId);
         
-        // Also store in database for backup (in case localStorage is cleared)
+        // Also store in database for backup with proper error handling
         try {
           await supabase
             .from('onboarding_data')
             .insert({
-              id: tempOnboardingId,
+              id: tempOnboardingId, // Use the UUID as id
               user_id: tempOnboardingId, // Use temp ID as user_id for anonymous records
               profile_data: onboardingData.profile || {},
               conversation_data: onboardingData.conversation || {},
@@ -64,6 +71,8 @@ export class GoogleAuthService {
         
         if (error) {
           console.error('❌ GoogleAuthService: OAuth initiation failed:', error);
+          // Clean up on failure
+          await this.cleanupOnboardingData(tempOnboardingId);
           throw error;
         }
         
@@ -88,6 +97,33 @@ export class GoogleAuthService {
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in OAuth flow:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Clean up any existing onboarding sessions to prevent duplicates
+   */
+  static async cleanupExistingSessions() {
+    try {
+      console.log('🧹 GoogleAuthService: Cleaning up existing sessions...');
+      
+      const existingId = localStorage.getItem('temp_onboarding_id');
+      if (existingId) {
+        console.log('🔍 GoogleAuthService: Found existing session ID:', existingId);
+        await this.cleanupOnboardingData(existingId);
+      }
+      
+      // Also clean up any old backup keys
+      const backupKey = localStorage.getItem('latestBackupKey');
+      if (backupKey) {
+        localStorage.removeItem(backupKey);
+        localStorage.removeItem('latestBackupKey');
+        console.log('🧹 GoogleAuthService: Cleaned up backup key:', backupKey);
+      }
+      
+      console.log('✅ GoogleAuthService: Existing sessions cleanup completed');
+    } catch (error) {
+      console.warn('⚠️ GoogleAuthService: Error cleaning up existing sessions:', error);
     }
   }
 
@@ -151,35 +187,101 @@ export class GoogleAuthService {
   }
 
   /**
-   * Clean up temporary onboarding data after successful OAuth
+   * Enhanced cleanup of temporary onboarding data after successful OAuth
    * @param onboardingId - Onboarding ID identifying the record to clean up
    */
   static async cleanupOnboardingData(onboardingId: string) {
     try {
-      console.log('🧹 GoogleAuthService: Cleaning up onboarding data for ID:', onboardingId);
+      console.log('🧹 GoogleAuthService: Starting enhanced cleanup for ID:', onboardingId);
       
-      // Clean up localStorage
-      localStorage.removeItem('temp_onboarding_id');
-      localStorage.removeItem('onboarding_profile');
-      localStorage.removeItem('onboarding_conversation');
-      localStorage.removeItem('onboarding_user_name');
-      localStorage.removeItem('onboarding_prompt_mode');
+      // Clean up localStorage with comprehensive removal
+      const keysToRemove = [
+        'temp_onboarding_id',
+        'onboarding_profile',
+        'onboarding_conversation',
+        'onboarding_user_name',
+        'onboarding_prompt_mode',
+        'onboarding_timestamp',
+        'latestBackupKey',
+        'oauth_onboardingProfile',
+        'oauth_onboardingUserName',
+        'oauth_onboardingConversation',
+        'oauth_onboardingPromptMode',
+        'oauth_temp_onboarding_id'
+      ];
       
-      // Clean up database record
-      const { error } = await supabase
-        .from('onboarding_data')
-        .delete()
-        .eq('id', onboardingId)
-        .eq('is_anonymous', true);
+      keysToRemove.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+          console.log(`🧹 GoogleAuthService: Removed localStorage key: ${key}`);
+        }
+      });
       
-      if (error) {
-        console.error('❌ GoogleAuthService: Error cleaning up database record:', error);
-      } else {
-        console.log('✅ GoogleAuthService: Successfully cleaned up temporary onboarding data');
+      // Clean up backup keys that include the onboarding ID
+      const backupKey = `onboardingBackup_${onboardingId}`;
+      if (localStorage.getItem(backupKey)) {
+        localStorage.removeItem(backupKey);
+        console.log(`🧹 GoogleAuthService: Removed backup key: ${backupKey}`);
       }
       
+      // Clean up sessionStorage
+      const sessionKeysToRemove = [
+        'onboarding_profile',
+        'onboarding_user_name',
+        'onboarding_conversation',
+        'onboarding_prompt_mode',
+        'temp_onboarding_id',
+        'onboardingBackup'
+      ];
+      
+      sessionKeysToRemove.forEach(key => {
+        if (sessionStorage.getItem(key)) {
+          sessionStorage.removeItem(key);
+          console.log(`🧹 GoogleAuthService: Removed sessionStorage key: ${key}`);
+        }
+      });
+      
+      // Clean up database record with retry logic
+      let cleanupAttempts = 0;
+      const maxCleanupAttempts = 3;
+      let cleanupSuccess = false;
+      
+      while (!cleanupSuccess && cleanupAttempts < maxCleanupAttempts) {
+        cleanupAttempts++;
+        console.log(`🔄 GoogleAuthService: Database cleanup attempt ${cleanupAttempts}/${maxCleanupAttempts}`);
+        
+        try {
+          const { error } = await supabase
+            .from('onboarding_data')
+            .delete()
+            .eq('id', onboardingId)
+            .eq('is_anonymous', true);
+          
+          if (error) {
+            console.error(`❌ GoogleAuthService: Database cleanup attempt ${cleanupAttempts} failed:`, error);
+            if (cleanupAttempts < maxCleanupAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+            }
+          } else {
+            cleanupSuccess = true;
+            console.log('✅ GoogleAuthService: Database cleanup successful');
+          }
+        } catch (dbError) {
+          console.error(`❌ GoogleAuthService: Database cleanup attempt ${cleanupAttempts} error:`, dbError);
+          if (cleanupAttempts < maxCleanupAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+          }
+        }
+      }
+      
+      if (!cleanupSuccess) {
+        console.error('❌ GoogleAuthService: All database cleanup attempts failed');
+      }
+      
+      console.log('✅ GoogleAuthService: Enhanced cleanup completed for ID:', onboardingId);
+      
     } catch (error) {
-      console.error('❌ GoogleAuthService: Error in cleanupOnboardingData:', error);
+      console.error('❌ GoogleAuthService: Error in enhanced cleanup:', error);
     }
   }
 

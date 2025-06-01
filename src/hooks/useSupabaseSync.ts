@@ -83,30 +83,52 @@ export const useSupabaseSync = () => {
       } else {
         console.log("⚠️ useSupabaseSync: User auth state - Anonymous");
         
-        // For anonymous users, store in localStorage and generate temporary record
+        // For anonymous users, store in localStorage and generate temporary record with proper UUID
         const finalPromptMode = promptMode || 'structured';
         
+        // Clean up any existing anonymous session
+        const existingTempId = localStorage.getItem('temp_onboarding_id');
+        if (existingTempId) {
+          console.log("🧹 useSupabaseSync: Cleaning up existing anonymous session:", existingTempId);
+          try {
+            await supabase
+              .from('onboarding_data')
+              .delete()
+              .eq('id', existingTempId)
+              .eq('is_anonymous', true);
+            console.log("✅ useSupabaseSync: Cleaned up existing session");
+          } catch (cleanupError) {
+            console.warn("⚠️ useSupabaseSync: Failed to cleanup existing session:", cleanupError);
+          }
+        }
+        
+        // Generate proper UUID for the session
+        const tempUserId = crypto.randomUUID();
+        console.log("🔑 useSupabaseSync: Generated proper UUID for anonymous session:", tempUserId);
+        
         console.log("💾 useSupabaseSync: Storing data in localStorage for anonymous user...");
-        localStorage.setItem('onboardingProfile', JSON.stringify(profile));
-        localStorage.setItem('onboardingUserName', profile.name || '');
-        localStorage.setItem('onboardingConversation', JSON.stringify(conversation));
-        localStorage.setItem('onboardingPromptMode', finalPromptMode);
+        localStorage.setItem('temp_onboarding_id', tempUserId);
+        localStorage.setItem('onboarding_profile', JSON.stringify(profile));
+        localStorage.setItem('onboarding_user_name', profile.name || '');
+        localStorage.setItem('onboarding_conversation', JSON.stringify(conversation));
+        localStorage.setItem('onboarding_prompt_mode', finalPromptMode);
+        localStorage.setItem('onboarding_timestamp', Date.now().toString());
         
         console.log("📊 useSupabaseSync: LocalStorage data stored:", {
-          profileStored: !!localStorage.getItem('onboardingProfile'),
-          userNameStored: !!localStorage.getItem('onboardingUserName'),
-          userNameValue: localStorage.getItem('onboardingUserName'),
-          conversationStored: !!localStorage.getItem('onboardingConversation'),
-          promptModeStored: !!localStorage.getItem('onboardingPromptMode'),
-          promptModeValue: localStorage.getItem('onboardingPromptMode')
+          tempId: tempUserId,
+          profileStored: !!localStorage.getItem('onboarding_profile'),
+          userNameStored: !!localStorage.getItem('onboarding_user_name'),
+          userNameValue: localStorage.getItem('onboarding_user_name'),
+          conversationStored: !!localStorage.getItem('onboarding_conversation'),
+          promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
+          promptModeValue: localStorage.getItem('onboarding_prompt_mode')
         });
         
-        // Generate a temporary ID and save to onboarding_data
-        const tempUserId = crypto.randomUUID();
-        console.log("🗄️ useSupabaseSync: Saving to onboarding_data table for anonymous user:", tempUserId);
+        console.log("🗄️ useSupabaseSync: Saving to onboarding_data table for anonymous user with proper UUID:", tempUserId);
 
         const insertData = {
-          user_id: tempUserId,
+          id: tempUserId, // Use proper UUID as id
+          user_id: tempUserId, // Use same UUID as user_id for anonymous records
           profile_data: profile as unknown as Json,
           conversation_data: conversation as unknown as Json,
           prompt_mode: finalPromptMode,
@@ -114,6 +136,7 @@ export const useSupabaseSync = () => {
         };
         
         console.log("📊 useSupabaseSync: Database insert data:", {
+          id: insertData.id,
           user_id: insertData.user_id,
           profileDataKeys: Object.keys(profile),
           conversationDataKeys: Object.keys(conversation),
