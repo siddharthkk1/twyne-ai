@@ -179,7 +179,7 @@ export class GoogleAuthService {
     }
   }
 
-  public static getYouTubeAuthUrl(): string {
+  public static async getYouTubeAuthUrl(): Promise<string> {
     try {
       console.log('🔗 GoogleAuthService: Generating YouTube auth URL');
       
