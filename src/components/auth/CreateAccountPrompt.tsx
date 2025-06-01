@@ -61,18 +61,54 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     setIsLoading(true);
 
     try {
+      console.log("🔄 CreateAccountPrompt: Starting manual sign-up process");
+      
+      // Get the prompt mode from multiple sources with fallback logic
+      let promptMode = 'structured'; // default fallback
+      
+      // Try to get from localStorage first (most reliable for chat flow)
+      const storedPromptMode = localStorage.getItem('onboarding_prompt_mode') || 
+                               localStorage.getItem('onboardingPromptMode') ||
+                               localStorage.getItem('prompt_mode');
+      
+      if (storedPromptMode) {
+        promptMode = storedPromptMode;
+        console.log("✅ CreateAccountPrompt: Found prompt mode in localStorage:", promptMode);
+      } else {
+        // Check URL parameters as backup (for paste flow)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlPromptMode = urlParams.get('prompt_mode') || urlParams.get('mode');
+        if (urlPromptMode) {
+          promptMode = urlPromptMode;
+          console.log("✅ CreateAccountPrompt: Found prompt mode in URL:", promptMode);
+        } else {
+          console.log("⚠️ CreateAccountPrompt: No prompt mode found, using default:", promptMode);
+        }
+      }
+      
+      // Store the prompt mode in localStorage for consistency
+      localStorage.setItem('onboarding_prompt_mode', promptMode);
+      localStorage.setItem('onboardingPromptMode', promptMode); // Legacy key for compatibility
+      
+      console.log("📊 CreateAccountPrompt: Final onboarding data:", {
+        hasProfileData: !!onboardingProfileData,
+        hasConversationData: !!onboardingConversationData,
+        userName: userName,
+        promptMode: promptMode,
+        profileDataKeys: onboardingProfileData ? Object.keys(onboardingProfileData) : [],
+        conversationMessageCount: onboardingConversationData?.messages?.length || 0,
+        conversationUserAnswerCount: onboardingConversationData?.userAnswers?.length || 0
+      });
+
       // Simple signup without metadata since name is already in profile_data
       const signupData = { email, password };
       
-      console.log("Signing up with:", {
-        email,
-        password: "***"
-      });
+      console.log("🔄 CreateAccountPrompt: Creating account with Supabase");
 
       const { data, error } = await supabase.auth.signUp(signupData);
 
       if (error) {
-        console.error("Signup error:", error);
+        console.error("❌ CreateAccountPrompt: Signup error:", error);
         toast({
           title: "Error creating account",
           description: error.message || "Failed to create account. Please try again.",
@@ -82,46 +118,74 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
       }
 
       if (data.user) {
+        console.log("✅ CreateAccountPrompt: Account created successfully, auto-signing in");
+        
         // Auto sign in the user first
         await signIn(email, password);
         
         // Wait a moment for auth state to update
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Get the stored prompt mode from localStorage
-        const storedPromptMode = localStorage.getItem('onboardingPromptMode') || 'structured';
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         // Now save onboarding data to user_data table if we have it
         if (onboardingProfileData) {
           try {
+            console.log("🔄 CreateAccountPrompt: Saving onboarding data to user_data table");
+            
             const conversationData = onboardingConversationData || {};
             
+            const updateData = {
+              user_id: data.user.id,
+              profile_data: onboardingProfileData as unknown as Json,
+              conversation_data: conversationData as unknown as Json,
+              prompt_mode: promptMode,
+              has_completed_onboarding: true,
+              updated_at: new Date().toISOString()
+            };
+            
+            console.log("📊 CreateAccountPrompt: Data being saved:", {
+              userId: data.user.id,
+              hasProfileData: !!updateData.profile_data,
+              hasConversationData: !!updateData.conversation_data,
+              promptMode: updateData.prompt_mode,
+              conversationMessageCount: conversationData.messages?.length || 0,
+              conversationUserAnswerCount: conversationData.userAnswers?.length || 0
+            });
+
             const { error: userDataError } = await supabase
               .from('user_data')
-              .upsert({
-                user_id: data.user.id,
-                profile_data: onboardingProfileData as unknown as Json,
-                conversation_data: conversationData as unknown as Json,
-                prompt_mode: storedPromptMode,
-                has_completed_onboarding: true,
-                updated_at: new Date().toISOString()
-              });
+              .upsert(updateData);
 
             if (userDataError) {
-              console.error("Error saving user data:", userDataError);
+              console.error("❌ CreateAccountPrompt: Error saving user data:", userDataError);
               toast({
                 title: "Account created",
                 description: "Account created successfully, but there was an issue saving your profile data. Please contact support if needed.",
                 variant: "default",
               });
             } else {
-              console.log("Successfully saved onboarding data to user_data table");
+              console.log("✅ CreateAccountPrompt: Successfully saved onboarding data to user_data table");
               
-              // Clean up localStorage after successful save
-              localStorage.removeItem('onboardingProfile');
-              localStorage.removeItem('onboardingUserName');
-              localStorage.removeItem('onboardingConversation');
-              localStorage.removeItem('onboardingPromptMode');
+              // Enhanced cleanup of localStorage after successful save
+              const keysToRemove = [
+                'onboardingProfile',
+                'onboardingUserName', 
+                'onboardingConversation',
+                'onboardingPromptMode',
+                'onboarding_profile',
+                'onboarding_user_name',
+                'onboarding_conversation',
+                'onboarding_prompt_mode',
+                'prompt_mode',
+                'temp_onboarding_id',
+                'onboarding_timestamp'
+              ];
+              
+              keysToRemove.forEach(key => {
+                if (localStorage.getItem(key)) {
+                  localStorage.removeItem(key);
+                  console.log(`🧹 CreateAccountPrompt: Removed localStorage key: ${key}`);
+                }
+              });
               
               toast({
                 title: "Account created successfully!",
@@ -132,7 +196,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
               navigate("/mirror");
             }
           } catch (dataError) {
-            console.error("Error saving onboarding data:", dataError);
+            console.error("❌ CreateAccountPrompt: Error saving onboarding data:", dataError);
             toast({
               title: "Account created",
               description: "Account created successfully, but there was an issue saving your profile data.",
@@ -141,6 +205,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
             navigate("/mirror");
           }
         } else {
+          console.log("ℹ️ CreateAccountPrompt: No onboarding data to save");
           toast({
             title: "Account created successfully!",
             description: "Welcome to Twyne! You can now access all features.",
@@ -151,7 +216,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         onOpenChange(false);
       }
     } catch (error) {
-      console.error("Signup error:", error);
+      console.error("❌ CreateAccountPrompt: Signup error:", error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -163,34 +228,52 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
   };
 
   const handleGoogleAuth = async () => {
-    console.log('🔄 CreateAccountPrompt: Starting Google OAuth with native Supabase flow');
+    console.log('🔄 CreateAccountPrompt: Starting Google OAuth with enhanced data preservation');
     
     setIsGoogleLoading(true);
     
     try {
-      // Prepare onboarding data for OAuth
+      // Get the prompt mode with fallback logic
+      let promptMode = 'structured';
+      
+      const storedPromptMode = localStorage.getItem('onboarding_prompt_mode') || 
+                               localStorage.getItem('onboardingPromptMode') ||
+                               localStorage.getItem('prompt_mode');
+      
+      if (storedPromptMode) {
+        promptMode = storedPromptMode;
+      } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlPromptMode = urlParams.get('prompt_mode') || urlParams.get('mode');
+        if (urlPromptMode) {
+          promptMode = urlPromptMode;
+        }
+      }
+      
+      // Prepare onboarding data for OAuth with enhanced preservation
       const onboardingData = {
         profile: onboardingProfileData,
         conversation: onboardingConversationData,
         userName: userName || onboardingProfileData?.name || '',
-        promptMode: localStorage.getItem('onboardingPromptMode') || 'structured'
+        promptMode: promptMode
       };
       
-      console.log('📊 CreateAccountPrompt: Onboarding data to preserve:', {
+      console.log('📊 CreateAccountPrompt: Onboarding data to preserve for OAuth:', {
         hasProfile: !!onboardingData.profile,
         userName: onboardingData.userName,
         hasConversation: !!onboardingData.conversation,
-        promptMode: onboardingData.promptMode
+        promptMode: onboardingData.promptMode,
+        conversationMessageCount: onboardingData.conversation?.messages?.length || 0,
+        conversationUserAnswerCount: onboardingData.conversation?.userAnswers?.length || 0
       });
       
       // Store context for callback page
       localStorage.setItem('oauth_context', 'onboarding_results');
       
-      // Use the simplified Google auth service
+      // Use the Google auth service for OAuth flow
       await GoogleAuthService.initiateGoogleAuth(onboardingData);
       
       // The OAuth flow will handle the redirect automatically
-      // No need to manually redirect or handle the response
       
     } catch (error: any) {
       console.error('❌ CreateAccountPrompt: Error in Google OAuth:', error);

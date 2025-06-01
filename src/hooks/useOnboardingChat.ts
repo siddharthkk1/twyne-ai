@@ -142,6 +142,18 @@ export const useOnboardingChat = () => {
     scrollToBottomInstant
   } = useChatScroll();
 
+  // CRITICAL FIX: Store prompt mode in localStorage immediately when it changes
+  useEffect(() => {
+    console.log('🔄 useOnboardingChat: Prompt mode changed to:', promptMode);
+    
+    // Store prompt mode in localStorage immediately for manual sign-up flow
+    localStorage.setItem('onboarding_prompt_mode', promptMode);
+    localStorage.setItem('onboardingPromptMode', promptMode); // Legacy key for compatibility
+    localStorage.setItem('prompt_mode', promptMode); // Additional fallback key
+    
+    console.log('💾 useOnboardingChat: Stored prompt mode in localStorage:', promptMode);
+  }, [promptMode]);
+
   // Hide guidance info after user sends first message
   useEffect(() => {
     if (messages.length > 1) {
@@ -163,7 +175,6 @@ export const useOnboardingChat = () => {
   // Reset conversation when prompt mode changes and initialize with AI greeting
   useEffect(() => {
     if (isComplete || isGeneratingProfile) {
-      // If no userName is set or still collecting name, don't initialize the chat yet
       return;
     }
 
@@ -194,11 +205,9 @@ export const useOnboardingChat = () => {
     initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
       setIsInitializing(false);
       
-      // Set the messages and then scroll after DOM update
       setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
       setConversation(updatedConversation);
       
-      // Use a longer delay to ensure DOM is fully updated and layout is complete
       setTimeout(() => {
         scrollToBottomInstant();
       }, 100);
@@ -208,13 +217,13 @@ export const useOnboardingChat = () => {
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
     try {
-      console.log("Completing onboarding with userName:", userName);
-      console.log("Final conversation:", finalConversation);
+      console.log("🔄 useOnboardingChat: Completing onboarding with userName:", userName);
+      console.log("📊 useOnboardingChat: Final conversation:", finalConversation);
       
       setUserProfile(prev => ({ ...prev, name: userName }));
       
       const profile = await generateProfile(finalConversation, userName);
-      console.log("Generated profile:", profile);
+      console.log("✅ useOnboardingChat: Generated profile:", profile);
       
       if (userName) {
         profile.name = userName;
@@ -226,14 +235,18 @@ export const useOnboardingChat = () => {
         profile.name = userName;
       }
       
-      console.log("Final profile with name:", profile);
+      console.log("📊 useOnboardingChat: Final profile with name:", profile);
       
       setUserProfile(profile);
       setIsComplete(true);
       
+      // Store onboarding data in localStorage for manual sign-up flow
       localStorage.setItem('onboardingProfile', JSON.stringify(profile));
       localStorage.setItem('onboardingUserName', userName || profile.name || '');
       localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
+      // Prompt mode is already stored from the useEffect above
+      
+      console.log("💾 useOnboardingChat: Stored onboarding data in localStorage for manual sign-up");
       
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       
@@ -251,7 +264,7 @@ export const useOnboardingChat = () => {
       
       return true;
     } catch (error) {
-      console.error("Error in profile generation:", error);
+      console.error("❌ useOnboardingChat: Error in profile generation:", error);
       return false;
     }
   };
@@ -264,7 +277,6 @@ export const useOnboardingChat = () => {
     
     // Check if we've reached the message cap and need to ask for name
     if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
-      // Use handleUserMessage for seamless scrolling
       handleUserMessage(() => {
         const newUserMessage: Message = {
           id: messages.length + 1,
@@ -315,7 +327,6 @@ export const useOnboardingChat = () => {
 
     // If we're asking for name, this is the final message
     if (askingForName) {
-      // Use handleUserMessage for seamless scrolling
       handleUserMessage(() => {
         const nameMessage: Message = {
           id: messages.length + 1,
@@ -353,7 +364,6 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    // Use handleUserMessage for seamless scrolling
     handleUserMessage(() => {
       const newUserMessage: Message = {
         id: messages.length + 1,

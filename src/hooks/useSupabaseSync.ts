@@ -12,7 +12,7 @@ export const useSupabaseSync = () => {
     user: any,
     clearNewUserFlag: () => void
   ) => {
-    console.log("🚀 useSupabaseSync: Starting saveOnboardingData function");
+    console.log("🚀 useSupabaseSync: Starting enhanced saveOnboardingData function");
     console.log("📊 useSupabaseSync: Input parameters:", {
       hasProfile: !!profile,
       profileName: profile?.name,
@@ -122,6 +122,8 @@ export const useSupabaseSync = () => {
         localStorage.setItem('onboarding_user_name', profile.name || '');
         localStorage.setItem('onboarding_conversation', JSON.stringify(conversation));
         localStorage.setItem('onboarding_prompt_mode', finalPromptMode);
+        localStorage.setItem('onboardingPromptMode', finalPromptMode); // Legacy compatibility
+        localStorage.setItem('prompt_mode', finalPromptMode); // Additional fallback
         localStorage.setItem('onboarding_timestamp', Date.now().toString());
         
         console.log("📊 useSupabaseSync: LocalStorage data stored:", {
@@ -164,21 +166,44 @@ export const useSupabaseSync = () => {
 
         if (error) {
           console.error("❌ useSupabaseSync: Error saving onboarding data:", error);
-          throw error;
+          
+          // If insert fails due to duplicate, try to update instead
+          if (error.code === '23505') { // Unique violation
+            console.log("🔄 useSupabaseSync: Duplicate key detected, attempting update instead");
+            
+            const { error: updateError, data: updateData } = await supabase
+              .from('onboarding_data')
+              .update({
+                profile_data: insertData.profile_data,
+                conversation_data: insertData.conversation_data,
+                prompt_mode: insertData.prompt_mode
+              })
+              .eq('id', tempUserId)
+              .select();
+            
+            if (updateError) {
+              console.error("❌ useSupabaseSync: Error updating existing onboarding data:", updateError);
+              throw updateError;
+            }
+            
+            console.log("✅ useSupabaseSync: Successfully updated existing onboarding record");
+          } else {
+            throw error;
+          }
+        } else {
+          console.log("✅ useSupabaseSync: Data saved successfully for anonymous user");
+          console.log("📊 useSupabaseSync: Insert result:", {
+            dataReturned: !!data,
+            recordCount: data?.length || 0,
+            insertedId: data?.[0]?.id,
+            insertedData: data?.[0] ? {
+              hasProfileData: !!data[0].profile_data,
+              hasConversationData: !!data[0].conversation_data,
+              promptMode: data[0].prompt_mode,
+              isAnonymous: data[0].is_anonymous
+            } : null
+          });
         }
-
-        console.log("✅ useSupabaseSync: Data saved successfully for anonymous user");
-        console.log("📊 useSupabaseSync: Insert result:", {
-          dataReturned: !!data,
-          recordCount: data?.length || 0,
-          insertedId: data?.[0]?.id,
-          insertedData: data?.[0] ? {
-            hasProfileData: !!data[0].profile_data,
-            hasConversationData: !!data[0].conversation_data,
-            promptMode: data[0].prompt_mode,
-            isAnonymous: data[0].is_anonymous
-          } : null
-        });
       }
     } catch (error) {
       console.error("❌ useSupabaseSync: Error in saveOnboardingData:", error);
@@ -231,12 +256,12 @@ export const useSupabaseSync = () => {
     }
   };
 
-  // Enhanced cleanup function with better targeting of session-related records
+  // Enhanced cleanup function with better targeting and error handling
   const cleanupOnboardingData = async (userId: string) => {
     try {
       console.log("🧹 useSupabaseSync: Starting comprehensive cleanup of onboarding_data records for user:", userId);
       
-      // Get temp onboarding ID from localStorage
+      // Get temp onboarding ID from localStorage for additional cleanup
       const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
       
       // Enhanced cleanup: remove ALL anonymous records that could be related to this session
@@ -265,7 +290,7 @@ export const useSupabaseSync = () => {
           .lt('created_at', twentyFourHoursAgo)
       );
       
-      // Execute all cleanup operations
+      // Execute all cleanup operations with error handling
       const results = await Promise.allSettled(cleanupPromises);
       
       results.forEach((result, index) => {
@@ -276,20 +301,23 @@ export const useSupabaseSync = () => {
         }
       });
       
-      // Clean up localStorage items related to onboarding
+      // Clean up localStorage items related to onboarding with enhanced key list
       const keysToRemove = [
         'temp_onboarding_id',
         'onboarding_profile',
         'onboarding_user_name',
         'onboarding_conversation',
         'onboarding_prompt_mode',
+        'onboardingPromptMode', // Legacy key
+        'prompt_mode', // Fallback key
         'onboarding_timestamp',
         'latestBackupKey',
         'oauth_onboardingProfile',
         'oauth_onboardingUserName',
         'oauth_onboardingConversation',
         'oauth_onboardingPromptMode',
-        'oauth_temp_onboarding_id'
+        'oauth_temp_onboarding_id',
+        'oauth_context'
       ];
       
       keysToRemove.forEach(key => {
@@ -299,12 +327,14 @@ export const useSupabaseSync = () => {
         }
       });
       
-      // Clean up sessionStorage
+      // Clean up sessionStorage with enhanced key list
       const sessionKeysToRemove = [
         'onboarding_profile',
         'onboarding_user_name',
         'onboarding_conversation',
         'onboarding_prompt_mode',
+        'onboardingPromptMode',
+        'prompt_mode',
         'temp_onboarding_id',
         'onboardingBackup'
       ];
@@ -316,10 +346,11 @@ export const useSupabaseSync = () => {
         }
       });
       
-      console.log("✅ useSupabaseSync: Comprehensive cleanup completed successfully");
+      console.log("✅ useSupabaseSync: Enhanced comprehensive cleanup completed successfully");
       
     } catch (error) {
       console.error("❌ useSupabaseSync: Error during comprehensive cleanup:", error);
+      // Don't throw error for cleanup failures - they shouldn't block the main flow
     }
   };
 
