@@ -93,7 +93,7 @@ export class GoogleAuthService {
               .from('onboarding_data')
               .update({
                 profile_data: onboardingData.profile || {},
-                onboarding_conversation: conversationToStore as unknown as any,
+                onboarding_conversation: conversationToStore,
                 onboarding_mode: onboardingData.promptMode || 'structured'
               })
               .eq('id', tempOnboardingId);
@@ -103,7 +103,7 @@ export class GoogleAuthService {
               .insert({
                 id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                onboarding_conversation: conversationToStore as unknown as any,
+                onboarding_conversation: conversationToStore,
                 onboarding_mode: onboardingData.promptMode || 'structured'
               });
           }
@@ -183,8 +183,7 @@ export class GoogleAuthService {
             const { error } = await supabase
               .from('onboarding_data')
               .delete()
-              .eq('id', id)
-              .eq('is_anonymous', true);
+              .eq('id', id);
             
             if (error) {
               console.warn(`⚠️ GoogleAuthService: Failed to cleanup database record for ID ${id}:`, error);
@@ -231,22 +230,20 @@ export class GoogleAuthService {
   }
 
   /**
-   * Helper function to validate conversation structure with simplified typing
+   * Helper function to safely parse and validate conversation data
    */
-  private static isValidConversation(data: any): boolean {
-    return data && 
-           typeof data === 'object' && 
-           Array.isArray(data.messages) && 
-           Array.isArray(data.userAnswers);
-  }
-
-  /**
-   * Helper function to safely convert data to Conversation type
-   */
-  private static toConversation(data: any): Conversation {
-    if (this.isValidConversation(data)) {
-      return data as Conversation;
+  private static parseConversationData(data: any): Conversation {
+    // Simple validation without complex type operations
+    if (data && typeof data === 'object' && 
+        Array.isArray(data.messages) && 
+        Array.isArray(data.userAnswers)) {
+      return {
+        messages: data.messages,
+        userAnswers: data.userAnswers
+      };
     }
+    
+    // Return default structure if invalid
     return { messages: [], userAnswers: [] };
   }
 
@@ -271,7 +268,7 @@ export class GoogleAuthService {
         let parsedConversation: Conversation;
         try {
           const rawConversation = JSON.parse(localConversation);
-          parsedConversation = this.toConversation(rawConversation);
+          parsedConversation = this.parseConversationData(rawConversation);
           
           console.log('📊 GoogleAuthService: Validated conversation data from localStorage:', {
             messageCount: parsedConversation.messages.length,
@@ -307,8 +304,8 @@ export class GoogleAuthService {
       if (data) {
         console.log('✅ GoogleAuthService: Successfully retrieved onboarding data from database');
         
-        // ENHANCED: Validate conversation data from database
-        const conversationData = this.toConversation(data.onboarding_conversation);
+        // Parse and validate conversation data from database
+        const conversationData = this.parseConversationData(data.onboarding_conversation);
         
         console.log('📊 GoogleAuthService: Validated conversation data from database:', {
           messageCount: conversationData.messages.length,
