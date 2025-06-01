@@ -26,7 +26,7 @@ const GoogleAuthTest = () => {
   }, [user]);
 
   const handleTestGoogleAuth = async () => {
-    console.log('🚀 GoogleAuthTest: Starting OAuth test with OAuth metadata approach');
+    console.log('🚀 GoogleAuthTest: Starting OAuth test with redirect URL approach');
     setIsLoading(true);
 
     try {
@@ -36,9 +36,9 @@ const GoogleAuthTest = () => {
         age: testData.age,
         interestsAndPassions: testData.interests,
         // Add minimal required fields
-        vibeSummary: "Test user profile for Google OAuth data preservation with OAuth metadata",
-        oneLiner: "Testing Google OAuth flow with metadata storage",
-        twyneTags: ["test", "oauth", "google", "metadata"],
+        vibeSummary: "Test user profile for Google OAuth data preservation with redirect URL method",
+        oneLiner: "Testing Google OAuth flow with redirect URL storage",
+        twyneTags: ["test", "oauth", "google", "redirect"],
         // Add other required fields with defaults
         location: "",
         job: "",
@@ -83,23 +83,20 @@ const GoogleAuthTest = () => {
       
       const testConversation = {
         messages: [
-          { role: "system", content: "Test conversation for OAuth data preservation with metadata" },
-          { role: "user", content: "This is a test message to verify OAuth metadata data preservation" },
-          { role: "assistant", content: "This is a test response to validate the OAuth metadata storage method" }
+          { role: "system", content: "Test conversation for OAuth data preservation with redirect URL method" },
+          { role: "user", content: "This is a test message to verify redirect URL data preservation" },
+          { role: "assistant", content: "This is a test response to validate the redirect URL storage method" }
         ],
-        userAnswers: ["This is a test message to verify OAuth metadata data preservation"]
+        userAnswers: ["This is a test message to verify redirect URL data preservation"]
       };
       
-      console.log('💾 GoogleAuthTest: Test data prepared for OAuth metadata approach:', {
+      console.log('💾 GoogleAuthTest: Test data prepared for redirect URL approach:', {
         profileName: testProfile.name,
         conversationMessageCount: testConversation.messages.length,
         testDataKeys: Object.keys(testData)
       });
       
-      // Store context for callback (fallback only)
-      localStorage.setItem('oauth_context', 'google_auth_test');
-      
-      // Use the new OAuth metadata Google auth service
+      // Use the redirect URL Google auth service
       await GoogleAuthService.initiateGoogleAuth({
         profile: testProfile,
         conversation: testConversation,
@@ -128,7 +125,7 @@ const GoogleAuthTest = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">
-              Google OAuth Test with OAuth Metadata
+              Google OAuth Test with Redirect URL Method
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -136,8 +133,8 @@ const GoogleAuthTest = () => {
               <>
                 <div className="space-y-4">
                   <p className="text-muted-foreground text-center">
-                    This test validates the new OAuth metadata approach for preserving onboarding data through Google OAuth.
-                    Data is included in the OAuth metadata and processed by the database trigger automatically.
+                    This test validates the standardized redirect URL approach for preserving onboarding data through Google OAuth.
+                    Data is stored in localStorage and database backup, then transferred after successful authentication.
                   </p>
                   
                   <div className="space-y-3">
@@ -184,7 +181,7 @@ const GoogleAuthTest = () => {
                       Starting OAuth flow...
                     </>
                   ) : (
-                    'Test Google OAuth with OAuth Metadata'
+                    'Test Google OAuth with Redirect URL Method'
                   )}
                 </Button>
               </>

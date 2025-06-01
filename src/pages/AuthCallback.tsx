@@ -15,7 +15,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('🚀 AuthCallback: Starting OAuth callback handler with new trigger system');
+      console.log('🚀 AuthCallback: Starting OAuth callback handler with redirect URL method');
       
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
@@ -27,7 +27,7 @@ const AuthCallback = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get('error');
       const code = urlParams.get('code');
-      const onboardingId = urlParams.get('onboarding_id'); // Legacy support
+      const onboardingId = urlParams.get('onboarding_id');
 
       console.log('🔍 AuthCallback: URL parameters:', { 
         hasError: !!error, 
@@ -45,7 +45,7 @@ const AuthCallback = () => {
         console.error('❌ AuthCallback: OAuth error detected:', error);
         setDebugInfo(`OAuth error: ${error}`);
         
-        // Clean up any stored data if we have an onboarding ID (legacy)
+        // Clean up any stored data if we have an onboarding ID
         if (onboardingId) {
           await GoogleAuthService.cleanupOnboardingData(onboardingId);
         }
@@ -89,110 +89,91 @@ const AuthCallback = () => {
       
       // Only proceed if auth is not loading and we have a user
       if (!isLoading && user) {
-        console.log('🎯 AuthCallback: User authenticated, checking trigger system results');
+        console.log('🎯 AuthCallback: User authenticated, processing redirect URL method');
         console.log('🔍 AuthCallback: Authenticated user details:', {
           id: user.id,
           email: user.email,
           provider: user.app_metadata?.provider,
-          hasOnboardingData: !!user.user_metadata?.onboarding_profile
+          createdAt: user.created_at
         });
         
         setHasHandledCallback(true);
         setIsProcessing(true);
-        setDebugInfo('Processing authenticated user with new trigger system...');
+        setDebugInfo('Processing authenticated user with redirect URL method...');
         
         try {
-          // Add a delay to ensure the trigger has completed
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // Check if we have onboarding data to transfer
+          if (onboardingId) {
+            console.log('🔍 AuthCallback: Processing onboarding ID from URL:', onboardingId);
+            setDebugInfo(`Processing onboarding data for ID: ${onboardingId}`);
+            
+            const onboardingData = await GoogleAuthService.retrieveOnboardingData(onboardingId);
+            
+            if (onboardingData) {
+              console.log('✅ AuthCallback: Retrieved onboarding data, transferring to user profile');
+              
+              // Transfer the onboarding data to the user's profile
+              const { error: upsertError } = await supabase
+                .from('user_data')
+                .update({
+                  profile_data: onboardingData.profile || {},
+                  conversation_data: onboardingData.conversation || {},
+                  prompt_mode: onboardingData.promptMode || 'structured',
+                  has_completed_onboarding: true,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('user_id', user.id);
+              
+              if (upsertError) {
+                console.error('❌ AuthCallback: Error transferring onboarding data:', upsertError);
+                setDebugInfo(`Error transferring onboarding data: ${upsertError.message}`);
+              } else {
+                console.log('✅ AuthCallback: Successfully transferred onboarding data');
+                setDebugInfo('Onboarding data transferred successfully');
+                
+                toast({
+                  title: "Account created successfully!",
+                  description: "Welcome to Twyne! Your profile has been saved.",
+                });
+              }
+              
+              // Clean up the temporary onboarding data
+              await GoogleAuthService.cleanupOnboardingData(onboardingId);
+              
+              // Clear URL parameters before redirecting
+              window.history.replaceState({}, document.title, window.location.pathname);
+              
+              navigate('/mirror');
+              return;
+            } else {
+              console.log('⚠️ AuthCallback: No onboarding data found for ID, user needs onboarding');
+              setDebugInfo('No onboarding data found, redirecting to onboarding');
+            }
+          }
           
-          // Check if user data was created by the trigger and contains onboarding data
-          console.log('🔍 AuthCallback: Checking user_data created by trigger...');
+          // If no onboarding data or couldn't retrieve it, check user's current state
+          console.log('🔍 AuthCallback: Checking user data state...');
           const { data: userData } = await supabase
             .from('user_data')
             .select('has_completed_onboarding, profile_data, sso_data')
             .eq('user_id', user.id)
             .single();
           
-          if (userData) {
-            console.log('✅ AuthCallback: Found user_data record created by trigger');
-            console.log('📊 AuthCallback: User data details:', {
-              hasCompletedOnboarding: userData.has_completed_onboarding,
-              hasProfileData: !!userData.profile_data && Object.keys(userData.profile_data as any || {}).length > 0,
-              hasSsoData: !!userData.sso_data && Object.keys(userData.sso_data as any || {}).length > 0
-            });
+          if (userData?.has_completed_onboarding) {
+            console.log('🎉 AuthCallback: User already has completed onboarding');
+            setDebugInfo('User already completed onboarding');
             
-            if (userData.has_completed_onboarding) {
-              console.log('🎉 AuthCallback: User has onboarding data from OAuth, showing success');
-              setDebugInfo('Onboarding data transferred successfully via OAuth metadata');
-              
-              toast({
-                title: "Account created successfully!",
-                description: "Welcome to Twyne! Your profile has been saved.",
-              });
-              
-              // Clear URL parameters before redirecting
-              window.history.replaceState({}, document.title, window.location.pathname);
-              
-              console.log('🚀 AuthCallback: Redirecting to mirror with onboarding data');
-              navigate('/mirror');
-            } else {
-              console.log('🔄 AuthCallback: User needs to complete onboarding');
-              
-              // Check for legacy onboarding ID support
-              if (onboardingId) {
-                console.log('🔍 AuthCallback: Processing legacy onboarding ID:', onboardingId);
-                setDebugInfo(`Processing legacy onboarding data for ID: ${onboardingId}`);
-                
-                const onboardingData = await GoogleAuthService.retrieveOnboardingData(onboardingId);
-                
-                if (onboardingData) {
-                  console.log('✅ AuthCallback: Retrieved legacy onboarding data, transferring to user profile');
-                  
-                  // Transfer the legacy onboarding data to the user's profile
-                  const { error: upsertError } = await supabase
-                    .from('user_data')
-                    .update({
-                      profile_data: onboardingData.profile || {},
-                      conversation_data: onboardingData.conversation || {},
-                      prompt_mode: onboardingData.promptMode || 'structured',
-                      has_completed_onboarding: true,
-                      updated_at: new Date().toISOString()
-                    })
-                    .eq('user_id', user.id);
-                  
-                  if (upsertError) {
-                    console.error('❌ AuthCallback: Error transferring legacy onboarding data:', upsertError);
-                    setDebugInfo(`Error transferring legacy data: ${upsertError.message}`);
-                  } else {
-                    console.log('✅ AuthCallback: Successfully transferred legacy onboarding data');
-                    setDebugInfo('Legacy onboarding data transferred successfully');
-                    
-                    toast({
-                      title: "Account created successfully!",
-                      description: "Welcome to Twyne! Your profile has been saved.",
-                    });
-                  }
-                  
-                  // Clean up the temporary onboarding data record
-                  await GoogleAuthService.cleanupOnboardingData(onboardingId);
-                  
-                  // Clear URL parameters before redirecting
-                  window.history.replaceState({}, document.title, window.location.pathname);
-                  
-                  navigate('/mirror');
-                  return;
-                }
-              }
-              
-              // Clear URL parameters before redirecting
-              window.history.replaceState({}, document.title, window.location.pathname);
-              
-              console.log('🚀 AuthCallback: Redirecting to onboarding');
-              navigate('/onboarding');
-            }
+            // Clear URL parameters before redirecting
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            navigate('/mirror');
           } else {
-            console.error('❌ AuthCallback: No user_data record found - trigger may have failed');
-            setDebugInfo('No user_data record found - trigger may have failed');
+            console.log('🔄 AuthCallback: User needs to complete onboarding');
+            setDebugInfo('User needs to complete onboarding');
+            
+            // Clear URL parameters before redirecting
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
             navigate('/onboarding');
           }
           
@@ -200,7 +181,7 @@ const AuthCallback = () => {
           console.error('❌ AuthCallback: Error in post-auth handling:', error);
           setDebugInfo(`Post-auth error: ${error.message}`);
           
-          // Clean up onboarding data if we have it (legacy)
+          // Clean up onboarding data if we have it
           if (onboardingId) {
             await GoogleAuthService.cleanupOnboardingData(onboardingId);
           }
