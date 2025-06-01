@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/Logo";
 import { useSupabaseSync } from "@/hooks/useSupabaseSync";
+import { storeOnboardingDataSecurely } from "@/utils/onboardingStorage";
 import type { Json } from '@/integrations/supabase/types';
 
 interface UserProfile {
@@ -50,132 +51,6 @@ const OnboardingPaste = () => {
       title: "Copied to clipboard",
       description: "Paste this prompt into ChatGPT to get your reflection.",
     });
-  };
-
-  // Enhanced data storage with proper session management and RLS compatibility
-  const storeOnboardingDataSecurely = async (profileData: UserProfile, conversationData: any, promptMode: string) => {
-    try {
-      console.log('🚀 OnboardingPaste: Starting enhanced data storage...');
-      
-      const timestamp = Date.now();
-      
-      // Enhanced cleanup: Remove existing anonymous sessions first
-      console.log('🧹 OnboardingPaste: Performing cleanup of existing anonymous sessions...');
-      
-      const existingSessionId = localStorage.getItem('temp_onboarding_id');
-      if (existingSessionId) {
-        console.log('🗄️ OnboardingPaste: Found existing session, cleaning up:', existingSessionId);
-        
-        try {
-          // Clean up existing records - now works with RLS policies
-          const { error: deleteError } = await supabase
-            .from('onboarding_data')
-            .delete()
-            .eq('id', existingSessionId);
-          
-          if (deleteError) {
-            console.warn('⚠️ OnboardingPaste: Failed to cleanup existing session records:', deleteError);
-          } else {
-            console.log('✅ OnboardingPaste: Successfully cleaned up existing session records');
-          }
-        } catch (cleanupError) {
-          console.warn('⚠️ OnboardingPaste: Error during session cleanup:', cleanupError);
-        }
-      }
-      
-      // Generate proper UUID for the session
-      let tempId: string;
-      try {
-        tempId = crypto.randomUUID();
-        console.log('🔑 OnboardingPaste: Generated UUID using crypto.randomUUID():', tempId);
-      } catch (cryptoError) {
-        // Fallback for older browsers
-        console.warn('⚠️ OnboardingPaste: crypto.randomUUID() not available, using fallback');
-        tempId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
-        console.log('🔑 OnboardingPaste: Generated fallback ID:', tempId);
-      }
-      
-      // Clear previous localStorage entries to prevent conflicts
-      const keysToRemove = [
-        'temp_onboarding_id',
-        'onboarding_profile',
-        'onboarding_user_name',
-        'onboarding_conversation',
-        'onboarding_prompt_mode',
-        'onboarding_timestamp'
-      ];
-      
-      keysToRemove.forEach(key => {
-        if (localStorage.getItem(key)) {
-          localStorage.removeItem(key);
-          console.log(`🧹 OnboardingPaste: Cleared existing localStorage key: ${key}`);
-        }
-      });
-      
-      // Store with new session ID
-      localStorage.setItem('temp_onboarding_id', tempId);
-      localStorage.setItem('onboarding_profile', JSON.stringify(profileData));
-      localStorage.setItem('onboarding_user_name', profileData.name);
-      localStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
-      localStorage.setItem('onboarding_prompt_mode', promptMode);
-      localStorage.setItem('onboarding_timestamp', timestamp.toString());
-      console.log('💾 OnboardingPaste: Enhanced localStorage completed with session ID:', tempId);
-      
-      // Enhanced sessionStorage backup
-      sessionStorage.setItem('onboarding_profile', JSON.stringify(profileData));
-      sessionStorage.setItem('onboarding_user_name', profileData.name);
-      sessionStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
-      sessionStorage.setItem('onboarding_prompt_mode', promptMode);
-      sessionStorage.setItem('temp_onboarding_id', tempId);
-      console.log('💾 OnboardingPaste: Enhanced sessionStorage backup completed');
-      
-      // Enhanced database storage using insert with proper JSON conversion
-      console.log('🗄️ OnboardingPaste: Attempting database storage with proper UUID:', tempId);
-      
-      const insertData = {
-        id: tempId,
-        profile_data: profileData as unknown as Json,
-        onboarding_conversation: conversationData as unknown as Json,
-        onboarding_mode: promptMode
-      };
-      
-      console.log('📊 OnboardingPaste: Database insert data:', {
-        id: insertData.id,
-        profileDataKeys: Object.keys(profileData),
-        conversationDataKeys: Object.keys(conversationData),
-        onboarding_mode: insertData.onboarding_mode,
-        conversationMessageCount: conversationData?.messages?.length || 0,
-        conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
-      });
-      
-      // Use insert to create new record - now compatible with RLS policies
-      const { error, data } = await supabase
-        .from('onboarding_data')
-        .insert(insertData)
-        .select();
-      
-      if (error) {
-        console.error('❌ OnboardingPaste: Database storage failed:', error);
-        throw error;
-      } else {
-        console.log('✅ OnboardingPaste: Database storage successful with UUID:', tempId);
-        console.log('📊 OnboardingPaste: Database result:', {
-          dataReturned: !!data,
-          recordCount: data?.length || 0,
-          savedData: data?.[0] ? {
-            hasProfileData: !!data[0].profile_data,
-            hasConversationData: !!data[0].onboarding_conversation,
-            onboardingMode: data[0].onboarding_mode
-          } : null
-        });
-      }
-      
-      console.log('✅ OnboardingPaste: All enhanced data storage strategies completed successfully');
-      return tempId;
-    } catch (error) {
-      console.error('❌ OnboardingPaste: Error in enhanced storage:', error);
-      throw error;
-    }
   };
 
   const generateProfile = async () => {
@@ -272,15 +147,25 @@ const OnboardingPaste = () => {
         personalInsightsCount: profileData.personalInsights.length
       });
 
-      // Enhanced data storage with session management and RLS compatibility
+      // Use the shared storage utility function
       const conversationData = mockConversation;
       const promptMode = 'gpt-paste';
       
-      console.log('💾 OnboardingPaste: Storing onboarding data with enhanced session management...');
+      console.log('💾 OnboardingPaste: Storing onboarding data with shared utility...');
       
       try {
-        const sessionId = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
-        console.log('✅ OnboardingPaste: Data stored successfully with session ID:', sessionId);
+        const storageResult = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
+        
+        if (storageResult.success) {
+          console.log('✅ OnboardingPaste: Data stored successfully with session ID:', storageResult.sessionId);
+        } else {
+          console.error('❌ OnboardingPaste: Storage failed:', storageResult.error);
+          toast({
+            title: "Storage Warning",
+            description: "Profile generated but may not persist through authentication.",
+            variant: "destructive",
+          });
+        }
       } catch (storageError) {
         console.error('❌ OnboardingPaste: Storage failed:', storageError);
         toast({

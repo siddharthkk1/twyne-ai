@@ -8,6 +8,7 @@ import { useSupabaseSync } from './useSupabaseSync';
 import { useOnboardingAI } from './useOnboardingAI';
 import { useOnboardingMessages } from './useOnboardingMessages';
 import { useChatScroll } from './useChatScroll';
+import { storeOnboardingDataSecurely } from '@/utils/onboardingStorage';
 import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
@@ -297,43 +298,20 @@ export const useOnboardingChat = () => {
       setUserProfile(profile);
       setIsComplete(true);
       
-      // ENHANCED: Store ALL onboarding data in localStorage with proper validation for manual sign-up flow
-      console.log("💾 useOnboardingChat: Storing comprehensive onboarding data in localStorage");
+      // Use the shared storage utility function
+      console.log("💾 useOnboardingChat: Storing comprehensive onboarding data using shared utility");
       
-      // Store with multiple key patterns for maximum compatibility
-      const dataToStore = {
-        profile: profile,
-        conversation: finalConversation,
-        userName: finalUserName || profile.name || '',
-        promptMode: promptMode,
-        timestamp: Date.now()
-      };
-      
-      // Primary storage keys
-      localStorage.setItem('onboardingProfile', JSON.stringify(profile));
-      localStorage.setItem('onboardingUserName', finalUserName || profile.name || '');
-      localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
-      localStorage.setItem('onboarding_prompt_mode', promptMode);
-      
-      // Legacy compatibility keys
-      localStorage.setItem('onboarding_profile', JSON.stringify(profile));
-      localStorage.setItem('onboarding_user_name', finalUserName || profile.name || '');
-      localStorage.setItem('onboarding_conversation', JSON.stringify(finalConversation));
-      localStorage.setItem('onboardingPromptMode', promptMode);
-      localStorage.setItem('prompt_mode', promptMode);
-      
-      // Timestamp for cleanup
-      localStorage.setItem('onboarding_timestamp', Date.now().toString());
-      
-      console.log("💾 useOnboardingChat: Stored comprehensive onboarding data:", {
-        profileStored: !!localStorage.getItem('onboardingProfile'),
-        userNameStored: !!localStorage.getItem('onboardingUserName'),
-        conversationStored: !!localStorage.getItem('onboardingConversation'),
-        promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
-        conversationMessageCount: finalConversation.messages?.length || 0,
-        conversationUserAnswerCount: finalConversation.userAnswers?.length || 0,
-        finalUserName: finalUserName
-      });
+      try {
+        const storageResult = await storeOnboardingDataSecurely(profile, finalConversation, promptMode);
+        
+        if (storageResult.success) {
+          console.log("✅ useOnboardingChat: Data stored successfully with session ID:", storageResult.sessionId);
+        } else {
+          console.error("❌ useOnboardingChat: Storage failed:", storageResult.error);
+        }
+      } catch (storageError) {
+        console.error("❌ useOnboardingChat: Storage failed:", storageError);
+      }
       
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       

@@ -17,8 +17,9 @@ export const useSupabaseSync = () => {
     try {
       console.log("🔄 useSupabaseSync: Starting to save onboarding data");
       
+      // Only save to authenticated user tables if user is provided
       if (!currentUser) {
-        console.log("⚠️ useSupabaseSync: No user provided, skipping save");
+        console.log("⚠️ useSupabaseSync: No user provided, skipping authenticated save");
         return;
       }
 
