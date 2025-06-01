@@ -51,7 +51,7 @@ export const WaitlistForm = ({ open, onOpenChange, onSubmitSuccess }: WaitlistFo
       try {
         setIsLoading(true);
         
-        // Instead of using count: 'exact', fetch all entries and count them
+        // Use select to count entries - more reliable than count for public access
         const { data, error } = await supabase
           .from('waitlist')
           .select('id');

@@ -52,7 +52,7 @@ const OnboardingPaste = () => {
     });
   };
 
-  // Enhanced data storage with proper session management
+  // Enhanced data storage with proper session management and RLS compatibility
   const storeOnboardingDataSecurely = async (profileData: UserProfile, conversationData: any, promptMode: string) => {
     try {
       console.log('🚀 OnboardingPaste: Starting enhanced data storage...');
@@ -67,7 +67,7 @@ const OnboardingPaste = () => {
         console.log('🗄️ OnboardingPaste: Found existing session, cleaning up:', existingSessionId);
         
         try {
-          // Clean up existing records
+          // Clean up existing records - now works with RLS policies
           const { error: deleteError } = await supabase
             .from('onboarding_data')
             .delete()
@@ -129,7 +129,7 @@ const OnboardingPaste = () => {
       sessionStorage.setItem('temp_onboarding_id', tempId);
       console.log('💾 OnboardingPaste: Enhanced sessionStorage backup completed');
       
-      // Enhanced database storage using insert (not upsert)
+      // Enhanced database storage using insert with proper JSON conversion
       console.log('🗄️ OnboardingPaste: Attempting database storage with proper UUID:', tempId);
       
       const insertData = {
@@ -148,7 +148,7 @@ const OnboardingPaste = () => {
         conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
       });
       
-      // Use insert to create new record
+      // Use insert to create new record - now compatible with RLS policies
       const { error, data } = await supabase
         .from('onboarding_data')
         .insert(insertData)
@@ -272,7 +272,7 @@ const OnboardingPaste = () => {
         personalInsightsCount: profileData.personalInsights.length
       });
 
-      // Enhanced data storage with session management
+      // Enhanced data storage with session management and RLS compatibility
       const conversationData = mockConversation;
       const promptMode = 'gpt-paste';
       
