@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -61,7 +60,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     setIsLoading(true);
 
     try {
-      console.log("🔄 CreateAccountPrompt: Starting manual sign-up process");
+      console.log("🔄 CreateAccountPrompt: Starting enhanced manual sign-up process");
       
       // Get the prompt mode from multiple sources with fallback logic
       let promptMode = 'structured'; // default fallback
@@ -135,13 +134,25 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         // Wait a moment for auth state to update
         await new Promise(resolve => setTimeout(resolve, 1500));
         
+        // ENHANCED: Check for existing user_data record first to prevent duplicates
+        console.log("🔍 CreateAccountPrompt: Checking for existing user_data record");
+        
+        const { data: existingUserData, error: fetchError } = await supabase
+          .from('user_data')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
+        
+        if (fetchError) {
+          console.error("❌ CreateAccountPrompt: Error checking existing user data:", fetchError);
+        }
+        
         // Now save onboarding data to user_data table if we have it
         if (onboardingProfileData) {
           try {
             console.log("🔄 CreateAccountPrompt: Saving onboarding data to user_data table");
             
             const updateData = {
-              user_id: data.user.id,
               profile_data: onboardingProfileData as unknown as Json,
               conversation_data: conversationData as unknown as Json,
               prompt_mode: promptMode,
@@ -155,15 +166,69 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
               hasConversationData: !!updateData.conversation_data,
               promptMode: updateData.prompt_mode,
               conversationMessageCount: conversationData.messages?.length || 0,
-              conversationUserAnswerCount: conversationData.userAnswers?.length || 0
+              conversationUserAnswerCount: conversationData.userAnswers?.length || 0,
+              hasExistingRecord: !!existingUserData
             });
 
-            const { error: userDataError } = await supabase
-              .from('user_data')
-              .upsert(updateData);
+            let saveResult;
+            
+            if (existingUserData) {
+              // Update existing record instead of creating duplicate
+              console.log("🔄 CreateAccountPrompt: Updating existing user_data record");
+              
+              saveResult = await supabase
+                .from('user_data')
+                .update(updateData)
+                .eq('user_id', data.user.id)
+                .select();
+              
+              // ENHANCED: Clean up any duplicate records that might have been created by trigger
+              console.log("🧹 CreateAccountPrompt: Cleaning up potential duplicate records");
+              
+              const { data: allUserRecords } = await supabase
+                .from('user_data')
+                .select('id, created_at')
+                .eq('user_id', data.user.id)
+                .order('created_at', { ascending: true });
+              
+              // If there are multiple records, keep the first one (oldest) and delete the rest
+              if (allUserRecords && allUserRecords.length > 1) {
+                const recordsToDelete = allUserRecords.slice(1); // All except the first one
+                
+                for (const record of recordsToDelete) {
+                  const { error: deleteError } = await supabase
+                    .from('user_data')
+                    .delete()
+                    .eq('id', record.id);
+                  
+                  if (deleteError) {
+                    console.warn("⚠️ CreateAccountPrompt: Failed to delete duplicate record:", deleteError);
+                  } else {
+                    console.log("✅ CreateAccountPrompt: Deleted duplicate record:", record.id);
+                  }
+                }
+              }
+              
+            } else {
+              // Create new record with upsert to handle any race conditions
+              console.log("🔄 CreateAccountPrompt: Creating new user_data record");
+              
+              const fullUpdateData = {
+                user_id: data.user.id,
+                ...updateData
+              };
+              
+              saveResult = await supabase
+                .from('user_data')
+                .upsert(fullUpdateData, {
+                  onConflict: 'user_id',
+                  ignoreDuplicates: false
+                })
+                .select();
+            }
 
-            if (userDataError) {
-              console.error("❌ CreateAccountPrompt: Error saving user data:", userDataError);
+            if (saveResult?.error) {
+              console.error("❌ CreateAccountPrompt: Error saving user data:", saveResult.error);
               toast({
                 title: "Account created",
                 description: "Account created successfully, but there was an issue saving your profile data. Please contact support if needed.",

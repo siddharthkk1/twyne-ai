@@ -11,14 +11,14 @@ export class GoogleAuthService {
     userName?: string;
     promptMode?: string;
   }) {
-    console.log('🚀 GoogleAuthService: Starting Google OAuth with redirect URL approach');
+    console.log('🚀 GoogleAuthService: Starting Google OAuth with enhanced conversation preservation');
     
     try {
       const redirectTo = `${window.location.origin}/auth/callback`;
       
       // Store onboarding data in localStorage for retrieval after OAuth
       if (onboardingData) {
-        console.log('💾 GoogleAuthService: Storing onboarding data in localStorage');
+        console.log('💾 GoogleAuthService: Storing onboarding data with enhanced conversation validation');
         
         // Enhanced cleanup of any existing sessions first
         await this.cleanupExistingSessions();
@@ -35,17 +35,49 @@ export class GoogleAuthService {
           console.log('🔑 GoogleAuthService: Generated fallback ID:', tempOnboardingId);
         }
         
-        // Store in localStorage with temp ID for retrieval
+        // ENHANCED: Validate and normalize conversation data before storage
+        let conversationToStore = onboardingData.conversation || {};
+        
+        // Ensure conversation has proper structure
+        if (!conversationToStore.messages || !Array.isArray(conversationToStore.messages)) {
+          conversationToStore.messages = [];
+        }
+        if (!conversationToStore.userAnswers || !Array.isArray(conversationToStore.userAnswers)) {
+          conversationToStore.userAnswers = [];
+        }
+        
+        console.log('📊 GoogleAuthService: Validated conversation data:', {
+          messageCount: conversationToStore.messages.length,
+          userAnswerCount: conversationToStore.userAnswers.length,
+          hasValidStructure: !!(conversationToStore.messages && conversationToStore.userAnswers)
+        });
+        
+        // Store in localStorage with enhanced validation and multiple key patterns
         localStorage.setItem('temp_onboarding_id', tempOnboardingId);
         localStorage.setItem('onboarding_profile', JSON.stringify(onboardingData.profile || {}));
-        localStorage.setItem('onboarding_conversation', JSON.stringify(onboardingData.conversation || {}));
+        localStorage.setItem('onboarding_conversation', JSON.stringify(conversationToStore));
         localStorage.setItem('onboarding_user_name', onboardingData.userName || '');
         localStorage.setItem('onboarding_prompt_mode', onboardingData.promptMode || 'structured');
         localStorage.setItem('onboarding_timestamp', Date.now().toString());
         
-        console.log('✅ GoogleAuthService: Onboarding data stored with temp ID:', tempOnboardingId);
+        // Additional compatibility keys for OAuth retrieval
+        localStorage.setItem('oauth_onboardingProfile', JSON.stringify(onboardingData.profile || {}));
+        localStorage.setItem('oauth_onboardingConversation', JSON.stringify(conversationToStore));
+        localStorage.setItem('oauth_onboardingUserName', onboardingData.userName || '');
+        localStorage.setItem('oauth_onboardingPromptMode', onboardingData.promptMode || 'structured');
+        localStorage.setItem('oauth_temp_onboarding_id', tempOnboardingId);
         
-        // Also store in database for backup with proper error handling and duplicate prevention
+        console.log('✅ GoogleAuthService: Enhanced onboarding data stored with temp ID:', tempOnboardingId);
+        console.log('📊 GoogleAuthService: Storage verification:', {
+          profileStored: !!localStorage.getItem('onboarding_profile'),
+          conversationStored: !!localStorage.getItem('onboarding_conversation'),
+          userNameStored: !!localStorage.getItem('onboarding_user_name'),
+          promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
+          oauthProfileStored: !!localStorage.getItem('oauth_onboardingProfile'),
+          oauthConversationStored: !!localStorage.getItem('oauth_onboardingConversation')
+        });
+        
+        // Also store in database for backup with enhanced conversation validation
         try {
           // First check if a record with this ID already exists
           const { data: existingRecord } = await supabase
@@ -61,7 +93,7 @@ export class GoogleAuthService {
               .update({
                 user_id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                conversation_data: onboardingData.conversation || {},
+                conversation_data: conversationToStore, // Use validated conversation data
                 prompt_mode: onboardingData.promptMode || 'structured',
                 is_anonymous: true
               })
@@ -70,16 +102,16 @@ export class GoogleAuthService {
             await supabase
               .from('onboarding_data')
               .insert({
-                id: tempOnboardingId, // Use the UUID as id
-                user_id: tempOnboardingId, // Use temp ID as user_id for anonymous records
+                id: tempOnboardingId,
+                user_id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                conversation_data: onboardingData.conversation || {},
+                conversation_data: conversationToStore, // Use validated conversation data
                 prompt_mode: onboardingData.promptMode || 'structured',
                 is_anonymous: true
               });
           }
           
-          console.log('✅ GoogleAuthService: Backup onboarding data stored in database');
+          console.log('✅ GoogleAuthService: Enhanced backup onboarding data stored in database with conversation validation');
         } catch (dbError) {
           console.warn('⚠️ GoogleAuthService: Failed to store backup onboarding data:', dbError);
           // Continue with OAuth even if backup storage fails
@@ -88,7 +120,7 @@ export class GoogleAuthService {
         // Add onboarding ID to redirect URL for retrieval
         const urlWithOnboarding = `${redirectTo}?onboarding_id=${tempOnboardingId}`;
         
-        console.log('🔗 GoogleAuthService: Starting OAuth with onboarding redirect:', urlWithOnboarding);
+        console.log('🔗 GoogleAuthService: Starting OAuth with enhanced onboarding redirect:', urlWithOnboarding);
         
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
@@ -120,7 +152,7 @@ export class GoogleAuthService {
         }
       }
       
-      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with redirect URL method');
+      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with enhanced conversation preservation');
       
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in OAuth flow:', error);
@@ -202,33 +234,61 @@ export class GoogleAuthService {
   }
 
   /**
-   * Retrieve onboarding data using onboarding ID from URL or localStorage
+   * ENHANCED: Retrieve onboarding data with improved conversation validation
    * @param onboardingId - Onboarding ID from URL query parameter or localStorage
    */
   static async retrieveOnboardingData(onboardingId: string) {
     try {
-      console.log('🔍 GoogleAuthService: Retrieving onboarding data for ID:', onboardingId);
+      console.log('🔍 GoogleAuthService: Retrieving onboarding data with enhanced conversation validation for ID:', onboardingId);
       
-      // Try to get from localStorage first (most reliable)
-      const localProfile = localStorage.getItem('onboarding_profile');
-      const localConversation = localStorage.getItem('onboarding_conversation');
-      const localUserName = localStorage.getItem('onboarding_user_name');
-      const localPromptMode = localStorage.getItem('onboarding_prompt_mode');
-      const localTempId = localStorage.getItem('temp_onboarding_id');
+      // Strategy 1: Try to get from localStorage first (most reliable)
+      const localProfile = localStorage.getItem('onboarding_profile') || localStorage.getItem('oauth_onboardingProfile');
+      const localConversation = localStorage.getItem('onboarding_conversation') || localStorage.getItem('oauth_onboardingConversation');
+      const localUserName = localStorage.getItem('onboarding_user_name') || localStorage.getItem('oauth_onboardingUserName');
+      const localPromptMode = localStorage.getItem('onboarding_prompt_mode') || localStorage.getItem('oauth_onboardingPromptMode');
+      const localTempId = localStorage.getItem('temp_onboarding_id') || localStorage.getItem('oauth_temp_onboarding_id');
       
       if (localProfile && localConversation && localTempId === onboardingId) {
         console.log('✅ GoogleAuthService: Retrieved onboarding data from localStorage');
         
+        let parsedConversation;
+        try {
+          parsedConversation = JSON.parse(localConversation);
+          
+          // ENHANCED: Validate conversation structure and provide defaults
+          if (!parsedConversation || typeof parsedConversation !== 'object') {
+            console.warn('⚠️ GoogleAuthService: Invalid conversation structure, using defaults');
+            parsedConversation = { messages: [], userAnswers: [] };
+          }
+          
+          // Ensure required arrays exist
+          if (!parsedConversation.messages || !Array.isArray(parsedConversation.messages)) {
+            parsedConversation.messages = [];
+          }
+          if (!parsedConversation.userAnswers || !Array.isArray(parsedConversation.userAnswers)) {
+            parsedConversation.userAnswers = [];
+          }
+          
+          console.log('📊 GoogleAuthService: Validated conversation data from localStorage:', {
+            messageCount: parsedConversation.messages.length,
+            userAnswerCount: parsedConversation.userAnswers.length
+          });
+          
+        } catch (parseError) {
+          console.error('❌ GoogleAuthService: Error parsing conversation from localStorage:', parseError);
+          parsedConversation = { messages: [], userAnswers: [] };
+        }
+        
         return {
           id: onboardingId,
           profile: JSON.parse(localProfile),
-          conversation: JSON.parse(localConversation),
+          conversation: parsedConversation,
           userName: localUserName || '',
           promptMode: localPromptMode || 'structured'
         };
       }
       
-      // Fallback to database if localStorage is not available
+      // Strategy 2: Fallback to database if localStorage is not available
       const { data, error } = await supabase
         .from('onboarding_data')
         .select('*')
@@ -244,10 +304,30 @@ export class GoogleAuthService {
       if (data) {
         console.log('✅ GoogleAuthService: Successfully retrieved onboarding data from database');
         
+        // ENHANCED: Validate conversation data from database
+        let conversationData = data.conversation_data;
+        if (!conversationData || typeof conversationData !== 'object') {
+          console.warn('⚠️ GoogleAuthService: Invalid conversation data from database, using defaults');
+          conversationData = { messages: [], userAnswers: [] };
+        }
+        
+        // Ensure required arrays exist
+        if (!conversationData.messages || !Array.isArray(conversationData.messages)) {
+          conversationData.messages = [];
+        }
+        if (!conversationData.userAnswers || !Array.isArray(conversationData.userAnswers)) {
+          conversationData.userAnswers = [];
+        }
+        
+        console.log('📊 GoogleAuthService: Validated conversation data from database:', {
+          messageCount: conversationData.messages.length,
+          userAnswerCount: conversationData.userAnswers.length
+        });
+        
         return {
           id: data.id,
           profile: data.profile_data,
-          conversation: data.conversation_data,
+          conversation: conversationData,
           promptMode: data.prompt_mode
         };
       }
@@ -268,7 +348,7 @@ export class GoogleAuthService {
     try {
       console.log('🧹 GoogleAuthService: Starting ultra-enhanced cleanup for ID:', onboardingId);
       
-      // Clean up localStorage with comprehensive removal
+      // Enhanced localStorage cleanup with OAuth-specific keys
       const keysToRemove = [
         'temp_onboarding_id',
         'onboarding_profile',
@@ -281,7 +361,8 @@ export class GoogleAuthService {
         'oauth_onboardingUserName',
         'oauth_onboardingConversation',
         'oauth_onboardingPromptMode',
-        'oauth_temp_onboarding_id'
+        'oauth_temp_onboarding_id',
+        'oauth_context'
       ];
       
       keysToRemove.forEach(key => {

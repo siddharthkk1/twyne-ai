@@ -142,17 +142,60 @@ export const useOnboardingChat = () => {
     scrollToBottomInstant
   } = useChatScroll();
 
-  // CRITICAL FIX: Store prompt mode in localStorage immediately when it changes
+  // ENHANCED: Store prompt mode AND conversation data in localStorage immediately when they change
   useEffect(() => {
     console.log('🔄 useOnboardingChat: Prompt mode changed to:', promptMode);
     
-    // Store prompt mode in localStorage immediately for manual sign-up flow
+    // Store prompt mode in localStorage immediately for both manual sign-up and OAuth flows
     localStorage.setItem('onboarding_prompt_mode', promptMode);
     localStorage.setItem('onboardingPromptMode', promptMode); // Legacy key for compatibility
     localStorage.setItem('prompt_mode', promptMode); // Additional fallback key
     
     console.log('💾 useOnboardingChat: Stored prompt mode in localStorage:', promptMode);
   }, [promptMode]);
+
+  // ENHANCED: Store conversation data in localStorage whenever it changes for OAuth preservation
+  useEffect(() => {
+    if (conversation && (conversation.messages.length > 0 || conversation.userAnswers.length > 0)) {
+      console.log('🔄 useOnboardingChat: Conversation changed, storing in localStorage for OAuth preservation');
+      
+      // Store conversation data with validation
+      const conversationToStore = {
+        messages: conversation.messages || [],
+        userAnswers: conversation.userAnswers || []
+      };
+      
+      localStorage.setItem('onboardingConversation', JSON.stringify(conversationToStore));
+      localStorage.setItem('onboarding_conversation', JSON.stringify(conversationToStore)); // Additional key
+      
+      console.log('💾 useOnboardingChat: Stored conversation data:', {
+        messageCount: conversationToStore.messages.length,
+        userAnswerCount: conversationToStore.userAnswers.length
+      });
+    }
+  }, [conversation]);
+
+  // ENHANCED: Store profile data whenever it changes for OAuth preservation
+  useEffect(() => {
+    if (userProfile && Object.keys(userProfile).some(key => userProfile[key as keyof UserProfile])) {
+      console.log('🔄 useOnboardingChat: Profile changed, storing in localStorage for OAuth preservation');
+      localStorage.setItem('onboardingProfile', JSON.stringify(userProfile));
+      localStorage.setItem('onboarding_profile', JSON.stringify(userProfile)); // Additional key
+      
+      console.log('💾 useOnboardingChat: Stored profile data with keys:', Object.keys(userProfile));
+    }
+  }, [userProfile]);
+
+  // ENHANCED: Store userName whenever it changes for OAuth preservation
+  useEffect(() => {
+    if (userName) {
+      console.log('🔄 useOnboardingChat: UserName changed, storing in localStorage for OAuth preservation');
+      localStorage.setItem('onboardingUserName', userName);
+      localStorage.setItem('onboarding_user_name', userName); // Additional key
+      
+      console.log('💾 useOnboardingChat: Stored userName:', userName);
+    }
+  }, [userName]);
 
   // Hide guidance info after user sends first message
   useEffect(() => {
@@ -240,13 +283,42 @@ export const useOnboardingChat = () => {
       setUserProfile(profile);
       setIsComplete(true);
       
-      // Store onboarding data in localStorage for manual sign-up flow
+      // ENHANCED: Store ALL onboarding data in localStorage with proper validation for manual sign-up flow
+      console.log("💾 useOnboardingChat: Storing comprehensive onboarding data in localStorage");
+      
+      // Store with multiple key patterns for maximum compatibility
+      const dataToStore = {
+        profile: profile,
+        conversation: finalConversation,
+        userName: userName || profile.name || '',
+        promptMode: promptMode,
+        timestamp: Date.now()
+      };
+      
+      // Primary storage keys
       localStorage.setItem('onboardingProfile', JSON.stringify(profile));
       localStorage.setItem('onboardingUserName', userName || profile.name || '');
       localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
-      // Prompt mode is already stored from the useEffect above
+      localStorage.setItem('onboarding_prompt_mode', promptMode);
       
-      console.log("💾 useOnboardingChat: Stored onboarding data in localStorage for manual sign-up");
+      // Legacy compatibility keys
+      localStorage.setItem('onboarding_profile', JSON.stringify(profile));
+      localStorage.setItem('onboarding_user_name', userName || profile.name || '');
+      localStorage.setItem('onboarding_conversation', JSON.stringify(finalConversation));
+      localStorage.setItem('onboardingPromptMode', promptMode);
+      localStorage.setItem('prompt_mode', promptMode);
+      
+      // Timestamp for cleanup
+      localStorage.setItem('onboarding_timestamp', Date.now().toString());
+      
+      console.log("💾 useOnboardingChat: Stored comprehensive onboarding data:", {
+        profileStored: !!localStorage.getItem('onboardingProfile'),
+        userNameStored: !!localStorage.getItem('onboardingUserName'),
+        conversationStored: !!localStorage.getItem('onboardingConversation'),
+        promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
+        conversationMessageCount: finalConversation.messages?.length || 0,
+        conversationUserAnswerCount: finalConversation.userAnswers?.length || 0
+      });
       
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
       

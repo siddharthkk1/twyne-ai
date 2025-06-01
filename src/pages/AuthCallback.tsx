@@ -14,7 +14,7 @@ const AuthCallback = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('Initializing...');
 
-  // Helper function to safely extract conversation data
+  // ENHANCED: Helper function to safely extract and validate conversation data
   const extractConversationData = (data: any): Conversation | null => {
     if (!data || typeof data !== 'object') return null;
     
@@ -23,12 +23,25 @@ const AuthCallback = () => {
       return data as Conversation;
     }
     
-    return null;
+    // Try to fix malformed conversation data
+    const fixedConversation: Conversation = {
+      messages: Array.isArray(data.messages) ? data.messages : [],
+      userAnswers: Array.isArray(data.userAnswers) ? data.userAnswers : []
+    };
+    
+    console.log('🔧 AuthCallback: Fixed malformed conversation data:', {
+      originalMessageCount: data.messages?.length || 0,
+      originalUserAnswerCount: data.userAnswers?.length || 0,
+      fixedMessageCount: fixedConversation.messages.length,
+      fixedUserAnswerCount: fixedConversation.userAnswers.length
+    });
+    
+    return fixedConversation;
   };
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('🚀 AuthCallback: Starting OAuth callback handler with enhanced data transfer');
+      console.log('🚀 AuthCallback: Starting OAuth callback handler with enhanced conversation data preservation');
       
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
@@ -103,11 +116,11 @@ const AuthCallback = () => {
       
       // Only proceed if auth is not loading and we have a user
       if (!isLoading && user) {
-        console.log('🎯 AuthCallback: User authenticated, processing enhanced data transfer');
+        console.log('🎯 AuthCallback: User authenticated, processing enhanced conversation data transfer');
         
         setHasHandledCallback(true);
         setIsProcessing(true);
-        setDebugInfo('Processing authenticated user with enhanced data transfer...');
+        setDebugInfo('Processing authenticated user with enhanced conversation data transfer...');
         
         try {
           // Add a small delay to ensure trigger has time to execute
@@ -178,12 +191,12 @@ const AuthCallback = () => {
             console.log('✅ AuthCallback: Found existing user_data record');
           }
           
-          // Enhanced onboarding data retrieval and transfer
+          // ENHANCED: onboarding data retrieval and transfer with improved conversation validation
           let onboardingDataTransferred = false;
           
           // Strategy 1: Check URL parameter for onboarding ID
           if (onboardingId && userData) {
-            console.log('🔍 AuthCallback: Processing onboarding ID from URL:', onboardingId);
+            console.log('🔍 AuthCallback: Processing onboarding ID from URL with enhanced conversation validation:', onboardingId);
             setDebugInfo(`Processing onboarding data for ID: ${onboardingId}`);
             
             const onboardingData = await GoogleAuthService.retrieveOnboardingData(onboardingId);
@@ -191,16 +204,23 @@ const AuthCallback = () => {
             if (onboardingData) {
               console.log('✅ AuthCallback: Retrieved onboarding data from URL parameter');
               
+              // ENHANCED: Validate conversation data before transfer
+              const validatedConversation = extractConversationData(onboardingData.conversation);
+              
+              if (!validatedConversation) {
+                console.warn('⚠️ AuthCallback: Invalid conversation data, using fallback');
+              }
+              
               // Enhanced transfer with explicit field mapping and validation
               const updateData = {
                 profile_data: onboardingData.profile || {},
-                conversation_data: onboardingData.conversation || {},
+                conversation_data: validatedConversation || { messages: [], userAnswers: [] },
                 prompt_mode: onboardingData.promptMode || 'structured',
                 has_completed_onboarding: true,
                 updated_at: new Date().toISOString()
               };
               
-              console.log('🔄 AuthCallback: Transferring onboarding data with enhanced validation...');
+              console.log('🔄 AuthCallback: Transferring onboarding data with enhanced conversation validation...');
               
               // Safe conversation data extraction for logging
               const conversationData = extractConversationData(updateData.conversation_data);
@@ -210,7 +230,8 @@ const AuthCallback = () => {
                 promptMode: updateData.prompt_mode,
                 hasCompletedOnboarding: updateData.has_completed_onboarding,
                 conversationMessageCount: conversationData?.messages?.length || 0,
-                conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
+                conversationUserAnswerCount: conversationData?.userAnswers?.length || 0,
+                conversationIsValid: !!conversationData
               });
               
               const { error: updateError, data: updatedData } = await supabase
@@ -223,8 +244,8 @@ const AuthCallback = () => {
                 console.error('❌ AuthCallback: Error transferring onboarding data:', updateError);
                 setDebugInfo(`Error transferring onboarding data: ${updateError.message}`);
               } else {
-                console.log('✅ AuthCallback: Successfully transferred onboarding data');
-                setDebugInfo('Onboarding data transferred successfully');
+                console.log('✅ AuthCallback: Successfully transferred onboarding data with conversation validation');
+                setDebugInfo('Onboarding data transferred successfully with conversation validation');
                 onboardingDataTransferred = true;
                 
                 toast({
@@ -241,14 +262,14 @@ const AuthCallback = () => {
             }
           }
           
-          // Strategy 2: Check localStorage for onboarding data (fallback)
+          // Strategy 2: Check localStorage for onboarding data (fallback) with enhanced conversation validation
           if (!onboardingDataTransferred) {
-            console.log('🔍 AuthCallback: Checking localStorage for onboarding data...');
+            console.log('🔍 AuthCallback: Checking localStorage for onboarding data with enhanced conversation validation...');
             
-            const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
-            const storedProfile = localStorage.getItem('onboarding_profile');
-            const storedConversation = localStorage.getItem('onboarding_conversation');
-            const storedPromptMode = localStorage.getItem('onboarding_prompt_mode');
+            const tempOnboardingId = localStorage.getItem('temp_onboarding_id') || localStorage.getItem('oauth_temp_onboarding_id');
+            const storedProfile = localStorage.getItem('onboarding_profile') || localStorage.getItem('oauth_onboardingProfile');
+            const storedConversation = localStorage.getItem('onboarding_conversation') || localStorage.getItem('oauth_onboardingConversation');
+            const storedPromptMode = localStorage.getItem('onboarding_prompt_mode') || localStorage.getItem('oauth_onboardingPromptMode');
             
             console.log('📊 AuthCallback: localStorage onboarding data check:', {
               hasTempId: !!tempOnboardingId,
@@ -262,10 +283,25 @@ const AuthCallback = () => {
             if (tempOnboardingId && storedProfile && storedConversation) {
               try {
                 const profileData = JSON.parse(storedProfile);
-                const conversationData = JSON.parse(storedConversation);
+                let conversationData;
+                
+                // ENHANCED: Validate conversation data from localStorage
+                try {
+                  const parsedConversation = JSON.parse(storedConversation);
+                  conversationData = extractConversationData(parsedConversation);
+                  
+                  if (!conversationData) {
+                    console.warn('⚠️ AuthCallback: Invalid conversation data from localStorage, using fallback');
+                    conversationData = { messages: [], userAnswers: [] };
+                  }
+                } catch (parseError) {
+                  console.error('❌ AuthCallback: Error parsing conversation from localStorage:', parseError);
+                  conversationData = { messages: [], userAnswers: [] };
+                }
+                
                 const promptMode = storedPromptMode || 'structured';
                 
-                console.log('✅ AuthCallback: Retrieved onboarding data from localStorage');
+                console.log('✅ AuthCallback: Retrieved onboarding data from localStorage with conversation validation');
                 
                 // Enhanced transfer with validation
                 const updateData = {
@@ -276,7 +312,7 @@ const AuthCallback = () => {
                   updated_at: new Date().toISOString()
                 };
                 
-                console.log('🔄 AuthCallback: Transferring localStorage data with enhanced validation...');
+                console.log('🔄 AuthCallback: Transferring localStorage data with enhanced conversation validation...');
                 
                 // Safe conversation data extraction for logging
                 const safeConversationData = extractConversationData(updateData.conversation_data);
@@ -285,7 +321,8 @@ const AuthCallback = () => {
                   hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
                   promptMode: updateData.prompt_mode,
                   conversationMessageCount: safeConversationData?.messages?.length || 0,
-                  conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0
+                  conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0,
+                  conversationIsValid: !!safeConversationData
                 });
                 
                 const { error: updateError, data: updatedData } = await supabase
@@ -298,8 +335,8 @@ const AuthCallback = () => {
                   console.error('❌ AuthCallback: Error transferring localStorage data:', updateError);
                   setDebugInfo(`Error transferring localStorage data: ${updateError.message}`);
                 } else {
-                  console.log('✅ AuthCallback: Successfully transferred localStorage data');
-                  setDebugInfo('localStorage onboarding data transferred successfully');
+                  console.log('✅ AuthCallback: Successfully transferred localStorage data with conversation validation');
+                  setDebugInfo('localStorage onboarding data transferred successfully with conversation validation');
                   onboardingDataTransferred = true;
                   
                   // Clean up localStorage after successful transfer
@@ -309,7 +346,12 @@ const AuthCallback = () => {
                     'onboarding_user_name',
                     'onboarding_conversation',
                     'onboarding_prompt_mode',
-                    'onboarding_timestamp'
+                    'onboarding_timestamp',
+                    'oauth_onboardingProfile',
+                    'oauth_onboardingUserName',
+                    'oauth_onboardingConversation',
+                    'oauth_onboardingPromptMode',
+                    'oauth_temp_onboarding_id'
                   ];
                   
                   keysToRemove.forEach(key => {
@@ -329,11 +371,11 @@ const AuthCallback = () => {
             }
           }
           
-          // Strategy 3: Check database for anonymous onboarding records
+          // Strategy 3: Check database for anonymous onboarding records with enhanced conversation validation
           if (!onboardingDataTransferred) {
-            console.log('🔍 AuthCallback: Checking database for anonymous onboarding records...');
+            console.log('🔍 AuthCallback: Checking database for anonymous onboarding records with enhanced conversation validation...');
             
-            const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
+            const tempOnboardingId = localStorage.getItem('temp_onboarding_id') || localStorage.getItem('oauth_temp_onboarding_id');
             if (tempOnboardingId) {
               const { data: onboardingRecords, error: fetchError } = await supabase
                 .from('onboarding_data')
@@ -349,16 +391,19 @@ const AuthCallback = () => {
                 const record = onboardingRecords[0];
                 console.log('✅ AuthCallback: Found anonymous onboarding record in database');
                 
+                // ENHANCED: Validate conversation data from database
+                const validatedConversation = extractConversationData(record.conversation_data);
+                
                 // Enhanced transfer with validation
                 const updateData = {
                   profile_data: record.profile_data || {},
-                  conversation_data: record.conversation_data || {},
+                  conversation_data: validatedConversation || { messages: [], userAnswers: [] },
                   prompt_mode: record.prompt_mode || 'structured',
                   has_completed_onboarding: true,
                   updated_at: new Date().toISOString()
                 };
                 
-                console.log('🔄 AuthCallback: Transferring database record with enhanced validation...');
+                console.log('🔄 AuthCallback: Transferring database record with enhanced conversation validation...');
                 
                 // Safe conversation data extraction for logging
                 const safeConversationData = extractConversationData(updateData.conversation_data);
@@ -367,7 +412,8 @@ const AuthCallback = () => {
                   hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
                   promptMode: updateData.prompt_mode,
                   conversationMessageCount: safeConversationData?.messages?.length || 0,
-                  conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0
+                  conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0,
+                  conversationIsValid: !!safeConversationData
                 });
                 
                 const { error: updateError, data: updatedData } = await supabase
@@ -380,8 +426,8 @@ const AuthCallback = () => {
                   console.error('❌ AuthCallback: Error transferring database record:', updateError);
                   setDebugInfo(`Error transferring database record: ${updateError.message}`);
                 } else {
-                  console.log('✅ AuthCallback: Successfully transferred database record');
-                  setDebugInfo('Database onboarding record transferred successfully');
+                  console.log('✅ AuthCallback: Successfully transferred database record with conversation validation');
+                  setDebugInfo('Database onboarding record transferred successfully with conversation validation');
                   onboardingDataTransferred = true;
                   
                   // Clean up the anonymous record after successful transfer
@@ -403,8 +449,8 @@ const AuthCallback = () => {
           
           // Final routing decision based on transfer success
           if (onboardingDataTransferred) {
-            console.log('🎉 AuthCallback: Onboarding data successfully transferred, navigating to mirror');
-            setDebugInfo('Onboarding data transferred, redirecting to mirror');
+            console.log('🎉 AuthCallback: Onboarding data successfully transferred with conversation validation, navigating to mirror');
+            setDebugInfo('Onboarding data transferred with conversation validation, redirecting to mirror');
             
             // Clear URL parameters before redirecting
             window.history.replaceState({}, document.title, window.location.pathname);
