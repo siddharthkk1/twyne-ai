@@ -104,8 +104,7 @@ export const useSupabaseSync = () => {
         const { error } = await supabase
           .from('onboarding_data')
           .delete()
-          .eq('user_id', tempOnboardingId)
-          .eq('is_anonymous', true);
+          .eq('id', tempOnboardingId);
         
         if (error) {
           console.warn('⚠️ useSupabaseSync: Failed to cleanup database records:', error);

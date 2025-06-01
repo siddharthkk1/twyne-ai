@@ -18,11 +18,9 @@ export class GoogleAuthService {
       .from('onboarding_data')
       .insert({
         id: tempId,
-        user_id: tempId,
         profile_data: data.profile as Json,
         onboarding_conversation: data.conversation as Json,
-        onboarding_mode: data.promptMode,
-        is_anonymous: true
+        onboarding_mode: data.promptMode
       });
 
     if (error) {
@@ -112,7 +110,6 @@ export class GoogleAuthService {
         .from('onboarding_data')
         .select('*')
         .eq('id', tempId)
-        .eq('is_anonymous', true)
         .single();
       
       if (error) {
@@ -148,8 +145,7 @@ export class GoogleAuthService {
       const { error } = await supabase
         .from('onboarding_data')
         .delete()
-        .eq('id', tempId)
-        .eq('is_anonymous', true);
+        .eq('id', tempId);
       
       if (error) {
         console.warn('⚠️ GoogleAuthService: Error cleaning up database record:', error);

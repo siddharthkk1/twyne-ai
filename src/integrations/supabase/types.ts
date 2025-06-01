@@ -13,29 +13,23 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          is_anonymous: boolean
           onboarding_conversation: Json
           onboarding_mode: string | null
           profile_data: Json
-          user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          is_anonymous?: boolean
           onboarding_conversation: Json
           onboarding_mode?: string | null
           profile_data: Json
-          user_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          is_anonymous?: boolean
           onboarding_conversation?: Json
           onboarding_mode?: string | null
           profile_data?: Json
-          user_id?: string
         }
         Relationships: []
       }
