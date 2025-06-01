@@ -76,12 +76,6 @@ export const useSupabaseSync = () => {
 
         if (error) {
           console.error("❌ useSupabaseSync: Error updating user data:", error);
-          console.error("❌ useSupabaseSync: Error details:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
           throw error;
         }
 
@@ -107,7 +101,7 @@ export const useSupabaseSync = () => {
         // For anonymous users, store in localStorage and generate temporary record with proper UUID
         const finalPromptMode = promptMode || 'structured';
         
-        // Enhanced cleanup of any existing anonymous session with aggressive duplicate prevention
+        // Enhanced cleanup of any existing anonymous session
         await cleanupExistingAnonymousSessions();
         
         // Generate proper UUID for the session with fallback
@@ -162,26 +156,14 @@ export const useSupabaseSync = () => {
           conversationUserAnswerCount: conversation?.userAnswers?.length || 0
         });
 
-        // Enhanced upsert to prevent duplicates
+        // Use insert instead of upsert to avoid conflicts and ensure new record
         const { error, data } = await supabase
           .from('onboarding_data')
-          .upsert(
-            insertData,
-            {
-              onConflict: 'id',
-              ignoreDuplicates: false
-            }
-          )
+          .insert(insertData)
           .select();
 
         if (error) {
           console.error("❌ useSupabaseSync: Error saving onboarding data:", error);
-          console.error("❌ useSupabaseSync: Error details:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
           throw error;
         }
 
@@ -200,19 +182,14 @@ export const useSupabaseSync = () => {
       }
     } catch (error) {
       console.error("❌ useSupabaseSync: Error in saveOnboardingData:", error);
-      console.error("❌ useSupabaseSync: Error details:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
       throw error;
     }
   };
 
-  // Enhanced function to clean up existing anonymous sessions more aggressively
+  // Enhanced function to clean up existing anonymous sessions
   const cleanupExistingAnonymousSessions = async () => {
     try {
-      console.log("🧹 useSupabaseSync: Starting aggressive cleanup of existing anonymous sessions");
+      console.log("🧹 useSupabaseSync: Starting cleanup of existing anonymous sessions");
       
       // Get existing temp onboarding ID from localStorage
       const existingTempId = localStorage.getItem('temp_onboarding_id');
@@ -250,11 +227,11 @@ export const useSupabaseSync = () => {
       }
       
     } catch (error) {
-      console.error("❌ useSupabaseSync: Error during aggressive cleanup:", error);
+      console.error("❌ useSupabaseSync: Error during cleanup:", error);
     }
   };
 
-  // Enhanced cleanup function with better targeting of ALL session-related records
+  // Enhanced cleanup function with better targeting of session-related records
   const cleanupOnboardingData = async (userId: string) => {
     try {
       console.log("🧹 useSupabaseSync: Starting comprehensive cleanup of onboarding_data records for user:", userId);

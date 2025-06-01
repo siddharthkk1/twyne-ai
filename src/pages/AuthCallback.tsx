@@ -91,12 +91,6 @@ const AuthCallback = () => {
       // Only proceed if auth is not loading and we have a user
       if (!isLoading && user) {
         console.log('🎯 AuthCallback: User authenticated, processing enhanced data transfer');
-        console.log('🔍 AuthCallback: Authenticated user details:', {
-          id: user.id,
-          email: user.email,
-          provider: user.app_metadata?.provider,
-          createdAt: user.created_at
-        });
         
         setHasHandledCallback(true);
         setIsProcessing(true);
@@ -183,16 +177,8 @@ const AuthCallback = () => {
             
             if (onboardingData) {
               console.log('✅ AuthCallback: Retrieved onboarding data from URL parameter');
-              console.log('📊 AuthCallback: Onboarding data details:', {
-                hasProfile: !!onboardingData.profile,
-                hasConversation: !!onboardingData.conversation,
-                promptMode: onboardingData.promptMode,
-                profileName: onboardingData.profile?.name,
-                conversationMessageCount: onboardingData.conversation?.messages?.length || 0,
-                conversationUserAnswerCount: onboardingData.conversation?.userAnswers?.length || 0
-              });
               
-              // Enhanced transfer with explicit field mapping
+              // Enhanced transfer with explicit field mapping and validation
               const updateData = {
                 profile_data: onboardingData.profile || {},
                 conversation_data: onboardingData.conversation || {},
@@ -201,10 +187,10 @@ const AuthCallback = () => {
                 updated_at: new Date().toISOString()
               };
               
-              console.log('🔄 AuthCallback: Transferring onboarding data with enhanced mapping...');
+              console.log('🔄 AuthCallback: Transferring onboarding data with enhanced validation...');
               console.log('📊 AuthCallback: Update data to transfer:', {
-                hasProfileData: !!updateData.profile_data,
-                hasConversationData: !!updateData.conversation_data,
+                hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
+                hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
                 promptMode: updateData.prompt_mode,
                 hasCompletedOnboarding: updateData.has_completed_onboarding,
                 conversationMessageCount: updateData.conversation_data?.messages?.length || 0,
@@ -222,16 +208,6 @@ const AuthCallback = () => {
                 setDebugInfo(`Error transferring onboarding data: ${updateError.message}`);
               } else {
                 console.log('✅ AuthCallback: Successfully transferred onboarding data');
-                console.log('📊 AuthCallback: Transfer verification:', {
-                  dataReturned: !!updatedData,
-                  recordCount: updatedData?.length || 0,
-                  transferredData: updatedData?.[0] ? {
-                    hasProfileData: !!updatedData[0].profile_data,
-                    hasConversationData: !!updatedData[0].conversation_data,
-                    promptMode: updatedData[0].prompt_mode,
-                    hasCompletedOnboarding: updatedData[0].has_completed_onboarding
-                  } : null
-                });
                 setDebugInfo('Onboarding data transferred successfully');
                 onboardingDataTransferred = true;
                 
@@ -274,16 +250,8 @@ const AuthCallback = () => {
                 const promptMode = storedPromptMode || 'structured';
                 
                 console.log('✅ AuthCallback: Retrieved onboarding data from localStorage');
-                console.log('📊 AuthCallback: localStorage data details:', {
-                  profileName: profileData?.name,
-                  profileKeys: Object.keys(profileData || {}),
-                  conversationKeys: Object.keys(conversationData || {}),
-                  conversationMessageCount: conversationData?.messages?.length || 0,
-                  conversationUserAnswerCount: conversationData?.userAnswers?.length || 0,
-                  promptMode: promptMode
-                });
                 
-                // Enhanced transfer with explicit field mapping
+                // Enhanced transfer with validation
                 const updateData = {
                   profile_data: profileData,
                   conversation_data: conversationData,
@@ -292,7 +260,14 @@ const AuthCallback = () => {
                   updated_at: new Date().toISOString()
                 };
                 
-                console.log('🔄 AuthCallback: Transferring localStorage data with enhanced mapping...');
+                console.log('🔄 AuthCallback: Transferring localStorage data with enhanced validation...');
+                console.log('📊 AuthCallback: localStorage data to transfer:', {
+                  hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
+                  hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
+                  promptMode: updateData.prompt_mode,
+                  conversationMessageCount: updateData.conversation_data?.messages?.length || 0,
+                  conversationUserAnswerCount: updateData.conversation_data?.userAnswers?.length || 0
+                });
                 
                 const { error: updateError, data: updatedData } = await supabase
                   .from('user_data')
@@ -305,16 +280,6 @@ const AuthCallback = () => {
                   setDebugInfo(`Error transferring localStorage data: ${updateError.message}`);
                 } else {
                   console.log('✅ AuthCallback: Successfully transferred localStorage data');
-                  console.log('📊 AuthCallback: localStorage transfer verification:', {
-                    dataReturned: !!updatedData,
-                    recordCount: updatedData?.length || 0,
-                    transferredData: updatedData?.[0] ? {
-                      hasProfileData: !!updatedData[0].profile_data,
-                      hasConversationData: !!updatedData[0].conversation_data,
-                      promptMode: updatedData[0].prompt_mode,
-                      hasCompletedOnboarding: updatedData[0].has_completed_onboarding
-                    } : null
-                  });
                   setDebugInfo('localStorage onboarding data transferred successfully');
                   onboardingDataTransferred = true;
                   
@@ -364,15 +329,8 @@ const AuthCallback = () => {
               } else if (onboardingRecords && onboardingRecords.length > 0) {
                 const record = onboardingRecords[0];
                 console.log('✅ AuthCallback: Found anonymous onboarding record in database');
-                console.log('📊 AuthCallback: Database record details:', {
-                  recordId: record.id,
-                  hasProfileData: !!record.profile_data,
-                  hasConversationData: !!record.conversation_data,
-                  promptMode: record.prompt_mode,
-                  isAnonymous: record.is_anonymous
-                });
                 
-                // Enhanced transfer with explicit field mapping
+                // Enhanced transfer with validation
                 const updateData = {
                   profile_data: record.profile_data || {},
                   conversation_data: record.conversation_data || {},
@@ -381,7 +339,14 @@ const AuthCallback = () => {
                   updated_at: new Date().toISOString()
                 };
                 
-                console.log('🔄 AuthCallback: Transferring database record with enhanced mapping...');
+                console.log('🔄 AuthCallback: Transferring database record with enhanced validation...');
+                console.log('📊 AuthCallback: Database record to transfer:', {
+                  hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
+                  hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
+                  promptMode: updateData.prompt_mode,
+                  conversationMessageCount: updateData.conversation_data?.messages?.length || 0,
+                  conversationUserAnswerCount: updateData.conversation_data?.userAnswers?.length || 0
+                });
                 
                 const { error: updateError, data: updatedData } = await supabase
                   .from('user_data')
@@ -394,16 +359,6 @@ const AuthCallback = () => {
                   setDebugInfo(`Error transferring database record: ${updateError.message}`);
                 } else {
                   console.log('✅ AuthCallback: Successfully transferred database record');
-                  console.log('📊 AuthCallback: Database transfer verification:', {
-                    dataReturned: !!updatedData,
-                    recordCount: updatedData?.length || 0,
-                    transferredData: updatedData?.[0] ? {
-                      hasProfileData: !!updatedData[0].profile_data,
-                      hasConversationData: !!updatedData[0].conversation_data,
-                      promptMode: updatedData[0].prompt_mode,
-                      hasCompletedOnboarding: updatedData[0].has_completed_onboarding
-                    } : null
-                  });
                   setDebugInfo('Database onboarding record transferred successfully');
                   onboardingDataTransferred = true;
                   
