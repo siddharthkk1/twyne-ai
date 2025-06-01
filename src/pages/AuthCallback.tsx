@@ -14,29 +14,102 @@ const AuthCallback = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('Initializing...');
 
-  // ENHANCED: Helper function to safely extract and validate conversation data
+  // ENHANCED: Helper function to safely extract and validate conversation data with improved validation
   const extractConversationData = (data: any): Conversation | null => {
-    if (!data || typeof data !== 'object') return null;
+    console.log('🔍 AuthCallback: Extracting conversation data:', data);
+    
+    if (!data || typeof data !== 'object') {
+      console.warn('⚠️ AuthCallback: Invalid conversation data - not an object');
+      return null;
+    }
     
     // Check if it has the expected conversation structure
     if (data.messages && Array.isArray(data.messages) && data.userAnswers && Array.isArray(data.userAnswers)) {
+      console.log('✅ AuthCallback: Valid conversation structure found');
       return data as Conversation;
     }
     
-    // Try to fix malformed conversation data
+    // ENHANCED: Try to fix malformed conversation data with more robust validation
     const fixedConversation: Conversation = {
-      messages: Array.isArray(data.messages) ? data.messages : [],
-      userAnswers: Array.isArray(data.userAnswers) ? data.userAnswers : []
+      messages: [],
+      userAnswers: []
     };
     
-    console.log('🔧 AuthCallback: Fixed malformed conversation data:', {
+    // Try to extract messages
+    if (data.messages) {
+      if (Array.isArray(data.messages)) {
+        fixedConversation.messages = data.messages;
+      } else if (typeof data.messages === 'object' && data.messages.length !== undefined) {
+        // Handle array-like objects
+        fixedConversation.messages = Array.from(data.messages);
+      }
+    }
+    
+    // Try to extract userAnswers
+    if (data.userAnswers) {
+      if (Array.isArray(data.userAnswers)) {
+        fixedConversation.userAnswers = data.userAnswers;
+      } else if (typeof data.userAnswers === 'object' && data.userAnswers.length !== undefined) {
+        // Handle array-like objects
+        fixedConversation.userAnswers = Array.from(data.userAnswers);
+      }
+    }
+    
+    // ENHANCED: Additional fallback - try to extract from nested structures
+    if (fixedConversation.messages.length === 0 && fixedConversation.userAnswers.length === 0) {
+      // Check if data is wrapped in another object
+      const keys = Object.keys(data);
+      for (const key of keys) {
+        if (data[key] && typeof data[key] === 'object') {
+          const nestedResult = extractConversationData(data[key]);
+          if (nestedResult && (nestedResult.messages.length > 0 || nestedResult.userAnswers.length > 0)) {
+            console.log('✅ AuthCallback: Found valid conversation data in nested structure');
+            return nestedResult;
+          }
+        }
+      }
+    }
+    
+    console.log('🔧 AuthCallback: Fixed conversation data:', {
       originalMessageCount: data.messages?.length || 0,
       originalUserAnswerCount: data.userAnswers?.length || 0,
       fixedMessageCount: fixedConversation.messages.length,
-      fixedUserAnswerCount: fixedConversation.userAnswers.length
+      fixedUserAnswerCount: fixedConversation.userAnswers.length,
+      hasValidData: fixedConversation.messages.length > 0 || fixedConversation.userAnswers.length > 0
     });
     
-    return fixedConversation;
+    // Only return if we have some valid data, otherwise return null
+    return (fixedConversation.messages.length > 0 || fixedConversation.userAnswers.length > 0) 
+      ? fixedConversation 
+      : null;
+  };
+
+  // ENHANCED: Helper function to get conversation data from localStorage with improved parsing
+  const getConversationFromLocalStorage = (): Conversation | null => {
+    console.log('🔍 AuthCallback: Retrieving conversation from localStorage');
+    
+    const storedConversation = localStorage.getItem('onboarding_conversation') || localStorage.getItem('oauth_onboardingConversation');
+    
+    if (!storedConversation) {
+      console.warn('⚠️ AuthCallback: No conversation data found in localStorage');
+      return null;
+    }
+    
+    try {
+      const parsedConversation = JSON.parse(storedConversation);
+      const validatedConversation = extractConversationData(parsedConversation);
+      
+      if (validatedConversation) {
+        console.log('✅ AuthCallback: Successfully retrieved and validated conversation from localStorage');
+        return validatedConversation;
+      } else {
+        console.warn('⚠️ AuthCallback: Invalid conversation structure in localStorage');
+        return null;
+      }
+    } catch (parseError) {
+      console.error('❌ AuthCallback: Error parsing conversation from localStorage:', parseError);
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -208,13 +281,17 @@ const AuthCallback = () => {
               const validatedConversation = extractConversationData(onboardingData.conversation);
               
               if (!validatedConversation) {
-                console.warn('⚠️ AuthCallback: Invalid conversation data, using fallback');
+                console.warn('⚠️ AuthCallback: Invalid conversation data from URL, trying localStorage fallback');
+                const fallbackConversation = getConversationFromLocalStorage();
+                if (fallbackConversation) {
+                  console.log('✅ AuthCallback: Using fallback conversation from localStorage');
+                }
               }
               
               // Enhanced transfer with explicit field mapping and validation
               const updateData = {
                 profile_data: onboardingData.profile || {},
-                conversation_data: validatedConversation || { messages: [], userAnswers: [] } as any,
+                conversation_data: validatedConversation || getConversationFromLocalStorage() || { messages: [], userAnswers: [] } as any,
                 prompt_mode: onboardingData.promptMode || 'structured',
                 has_completed_onboarding: true,
                 updated_at: new Date().toISOString()
@@ -268,40 +345,28 @@ const AuthCallback = () => {
             
             const tempOnboardingId = localStorage.getItem('temp_onboarding_id') || localStorage.getItem('oauth_temp_onboarding_id');
             const storedProfile = localStorage.getItem('onboarding_profile') || localStorage.getItem('oauth_onboardingProfile');
-            const storedConversation = localStorage.getItem('onboarding_conversation') || localStorage.getItem('oauth_onboardingConversation');
             const storedPromptMode = localStorage.getItem('onboarding_prompt_mode') || localStorage.getItem('oauth_onboardingPromptMode');
+            
+            // ENHANCED: Use the improved conversation retrieval function
+            const conversationData = getConversationFromLocalStorage();
             
             console.log('📊 AuthCallback: localStorage onboarding data check:', {
               hasTempId: !!tempOnboardingId,
               tempId: tempOnboardingId,
               hasProfile: !!storedProfile,
-              hasConversation: !!storedConversation,
+              hasConversation: !!conversationData,
               hasPromptMode: !!storedPromptMode,
-              promptModeValue: storedPromptMode
+              promptModeValue: storedPromptMode,
+              conversationMessageCount: conversationData?.messages?.length || 0,
+              conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
             });
             
-            if (tempOnboardingId && storedProfile && storedConversation) {
+            if (tempOnboardingId && storedProfile && conversationData) {
               try {
                 const profileData = JSON.parse(storedProfile);
-                let conversationData;
-                
-                // ENHANCED: Validate conversation data from localStorage
-                try {
-                  const parsedConversation = JSON.parse(storedConversation);
-                  conversationData = extractConversationData(parsedConversation);
-                  
-                  if (!conversationData) {
-                    console.warn('⚠️ AuthCallback: Invalid conversation data from localStorage, using fallback');
-                    conversationData = { messages: [], userAnswers: [] };
-                  }
-                } catch (parseError) {
-                  console.error('❌ AuthCallback: Error parsing conversation from localStorage:', parseError);
-                  conversationData = { messages: [], userAnswers: [] };
-                }
-                
                 const promptMode = storedPromptMode || 'structured';
                 
-                console.log('✅ AuthCallback: Retrieved onboarding data from localStorage with conversation validation');
+                console.log('✅ AuthCallback: Retrieved comprehensive onboarding data from localStorage with conversation validation');
                 
                 // Enhanced transfer with validation
                 const updateData = {
@@ -314,15 +379,13 @@ const AuthCallback = () => {
                 
                 console.log('🔄 AuthCallback: Transferring localStorage data with enhanced conversation validation...');
                 
-                // Safe conversation data extraction for logging
-                const safeConversationData = extractConversationData(updateData.conversation_data);
                 console.log('📊 AuthCallback: localStorage data to transfer:', {
                   hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
                   hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
                   promptMode: updateData.prompt_mode,
-                  conversationMessageCount: safeConversationData?.messages?.length || 0,
-                  conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0,
-                  conversationIsValid: !!safeConversationData
+                  conversationMessageCount: conversationData.messages.length,
+                  conversationUserAnswerCount: conversationData.userAnswers.length,
+                  conversationIsValid: !!conversationData
                 });
                 
                 const { error: updateError, data: updatedData } = await supabase

@@ -186,14 +186,17 @@ export const useOnboardingChat = () => {
     }
   }, [userProfile]);
 
-  // ENHANCED: Store userName whenever it changes for OAuth preservation
+  // ENHANCED: Store userName whenever it changes for OAuth preservation with improved timing
   useEffect(() => {
-    if (userName) {
+    if (userName && userName.trim()) {
       console.log('🔄 useOnboardingChat: UserName changed, storing in localStorage for OAuth preservation');
       localStorage.setItem('onboardingUserName', userName);
       localStorage.setItem('onboarding_user_name', userName); // Additional key
       
-      console.log('💾 useOnboardingChat: Stored userName:', userName);
+      // ALSO update the profile immediately to ensure consistency
+      setUserProfile(prev => ({ ...prev, name: userName }));
+      
+      console.log('💾 useOnboardingChat: Stored userName and updated profile:', userName);
     }
   }, [userName]);
 
@@ -263,22 +266,33 @@ export const useOnboardingChat = () => {
       console.log("🔄 useOnboardingChat: Completing onboarding with userName:", userName);
       console.log("📊 useOnboardingChat: Final conversation:", finalConversation);
       
-      setUserProfile(prev => ({ ...prev, name: userName }));
+      // ENHANCED: Ensure userName is properly set in profile before generation
+      let finalUserName = userName;
+      if (!finalUserName && userProfile.name) {
+        finalUserName = userProfile.name;
+        setUserName(userProfile.name);
+      }
       
-      const profile = await generateProfile(finalConversation, userName);
+      // Update profile with final userName
+      const updatedProfile = { ...userProfile, name: finalUserName };
+      setUserProfile(updatedProfile);
+      
+      const profile = await generateProfile(finalConversation, finalUserName);
       console.log("✅ useOnboardingChat: Generated profile:", profile);
       
-      if (userName) {
-        profile.name = userName;
-      } else if (profile.name && !userName) {
+      // ENHANCED: Ensure name consistency across all data
+      if (finalUserName) {
+        profile.name = finalUserName;
+      } else if (profile.name && !finalUserName) {
+        finalUserName = profile.name;
         setUserName(profile.name);
       }
       
-      if (!profile.name && userName) {
-        profile.name = userName;
+      if (!profile.name && finalUserName) {
+        profile.name = finalUserName;
       }
       
-      console.log("📊 useOnboardingChat: Final profile with name:", profile);
+      console.log("📊 useOnboardingChat: Final profile with consistent name:", profile);
       
       setUserProfile(profile);
       setIsComplete(true);
@@ -290,20 +304,20 @@ export const useOnboardingChat = () => {
       const dataToStore = {
         profile: profile,
         conversation: finalConversation,
-        userName: userName || profile.name || '',
+        userName: finalUserName || profile.name || '',
         promptMode: promptMode,
         timestamp: Date.now()
       };
       
       // Primary storage keys
       localStorage.setItem('onboardingProfile', JSON.stringify(profile));
-      localStorage.setItem('onboardingUserName', userName || profile.name || '');
+      localStorage.setItem('onboardingUserName', finalUserName || profile.name || '');
       localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
       localStorage.setItem('onboarding_prompt_mode', promptMode);
       
       // Legacy compatibility keys
       localStorage.setItem('onboarding_profile', JSON.stringify(profile));
-      localStorage.setItem('onboarding_user_name', userName || profile.name || '');
+      localStorage.setItem('onboarding_user_name', finalUserName || profile.name || '');
       localStorage.setItem('onboarding_conversation', JSON.stringify(finalConversation));
       localStorage.setItem('onboardingPromptMode', promptMode);
       localStorage.setItem('prompt_mode', promptMode);
@@ -317,7 +331,8 @@ export const useOnboardingChat = () => {
         conversationStored: !!localStorage.getItem('onboardingConversation'),
         promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
         conversationMessageCount: finalConversation.messages?.length || 0,
-        conversationUserAnswerCount: finalConversation.userAnswers?.length || 0
+        conversationUserAnswerCount: finalConversation.userAnswers?.length || 0,
+        finalUserName: finalUserName
       });
       
       await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
@@ -328,7 +343,7 @@ export const useOnboardingChat = () => {
         navigate("/onboarding-results", { 
           state: { 
             userProfile: profile, 
-            userName: userName || profile.name,
+            userName: finalUserName || profile.name,
             conversation: finalConversation 
           } 
         });
@@ -410,9 +425,15 @@ export const useOnboardingChat = () => {
         setInput("");
       });
       
-      console.log("Setting userName from final response:", textToSend);
+      console.log("ENHANCED: Setting userName from final response:", textToSend);
+      
+      // ENHANCED: Set userName immediately and update profile synchronously
       setUserName(textToSend);
       setUserProfile(prev => ({ ...prev, name: textToSend }));
+      
+      // ENHANCED: Also store immediately in localStorage for consistency
+      localStorage.setItem('onboardingUserName', textToSend);
+      localStorage.setItem('onboarding_user_name', textToSend);
       
       setIsTyping(false);
 
@@ -429,7 +450,7 @@ export const useOnboardingChat = () => {
         userAnswers: [...conversation.userAnswers, textToSend]
       };
       
-      console.log("Final conversation before completion:", finalConversation);
+      console.log("ENHANCED: Final conversation before completion with userName:", textToSend, finalConversation);
       setConversation(finalConversation);
       
       completeOnboarding(finalConversation);
