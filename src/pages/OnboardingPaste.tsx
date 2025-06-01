@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,10 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Copy, Clipboard, ArrowLeft, Loader, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/Logo";
+import { useSupabaseSync } from "@/hooks/useSupabaseSync";
 import type { Json } from '@/integrations/supabase/types';
 
 interface UserProfile {
@@ -31,10 +33,10 @@ const OnboardingPaste = () => {
   const [reflection, setReflection] = useState("");
   const [userName, setUserName] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, clearNewUserFlag } = useAuth();
+  const { saveOnboardingData, cleanupOnboardingData } = useSupabaseSync();
 
   // Example prompt that users can copy
   const examplePrompt = 
@@ -69,8 +71,7 @@ const OnboardingPaste = () => {
           const { error: deleteError } = await supabase
             .from('onboarding_data')
             .delete()
-            .or(`id.eq.${existingSessionId},user_id.eq.${existingSessionId}`)
-            .eq('is_anonymous', true);
+            .eq('id', existingSessionId);
           
           if (deleteError) {
             console.warn('⚠️ OnboardingPaste: Failed to cleanup existing session records:', deleteError);
@@ -133,25 +134,21 @@ const OnboardingPaste = () => {
       
       const insertData = {
         id: tempId,
-        user_id: tempId,
         profile_data: profileData as unknown as Json,
-        conversation_data: conversationData as unknown as Json,
-        prompt_mode: promptMode,
-        is_anonymous: true
+        onboarding_conversation: conversationData as unknown as Json,
+        onboarding_mode: promptMode
       };
       
       console.log('📊 OnboardingPaste: Database insert data:', {
         id: insertData.id,
-        user_id: insertData.user_id,
         profileDataKeys: Object.keys(profileData),
         conversationDataKeys: Object.keys(conversationData),
-        prompt_mode: insertData.prompt_mode,
-        is_anonymous: insertData.is_anonymous,
+        onboarding_mode: insertData.onboarding_mode,
         conversationMessageCount: conversationData?.messages?.length || 0,
         conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
       });
       
-      // Use insert to create new record (RLS policies now allow this)
+      // Use insert to create new record
       const { error, data } = await supabase
         .from('onboarding_data')
         .insert(insertData)
@@ -167,9 +164,8 @@ const OnboardingPaste = () => {
           recordCount: data?.length || 0,
           savedData: data?.[0] ? {
             hasProfileData: !!data[0].profile_data,
-            hasConversationData: !!data[0].conversation_data,
-            promptMode: data[0].prompt_mode,
-            isAnonymous: data[0].is_anonymous
+            hasConversationData: !!data[0].onboarding_conversation,
+            onboardingMode: data[0].onboarding_mode
           } : null
         });
       }
@@ -211,11 +207,11 @@ const OnboardingPaste = () => {
       const mockConversation = {
         messages: [
           {
-            role: "system",
+            role: "system" as const,
             content: "You are analyzing a user's self-reflection to create their profile."
           },
           {
-            role: "user", 
+            role: "user" as const, 
             content: `Here is my self-reflection: ${reflection}`
           }
         ],
@@ -276,8 +272,6 @@ const OnboardingPaste = () => {
         personalInsightsCount: profileData.personalInsights.length
       });
 
-      setUserProfile(profileData);
-
       // Enhanced data storage with session management
       const conversationData = mockConversation;
       const promptMode = 'gpt-paste';
@@ -296,40 +290,20 @@ const OnboardingPaste = () => {
         });
       }
 
-      // If user is logged in, save the profile immediately
+      // If user is logged in, save the profile immediately using the sync hook
       if (user) {
         console.log('✅ OnboardingPaste: User is authenticated, saving to database...');
         
-        const saveData = {
-          user_id: user.id,
-          profile_data: profileData as unknown as Json,
-          conversation_data: conversationData as unknown as Json,
-          prompt_mode: promptMode,
-          has_completed_onboarding: true,
-          updated_at: new Date().toISOString()
-        };
-        
-        const { error: updateError, data: savedData } = await supabase
-          .from('user_data')
-          .upsert(
-            saveData,
-            {
-              onConflict: 'user_id',
-              ignoreDuplicates: false
-            }
-          )
-          .select();
-
-        if (updateError) {
-          console.error("❌ OnboardingPaste: Error saving profile:", updateError);
+        try {
+          await saveOnboardingData(profileData, conversationData, promptMode, user, clearNewUserFlag);
+          console.log('✅ OnboardingPaste: Profile saved successfully to database');
+        } catch (saveError) {
+          console.error("❌ OnboardingPaste: Error saving profile:", saveError);
           toast({
             title: "Profile generated but not saved",
             description: "Your profile was created but couldn't be saved to your account.",
             variant: "destructive",
           });
-        } else {
-          console.log('✅ OnboardingPaste: Profile saved successfully to database');
-          clearNewUserFlag();
         }
       } else {
         console.log('⚠️ OnboardingPaste: User not authenticated, data stored securely for later transfer');
