@@ -30,8 +30,8 @@ export const useSupabaseSync = () => {
         .single();
 
       const updateData = {
-        profile_data: profile as Json,
-        onboarding_conversation: conversation as Json,
+        profile_data: profile as unknown as Json,
+        onboarding_conversation: conversation as unknown as Json,
         onboarding_mode: promptMode,
         has_completed_onboarding: true,
         updated_at: new Date().toISOString()

@@ -93,7 +93,7 @@ export class GoogleAuthService {
               .from('onboarding_data')
               .update({
                 profile_data: onboardingData.profile || {},
-                onboarding_conversation: conversationToStore as any,
+                onboarding_conversation: conversationToStore,
                 onboarding_mode: onboardingData.promptMode || 'structured'
               })
               .eq('id', tempOnboardingId);
@@ -103,7 +103,7 @@ export class GoogleAuthService {
               .insert({
                 id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                onboarding_conversation: conversationToStore as any,
+                onboarding_conversation: conversationToStore,
                 onboarding_mode: onboardingData.promptMode || 'structured'
               });
           }
@@ -301,7 +301,7 @@ export class GoogleAuthService {
         console.log('✅ GoogleAuthService: Successfully retrieved onboarding data from database');
         
         // ENHANCED: Validate conversation data from database
-        let conversationData = data.onboarding_conversation as any;
+        let conversationData = data.onboarding_conversation;
         if (!conversationData || typeof conversationData !== 'object') {
           console.warn('⚠️ GoogleAuthService: Invalid conversation data from database, using defaults');
           conversationData = { messages: [], userAnswers: [] };
