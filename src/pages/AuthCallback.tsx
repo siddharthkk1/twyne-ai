@@ -69,7 +69,8 @@ const AuthCallback = () => {
         
         try {
           await refreshSession();
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Give more time for the session to be established
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
           if (!user) {
             console.warn('⚠️ AuthCallback: Session refresh completed but no user found');
@@ -102,8 +103,51 @@ const AuthCallback = () => {
         setDebugInfo('Processing authenticated user with redirect URL method...');
         
         try {
+          // First, ensure the user_data record exists (it should be created by trigger)
+          console.log('🔍 AuthCallback: Checking user_data record...');
+          let { data: userData, error: fetchError } = await supabase
+            .from('user_data')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (fetchError) {
+            console.error('❌ AuthCallback: Error fetching user data:', fetchError);
+            setDebugInfo(`Error fetching user data: ${fetchError.message}`);
+          }
+          
+          // If no user_data record exists, create one (fallback in case trigger failed)
+          if (!userData) {
+            console.log('⚠️ AuthCallback: No user_data record found, creating fallback record');
+            const { data: newUserData, error: insertError } = await supabase
+              .from('user_data')
+              .insert({
+                user_id: user.id,
+                profile_data: {},
+                sso_data: {
+                  email: user.email,
+                  name: user.user_metadata?.name || user.user_metadata?.full_name,
+                  picture: user.user_metadata?.picture || user.user_metadata?.avatar_url,
+                  provider: user.app_metadata?.provider || 'google'
+                },
+                conversation_data: {},
+                prompt_mode: 'structured',
+                has_completed_onboarding: false
+              })
+              .select()
+              .single();
+            
+            if (insertError) {
+              console.error('❌ AuthCallback: Error creating user_data record:', insertError);
+              setDebugInfo(`Error creating user data: ${insertError.message}`);
+            } else {
+              userData = newUserData;
+              console.log('✅ AuthCallback: Created fallback user_data record');
+            }
+          }
+          
           // Check if we have onboarding data to transfer
-          if (onboardingId) {
+          if (onboardingId && userData) {
             console.log('🔍 AuthCallback: Processing onboarding ID from URL:', onboardingId);
             setDebugInfo(`Processing onboarding data for ID: ${onboardingId}`);
             
@@ -113,7 +157,7 @@ const AuthCallback = () => {
               console.log('✅ AuthCallback: Retrieved onboarding data, transferring to user profile');
               
               // Transfer the onboarding data to the user's profile
-              const { error: upsertError } = await supabase
+              const { error: updateError } = await supabase
                 .from('user_data')
                 .update({
                   profile_data: onboardingData.profile || {},
@@ -124,9 +168,9 @@ const AuthCallback = () => {
                 })
                 .eq('user_id', user.id);
               
-              if (upsertError) {
-                console.error('❌ AuthCallback: Error transferring onboarding data:', upsertError);
-                setDebugInfo(`Error transferring onboarding data: ${upsertError.message}`);
+              if (updateError) {
+                console.error('❌ AuthCallback: Error transferring onboarding data:', updateError);
+                setDebugInfo(`Error transferring onboarding data: ${updateError.message}`);
               } else {
                 console.log('✅ AuthCallback: Successfully transferred onboarding data');
                 setDebugInfo('Onboarding data transferred successfully');
@@ -146,34 +190,35 @@ const AuthCallback = () => {
               navigate('/mirror');
               return;
             } else {
-              console.log('⚠️ AuthCallback: No onboarding data found for ID, user needs onboarding');
-              setDebugInfo('No onboarding data found, redirecting to onboarding');
+              console.log('⚠️ AuthCallback: No onboarding data found for ID, checking user state');
+              setDebugInfo('No onboarding data found, checking user state');
             }
           }
           
           // If no onboarding data or couldn't retrieve it, check user's current state
-          console.log('🔍 AuthCallback: Checking user data state...');
-          const { data: userData } = await supabase
-            .from('user_data')
-            .select('has_completed_onboarding, profile_data, sso_data')
-            .eq('user_id', user.id)
-            .single();
-          
-          if (userData?.has_completed_onboarding) {
-            console.log('🎉 AuthCallback: User already has completed onboarding');
-            setDebugInfo('User already completed onboarding');
+          if (userData) {
+            console.log('🔍 AuthCallback: Checking user onboarding status...');
             
-            // Clear URL parameters before redirecting
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            navigate('/mirror');
+            if (userData.has_completed_onboarding) {
+              console.log('🎉 AuthCallback: User already has completed onboarding');
+              setDebugInfo('User already completed onboarding');
+              
+              // Clear URL parameters before redirecting
+              window.history.replaceState({}, document.title, window.location.pathname);
+              
+              navigate('/mirror');
+            } else {
+              console.log('🔄 AuthCallback: User needs to complete onboarding');
+              setDebugInfo('User needs to complete onboarding');
+              
+              // Clear URL parameters before redirecting
+              window.history.replaceState({}, document.title, window.location.pathname);
+              
+              navigate('/onboarding');
+            }
           } else {
-            console.log('🔄 AuthCallback: User needs to complete onboarding');
-            setDebugInfo('User needs to complete onboarding');
-            
-            // Clear URL parameters before redirecting
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
+            console.log('⚠️ AuthCallback: No user data available, redirecting to onboarding');
+            setDebugInfo('No user data available');
             navigate('/onboarding');
           }
           
