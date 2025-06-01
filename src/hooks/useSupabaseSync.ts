@@ -30,9 +30,9 @@ export const useSupabaseSync = () => {
         .single();
 
       const updateData = {
-        profile_data: profile as unknown as Json,
-        conversation_data: conversation as unknown as Json,
-        prompt_mode: promptMode,
+        profile_data: profile as Json,
+        onboarding_conversation: conversation as Json,
+        onboarding_mode: promptMode,
         has_completed_onboarding: true,
         updated_at: new Date().toISOString()
       };
@@ -103,8 +103,7 @@ export const useSupabaseSync = () => {
         const { error } = await supabase
           .from('onboarding_data')
           .delete()
-          .eq('user_id', tempOnboardingId)
-          .eq('is_anonymous', true);
+          .eq('id', tempOnboardingId);
         
         if (error) {
           console.warn('⚠️ useSupabaseSync: Failed to cleanup database records:', error);

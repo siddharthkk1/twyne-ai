@@ -92,11 +92,9 @@ export class GoogleAuthService {
             await supabase
               .from('onboarding_data')
               .update({
-                user_id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                conversation_data: conversationToStore as any, // Use validated conversation data
-                prompt_mode: onboardingData.promptMode || 'structured',
-                is_anonymous: true
+                onboarding_conversation: conversationToStore as any,
+                onboarding_mode: onboardingData.promptMode || 'structured'
               })
               .eq('id', tempOnboardingId);
           } else {
@@ -104,11 +102,9 @@ export class GoogleAuthService {
               .from('onboarding_data')
               .insert({
                 id: tempOnboardingId,
-                user_id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                conversation_data: conversationToStore as any, // Use validated conversation data
-                prompt_mode: onboardingData.promptMode || 'structured',
-                is_anonymous: true
+                onboarding_conversation: conversationToStore as any,
+                onboarding_mode: onboardingData.promptMode || 'structured'
               });
           }
           
@@ -294,7 +290,6 @@ export class GoogleAuthService {
         .from('onboarding_data')
         .select('*')
         .eq('id', onboardingId)
-        .eq('is_anonymous', true)
         .single();
       
       if (error) {
@@ -306,7 +301,7 @@ export class GoogleAuthService {
         console.log('✅ GoogleAuthService: Successfully retrieved onboarding data from database');
         
         // ENHANCED: Validate conversation data from database
-        let conversationData = data.conversation_data as any;
+        let conversationData = data.onboarding_conversation as any;
         if (!conversationData || typeof conversationData !== 'object') {
           console.warn('⚠️ GoogleAuthService: Invalid conversation data from database, using defaults');
           conversationData = { messages: [], userAnswers: [] };
@@ -329,7 +324,7 @@ export class GoogleAuthService {
           id: data.id,
           profile: data.profile_data,
           conversation: conversationData as Conversation,
-          promptMode: data.prompt_mode
+          promptMode: data.onboarding_mode
         };
       }
       
@@ -404,14 +399,13 @@ export class GoogleAuthService {
       const { data: duplicates } = await supabase
         .from('onboarding_data')
         .select('id, created_at')
-        .eq('user_id', onboardingId)
-        .eq('is_anonymous', true)
+        .eq('id', onboardingId)
         .order('created_at', { ascending: false });
       
       if (duplicates && duplicates.length > 0) {
         console.log(`🔍 GoogleAuthService: Found ${duplicates.length} records for cleanup`);
         
-        // Clean up all records with this user_id
+        // Clean up all records with this ID
         let cleanupAttempts = 0;
         const maxCleanupAttempts = 3;
         let cleanupSuccess = false;
@@ -424,8 +418,7 @@ export class GoogleAuthService {
             const { error } = await supabase
               .from('onboarding_data')
               .delete()
-              .eq('user_id', onboardingId)
-              .eq('is_anonymous', true);
+              .eq('id', onboardingId);
             
             if (error) {
               console.error(`❌ GoogleAuthService: Database cleanup attempt ${cleanupAttempts} failed:`, error);
@@ -457,7 +450,6 @@ export class GoogleAuthService {
         const { error: orphanError } = await supabase
           .from('onboarding_data')
           .delete()
-          .eq('is_anonymous', true)
           .lt('created_at', twentyFourHoursAgo);
         
         if (orphanError) {
