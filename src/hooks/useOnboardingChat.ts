@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -12,7 +11,7 @@ import { useChatScroll } from './useChatScroll';
 import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
-  SYSTEM_PROMPT_V1_PLAYFUL,
+  SYSTEM_PROMPT_PLAYFUL,
   SYSTEM_PROMPT_YOUNG_ADULT
 } from '@/utils/aiUtils';
 
@@ -231,7 +230,7 @@ export const useOnboardingChat = () => {
     let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
     
     if (promptMode === "playful") {
-      systemPrompt = SYSTEM_PROMPT_V1_PLAYFUL;
+      systemPrompt = SYSTEM_PROMPT_PLAYFUL;
     } else if (promptMode === "young-adult") {
       systemPrompt = SYSTEM_PROMPT_YOUNG_ADULT;
     }
