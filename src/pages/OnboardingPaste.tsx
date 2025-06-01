@@ -51,20 +51,66 @@ const OnboardingPaste = () => {
     });
   };
 
-  // Enhanced data storage with proper UUID generation and duplicate prevention
+  // Enhanced data storage with aggressive duplicate prevention and proper session management
   const storeOnboardingDataSecurely = async (profileData: UserProfile, conversationData: any, promptMode: string) => {
     try {
-      console.log('🚀 OnboardingPaste: Starting enhanced data storage with proper UUID...');
+      console.log('🚀 OnboardingPaste: Starting enhanced data storage with aggressive duplicate prevention...');
       console.log('📊 OnboardingPaste: Input data:', {
         profileName: profileData.name,
         profileKeys: Object.keys(profileData),
         conversationKeys: Object.keys(conversationData),
+        conversationMessageCount: conversationData?.messages?.length || 0,
+        conversationUserAnswerCount: conversationData?.userAnswers?.length || 0,
         promptMode: promptMode
       });
       
       const timestamp = Date.now();
       
-      // Generate proper UUID for temp ID - using crypto.randomUUID() for better compatibility
+      // Enhanced cleanup: Remove ALL existing anonymous sessions first
+      console.log('🧹 OnboardingPaste: Performing aggressive cleanup of existing anonymous sessions...');
+      
+      // Get existing session ID and clean up aggressively
+      const existingSessionId = localStorage.getItem('temp_onboarding_id');
+      if (existingSessionId) {
+        console.log('🗄️ OnboardingPaste: Found existing session, performing comprehensive cleanup:', existingSessionId);
+        
+        try {
+          // Clean up ALL records that could be related to this session
+          const { error: deleteError } = await supabase
+            .from('onboarding_data')
+            .delete()
+            .or(`id.eq.${existingSessionId},user_id.eq.${existingSessionId}`)
+            .eq('is_anonymous', true);
+          
+          if (deleteError) {
+            console.warn('⚠️ OnboardingPaste: Failed to cleanup existing session records:', deleteError);
+          } else {
+            console.log('✅ OnboardingPaste: Successfully cleaned up existing session records');
+          }
+        } catch (cleanupError) {
+          console.warn('⚠️ OnboardingPaste: Error during session cleanup:', cleanupError);
+        }
+      }
+      
+      // Also clean up any stale anonymous records (older than 1 hour) to prevent accumulation
+      try {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { error: staleCleanupError } = await supabase
+          .from('onboarding_data')
+          .delete()
+          .eq('is_anonymous', true)
+          .lt('created_at', oneHourAgo);
+        
+        if (staleCleanupError) {
+          console.warn('⚠️ OnboardingPaste: Failed to cleanup stale records:', staleCleanupError);
+        } else {
+          console.log('✅ OnboardingPaste: Successfully cleaned up stale anonymous records');
+        }
+      } catch (staleCleanupError) {
+        console.warn('⚠️ OnboardingPaste: Error during stale cleanup:', staleCleanupError);
+      }
+      
+      // Generate proper UUID for the session
       let tempId: string;
       try {
         tempId = crypto.randomUUID();
@@ -76,6 +122,7 @@ const OnboardingPaste = () => {
         console.log('🔑 OnboardingPaste: Generated fallback ID:', tempId);
       }
       
+      // Enhanced storage strategy with comprehensive backup
       const dataToStore = {
         profile: profileData,
         conversation: conversationData,
@@ -91,109 +138,97 @@ const OnboardingPaste = () => {
         userName: dataToStore.userName,
         promptMode: dataToStore.promptMode,
         timestamp: dataToStore.timestamp,
-        tempId: dataToStore.tempId
+        tempId: dataToStore.tempId,
+        conversationMessageCount: conversationData?.messages?.length || 0,
+        conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
       });
       
-      // Strategy 1: Check for existing session and clean up to prevent duplicates
-      const existingSessionId = localStorage.getItem('temp_onboarding_id');
-      if (existingSessionId && existingSessionId !== tempId) {
-        console.log('🧹 OnboardingPaste: Found existing session, cleaning up duplicates:', existingSessionId);
-        try {
-          // Clean up existing database record
-          const { error: deleteError } = await supabase
-            .from('onboarding_data')
-            .delete()
-            .eq('id', existingSessionId)
-            .eq('is_anonymous', true);
-          
-          if (deleteError) {
-            console.warn('⚠️ OnboardingPaste: Failed to cleanup existing record:', deleteError);
-          } else {
-            console.log('✅ OnboardingPaste: Cleaned up existing database record');
-          }
-        } catch (cleanupError) {
-          console.warn('⚠️ OnboardingPaste: Failed to cleanup existing record:', cleanupError);
-        }
-      }
+      // Clear previous localStorage entries to prevent conflicts
+      const keysToRemove = [
+        'temp_onboarding_id',
+        'onboarding_profile',
+        'onboarding_user_name',
+        'onboarding_conversation',
+        'onboarding_prompt_mode',
+        'onboarding_timestamp',
+        'latestBackupKey'
+      ];
       
-      // Strategy 2: Standard localStorage storage with new session ID
+      keysToRemove.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+          console.log(`🧹 OnboardingPaste: Cleared existing localStorage key: ${key}`);
+        }
+      });
+      
+      // Store with new session ID
       localStorage.setItem('temp_onboarding_id', tempId);
       localStorage.setItem('onboarding_profile', JSON.stringify(profileData));
       localStorage.setItem('onboarding_user_name', profileData.name);
       localStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
       localStorage.setItem('onboarding_prompt_mode', promptMode);
       localStorage.setItem('onboarding_timestamp', timestamp.toString());
-      console.log('💾 OnboardingPaste: Standard localStorage completed with session ID:', tempId);
+      console.log('💾 OnboardingPaste: Enhanced localStorage completed with session ID:', tempId);
       
-      // Strategy 3: Backup in sessionStorage
+      // Enhanced sessionStorage backup
       sessionStorage.setItem('onboarding_profile', JSON.stringify(profileData));
       sessionStorage.setItem('onboarding_user_name', profileData.name);
       sessionStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
       sessionStorage.setItem('onboarding_prompt_mode', promptMode);
       sessionStorage.setItem('temp_onboarding_id', tempId);
-      console.log('💾 OnboardingPaste: SessionStorage backup completed');
-      
-      // Strategy 4: Combined backup object with session ID
-      const backupKey = `onboardingBackup_${tempId}`;
-      localStorage.setItem(backupKey, JSON.stringify(dataToStore));
-      localStorage.setItem('latestBackupKey', backupKey);
       sessionStorage.setItem('onboardingBackup', JSON.stringify(dataToStore));
-      console.log('💾 OnboardingPaste: Combined backup completed with key:', backupKey);
+      console.log('💾 OnboardingPaste: Enhanced sessionStorage backup completed');
       
-      // Strategy 5: OAuth-ready prefixed storage
-      localStorage.setItem('oauth_onboardingProfile', JSON.stringify(profileData));
-      localStorage.setItem('oauth_onboardingUserName', profileData.name);
-      localStorage.setItem('oauth_onboardingConversation', JSON.stringify(conversationData));
-      localStorage.setItem('oauth_onboardingPromptMode', promptMode);
-      localStorage.setItem('oauth_temp_onboarding_id', tempId);
-      console.log('💾 OnboardingPaste: OAuth-prefixed storage completed');
-      
-      // Strategy 6: Store in temp database with proper UUID and duplicate prevention
+      // Enhanced database storage with upsert to prevent duplicates
       console.log('🗄️ OnboardingPaste: Attempting database storage with proper UUID:', tempId);
       
-      // First check if a record with this ID already exists
-      const { data: existingRecord } = await supabase
-        .from('onboarding_data')
-        .select('id')
-        .eq('id', tempId)
-        .single();
+      const insertData = {
+        id: tempId,
+        user_id: tempId,
+        profile_data: profileData as unknown as Json,
+        conversation_data: conversationData as unknown as Json,
+        prompt_mode: promptMode,
+        is_anonymous: true
+      };
       
-      if (existingRecord) {
-        console.log('⚠️ OnboardingPaste: Record with this ID already exists, updating instead');
-        const { error: updateError } = await supabase
-          .from('onboarding_data')
-          .update({
-            profile_data: profileData as unknown as Json,
-            conversation_data: conversationData as unknown as Json,
-            prompt_mode: promptMode,
-            is_anonymous: true
-          })
-          .eq('id', tempId);
-        
-        if (updateError) {
-          console.error('❌ OnboardingPaste: Database update failed:', updateError);
-          throw updateError;
-        } else {
-          console.log('✅ OnboardingPaste: Database record updated successfully');
-        }
+      console.log('📊 OnboardingPaste: Database insert data:', {
+        id: insertData.id,
+        user_id: insertData.user_id,
+        profileDataKeys: Object.keys(profileData),
+        conversationDataKeys: Object.keys(conversationData),
+        prompt_mode: insertData.prompt_mode,
+        is_anonymous: insertData.is_anonymous,
+        conversationMessageCount: conversationData?.messages?.length || 0,
+        conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
+      });
+      
+      // Use upsert to prevent duplicate records
+      const { error, data } = await supabase
+        .from('onboarding_data')
+        .upsert(
+          insertData,
+          {
+            onConflict: 'id',
+            ignoreDuplicates: false
+          }
+        )
+        .select();
+      
+      if (error) {
+        console.error('❌ OnboardingPaste: Database storage failed:', error);
+        throw error;
       } else {
-        const { error: insertError } = await supabase
-          .from('onboarding_data')
-          .insert({
-            id: tempId, // Use the proper UUID as id
-            user_id: tempId, // Use the same UUID as user_id for anonymous records
-            profile_data: profileData as unknown as Json,
-            conversation_data: conversationData as unknown as Json,
-            prompt_mode: promptMode,
-            is_anonymous: true
-          });
-        
-        if (insertError) {
-          console.error('❌ OnboardingPaste: Database storage failed:', insertError);
-          throw insertError;
-        } else {
-          console.log('✅ OnboardingPaste: Database storage successful with UUID:', tempId);
-        }
+        console.log('✅ OnboardingPaste: Database storage successful with UUID:', tempId);
+        console.log('📊 OnboardingPaste: Database result:', {
+          dataReturned: !!data,
+          recordCount: data?.length || 0,
+          savedData: data?.[0] ? {
+            hasProfileData: !!data[0].profile_data,
+            hasConversationData: !!data[0].conversation_data,
+            promptMode: data[0].prompt_mode,
+            isAnonymous: data[0].is_anonymous
+          } : null
+        });
       }
       
       console.log('✅ OnboardingPaste: All enhanced data storage strategies completed successfully');
@@ -205,24 +240,18 @@ const OnboardingPaste = () => {
           profile: !!localStorage.getItem('onboarding_profile'),
           userName: localStorage.getItem('onboarding_user_name'),
           conversation: !!localStorage.getItem('onboarding_conversation'),
-          promptMode: localStorage.getItem('onboarding_prompt_mode'),
-          latestBackupKey: localStorage.getItem('latestBackupKey')
+          promptMode: localStorage.getItem('onboarding_prompt_mode')
         },
         sessionStorage: {
           tempId: sessionStorage.getItem('temp_onboarding_id'),
           profile: !!sessionStorage.getItem('onboarding_profile'),
           backup: !!sessionStorage.getItem('onboardingBackup')
-        },
-        oauthPrefixed: {
-          tempId: localStorage.getItem('oauth_temp_onboarding_id'),
-          profile: !!localStorage.getItem('oauth_onboardingProfile'),
-          userName: localStorage.getItem('oauth_onboardingUserName')
         }
       };
       
       console.log('📊 OnboardingPaste: Storage verification completed:', verification);
       
-      return tempId; // Return the session ID for reference
+      return tempId;
     } catch (error) {
       console.error('❌ OnboardingPaste: Error in enhanced storage:', error);
       console.error('❌ OnboardingPaste: Error details:', {
@@ -270,10 +299,18 @@ const OnboardingPaste = () => {
             role: "user", 
             content: `Here is my self-reflection: ${reflection}`
           }
-        ]
+        ],
+        userAnswers: [reflection],
+        source: 'gpt-paste',
+        timestamp: Date.now()
       };
 
       console.log('🔄 OnboardingPaste: Calling generate-profile edge function...');
+      console.log('📊 OnboardingPaste: Mock conversation data:', {
+        messageCount: mockConversation.messages.length,
+        userAnswerCount: mockConversation.userAnswers.length,
+        source: mockConversation.source
+      });
       
       // Call the existing generate-profile edge function
       const { data, error } = await supabase.functions.invoke('generate-profile', {
@@ -295,7 +332,7 @@ const OnboardingPaste = () => {
       
       // Use the profile data directly since it's already structured, but ensure name is set
       const profileData: UserProfile = {
-        name: userName.trim(), // Use the user-entered name
+        name: userName.trim(),
         location: data.location || "",
         interests: data.talkingPoints || [data.interestsAndPassions || ""],
         socialStyle: data.socialStyle || "",
@@ -323,16 +360,16 @@ const OnboardingPaste = () => {
       setUserProfile(profileData);
 
       // Enhanced data storage with session management
-      const conversationData = { 
-        messages: mockConversation.messages,
-        userAnswers: [reflection],
-        source: 'gpt-paste',
-        timestamp: Date.now()
-      };
-      
+      const conversationData = mockConversation;
       const promptMode = 'gpt-paste';
       
-      console.log('💾 OnboardingPaste: Storing onboarding data with session management...');
+      console.log('💾 OnboardingPaste: Storing onboarding data with enhanced session management...');
+      console.log('📊 OnboardingPaste: Conversation data to store:', {
+        messageCount: conversationData.messages.length,
+        userAnswerCount: conversationData.userAnswers.length,
+        source: conversationData.source,
+        hasTimestamp: !!conversationData.timestamp
+      });
       
       try {
         const sessionId = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
@@ -346,7 +383,7 @@ const OnboardingPaste = () => {
         });
       }
 
-      // If user is logged in, save the profile immediately
+      // If user is logged in, save the profile immediately with enhanced error handling
       if (user) {
         console.log('✅ OnboardingPaste: User is authenticated, saving to database...');
         console.log('📊 OnboardingPaste: Authenticated user:', {
@@ -354,19 +391,33 @@ const OnboardingPaste = () => {
           email: user.email
         });
         
-        const { error: updateError } = await supabase
+        const saveData = {
+          user_id: user.id,
+          profile_data: profileData as unknown as Json,
+          conversation_data: conversationData as unknown as Json,
+          prompt_mode: promptMode,
+          has_completed_onboarding: true,
+          updated_at: new Date().toISOString()
+        };
+        
+        console.log('📊 OnboardingPaste: Data to save for authenticated user:', {
+          userId: saveData.user_id,
+          hasProfileData: !!saveData.profile_data,
+          hasConversationData: !!saveData.conversation_data,
+          promptMode: saveData.prompt_mode,
+          hasCompletedOnboarding: saveData.has_completed_onboarding
+        });
+        
+        const { error: updateError, data: savedData } = await supabase
           .from('user_data')
-          .upsert({
-            user_id: user.id,
-            profile_data: profileData as unknown as Json,
-            conversation_data: conversationData as unknown as Json,
-            prompt_mode: promptMode,
-            has_completed_onboarding: true,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id',
-            ignoreDuplicates: false
-          });
+          .upsert(
+            saveData,
+            {
+              onConflict: 'user_id',
+              ignoreDuplicates: false
+            }
+          )
+          .select();
 
         if (updateError) {
           console.error("❌ OnboardingPaste: Error saving profile:", updateError);
@@ -383,6 +434,16 @@ const OnboardingPaste = () => {
           });
         } else {
           console.log('✅ OnboardingPaste: Profile saved successfully to database');
+          console.log('📊 OnboardingPaste: Saved data verification:', {
+            dataReturned: !!savedData,
+            recordCount: savedData?.length || 0,
+            savedRecord: savedData?.[0] ? {
+              hasProfileData: !!savedData[0].profile_data,
+              hasConversationData: !!savedData[0].conversation_data,
+              promptMode: savedData[0].prompt_mode,
+              hasCompletedOnboarding: savedData[0].has_completed_onboarding
+            } : null
+          });
           clearNewUserFlag();
         }
       } else {

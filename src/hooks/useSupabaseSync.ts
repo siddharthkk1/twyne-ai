@@ -41,26 +41,37 @@ export const useSupabaseSync = () => {
         localStorage.setItem('onboardingPromptMode', finalPromptMode);
         console.log("💾 useSupabaseSync: Stored prompt mode in localStorage:", finalPromptMode);
         
-        // Prepare data for database insertion
+        // Prepare data for database insertion with explicit field mapping
         const updateData = {
           profile_data: profile as unknown as Json,
           conversation_data: conversation as unknown as Json,
           prompt_mode: finalPromptMode,
-          has_completed_onboarding: true
+          has_completed_onboarding: true,
+          updated_at: new Date().toISOString()
         };
         
         console.log("🗄️ useSupabaseSync: Preparing database update with data:", {
           profileDataKeys: Object.keys(profile),
           conversationDataKeys: Object.keys(conversation),
           promptMode: finalPromptMode,
-          hasCompletedOnboarding: true
+          hasCompletedOnboarding: true,
+          conversationMessageCount: conversation?.messages?.length || 0,
+          conversationUserAnswerCount: conversation?.userAnswers?.length || 0
         });
         
-        // For authenticated users, update the user_data table with onboarding completion
+        // For authenticated users, update the user_data table with explicit upsert
         const { error, data } = await supabase
           .from('user_data')
-          .update(updateData)
-          .eq('user_id', user.id)
+          .upsert(
+            {
+              user_id: user.id,
+              ...updateData
+            },
+            {
+              onConflict: 'user_id',
+              ignoreDuplicates: false
+            }
+          )
           .select();
 
         if (error) {
@@ -77,10 +88,16 @@ export const useSupabaseSync = () => {
         console.log("✅ useSupabaseSync: User data updated successfully for authenticated user");
         console.log("📊 useSupabaseSync: Update result:", {
           dataReturned: !!data,
-          recordCount: data?.length || 0
+          recordCount: data?.length || 0,
+          updatedData: data?.[0] ? {
+            hasProfileData: !!data[0].profile_data,
+            hasConversationData: !!data[0].conversation_data,
+            promptMode: data[0].prompt_mode,
+            hasCompletedOnboarding: data[0].has_completed_onboarding
+          } : null
         });
 
-        // Clean up any temporary onboarding_data records after successful save
+        // Enhanced cleanup of any temporary onboarding_data records
         await cleanupOnboardingData(user.id);
         
         clearNewUserFlag();
@@ -90,22 +107,8 @@ export const useSupabaseSync = () => {
         // For anonymous users, store in localStorage and generate temporary record with proper UUID
         const finalPromptMode = promptMode || 'structured';
         
-        // Enhanced cleanup of any existing anonymous session with duplicate prevention
-        const existingTempId = localStorage.getItem('temp_onboarding_id');
-        if (existingTempId) {
-          console.log("🧹 useSupabaseSync: Cleaning up existing anonymous session:", existingTempId);
-          try {
-            // Clean up all records with this user_id to prevent duplicates
-            await supabase
-              .from('onboarding_data')
-              .delete()
-              .eq('user_id', existingTempId)
-              .eq('is_anonymous', true);
-            console.log("✅ useSupabaseSync: Cleaned up all existing sessions for user_id:", existingTempId);
-          } catch (cleanupError) {
-            console.warn("⚠️ useSupabaseSync: Failed to cleanup existing session:", cleanupError);
-          }
-        }
+        // Enhanced cleanup of any existing anonymous session with aggressive duplicate prevention
+        await cleanupExistingAnonymousSessions();
         
         // Generate proper UUID for the session with fallback
         let tempUserId: string;
@@ -140,8 +143,8 @@ export const useSupabaseSync = () => {
         console.log("🗄️ useSupabaseSync: Saving to onboarding_data table for anonymous user with proper UUID:", tempUserId);
 
         const insertData = {
-          id: tempUserId, // Use proper UUID as id
-          user_id: tempUserId, // Use same UUID as user_id for anonymous records
+          id: tempUserId,
+          user_id: tempUserId,
           profile_data: profile as unknown as Json,
           conversation_data: conversation as unknown as Json,
           prompt_mode: finalPromptMode,
@@ -154,64 +157,46 @@ export const useSupabaseSync = () => {
           profileDataKeys: Object.keys(profile),
           conversationDataKeys: Object.keys(conversation),
           prompt_mode: insertData.prompt_mode,
-          is_anonymous: insertData.is_anonymous
+          is_anonymous: insertData.is_anonymous,
+          conversationMessageCount: conversation?.messages?.length || 0,
+          conversationUserAnswerCount: conversation?.userAnswers?.length || 0
         });
 
-        // Enhanced duplicate prevention: check if record already exists before inserting
-        const { data: existingRecord } = await supabase
+        // Enhanced upsert to prevent duplicates
+        const { error, data } = await supabase
           .from('onboarding_data')
-          .select('id')
-          .eq('id', tempUserId)
-          .single();
+          .upsert(
+            insertData,
+            {
+              onConflict: 'id',
+              ignoreDuplicates: false
+            }
+          )
+          .select();
 
-        if (existingRecord) {
-          console.log("⚠️ useSupabaseSync: Record with this ID already exists, updating instead");
-          const { error, data } = await supabase
-            .from('onboarding_data')
-            .update({
-              profile_data: insertData.profile_data,
-              conversation_data: insertData.conversation_data,
-              prompt_mode: insertData.prompt_mode,
-              is_anonymous: insertData.is_anonymous
-            })
-            .eq('id', tempUserId)
-            .select();
-
-          if (error) {
-            console.error("❌ useSupabaseSync: Error updating onboarding data:", error);
-            throw error;
-          }
-
-          console.log("✅ useSupabaseSync: Data updated successfully for anonymous user");
-          console.log("📊 useSupabaseSync: Update result:", {
-            dataReturned: !!data,
-            recordCount: data?.length || 0,
-            updatedId: data?.[0]?.id
+        if (error) {
+          console.error("❌ useSupabaseSync: Error saving onboarding data:", error);
+          console.error("❌ useSupabaseSync: Error details:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
           });
-        } else {
-          const { error, data } = await supabase
-            .from('onboarding_data')
-            .insert(insertData)
-            .select();
-
-          if (error) {
-            console.error("❌ useSupabaseSync: Error saving onboarding data:", error);
-            console.error("❌ useSupabaseSync: Error details:", {
-              message: error.message,
-              details: error.details,
-              hint: error.hint,
-              code: error.code
-            });
-            throw error;
-          }
-
-          console.log("✅ useSupabaseSync: Data saved successfully for anonymous user");
-          console.log("📊 useSupabaseSync: Insert result:", {
-            dataReturned: !!data,
-            recordCount: data?.length || 0,
-            insertedId: data?.[0]?.id
-          });
+          throw error;
         }
+
+        console.log("✅ useSupabaseSync: Data saved successfully for anonymous user");
+        console.log("📊 useSupabaseSync: Insert result:", {
+          dataReturned: !!data,
+          recordCount: data?.length || 0,
+          insertedId: data?.[0]?.id,
+          insertedData: data?.[0] ? {
+            hasProfileData: !!data[0].profile_data,
+            hasConversationData: !!data[0].conversation_data,
+            promptMode: data[0].prompt_mode,
+            isAnonymous: data[0].is_anonymous
+          } : null
+        });
       }
     } catch (error) {
       console.error("❌ useSupabaseSync: Error in saveOnboardingData:", error);
@@ -224,44 +209,95 @@ export const useSupabaseSync = () => {
     }
   };
 
-  // New function to clean up onboarding_data records after successful authentication
-  const cleanupOnboardingData = async (userId: string) => {
+  // Enhanced function to clean up existing anonymous sessions more aggressively
+  const cleanupExistingAnonymousSessions = async () => {
     try {
-      console.log("🧹 useSupabaseSync: Starting cleanup of onboarding_data records for user:", userId);
+      console.log("🧹 useSupabaseSync: Starting aggressive cleanup of existing anonymous sessions");
       
-      // Get temp onboarding ID from localStorage
-      const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
+      // Get existing temp onboarding ID from localStorage
+      const existingTempId = localStorage.getItem('temp_onboarding_id');
       
-      if (tempOnboardingId) {
-        console.log("🗄️ useSupabaseSync: Cleaning up temporary onboarding record:", tempOnboardingId);
+      if (existingTempId) {
+        console.log("🗄️ useSupabaseSync: Cleaning up existing anonymous session:", existingTempId);
         
+        // Clean up any records with this specific ID or user_id
         const { error } = await supabase
           .from('onboarding_data')
           .delete()
-          .eq('id', tempOnboardingId)
+          .or(`id.eq.${existingTempId},user_id.eq.${existingTempId}`)
           .eq('is_anonymous', true);
         
         if (error) {
-          console.warn("⚠️ useSupabaseSync: Failed to cleanup temporary onboarding record:", error);
+          console.warn("⚠️ useSupabaseSync: Failed to cleanup existing session:", error);
         } else {
-          console.log("✅ useSupabaseSync: Successfully cleaned up temporary onboarding record");
+          console.log("✅ useSupabaseSync: Successfully cleaned up existing session records");
         }
       }
       
-      // Also clean up any other anonymous records that might be stale (older than 24 hours)
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      // Also clean up any other anonymous records that might be stale (older than 1 hour)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       
       const { error: staleCleanupError } = await supabase
         .from('onboarding_data')
         .delete()
         .eq('is_anonymous', true)
-        .lt('created_at', twentyFourHoursAgo);
+        .lt('created_at', oneHourAgo);
       
       if (staleCleanupError) {
         console.warn("⚠️ useSupabaseSync: Failed to cleanup stale anonymous records:", staleCleanupError);
       } else {
         console.log("✅ useSupabaseSync: Successfully cleaned up stale anonymous records");
       }
+      
+    } catch (error) {
+      console.error("❌ useSupabaseSync: Error during aggressive cleanup:", error);
+    }
+  };
+
+  // Enhanced cleanup function with better targeting of ALL session-related records
+  const cleanupOnboardingData = async (userId: string) => {
+    try {
+      console.log("🧹 useSupabaseSync: Starting comprehensive cleanup of onboarding_data records for user:", userId);
+      
+      // Get temp onboarding ID from localStorage
+      const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
+      
+      // Enhanced cleanup: remove ALL anonymous records that could be related to this session
+      const cleanupPromises = [];
+      
+      if (tempOnboardingId) {
+        console.log("🗄️ useSupabaseSync: Cleaning up records with session ID:", tempOnboardingId);
+        
+        // Clean up records where id or user_id matches the temp session ID
+        cleanupPromises.push(
+          supabase
+            .from('onboarding_data')
+            .delete()
+            .or(`id.eq.${tempOnboardingId},user_id.eq.${tempOnboardingId}`)
+            .eq('is_anonymous', true)
+        );
+      }
+      
+      // Clean up any anonymous records older than 24 hours (general cleanup)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      cleanupPromises.push(
+        supabase
+          .from('onboarding_data')
+          .delete()
+          .eq('is_anonymous', true)
+          .lt('created_at', twentyFourHoursAgo)
+      );
+      
+      // Execute all cleanup operations
+      const results = await Promise.allSettled(cleanupPromises);
+      
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.warn(`⚠️ useSupabaseSync: Cleanup operation ${index + 1} failed:`, result.reason);
+        } else {
+          console.log(`✅ useSupabaseSync: Cleanup operation ${index + 1} completed successfully`);
+        }
+      });
       
       // Clean up localStorage items related to onboarding
       const keysToRemove = [
@@ -303,10 +339,10 @@ export const useSupabaseSync = () => {
         }
       });
       
-      console.log("✅ useSupabaseSync: Cleanup completed successfully");
+      console.log("✅ useSupabaseSync: Comprehensive cleanup completed successfully");
       
     } catch (error) {
-      console.error("❌ useSupabaseSync: Error during cleanup:", error);
+      console.error("❌ useSupabaseSync: Error during comprehensive cleanup:", error);
     }
   };
 

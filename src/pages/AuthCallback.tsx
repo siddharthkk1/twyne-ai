@@ -15,7 +15,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('🚀 AuthCallback: Starting OAuth callback handler with redirect URL method');
+      console.log('🚀 AuthCallback: Starting OAuth callback handler with enhanced data transfer');
       
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
@@ -90,7 +90,7 @@ const AuthCallback = () => {
       
       // Only proceed if auth is not loading and we have a user
       if (!isLoading && user) {
-        console.log('🎯 AuthCallback: User authenticated, processing redirect URL method');
+        console.log('🎯 AuthCallback: User authenticated, processing enhanced data transfer');
         console.log('🔍 AuthCallback: Authenticated user details:', {
           id: user.id,
           email: user.email,
@@ -100,18 +100,18 @@ const AuthCallback = () => {
         
         setHasHandledCallback(true);
         setIsProcessing(true);
-        setDebugInfo('Processing authenticated user with redirect URL method...');
+        setDebugInfo('Processing authenticated user with enhanced data transfer...');
         
         try {
           // Add a small delay to ensure trigger has time to execute
           console.log('⏳ AuthCallback: Waiting for user_data trigger to complete...');
           await new Promise(resolve => setTimeout(resolve, 2000));
           
-          // Check if the user_data record exists with retry logic
-          console.log('🔍 AuthCallback: Checking user_data record...');
+          // Enhanced user_data record checking with retry logic
+          console.log('🔍 AuthCallback: Checking user_data record with enhanced retry logic...');
           let userData = null;
           let retryCount = 0;
-          const maxRetries = 3;
+          const maxRetries = 5;
           
           while (!userData && retryCount < maxRetries) {
             const { data, error: fetchError } = await supabase
@@ -132,7 +132,7 @@ const AuthCallback = () => {
               retryCount++;
               console.log(`⏳ AuthCallback: User data not found, retry ${retryCount}/${maxRetries}`);
               setDebugInfo(`Waiting for user data creation... retry ${retryCount}/${maxRetries}`);
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              await new Promise(resolve => setTimeout(resolve, 1500));
             }
           }
           
@@ -171,7 +171,10 @@ const AuthCallback = () => {
             console.log('✅ AuthCallback: Found existing user_data record');
           }
           
-          // Check if we have onboarding data to transfer
+          // Enhanced onboarding data retrieval and transfer
+          let onboardingDataTransferred = false;
+          
+          // Strategy 1: Check URL parameter for onboarding ID
           if (onboardingId && userData) {
             console.log('🔍 AuthCallback: Processing onboarding ID from URL:', onboardingId);
             setDebugInfo(`Processing onboarding data for ID: ${onboardingId}`);
@@ -179,26 +182,58 @@ const AuthCallback = () => {
             const onboardingData = await GoogleAuthService.retrieveOnboardingData(onboardingId);
             
             if (onboardingData) {
-              console.log('✅ AuthCallback: Retrieved onboarding data, transferring to user profile');
+              console.log('✅ AuthCallback: Retrieved onboarding data from URL parameter');
+              console.log('📊 AuthCallback: Onboarding data details:', {
+                hasProfile: !!onboardingData.profile,
+                hasConversation: !!onboardingData.conversation,
+                promptMode: onboardingData.promptMode,
+                profileName: onboardingData.profile?.name,
+                conversationMessageCount: onboardingData.conversation?.messages?.length || 0,
+                conversationUserAnswerCount: onboardingData.conversation?.userAnswers?.length || 0
+              });
               
-              // Transfer the onboarding data to the user's profile
-              const { error: updateError } = await supabase
+              // Enhanced transfer with explicit field mapping
+              const updateData = {
+                profile_data: onboardingData.profile || {},
+                conversation_data: onboardingData.conversation || {},
+                prompt_mode: onboardingData.promptMode || 'structured',
+                has_completed_onboarding: true,
+                updated_at: new Date().toISOString()
+              };
+              
+              console.log('🔄 AuthCallback: Transferring onboarding data with enhanced mapping...');
+              console.log('📊 AuthCallback: Update data to transfer:', {
+                hasProfileData: !!updateData.profile_data,
+                hasConversationData: !!updateData.conversation_data,
+                promptMode: updateData.prompt_mode,
+                hasCompletedOnboarding: updateData.has_completed_onboarding,
+                conversationMessageCount: updateData.conversation_data?.messages?.length || 0,
+                conversationUserAnswerCount: updateData.conversation_data?.userAnswers?.length || 0
+              });
+              
+              const { error: updateError, data: updatedData } = await supabase
                 .from('user_data')
-                .update({
-                  profile_data: onboardingData.profile || {},
-                  conversation_data: onboardingData.conversation || {},
-                  prompt_mode: onboardingData.promptMode || 'structured',
-                  has_completed_onboarding: true,
-                  updated_at: new Date().toISOString()
-                })
-                .eq('user_id', user.id);
+                .update(updateData)
+                .eq('user_id', user.id)
+                .select();
               
               if (updateError) {
                 console.error('❌ AuthCallback: Error transferring onboarding data:', updateError);
                 setDebugInfo(`Error transferring onboarding data: ${updateError.message}`);
               } else {
                 console.log('✅ AuthCallback: Successfully transferred onboarding data');
+                console.log('📊 AuthCallback: Transfer verification:', {
+                  dataReturned: !!updatedData,
+                  recordCount: updatedData?.length || 0,
+                  transferredData: updatedData?.[0] ? {
+                    hasProfileData: !!updatedData[0].profile_data,
+                    hasConversationData: !!updatedData[0].conversation_data,
+                    promptMode: updatedData[0].prompt_mode,
+                    hasCompletedOnboarding: updatedData[0].has_completed_onboarding
+                  } : null
+                });
                 setDebugInfo('Onboarding data transferred successfully');
+                onboardingDataTransferred = true;
                 
                 toast({
                   title: "Account created successfully!",
@@ -208,48 +243,217 @@ const AuthCallback = () => {
               
               // Clean up the temporary onboarding data
               await GoogleAuthService.cleanupOnboardingData(onboardingId);
-              
-              // Clear URL parameters before redirecting
-              window.history.replaceState({}, document.title, window.location.pathname);
-              
-              navigate('/mirror');
-              return;
             } else {
-              console.log('⚠️ AuthCallback: No onboarding data found for ID, checking user state');
-              setDebugInfo('No onboarding data found, checking user state');
+              console.log('⚠️ AuthCallback: No onboarding data found for URL ID, checking localStorage');
+              setDebugInfo('No onboarding data found for URL ID, checking localStorage');
             }
           }
           
-          // If no onboarding data or couldn't retrieve it, check user's current state
-          if (userData) {
-            console.log('🔍 AuthCallback: Checking user onboarding status...');
+          // Strategy 2: Check localStorage for onboarding data (fallback)
+          if (!onboardingDataTransferred) {
+            console.log('🔍 AuthCallback: Checking localStorage for onboarding data...');
             
-            if (userData.has_completed_onboarding) {
-              console.log('🎉 AuthCallback: User already has completed onboarding');
-              setDebugInfo('User already completed onboarding');
-              
-              // Clear URL parameters before redirecting
-              window.history.replaceState({}, document.title, window.location.pathname);
-              
-              navigate('/mirror');
-            } else {
-              console.log('🔄 AuthCallback: User needs to complete onboarding');
-              setDebugInfo('User needs to complete onboarding');
-              
-              // Clear URL parameters before redirecting
-              window.history.replaceState({}, document.title, window.location.pathname);
-              
-              navigate('/onboarding');
+            const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
+            const storedProfile = localStorage.getItem('onboarding_profile');
+            const storedConversation = localStorage.getItem('onboarding_conversation');
+            const storedPromptMode = localStorage.getItem('onboarding_prompt_mode');
+            
+            console.log('📊 AuthCallback: localStorage onboarding data check:', {
+              hasTempId: !!tempOnboardingId,
+              tempId: tempOnboardingId,
+              hasProfile: !!storedProfile,
+              hasConversation: !!storedConversation,
+              hasPromptMode: !!storedPromptMode,
+              promptModeValue: storedPromptMode
+            });
+            
+            if (tempOnboardingId && storedProfile && storedConversation) {
+              try {
+                const profileData = JSON.parse(storedProfile);
+                const conversationData = JSON.parse(storedConversation);
+                const promptMode = storedPromptMode || 'structured';
+                
+                console.log('✅ AuthCallback: Retrieved onboarding data from localStorage');
+                console.log('📊 AuthCallback: localStorage data details:', {
+                  profileName: profileData?.name,
+                  profileKeys: Object.keys(profileData || {}),
+                  conversationKeys: Object.keys(conversationData || {}),
+                  conversationMessageCount: conversationData?.messages?.length || 0,
+                  conversationUserAnswerCount: conversationData?.userAnswers?.length || 0,
+                  promptMode: promptMode
+                });
+                
+                // Enhanced transfer with explicit field mapping
+                const updateData = {
+                  profile_data: profileData,
+                  conversation_data: conversationData,
+                  prompt_mode: promptMode,
+                  has_completed_onboarding: true,
+                  updated_at: new Date().toISOString()
+                };
+                
+                console.log('🔄 AuthCallback: Transferring localStorage data with enhanced mapping...');
+                
+                const { error: updateError, data: updatedData } = await supabase
+                  .from('user_data')
+                  .update(updateData)
+                  .eq('user_id', user.id)
+                  .select();
+                
+                if (updateError) {
+                  console.error('❌ AuthCallback: Error transferring localStorage data:', updateError);
+                  setDebugInfo(`Error transferring localStorage data: ${updateError.message}`);
+                } else {
+                  console.log('✅ AuthCallback: Successfully transferred localStorage data');
+                  console.log('📊 AuthCallback: localStorage transfer verification:', {
+                    dataReturned: !!updatedData,
+                    recordCount: updatedData?.length || 0,
+                    transferredData: updatedData?.[0] ? {
+                      hasProfileData: !!updatedData[0].profile_data,
+                      hasConversationData: !!updatedData[0].conversation_data,
+                      promptMode: updatedData[0].prompt_mode,
+                      hasCompletedOnboarding: updatedData[0].has_completed_onboarding
+                    } : null
+                  });
+                  setDebugInfo('localStorage onboarding data transferred successfully');
+                  onboardingDataTransferred = true;
+                  
+                  // Clean up localStorage after successful transfer
+                  const keysToRemove = [
+                    'temp_onboarding_id',
+                    'onboarding_profile',
+                    'onboarding_user_name',
+                    'onboarding_conversation',
+                    'onboarding_prompt_mode',
+                    'onboarding_timestamp'
+                  ];
+                  
+                  keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log(`🧹 AuthCallback: Removed localStorage key: ${key}`);
+                  });
+                  
+                  toast({
+                    title: "Account created successfully!",
+                    description: "Welcome to Twyne! Your profile has been saved.",
+                  });
+                }
+              } catch (parseError) {
+                console.error('❌ AuthCallback: Error parsing localStorage data:', parseError);
+                setDebugInfo(`Error parsing localStorage data: ${parseError.message}`);
+              }
             }
+          }
+          
+          // Strategy 3: Check database for anonymous onboarding records
+          if (!onboardingDataTransferred) {
+            console.log('🔍 AuthCallback: Checking database for anonymous onboarding records...');
+            
+            const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
+            if (tempOnboardingId) {
+              const { data: onboardingRecords, error: fetchError } = await supabase
+                .from('onboarding_data')
+                .select('*')
+                .or(`id.eq.${tempOnboardingId},user_id.eq.${tempOnboardingId}`)
+                .eq('is_anonymous', true)
+                .order('created_at', { ascending: false })
+                .limit(1);
+              
+              if (fetchError) {
+                console.error('❌ AuthCallback: Error fetching onboarding records:', fetchError);
+              } else if (onboardingRecords && onboardingRecords.length > 0) {
+                const record = onboardingRecords[0];
+                console.log('✅ AuthCallback: Found anonymous onboarding record in database');
+                console.log('📊 AuthCallback: Database record details:', {
+                  recordId: record.id,
+                  hasProfileData: !!record.profile_data,
+                  hasConversationData: !!record.conversation_data,
+                  promptMode: record.prompt_mode,
+                  isAnonymous: record.is_anonymous
+                });
+                
+                // Enhanced transfer with explicit field mapping
+                const updateData = {
+                  profile_data: record.profile_data || {},
+                  conversation_data: record.conversation_data || {},
+                  prompt_mode: record.prompt_mode || 'structured',
+                  has_completed_onboarding: true,
+                  updated_at: new Date().toISOString()
+                };
+                
+                console.log('🔄 AuthCallback: Transferring database record with enhanced mapping...');
+                
+                const { error: updateError, data: updatedData } = await supabase
+                  .from('user_data')
+                  .update(updateData)
+                  .eq('user_id', user.id)
+                  .select();
+                
+                if (updateError) {
+                  console.error('❌ AuthCallback: Error transferring database record:', updateError);
+                  setDebugInfo(`Error transferring database record: ${updateError.message}`);
+                } else {
+                  console.log('✅ AuthCallback: Successfully transferred database record');
+                  console.log('📊 AuthCallback: Database transfer verification:', {
+                    dataReturned: !!updatedData,
+                    recordCount: updatedData?.length || 0,
+                    transferredData: updatedData?.[0] ? {
+                      hasProfileData: !!updatedData[0].profile_data,
+                      hasConversationData: !!updatedData[0].conversation_data,
+                      promptMode: updatedData[0].prompt_mode,
+                      hasCompletedOnboarding: updatedData[0].has_completed_onboarding
+                    } : null
+                  });
+                  setDebugInfo('Database onboarding record transferred successfully');
+                  onboardingDataTransferred = true;
+                  
+                  // Clean up the anonymous record after successful transfer
+                  await supabase
+                    .from('onboarding_data')
+                    .delete()
+                    .eq('id', record.id);
+                  
+                  console.log('🧹 AuthCallback: Cleaned up anonymous onboarding record');
+                  
+                  toast({
+                    title: "Account created successfully!",
+                    description: "Welcome to Twyne! Your profile has been saved.",
+                  });
+                }
+              }
+            }
+          }
+          
+          // Final routing decision based on transfer success
+          if (onboardingDataTransferred) {
+            console.log('🎉 AuthCallback: Onboarding data successfully transferred, navigating to mirror');
+            setDebugInfo('Onboarding data transferred, redirecting to mirror');
+            
+            // Clear URL parameters before redirecting
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            navigate('/mirror');
+          } else if (userData && userData.has_completed_onboarding) {
+            console.log('🎉 AuthCallback: User already has completed onboarding');
+            setDebugInfo('User already completed onboarding');
+            
+            // Clear URL parameters before redirecting
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            navigate('/mirror');
           } else {
-            console.log('⚠️ AuthCallback: No user data available, redirecting to onboarding');
-            setDebugInfo('No user data available');
+            console.log('🔄 AuthCallback: No onboarding data found, user needs to complete onboarding');
+            setDebugInfo('No onboarding data found, redirecting to onboarding');
+            
+            // Clear URL parameters before redirecting
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
             navigate('/onboarding');
           }
           
         } catch (error) {
-          console.error('❌ AuthCallback: Error in post-auth handling:', error);
-          setDebugInfo(`Post-auth error: ${error.message}`);
+          console.error('❌ AuthCallback: Error in enhanced post-auth handling:', error);
+          setDebugInfo(`Enhanced post-auth error: ${error.message}`);
           
           // Clean up onboarding data if we have it
           if (onboardingId) {
