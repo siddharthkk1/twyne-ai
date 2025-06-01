@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Conversation } from '@/types/chat';
 
 export class GoogleAuthService {
   /**
@@ -93,7 +94,7 @@ export class GoogleAuthService {
               .update({
                 user_id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                conversation_data: conversationToStore, // Use validated conversation data
+                conversation_data: conversationToStore as any, // Use validated conversation data
                 prompt_mode: onboardingData.promptMode || 'structured',
                 is_anonymous: true
               })
@@ -105,7 +106,7 @@ export class GoogleAuthService {
                 id: tempOnboardingId,
                 user_id: tempOnboardingId,
                 profile_data: onboardingData.profile || {},
-                conversation_data: conversationToStore, // Use validated conversation data
+                conversation_data: conversationToStore as any, // Use validated conversation data
                 prompt_mode: onboardingData.promptMode || 'structured',
                 is_anonymous: true
               });
@@ -305,7 +306,7 @@ export class GoogleAuthService {
         console.log('✅ GoogleAuthService: Successfully retrieved onboarding data from database');
         
         // ENHANCED: Validate conversation data from database
-        let conversationData = data.conversation_data;
+        let conversationData = data.conversation_data as any;
         if (!conversationData || typeof conversationData !== 'object') {
           console.warn('⚠️ GoogleAuthService: Invalid conversation data from database, using defaults');
           conversationData = { messages: [], userAnswers: [] };
@@ -327,7 +328,7 @@ export class GoogleAuthService {
         return {
           id: data.id,
           profile: data.profile_data,
-          conversation: conversationData,
+          conversation: conversationData as Conversation,
           promptMode: data.prompt_mode
         };
       }

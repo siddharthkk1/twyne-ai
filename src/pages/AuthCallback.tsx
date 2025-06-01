@@ -214,7 +214,7 @@ const AuthCallback = () => {
               // Enhanced transfer with explicit field mapping and validation
               const updateData = {
                 profile_data: onboardingData.profile || {},
-                conversation_data: validatedConversation || { messages: [], userAnswers: [] },
+                conversation_data: validatedConversation || { messages: [], userAnswers: [] } as any,
                 prompt_mode: onboardingData.promptMode || 'structured',
                 has_completed_onboarding: true,
                 updated_at: new Date().toISOString()
@@ -306,7 +306,7 @@ const AuthCallback = () => {
                 // Enhanced transfer with validation
                 const updateData = {
                   profile_data: profileData,
-                  conversation_data: conversationData,
+                  conversation_data: conversationData as any,
                   prompt_mode: promptMode,
                   has_completed_onboarding: true,
                   updated_at: new Date().toISOString()
@@ -397,7 +397,7 @@ const AuthCallback = () => {
                 // Enhanced transfer with validation
                 const updateData = {
                   profile_data: record.profile_data || {},
-                  conversation_data: validatedConversation || { messages: [], userAnswers: [] },
+                  conversation_data: validatedConversation || { messages: [], userAnswers: [] } as any,
                   prompt_mode: record.prompt_mode || 'structured',
                   has_completed_onboarding: true,
                   updated_at: new Date().toISOString()
