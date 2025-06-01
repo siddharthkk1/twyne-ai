@@ -103,22 +103,44 @@ const AuthCallback = () => {
         setDebugInfo('Processing authenticated user with redirect URL method...');
         
         try {
-          // First, ensure the user_data record exists (it should be created by trigger)
-          console.log('🔍 AuthCallback: Checking user_data record...');
-          let { data: userData, error: fetchError } = await supabase
-            .from('user_data')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle();
+          // Add a small delay to ensure trigger has time to execute
+          console.log('⏳ AuthCallback: Waiting for user_data trigger to complete...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
-          if (fetchError) {
-            console.error('❌ AuthCallback: Error fetching user data:', fetchError);
-            setDebugInfo(`Error fetching user data: ${fetchError.message}`);
+          // Check if the user_data record exists with retry logic
+          console.log('🔍 AuthCallback: Checking user_data record...');
+          let userData = null;
+          let retryCount = 0;
+          const maxRetries = 3;
+          
+          while (!userData && retryCount < maxRetries) {
+            const { data, error: fetchError } = await supabase
+              .from('user_data')
+              .select('*')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            if (fetchError) {
+              console.error('❌ AuthCallback: Error fetching user data:', fetchError);
+              setDebugInfo(`Error fetching user data: ${fetchError.message}`);
+              throw fetchError;
+            }
+            
+            userData = data;
+            
+            if (!userData) {
+              retryCount++;
+              console.log(`⏳ AuthCallback: User data not found, retry ${retryCount}/${maxRetries}`);
+              setDebugInfo(`Waiting for user data creation... retry ${retryCount}/${maxRetries}`);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           }
           
-          // If no user_data record exists, create one (fallback in case trigger failed)
+          // If no user_data record exists after retries, create one (fallback)
           if (!userData) {
-            console.log('⚠️ AuthCallback: No user_data record found, creating fallback record');
+            console.log('⚠️ AuthCallback: No user_data record found after retries, creating fallback record');
+            setDebugInfo('Creating user data record as fallback...');
+            
             const { data: newUserData, error: insertError } = await supabase
               .from('user_data')
               .insert({
@@ -140,10 +162,13 @@ const AuthCallback = () => {
             if (insertError) {
               console.error('❌ AuthCallback: Error creating user_data record:', insertError);
               setDebugInfo(`Error creating user data: ${insertError.message}`);
+              throw insertError;
             } else {
               userData = newUserData;
               console.log('✅ AuthCallback: Created fallback user_data record');
             }
+          } else {
+            console.log('✅ AuthCallback: Found existing user_data record');
           }
           
           // Check if we have onboarding data to transfer
@@ -230,6 +255,13 @@ const AuthCallback = () => {
           if (onboardingId) {
             await GoogleAuthService.cleanupOnboardingData(onboardingId);
           }
+          
+          // Show error to user and redirect to onboarding
+          toast({
+            title: "Setup Error",
+            description: "There was an issue setting up your account. Please complete onboarding manually.",
+            variant: "destructive",
+          });
           
           navigate('/onboarding');
         } finally {
