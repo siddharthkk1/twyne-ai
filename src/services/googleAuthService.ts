@@ -178,4 +178,72 @@ export class GoogleAuthService {
       console.error('❌ GoogleAuthService: Error during cleanup:', error);
     }
   }
+
+  public static getYouTubeAuthUrl(): string {
+    try {
+      console.log('🔗 GoogleAuthService: Generating YouTube auth URL');
+      
+      // Get the origin with fallback
+      const origin = window.location.origin || 'https://preview--twyne-ai.lovable.app';
+      const redirectUri = `${origin}/youtube/callback`;
+      
+      console.log('🔗 GoogleAuthService: Using redirect URI:', redirectUri);
+      
+      // Call the Supabase edge function to get the auth URL
+      const { data, error } = await supabase.functions.invoke('google-auth-url', {
+        body: { 
+          redirect_uri: redirectUri,
+          context: 'youtube_auth'
+        }
+      });
+      
+      if (error) {
+        console.error('❌ GoogleAuthService: Error getting YouTube auth URL:', error);
+        throw new Error(`Failed to get YouTube auth URL: ${error.message}`);
+      }
+      
+      if (!data?.authUrl) {
+        console.error('❌ GoogleAuthService: No auth URL received from edge function');
+        throw new Error('No authentication URL received');
+      }
+      
+      console.log('✅ GoogleAuthService: Successfully generated YouTube auth URL');
+      return data.authUrl;
+      
+    } catch (error) {
+      console.error('❌ GoogleAuthService: Error in getYouTubeAuthUrl:', error);
+      throw error;
+    }
+  }
+
+  public static async exchangeCodeForToken(code: string): Promise<any> {
+    try {
+      console.log('🔄 GoogleAuthService: Exchanging authorization code for tokens');
+      console.log('🔄 GoogleAuthService: Code length:', code.length);
+      
+      // Call the Supabase edge function to exchange the code
+      const { data, error } = await supabase.functions.invoke('google-auth', {
+        body: { code }
+      });
+      
+      if (error) {
+        console.error('❌ GoogleAuthService: Error exchanging code for token:', error);
+        throw new Error(`Token exchange failed: ${error.message}`);
+      }
+      
+      if (!data) {
+        console.error('❌ GoogleAuthService: No token data received');
+        throw new Error('No token data received from exchange');
+      }
+      
+      console.log('✅ GoogleAuthService: Successfully exchanged code for tokens');
+      console.log('✅ GoogleAuthService: Token data keys:', Object.keys(data));
+      
+      return data;
+      
+    } catch (error) {
+      console.error('❌ GoogleAuthService: Error in exchangeCodeForToken:', error);
+      throw error;
+    }
+  }
 }
