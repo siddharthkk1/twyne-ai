@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { GoogleAuthService } from '@/services/googleAuthService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import type { Conversation } from '@/types/chat';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -12,6 +13,18 @@ const AuthCallback = () => {
   const [hasHandledCallback, setHasHandledCallback] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('Initializing...');
+
+  // Helper function to safely extract conversation data
+  const extractConversationData = (data: any): Conversation | null => {
+    if (!data || typeof data !== 'object') return null;
+    
+    // Check if it has the expected conversation structure
+    if (data.messages && Array.isArray(data.messages) && data.userAnswers && Array.isArray(data.userAnswers)) {
+      return data as Conversation;
+    }
+    
+    return null;
+  };
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -188,13 +201,16 @@ const AuthCallback = () => {
               };
               
               console.log('🔄 AuthCallback: Transferring onboarding data with enhanced validation...');
+              
+              // Safe conversation data extraction for logging
+              const conversationData = extractConversationData(updateData.conversation_data);
               console.log('📊 AuthCallback: Update data to transfer:', {
                 hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
                 hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
                 promptMode: updateData.prompt_mode,
                 hasCompletedOnboarding: updateData.has_completed_onboarding,
-                conversationMessageCount: updateData.conversation_data?.messages?.length || 0,
-                conversationUserAnswerCount: updateData.conversation_data?.userAnswers?.length || 0
+                conversationMessageCount: conversationData?.messages?.length || 0,
+                conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
               });
               
               const { error: updateError, data: updatedData } = await supabase
@@ -261,12 +277,15 @@ const AuthCallback = () => {
                 };
                 
                 console.log('🔄 AuthCallback: Transferring localStorage data with enhanced validation...');
+                
+                // Safe conversation data extraction for logging
+                const safeConversationData = extractConversationData(updateData.conversation_data);
                 console.log('📊 AuthCallback: localStorage data to transfer:', {
                   hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
                   hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
                   promptMode: updateData.prompt_mode,
-                  conversationMessageCount: updateData.conversation_data?.messages?.length || 0,
-                  conversationUserAnswerCount: updateData.conversation_data?.userAnswers?.length || 0
+                  conversationMessageCount: safeConversationData?.messages?.length || 0,
+                  conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0
                 });
                 
                 const { error: updateError, data: updatedData } = await supabase
@@ -340,12 +359,15 @@ const AuthCallback = () => {
                 };
                 
                 console.log('🔄 AuthCallback: Transferring database record with enhanced validation...');
+                
+                // Safe conversation data extraction for logging
+                const safeConversationData = extractConversationData(updateData.conversation_data);
                 console.log('📊 AuthCallback: Database record to transfer:', {
                   hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
                   hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
                   promptMode: updateData.prompt_mode,
-                  conversationMessageCount: updateData.conversation_data?.messages?.length || 0,
-                  conversationUserAnswerCount: updateData.conversation_data?.userAnswers?.length || 0
+                  conversationMessageCount: safeConversationData?.messages?.length || 0,
+                  conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0
                 });
                 
                 const { error: updateError, data: updatedData } = await supabase
