@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from '@/types/chat';
 
@@ -232,13 +231,23 @@ export class GoogleAuthService {
   }
 
   /**
-   * Helper function to validate conversation structure
+   * Helper function to validate conversation structure with simplified typing
    */
-  private static isValidConversation(data: any): data is Conversation {
+  private static isValidConversation(data: any): boolean {
     return data && 
            typeof data === 'object' && 
            Array.isArray(data.messages) && 
            Array.isArray(data.userAnswers);
+  }
+
+  /**
+   * Helper function to safely convert data to Conversation type
+   */
+  private static toConversation(data: any): Conversation {
+    if (this.isValidConversation(data)) {
+      return data as Conversation;
+    }
+    return { messages: [], userAnswers: [] };
   }
 
   /**
@@ -262,14 +271,7 @@ export class GoogleAuthService {
         let parsedConversation: Conversation;
         try {
           const rawConversation = JSON.parse(localConversation);
-          
-          // ENHANCED: Validate conversation structure and provide defaults
-          if (!this.isValidConversation(rawConversation)) {
-            console.warn('⚠️ GoogleAuthService: Invalid conversation structure, using defaults');
-            parsedConversation = { messages: [], userAnswers: [] };
-          } else {
-            parsedConversation = rawConversation;
-          }
+          parsedConversation = this.toConversation(rawConversation);
           
           console.log('📊 GoogleAuthService: Validated conversation data from localStorage:', {
             messageCount: parsedConversation.messages.length,
@@ -306,15 +308,7 @@ export class GoogleAuthService {
         console.log('✅ GoogleAuthService: Successfully retrieved onboarding data from database');
         
         // ENHANCED: Validate conversation data from database
-        const rawConversationData = data.onboarding_conversation;
-        let conversationData: Conversation;
-        
-        if (this.isValidConversation(rawConversationData)) {
-          conversationData = rawConversationData;
-        } else {
-          console.warn('⚠️ GoogleAuthService: Invalid conversation data from database, using defaults');
-          conversationData = { messages: [], userAnswers: [] };
-        }
+        const conversationData = this.toConversation(data.onboarding_conversation);
         
         console.log('📊 GoogleAuthService: Validated conversation data from database:', {
           messageCount: conversationData.messages.length,
