@@ -147,9 +147,8 @@ export const useOnboardingChat = () => {
     console.log('🔄 useOnboardingChat: Prompt mode changed to:', promptMode);
     
     // Store prompt mode in localStorage immediately for both manual sign-up and OAuth flows
-    localStorage.setItem('onboarding_mode', promptMode);
+    localStorage.setItem('onboarding_prompt_mode', promptMode);
     localStorage.setItem('onboardingPromptMode', promptMode); // Legacy key for compatibility
-    localStorage.setItem('onboarding_prompt_mode', promptMode); // Additional fallback key
     localStorage.setItem('prompt_mode', promptMode); // Additional fallback key
     
     console.log('💾 useOnboardingChat: Stored prompt mode in localStorage:', promptMode);
@@ -314,14 +313,13 @@ export const useOnboardingChat = () => {
       localStorage.setItem('onboardingProfile', JSON.stringify(profile));
       localStorage.setItem('onboardingUserName', finalUserName || profile.name || '');
       localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
-      localStorage.setItem('onboarding_mode', promptMode);
+      localStorage.setItem('onboarding_prompt_mode', promptMode);
       
       // Legacy compatibility keys
       localStorage.setItem('onboarding_profile', JSON.stringify(profile));
       localStorage.setItem('onboarding_user_name', finalUserName || profile.name || '');
       localStorage.setItem('onboarding_conversation', JSON.stringify(finalConversation));
       localStorage.setItem('onboardingPromptMode', promptMode);
-      localStorage.setItem('onboarding_prompt_mode', promptMode);
       localStorage.setItem('prompt_mode', promptMode);
       
       // Timestamp for cleanup
@@ -331,7 +329,7 @@ export const useOnboardingChat = () => {
         profileStored: !!localStorage.getItem('onboardingProfile'),
         userNameStored: !!localStorage.getItem('onboardingUserName'),
         conversationStored: !!localStorage.getItem('onboardingConversation'),
-        onboardingModeStored: !!localStorage.getItem('onboarding_mode'),
+        promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
         conversationMessageCount: finalConversation.messages?.length || 0,
         conversationUserAnswerCount: finalConversation.userAnswers?.length || 0,
         finalUserName: finalUserName

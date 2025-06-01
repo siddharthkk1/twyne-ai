@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -45,9 +44,8 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     
     // Get prompt mode from multiple sources
     let promptMode = 'structured';
-    const storedPromptMode = localStorage.getItem('onboarding_mode') || 
+    const storedPromptMode = localStorage.getItem('onboarding_prompt_mode') || 
                              localStorage.getItem('onboardingPromptMode') ||
-                             localStorage.getItem('onboarding_prompt_mode') ||
                              localStorage.getItem('prompt_mode');
     if (storedPromptMode) {
       promptMode = storedPromptMode;
@@ -194,8 +192,8 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
             
             const updateData = {
               profile_data: profile as unknown as Json,
-              onboarding_conversation: conversation as unknown as Json,
-              onboarding_mode: promptMode,
+              conversation_data: conversation as unknown as Json,
+              prompt_mode: promptMode,
               has_completed_onboarding: true,
               updated_at: new Date().toISOString()
             };
@@ -203,8 +201,8 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
             console.log("📊 CreateAccountPrompt: Data being saved:", {
               userId: data.user.id,
               hasProfileData: !!updateData.profile_data,
-              hasConversationData: !!updateData.onboarding_conversation,
-              onboardingMode: updateData.onboarding_mode,
+              hasConversationData: !!updateData.conversation_data,
+              promptMode: updateData.prompt_mode,
               conversationMessageCount: conversation.messages.length,
               conversationUserAnswerCount: conversation.userAnswers.length,
               hasExistingRecord: !!existingUserData

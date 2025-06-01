@@ -245,8 +245,8 @@ const AuthCallback = () => {
                   picture: user.user_metadata?.picture || user.user_metadata?.avatar_url,
                   provider: user.app_metadata?.provider || 'google'
                 },
-                onboarding_conversation: {},
-                onboarding_mode: 'structured',
+                conversation_data: {},
+                prompt_mode: 'structured',
                 has_completed_onboarding: false
               })
               .select()
@@ -291,8 +291,8 @@ const AuthCallback = () => {
               // Enhanced transfer with explicit field mapping and validation
               const updateData = {
                 profile_data: onboardingData.profile || {},
-                onboarding_conversation: validatedConversation || getConversationFromLocalStorage() || { messages: [], userAnswers: [] } as any,
-                onboarding_mode: onboardingData.promptMode || 'structured',
+                conversation_data: validatedConversation || getConversationFromLocalStorage() || { messages: [], userAnswers: [] } as any,
+                prompt_mode: onboardingData.promptMode || 'structured',
                 has_completed_onboarding: true,
                 updated_at: new Date().toISOString()
               };
@@ -300,11 +300,11 @@ const AuthCallback = () => {
               console.log('🔄 AuthCallback: Transferring onboarding data with enhanced conversation validation...');
               
               // Safe conversation data extraction for logging
-              const conversationData = extractConversationData(updateData.onboarding_conversation);
+              const conversationData = extractConversationData(updateData.conversation_data);
               console.log('📊 AuthCallback: Update data to transfer:', {
                 hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
-                hasConversationData: !!updateData.onboarding_conversation && Object.keys(updateData.onboarding_conversation).length > 0,
-                onboardingMode: updateData.onboarding_mode,
+                hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
+                promptMode: updateData.prompt_mode,
                 hasCompletedOnboarding: updateData.has_completed_onboarding,
                 conversationMessageCount: conversationData?.messages?.length || 0,
                 conversationUserAnswerCount: conversationData?.userAnswers?.length || 0,
@@ -371,8 +371,8 @@ const AuthCallback = () => {
                 // Enhanced transfer with validation
                 const updateData = {
                   profile_data: profileData,
-                  onboarding_conversation: conversationData as any,
-                  onboarding_mode: promptMode,
+                  conversation_data: conversationData as any,
+                  prompt_mode: promptMode,
                   has_completed_onboarding: true,
                   updated_at: new Date().toISOString()
                 };
@@ -381,8 +381,8 @@ const AuthCallback = () => {
                 
                 console.log('📊 AuthCallback: localStorage data to transfer:', {
                   hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
-                  hasConversationData: !!updateData.onboarding_conversation && Object.keys(updateData.onboarding_conversation).length > 0,
-                  onboardingMode: updateData.onboarding_mode,
+                  hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
+                  promptMode: updateData.prompt_mode,
                   conversationMessageCount: conversationData.messages.length,
                   conversationUserAnswerCount: conversationData.userAnswers.length,
                   conversationIsValid: !!conversationData
@@ -455,13 +455,13 @@ const AuthCallback = () => {
                 console.log('✅ AuthCallback: Found anonymous onboarding record in database');
                 
                 // ENHANCED: Validate conversation data from database
-                const validatedConversation = extractConversationData(record.onboarding_conversation);
+                const validatedConversation = extractConversationData(record.conversation_data);
                 
                 // Enhanced transfer with validation
                 const updateData = {
                   profile_data: record.profile_data || {},
-                  onboarding_conversation: validatedConversation || { messages: [], userAnswers: [] } as any,
-                  onboarding_mode: record.onboarding_mode || 'structured',
+                  conversation_data: validatedConversation || { messages: [], userAnswers: [] } as any,
+                  prompt_mode: record.prompt_mode || 'structured',
                   has_completed_onboarding: true,
                   updated_at: new Date().toISOString()
                 };
@@ -469,11 +469,11 @@ const AuthCallback = () => {
                 console.log('🔄 AuthCallback: Transferring database record with enhanced conversation validation...');
                 
                 // Safe conversation data extraction for logging
-                const safeConversationData = extractConversationData(updateData.onboarding_conversation);
+                const safeConversationData = extractConversationData(updateData.conversation_data);
                 console.log('📊 AuthCallback: Database record to transfer:', {
                   hasProfileData: !!updateData.profile_data && Object.keys(updateData.profile_data).length > 0,
-                  hasConversationData: !!updateData.onboarding_conversation && Object.keys(updateData.onboarding_conversation).length > 0,
-                  onboardingMode: updateData.onboarding_mode,
+                  hasConversationData: !!updateData.conversation_data && Object.keys(updateData.conversation_data).length > 0,
+                  promptMode: updateData.prompt_mode,
                   conversationMessageCount: safeConversationData?.messages?.length || 0,
                   conversationUserAnswerCount: safeConversationData?.userAnswers?.length || 0,
                   conversationIsValid: !!safeConversationData

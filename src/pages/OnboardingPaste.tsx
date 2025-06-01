@@ -1,336 +1,485 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
-import { ArrowLeft, Upload, CheckCircle } from 'lucide-react';
-import type { UserProfile, Conversation } from '@/types/chat';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Copy, Clipboard, ArrowLeft, Loader, User } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Logo } from "@/components/Logo";
 import type { Json } from '@/integrations/supabase/types';
 
+interface UserProfile {
+  name: string;
+  location: string;
+  interests: string[] | string;
+  socialStyle: string;
+  connectionPreferences: string;
+  personalInsights: string[];
+  vibeSummary?: string;
+  socialNeeds?: string;
+  coreValues?: string;
+  lifeContext?: string;
+  twyneTags?: string[];
+  vibeWords?: string[];
+  goals?: string;
+}
+
 const OnboardingPaste = () => {
+  const [reflection, setReflection] = useState("");
+  const [userName, setUserName] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [onboardingData, setOnboardingData] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [parsedData, setParsedData] = useState<any>(null);
+  const { user, clearNewUserFlag } = useAuth();
 
-  const handleValidateData = () => {
-    if (!onboardingData.trim()) {
-      toast({
-        title: "No data provided",
-        description: "Please paste your onboarding data to validate.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // Example prompt that users can copy
+  const examplePrompt = 
+    "Based on everything you know about me from our conversations, who am I? What do you think I'm like? " +
+    "Please describe my personality, interests, values, communication style, and any other insights " +
+    "you've gathered. Be specific but concise.";
 
-    try {
-      const data = JSON.parse(onboardingData);
-      
-      // Validate that the data has the expected structure
-      if (!data.profile || !data.conversation) {
-        throw new Error("Invalid data format. Expected profile and conversation data.");
-      }
-
-      setParsedData(data);
-      setCurrentStep(2);
-      
-      toast({
-        title: "Data validated successfully!",
-        description: "Your onboarding data format is correct.",
-      });
-    } catch (error) {
-      console.error('Error validating onboarding data:', error);
-      
-      let errorMessage = 'Invalid data format. Please check your data and try again.';
-      if (error instanceof SyntaxError) {
-        errorMessage = 'Invalid JSON format. Please check your data and try again.';
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: "Validation failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleImport = async () => {
-    if (!parsedData) {
-      toast({
-        title: "No validated data",
-        description: "Please validate your data first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Generate a temporary ID for storage
-      const tempId = crypto.randomUUID();
-      
-      // Store in onboarding_data table without user_id and is_anonymous columns
-      const { error: insertError } = await supabase
-        .from('onboarding_data')
-        .insert({
-          id: tempId,
-          profile_data: parsedData.profile as Json,
-          onboarding_conversation: parsedData.conversation as Json,
-          onboarding_mode: parsedData.promptMode || 'structured'
-        });
-
-      if (insertError) {
-        console.error('Error storing onboarding data:', insertError);
-        throw insertError;
-      }
-
-      // Store temp ID for later retrieval
-      localStorage.setItem('temp_onboarding_id', tempId);
-
-      console.log('Successfully imported and stored onboarding data:', {
-        hasProfile: !!parsedData.profile,
-        hasConversation: !!parsedData.conversation,
-        onboardingMode: parsedData.promptMode || 'structured'
-      });
-
-      setCurrentStep(3);
-      
-      toast({
-        title: "Data imported successfully!",
-        description: "Your onboarding data has been loaded.",
-      });
-
-    } catch (error) {
-      console.error('Error importing onboarding data:', error);
-      
-      let errorMessage = 'Failed to import data. Please try again.';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: "Import failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleComplete = () => {
-    // Navigate to results page to show the imported data
-    navigate('/onboarding-results', {
-      state: {
-        userProfile: parsedData.profile as UserProfile,
-        userName: parsedData.userName || '',
-        conversation: parsedData.conversation as Conversation
-      }
+  const copyPrompt = () => {
+    navigator.clipboard.writeText(examplePrompt);
+    toast({
+      title: "Copied to clipboard",
+      description: "Paste this prompt into ChatGPT to get your reflection.",
     });
   };
 
-  const renderStep1 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Upload className="h-5 w-5" />
-          Step 1: Paste Your Data
-        </CardTitle>
-        <CardDescription>
-          Paste your exported onboarding data below to get started.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <label htmlFor="onboarding-data" className="block text-sm font-medium mb-2">
-            Onboarding data (JSON format)
-          </label>
-          <Textarea
-            id="onboarding-data"
-            placeholder='Paste your exported onboarding data here, e.g., {"profile": {...}, "conversation": {...}, ...}'
-            value={onboardingData}
-            onChange={(e) => setOnboardingData(e.target.value)}
-            rows={10}
-            className="font-mono text-xs"
-          />
-        </div>
+  // Enhanced data storage with proper session management
+  const storeOnboardingDataSecurely = async (profileData: UserProfile, conversationData: any, promptMode: string) => {
+    try {
+      console.log('🚀 OnboardingPaste: Starting enhanced data storage...');
+      
+      const timestamp = Date.now();
+      
+      // Enhanced cleanup: Remove existing anonymous sessions first
+      console.log('🧹 OnboardingPaste: Performing cleanup of existing anonymous sessions...');
+      
+      const existingSessionId = localStorage.getItem('temp_onboarding_id');
+      if (existingSessionId) {
+        console.log('🗄️ OnboardingPaste: Found existing session, cleaning up:', existingSessionId);
         
-        <div className="flex gap-3">
-          <Button 
-            onClick={handleValidateData}
-            disabled={!onboardingData.trim()}
-            className="flex-1"
-          >
-            Validate Data
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setOnboardingData('')}
-          >
-            Clear
-          </Button>
-        </div>
+        try {
+          // Clean up existing records
+          const { error: deleteError } = await supabase
+            .from('onboarding_data')
+            .delete()
+            .or(`id.eq.${existingSessionId},user_id.eq.${existingSessionId}`)
+            .eq('is_anonymous', true);
+          
+          if (deleteError) {
+            console.warn('⚠️ OnboardingPaste: Failed to cleanup existing session records:', deleteError);
+          } else {
+            console.log('✅ OnboardingPaste: Successfully cleaned up existing session records');
+          }
+        } catch (cleanupError) {
+          console.warn('⚠️ OnboardingPaste: Error during session cleanup:', cleanupError);
+        }
+      }
+      
+      // Generate proper UUID for the session
+      let tempId: string;
+      try {
+        tempId = crypto.randomUUID();
+        console.log('🔑 OnboardingPaste: Generated UUID using crypto.randomUUID():', tempId);
+      } catch (cryptoError) {
+        // Fallback for older browsers
+        console.warn('⚠️ OnboardingPaste: crypto.randomUUID() not available, using fallback');
+        tempId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+        console.log('🔑 OnboardingPaste: Generated fallback ID:', tempId);
+      }
+      
+      // Clear previous localStorage entries to prevent conflicts
+      const keysToRemove = [
+        'temp_onboarding_id',
+        'onboarding_profile',
+        'onboarding_user_name',
+        'onboarding_conversation',
+        'onboarding_prompt_mode',
+        'onboarding_timestamp'
+      ];
+      
+      keysToRemove.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+          console.log(`🧹 OnboardingPaste: Cleared existing localStorage key: ${key}`);
+        }
+      });
+      
+      // Store with new session ID
+      localStorage.setItem('temp_onboarding_id', tempId);
+      localStorage.setItem('onboarding_profile', JSON.stringify(profileData));
+      localStorage.setItem('onboarding_user_name', profileData.name);
+      localStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
+      localStorage.setItem('onboarding_prompt_mode', promptMode);
+      localStorage.setItem('onboarding_timestamp', timestamp.toString());
+      console.log('💾 OnboardingPaste: Enhanced localStorage completed with session ID:', tempId);
+      
+      // Enhanced sessionStorage backup
+      sessionStorage.setItem('onboarding_profile', JSON.stringify(profileData));
+      sessionStorage.setItem('onboarding_user_name', profileData.name);
+      sessionStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
+      sessionStorage.setItem('onboarding_prompt_mode', promptMode);
+      sessionStorage.setItem('temp_onboarding_id', tempId);
+      console.log('💾 OnboardingPaste: Enhanced sessionStorage backup completed');
+      
+      // Enhanced database storage using insert (not upsert)
+      console.log('🗄️ OnboardingPaste: Attempting database storage with proper UUID:', tempId);
+      
+      const insertData = {
+        id: tempId,
+        user_id: tempId,
+        profile_data: profileData as unknown as Json,
+        conversation_data: conversationData as unknown as Json,
+        prompt_mode: promptMode,
+        is_anonymous: true
+      };
+      
+      console.log('📊 OnboardingPaste: Database insert data:', {
+        id: insertData.id,
+        user_id: insertData.user_id,
+        profileDataKeys: Object.keys(profileData),
+        conversationDataKeys: Object.keys(conversationData),
+        prompt_mode: insertData.prompt_mode,
+        is_anonymous: insertData.is_anonymous,
+        conversationMessageCount: conversationData?.messages?.length || 0,
+        conversationUserAnswerCount: conversationData?.userAnswers?.length || 0
+      });
+      
+      // Use insert to create new record (RLS policies now allow this)
+      const { error, data } = await supabase
+        .from('onboarding_data')
+        .insert(insertData)
+        .select();
+      
+      if (error) {
+        console.error('❌ OnboardingPaste: Database storage failed:', error);
+        throw error;
+      } else {
+        console.log('✅ OnboardingPaste: Database storage successful with UUID:', tempId);
+        console.log('📊 OnboardingPaste: Database result:', {
+          dataReturned: !!data,
+          recordCount: data?.length || 0,
+          savedData: data?.[0] ? {
+            hasProfileData: !!data[0].profile_data,
+            hasConversationData: !!data[0].conversation_data,
+            promptMode: data[0].prompt_mode,
+            isAnonymous: data[0].is_anonymous
+          } : null
+        });
+      }
+      
+      console.log('✅ OnboardingPaste: All enhanced data storage strategies completed successfully');
+      return tempId;
+    } catch (error) {
+      console.error('❌ OnboardingPaste: Error in enhanced storage:', error);
+      throw error;
+    }
+  };
 
-        <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted/50 rounded">
-          <p className="font-medium mb-1">Expected format:</p>
-          <pre className="text-xs">
-{`{
-  "profile": { ... },
-  "conversation": { ... },
-  "userName": "...",
-  "promptMode": "..."
-}`}
-          </pre>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const generateProfile = async () => {
+    if (!reflection.trim()) {
+      toast({
+        title: "Empty reflection",
+        description: "Please paste your ChatGPT reflection before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const renderStep2 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-500" />
-          Step 2: Review & Import
-        </CardTitle>
-        <CardDescription>
-          Your data has been validated. Review the details below and import when ready.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-muted/50 rounded">
-            <h4 className="font-medium text-sm mb-2">Profile Data</h4>
-            <p className="text-xs text-muted-foreground">
-              Name: {parsedData?.profile?.name || 'Not specified'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Location: {parsedData?.profile?.location || 'Not specified'}
-            </p>
-          </div>
-          <div className="p-3 bg-muted/50 rounded">
-            <h4 className="font-medium text-sm mb-2">Conversation Data</h4>
-            <p className="text-xs text-muted-foreground">
-              Messages: {parsedData?.conversation?.messages?.length || 0}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Mode: {parsedData?.promptMode || 'structured'}
-            </p>
-          </div>
-        </div>
+    if (!userName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter your name before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      console.log('🚀 OnboardingPaste: Starting profile generation with name:', userName);
+      console.log('📊 OnboardingPaste: Reflection length:', reflection.length);
+      
+      // Create a mock conversation structure for the edge function
+      const mockConversation = {
+        messages: [
+          {
+            role: "system",
+            content: "You are analyzing a user's self-reflection to create their profile."
+          },
+          {
+            role: "user", 
+            content: `Here is my self-reflection: ${reflection}`
+          }
+        ],
+        userAnswers: [reflection],
+        source: 'gpt-paste',
+        timestamp: Date.now()
+      };
+
+      console.log('🔄 OnboardingPaste: Calling generate-profile edge function...');
+      console.log('📊 OnboardingPaste: Mock conversation data:', {
+        messageCount: mockConversation.messages.length,
+        userAnswerCount: mockConversation.userAnswers.length,
+        source: mockConversation.source
+      });
+      
+      // Call the existing generate-profile edge function
+      const { data, error } = await supabase.functions.invoke('generate-profile', {
+        body: { conversation: mockConversation }
+      });
+
+      if (error) {
+        console.error('❌ OnboardingPaste: Profile generation error:', error);
+        throw new Error(`Profile generation failed: ${error.message}`);
+      }
+
+      if (!data) {
+        console.error('❌ OnboardingPaste: No profile data received');
+        throw new Error('No profile data received');
+      }
+
+      console.log('✅ OnboardingPaste: Generated profile data received');
+      console.log('📊 OnboardingPaste: Profile data keys:', Object.keys(data));
+      
+      // Use the profile data directly since it's already structured, but ensure name is set
+      const profileData: UserProfile = {
+        name: userName.trim(),
+        location: data.location || "",
+        interests: data.talkingPoints || [data.interestsAndPassions || ""],
+        socialStyle: data.socialStyle || "",
+        connectionPreferences: data.connectionPreferences || "",
+        personalInsights: [
+          data.vibeSummary || "",
+          data.personalitySummary || "",
+          data.coreValues || ""
+        ].filter(insight => insight.trim() !== ""),
+        vibeSummary: data.vibeSummary || reflection.substring(0, 500),
+        twyneTags: data.twyneTags || ["#ReflectiveUser"],
+        // Include all the additional fields from the AI response
+        ...data
+      };
+
+      // Ensure name is set to the user-entered value
+      profileData.name = userName.trim();
+
+      console.log('📊 OnboardingPaste: Final profile data:', {
+        name: profileData.name,
+        profileKeys: Object.keys(profileData),
+        personalInsightsCount: profileData.personalInsights.length
+      });
+
+      setUserProfile(profileData);
+
+      // Enhanced data storage with session management
+      const conversationData = mockConversation;
+      const promptMode = 'gpt-paste';
+      
+      console.log('💾 OnboardingPaste: Storing onboarding data with enhanced session management...');
+      
+      try {
+        const sessionId = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
+        console.log('✅ OnboardingPaste: Data stored successfully with session ID:', sessionId);
+      } catch (storageError) {
+        console.error('❌ OnboardingPaste: Storage failed:', storageError);
+        toast({
+          title: "Storage Warning",
+          description: "Profile generated but may not persist through authentication.",
+          variant: "destructive",
+        });
+      }
+
+      // If user is logged in, save the profile immediately
+      if (user) {
+        console.log('✅ OnboardingPaste: User is authenticated, saving to database...');
         
-        <div className="flex gap-3">
-          <Button 
-            onClick={handleImport}
-            disabled={isLoading}
-            className="flex-1"
-          >
-            {isLoading ? 'Importing...' : 'Import Data'}
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setCurrentStep(1)}
-            disabled={isLoading}
-          >
-            Back
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderStep3 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-500" />
-          Step 3: Import Complete
-        </CardTitle>
-        <CardDescription>
-          Your onboarding data has been successfully imported and is ready to use.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-center py-6">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Import Successful!</h3>
-          <p className="text-muted-foreground mb-4">
-            Your onboarding data has been imported and stored. You can now continue to your results.
-          </p>
-        </div>
+        const saveData = {
+          user_id: user.id,
+          profile_data: profileData as unknown as Json,
+          conversation_data: conversationData as unknown as Json,
+          prompt_mode: promptMode,
+          has_completed_onboarding: true,
+          updated_at: new Date().toISOString()
+        };
         
-        <div className="flex gap-3">
-          <Button 
-            onClick={handleComplete}
-            className="flex-1"
-          >
-            Continue to Results
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setCurrentStep(1);
-              setParsedData(null);
-              setOnboardingData('');
-            }}
-          >
-            Import Another
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        const { error: updateError, data: savedData } = await supabase
+          .from('user_data')
+          .upsert(
+            saveData,
+            {
+              onConflict: 'user_id',
+              ignoreDuplicates: false
+            }
+          )
+          .select();
+
+        if (updateError) {
+          console.error("❌ OnboardingPaste: Error saving profile:", updateError);
+          toast({
+            title: "Profile generated but not saved",
+            description: "Your profile was created but couldn't be saved to your account.",
+            variant: "destructive",
+          });
+        } else {
+          console.log('✅ OnboardingPaste: Profile saved successfully to database');
+          clearNewUserFlag();
+        }
+      } else {
+        console.log('⚠️ OnboardingPaste: User not authenticated, data stored securely for later transfer');
+      }
+
+      // Navigate to results page
+      console.log('🚀 OnboardingPaste: Navigating to results page');
+      navigate("/onboarding-results", { state: { userProfile: profileData } });
+      
+    } catch (error) {
+      console.error("❌ OnboardingPaste: Error generating profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Add browser extension error handling
+  React.useEffect(() => {
+    // Suppress Zotero extension errors that appear in console
+    const originalError = console.error;
+    console.error = (...args) => {
+      // Filter out Zotero extension errors
+      const errorMessage = args.join(' ');
+      if (errorMessage.includes('zotero://') || 
+          errorMessage.includes('chrome-extension://') ||
+          errorMessage.includes('moz-extension://') ||
+          errorMessage.includes('Failed to load resource') && errorMessage.includes('extension')) {
+        // Suppress these extension-related errors
+        return;
+      }
+      // Let other errors through
+      originalError.apply(console, args);
+    };
+
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
-      <div className="container mx-auto max-w-2xl">
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/onboarding')}
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Onboarding
-          </Button>
-          
-          {/* Progress indicator */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="flex items-center space-x-4">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      step <= currentStep
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {step}
-                  </div>
-                  {step < 3 && (
-                    <div
-                      className={`w-8 h-px mx-2 ${
-                        step < currentStep ? 'bg-primary' : 'bg-muted'
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
+      {/* Header with logo and back button */}
+      <div className="container mx-auto px-4 py-6 flex justify-between items-center">
+        <Logo />
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate("/onboarding")}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to options
+        </Button>
+      </div>
+      
+      <div className="flex-1 container mx-auto px-4 py-8 max-w-3xl">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-3">Self-Reflection Import</h1>
+          <p className="text-muted-foreground">
+            Use ChatGPT's insights about you to quickly create your Twyne profile
+          </p>
         </div>
 
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
+        <Card className="mb-6 border-accent/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Clipboard className="h-5 w-5 text-accent" />
+              Step 1: Copy this prompt
+            </CardTitle>
+            <CardDescription>
+              Ask ChatGPT this question and copy its response
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-muted/50 p-4 rounded-md relative">
+              <p className="pr-8">{examplePrompt}</p>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute top-3 right-3" 
+                onClick={copyPrompt}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6 border-accent/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <User className="h-5 w-5 text-accent" />
+              Step 2: Enter your name
+            </CardTitle>
+            <CardDescription>
+              This will be used in your Twyne profile
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Input
+              placeholder="Your name"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="focus:ring-primary focus:border-primary"
+              required
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="mb-8">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">Step 3: Paste ChatGPT's response</CardTitle>
+            <CardDescription>
+              Paste the entire response below
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder="Paste ChatGPT's response here..."
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+              className="min-h-[200px] p-4 focus:ring-primary focus:border-primary"
+              required
+            />
+          </CardContent>
+          <CardFooter>
+            <Button 
+              onClick={generateProfile} 
+              disabled={isGenerating || !reflection.trim() || !userName.trim()} 
+              className="w-full"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader className="animate-spin mr-2 h-4 w-4" />
+                  Creating your profile...
+                </>
+              ) : (
+                "Create My Profile"
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <div className="text-center text-sm text-muted-foreground">
+          <p>Not comfortable with this method? <Button variant="link" className="p-0" onClick={() => navigate("/onboarding-chat")}>Try the conversation approach</Button> instead.</p>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -69,7 +68,7 @@ const AccountConnectionButtons = () => {
       setIsConnectingYoutube(true);
       
       // Use the updated GoogleAuthService method that uses the dedicated callback route
-      const authUrl = await GoogleAuthService.getYouTubeAuthUrl();
+      const authUrl = GoogleAuthService.getYouTubeAuthUrl();
       window.location.href = authUrl;
       
     } catch (error) {
