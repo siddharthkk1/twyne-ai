@@ -79,6 +79,10 @@ export const useSupabaseSync = () => {
           dataReturned: !!data,
           recordCount: data?.length || 0
         });
+
+        // Clean up any temporary onboarding_data records after successful save
+        await cleanupOnboardingData(user.id);
+        
         clearNewUserFlag();
       } else {
         console.log("⚠️ useSupabaseSync: User auth state - Anonymous");
@@ -217,6 +221,92 @@ export const useSupabaseSync = () => {
         name: error.name
       });
       throw error;
+    }
+  };
+
+  // New function to clean up onboarding_data records after successful authentication
+  const cleanupOnboardingData = async (userId: string) => {
+    try {
+      console.log("🧹 useSupabaseSync: Starting cleanup of onboarding_data records for user:", userId);
+      
+      // Get temp onboarding ID from localStorage
+      const tempOnboardingId = localStorage.getItem('temp_onboarding_id');
+      
+      if (tempOnboardingId) {
+        console.log("🗄️ useSupabaseSync: Cleaning up temporary onboarding record:", tempOnboardingId);
+        
+        const { error } = await supabase
+          .from('onboarding_data')
+          .delete()
+          .eq('id', tempOnboardingId)
+          .eq('is_anonymous', true);
+        
+        if (error) {
+          console.warn("⚠️ useSupabaseSync: Failed to cleanup temporary onboarding record:", error);
+        } else {
+          console.log("✅ useSupabaseSync: Successfully cleaned up temporary onboarding record");
+        }
+      }
+      
+      // Also clean up any other anonymous records that might be stale (older than 24 hours)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      const { error: staleCleanupError } = await supabase
+        .from('onboarding_data')
+        .delete()
+        .eq('is_anonymous', true)
+        .lt('created_at', twentyFourHoursAgo);
+      
+      if (staleCleanupError) {
+        console.warn("⚠️ useSupabaseSync: Failed to cleanup stale anonymous records:", staleCleanupError);
+      } else {
+        console.log("✅ useSupabaseSync: Successfully cleaned up stale anonymous records");
+      }
+      
+      // Clean up localStorage items related to onboarding
+      const keysToRemove = [
+        'temp_onboarding_id',
+        'onboarding_profile',
+        'onboarding_user_name',
+        'onboarding_conversation',
+        'onboarding_prompt_mode',
+        'onboarding_timestamp',
+        'latestBackupKey',
+        'oauth_onboardingProfile',
+        'oauth_onboardingUserName',
+        'oauth_onboardingConversation',
+        'oauth_onboardingPromptMode',
+        'oauth_temp_onboarding_id'
+      ];
+      
+      keysToRemove.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+          console.log(`🧹 useSupabaseSync: Removed localStorage key: ${key}`);
+        }
+      });
+      
+      // Clean up sessionStorage
+      const sessionKeysToRemove = [
+        'onboarding_profile',
+        'onboarding_user_name',
+        'onboarding_conversation',
+        'onboarding_prompt_mode',
+        'temp_onboarding_id',
+        'onboardingBackup'
+      ];
+      
+      sessionKeysToRemove.forEach(key => {
+        if (sessionStorage.getItem(key)) {
+          sessionStorage.removeItem(key);
+          console.log(`🧹 useSupabaseSync: Removed sessionStorage key: ${key}`);
+        }
+      });
+      
+      console.log("✅ useSupabaseSync: Cleanup completed successfully");
+      
+    } catch (error) {
+      console.error("❌ useSupabaseSync: Error during cleanup:", error);
     }
   };
 

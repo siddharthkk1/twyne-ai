@@ -3,13 +3,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy, Clipboard, ArrowLeft, Loader } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Copy, Clipboard, ArrowLeft, Loader, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/Logo";
-import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
 import type { Json } from '@/integrations/supabase/types';
 
 interface UserProfile {
@@ -30,10 +30,9 @@ interface UserProfile {
 
 const OnboardingPaste = () => {
   const [reflection, setReflection] = useState("");
+  const [userName, setUserName] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [showNameCollection, setShowNameCollection] = useState(false);
-  const [userName, setUserName] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, clearNewUserFlag } = useAuth();
@@ -80,7 +79,7 @@ const OnboardingPaste = () => {
       const dataToStore = {
         profile: profileData,
         conversation: conversationData,
-        userName: profileData.name || "",
+        userName: profileData.name,
         promptMode: promptMode,
         timestamp: timestamp,
         tempId: tempId
@@ -97,7 +96,7 @@ const OnboardingPaste = () => {
       
       // Strategy 1: Check for existing session and clean up to prevent duplicates
       const existingSessionId = localStorage.getItem('temp_onboarding_id');
-      if (existingSessionId) {
+      if (existingSessionId && existingSessionId !== tempId) {
         console.log('🧹 OnboardingPaste: Found existing session, cleaning up duplicates:', existingSessionId);
         try {
           // Clean up existing database record
@@ -120,7 +119,7 @@ const OnboardingPaste = () => {
       // Strategy 2: Standard localStorage storage with new session ID
       localStorage.setItem('temp_onboarding_id', tempId);
       localStorage.setItem('onboarding_profile', JSON.stringify(profileData));
-      localStorage.setItem('onboarding_user_name', profileData.name || "");
+      localStorage.setItem('onboarding_user_name', profileData.name);
       localStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
       localStorage.setItem('onboarding_prompt_mode', promptMode);
       localStorage.setItem('onboarding_timestamp', timestamp.toString());
@@ -128,7 +127,7 @@ const OnboardingPaste = () => {
       
       // Strategy 3: Backup in sessionStorage
       sessionStorage.setItem('onboarding_profile', JSON.stringify(profileData));
-      sessionStorage.setItem('onboarding_user_name', profileData.name || "");
+      sessionStorage.setItem('onboarding_user_name', profileData.name);
       sessionStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
       sessionStorage.setItem('onboarding_prompt_mode', promptMode);
       sessionStorage.setItem('temp_onboarding_id', tempId);
@@ -143,7 +142,7 @@ const OnboardingPaste = () => {
       
       // Strategy 5: OAuth-ready prefixed storage
       localStorage.setItem('oauth_onboardingProfile', JSON.stringify(profileData));
-      localStorage.setItem('oauth_onboardingUserName', profileData.name || "");
+      localStorage.setItem('oauth_onboardingUserName', profileData.name);
       localStorage.setItem('oauth_onboardingConversation', JSON.stringify(conversationData));
       localStorage.setItem('oauth_onboardingPromptMode', promptMode);
       localStorage.setItem('oauth_temp_onboarding_id', tempId);
@@ -235,64 +234,7 @@ const OnboardingPaste = () => {
     }
   };
 
-  // Enhanced AI name extraction with multiple strategies
-  const extractNameFromReflection = (text: string): string => {
-    console.log('🔍 OnboardingPaste: Attempting to extract name from reflection');
-    
-    // Strategy 1: Direct name patterns
-    const namePatterns = [
-      /my name is (\w+)/i,
-      /i'm (\w+)/i,
-      /i am (\w+)/i,
-      /call me (\w+)/i,
-      /name.*?is (\w+)/i,
-      /(\w+) is my name/i,
-      /hi, i'm (\w+)/i,
-      /hello, i'm (\w+)/i
-    ];
-    
-    for (const pattern of namePatterns) {
-      const match = text.match(pattern);
-      if (match && match[1]) {
-        const extractedName = match[1];
-        // Filter out common words that might be false positives
-        const commonWords = ["the", "and", "but", "for", "are", "with", "his", "her", "this", "that", "from", "they", "been", "have", "your", "what", "were", "said", "each", "which", "their", "time", "will", "about", "would", "there", "could", "other", "more", "very", "what", "know", "just", "first", "get", "has", "him", "had", "let", "put", "too", "old", "any", "may", "say", "she", "use", "her", "now", "find", "only", "come", "made", "over", "think", "also", "back", "after", "two", "how", "our", "work", "life", "way", "even", "new", "want", "because", "good", "water", "been", "need", "should", "home", "oil", "sit", "word", "far", "tree", "port", "self", "town", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "within", "result", "open", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force", "education"];
-        
-        if (!commonWords.includes(extractedName.toLowerCase()) && extractedName.length > 1) {
-          console.log('✅ OnboardingPaste: Name extracted from pattern:', extractedName);
-          return extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
-        }
-      }
-    }
-    
-    // Strategy 2: Look for capitalized words that could be names
-    const words = text.split(/\s+/);
-    const capitalizedWords = words.filter(word => 
-      /^[A-Z][a-z]+$/.test(word) && 
-      word.length > 2 && 
-      word.length < 20 &&
-      !["The", "And", "But", "For", "Are", "With", "His", "Her", "This", "That", "From", "They", "Been", "Have", "Your", "What", "Were", "Said", "Each", "Which", "Their", "Time", "Will", "About", "Would", "There", "Could", "Other", "More", "Very", "Know", "Just", "First", "Only", "Come", "Made", "Over", "Think", "Also", "Back", "After", "Work", "Life", "Even", "Want", "Because", "Good", "Water", "Need", "Should", "Home", "Study", "Book", "Word", "Business", "Issue", "Side", "Kind", "Head", "House", "Service", "Friend", "Father", "Power", "Game", "Line", "Member", "City", "Community", "Name", "President", "Team", "Minute", "Idea", "Body", "Information", "Parent", "Face", "Others", "Level", "Office", "Door", "Health", "Person", "History", "Party", "Within", "Result", "Open", "Change", "Morning", "Reason", "Research", "Girl", "Moment", "Teacher", "Force", "Education"].includes(word)
-    );
-    
-    if (capitalizedWords.length > 0) {
-      console.log('✅ OnboardingPaste: Potential name found from capitalized words:', capitalizedWords[0]);
-      return capitalizedWords[0];
-    }
-    
-    console.log('⚠️ OnboardingPaste: No name could be extracted from reflection');
-    return "";
-  };
-
-  const handleNameSubmit = (name: string) => {
-    console.log("✅ OnboardingPaste: Name submitted:", name);
-    setUserName(name);
-    setShowNameCollection(false);
-    
-    // Continue with profile generation
-    generateProfileWithName(name);
-  };
-
-  const generateProfileWithName = async (finalName: string) => {
+  const generateProfile = async () => {
     if (!reflection.trim()) {
       toast({
         title: "Empty reflection",
@@ -302,10 +244,19 @@ const OnboardingPaste = () => {
       return;
     }
 
+    if (!userName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter your name before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
-      console.log('🚀 OnboardingPaste: Starting profile generation with name:', finalName);
+      console.log('🚀 OnboardingPaste: Starting profile generation with name:', userName);
       console.log('📊 OnboardingPaste: Reflection length:', reflection.length);
       
       // Create a mock conversation structure for the edge function
@@ -344,7 +295,7 @@ const OnboardingPaste = () => {
       
       // Use the profile data directly since it's already structured, but ensure name is set
       const profileData: UserProfile = {
-        name: finalName || data.name || "You",
+        name: userName.trim(), // Use the user-entered name
         location: data.location || "",
         interests: data.talkingPoints || [data.interestsAndPassions || ""],
         socialStyle: data.socialStyle || "",
@@ -360,8 +311,8 @@ const OnboardingPaste = () => {
         ...data
       };
 
-      // Override name with the provided one
-      profileData.name = finalName;
+      // Ensure name is set to the user-entered value
+      profileData.name = userName.trim();
 
       console.log('📊 OnboardingPaste: Final profile data:', {
         name: profileData.name,
@@ -459,29 +410,6 @@ const OnboardingPaste = () => {
     }
   };
 
-  const generateProfile = async () => {
-    if (!reflection.trim()) {
-      toast({
-        title: "Empty reflection",
-        description: "Please paste your ChatGPT reflection before proceeding.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Try to extract name from reflection first
-    const extractedName = extractNameFromReflection(reflection);
-    
-    if (extractedName) {
-      console.log('✅ OnboardingPaste: Name extracted automatically:', extractedName);
-      setUserName(extractedName);
-      generateProfileWithName(extractedName);
-    } else {
-      console.log('⚠️ OnboardingPaste: No name found, showing name collection step');
-      setShowNameCollection(true);
-    }
-  };
-
   // Add browser extension error handling
   React.useEffect(() => {
     // Suppress Zotero extension errors that appear in console
@@ -504,29 +432,6 @@ const OnboardingPaste = () => {
       console.error = originalError;
     };
   }, []);
-
-  if (showNameCollection) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
-        {/* Header with logo and back button */}
-        <div className="container mx-auto px-4 py-6 flex justify-between items-center">
-          <Logo />
-          <Button 
-            variant="ghost" 
-            onClick={() => setShowNameCollection(false)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
-        
-        <div className="flex-1 flex items-center justify-center">
-          <NameCollectionStep onSubmit={handleNameSubmit} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
@@ -576,9 +481,30 @@ const OnboardingPaste = () => {
           </CardContent>
         </Card>
 
+        <Card className="mb-6 border-accent/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <User className="h-5 w-5 text-accent" />
+              Step 2: Enter your name
+            </CardTitle>
+            <CardDescription>
+              This will be used in your Twyne profile
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Input
+              placeholder="Your name"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="focus:ring-primary focus:border-primary"
+              required
+            />
+          </CardContent>
+        </Card>
+
         <Card className="mb-8">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xl">Step 2: Paste ChatGPT's response</CardTitle>
+            <CardTitle className="text-xl">Step 3: Paste ChatGPT's response</CardTitle>
             <CardDescription>
               Paste the entire response below
             </CardDescription>
@@ -589,12 +515,13 @@ const OnboardingPaste = () => {
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
               className="min-h-[200px] p-4 focus:ring-primary focus:border-primary"
+              required
             />
           </CardContent>
           <CardFooter>
             <Button 
               onClick={generateProfile} 
-              disabled={isGenerating || !reflection.trim()} 
+              disabled={isGenerating || !reflection.trim() || !userName.trim()} 
               className="w-full"
             >
               {isGenerating ? (
