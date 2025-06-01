@@ -86,25 +86,34 @@ export const useSupabaseSync = () => {
         // For anonymous users, store in localStorage and generate temporary record with proper UUID
         const finalPromptMode = promptMode || 'structured';
         
-        // Clean up any existing anonymous session
+        // Enhanced cleanup of any existing anonymous session with duplicate prevention
         const existingTempId = localStorage.getItem('temp_onboarding_id');
         if (existingTempId) {
           console.log("🧹 useSupabaseSync: Cleaning up existing anonymous session:", existingTempId);
           try {
+            // Clean up all records with this user_id to prevent duplicates
             await supabase
               .from('onboarding_data')
               .delete()
-              .eq('id', existingTempId)
+              .eq('user_id', existingTempId)
               .eq('is_anonymous', true);
-            console.log("✅ useSupabaseSync: Cleaned up existing session");
+            console.log("✅ useSupabaseSync: Cleaned up all existing sessions for user_id:", existingTempId);
           } catch (cleanupError) {
             console.warn("⚠️ useSupabaseSync: Failed to cleanup existing session:", cleanupError);
           }
         }
         
-        // Generate proper UUID for the session
-        const tempUserId = crypto.randomUUID();
-        console.log("🔑 useSupabaseSync: Generated proper UUID for anonymous session:", tempUserId);
+        // Generate proper UUID for the session with fallback
+        let tempUserId: string;
+        try {
+          tempUserId = crypto.randomUUID();
+          console.log("🔑 useSupabaseSync: Generated proper UUID using crypto.randomUUID():", tempUserId);
+        } catch (cryptoError) {
+          // Fallback for older browsers
+          console.warn("⚠️ useSupabaseSync: crypto.randomUUID() not available, using fallback");
+          tempUserId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+          console.log("🔑 useSupabaseSync: Generated fallback ID:", tempUserId);
+        }
         
         console.log("💾 useSupabaseSync: Storing data in localStorage for anonymous user...");
         localStorage.setItem('temp_onboarding_id', tempUserId);
@@ -144,28 +153,61 @@ export const useSupabaseSync = () => {
           is_anonymous: insertData.is_anonymous
         });
 
-        const { error, data } = await supabase
+        // Enhanced duplicate prevention: check if record already exists before inserting
+        const { data: existingRecord } = await supabase
           .from('onboarding_data')
-          .insert(insertData)
-          .select();
+          .select('id')
+          .eq('id', tempUserId)
+          .single();
 
-        if (error) {
-          console.error("❌ useSupabaseSync: Error saving onboarding data:", error);
-          console.error("❌ useSupabaseSync: Error details:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
+        if (existingRecord) {
+          console.log("⚠️ useSupabaseSync: Record with this ID already exists, updating instead");
+          const { error, data } = await supabase
+            .from('onboarding_data')
+            .update({
+              profile_data: insertData.profile_data,
+              conversation_data: insertData.conversation_data,
+              prompt_mode: insertData.prompt_mode,
+              is_anonymous: insertData.is_anonymous
+            })
+            .eq('id', tempUserId)
+            .select();
+
+          if (error) {
+            console.error("❌ useSupabaseSync: Error updating onboarding data:", error);
+            throw error;
+          }
+
+          console.log("✅ useSupabaseSync: Data updated successfully for anonymous user");
+          console.log("📊 useSupabaseSync: Update result:", {
+            dataReturned: !!data,
+            recordCount: data?.length || 0,
+            updatedId: data?.[0]?.id
           });
-          throw error;
-        }
+        } else {
+          const { error, data } = await supabase
+            .from('onboarding_data')
+            .insert(insertData)
+            .select();
 
-        console.log("✅ useSupabaseSync: Data saved successfully for anonymous user");
-        console.log("📊 useSupabaseSync: Insert result:", {
-          dataReturned: !!data,
-          recordCount: data?.length || 0,
-          insertedId: data?.[0]?.id
-        });
+          if (error) {
+            console.error("❌ useSupabaseSync: Error saving onboarding data:", error);
+            console.error("❌ useSupabaseSync: Error details:", {
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+              code: error.code
+            });
+            throw error;
+          }
+
+          console.log("✅ useSupabaseSync: Data saved successfully for anonymous user");
+          console.log("📊 useSupabaseSync: Insert result:", {
+            dataReturned: !!data,
+            recordCount: data?.length || 0,
+            insertedId: data?.[0]?.id
+          });
+        }
       }
     } catch (error) {
       console.error("❌ useSupabaseSync: Error in saveOnboardingData:", error);

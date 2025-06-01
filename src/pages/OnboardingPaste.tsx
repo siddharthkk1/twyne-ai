@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/Logo";
+import NameCollectionStep from "@/components/onboarding/NameCollectionStep";
 import type { Json } from '@/integrations/supabase/types';
 
 interface UserProfile {
@@ -31,6 +32,8 @@ const OnboardingPaste = () => {
   const [reflection, setReflection] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showNameCollection, setShowNameCollection] = useState(false);
+  const [userName, setUserName] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, clearNewUserFlag } = useAuth();
@@ -62,9 +65,17 @@ const OnboardingPaste = () => {
       
       const timestamp = Date.now();
       
-      // Generate proper UUID for temp ID
-      const tempId = crypto.randomUUID();
-      console.log('🔑 OnboardingPaste: Generated proper UUID:', tempId);
+      // Generate proper UUID for temp ID - using crypto.randomUUID() for better compatibility
+      let tempId: string;
+      try {
+        tempId = crypto.randomUUID();
+        console.log('🔑 OnboardingPaste: Generated UUID using crypto.randomUUID():', tempId);
+      } catch (cryptoError) {
+        // Fallback for older browsers
+        console.warn('⚠️ OnboardingPaste: crypto.randomUUID() not available, using fallback');
+        tempId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+        console.log('🔑 OnboardingPaste: Generated fallback ID:', tempId);
+      }
       
       const dataToStore = {
         profile: profileData,
@@ -84,18 +95,23 @@ const OnboardingPaste = () => {
         tempId: dataToStore.tempId
       });
       
-      // Strategy 1: Check for existing session and clean up
+      // Strategy 1: Check for existing session and clean up to prevent duplicates
       const existingSessionId = localStorage.getItem('temp_onboarding_id');
       if (existingSessionId) {
-        console.log('🧹 OnboardingPaste: Found existing session, cleaning up:', existingSessionId);
+        console.log('🧹 OnboardingPaste: Found existing session, cleaning up duplicates:', existingSessionId);
         try {
           // Clean up existing database record
-          await supabase
+          const { error: deleteError } = await supabase
             .from('onboarding_data')
             .delete()
             .eq('id', existingSessionId)
             .eq('is_anonymous', true);
-          console.log('✅ OnboardingPaste: Cleaned up existing database record');
+          
+          if (deleteError) {
+            console.warn('⚠️ OnboardingPaste: Failed to cleanup existing record:', deleteError);
+          } else {
+            console.log('✅ OnboardingPaste: Cleaned up existing database record');
+          }
         } catch (cleanupError) {
           console.warn('⚠️ OnboardingPaste: Failed to cleanup existing record:', cleanupError);
         }
@@ -133,25 +149,52 @@ const OnboardingPaste = () => {
       localStorage.setItem('oauth_temp_onboarding_id', tempId);
       console.log('💾 OnboardingPaste: OAuth-prefixed storage completed');
       
-      // Strategy 6: Store in temp database with proper UUID
+      // Strategy 6: Store in temp database with proper UUID and duplicate prevention
       console.log('🗄️ OnboardingPaste: Attempting database storage with proper UUID:', tempId);
       
-      const { error: tempError } = await supabase
+      // First check if a record with this ID already exists
+      const { data: existingRecord } = await supabase
         .from('onboarding_data')
-        .insert({
-          id: tempId, // Use the proper UUID as id
-          user_id: tempId, // Use the same UUID as user_id for anonymous records
-          profile_data: profileData as unknown as Json,
-          conversation_data: conversationData as unknown as Json,
-          prompt_mode: promptMode,
-          is_anonymous: true
-        });
+        .select('id')
+        .eq('id', tempId)
+        .single();
       
-      if (!tempError) {
-        console.log('✅ OnboardingPaste: Database storage successful with UUID:', tempId);
+      if (existingRecord) {
+        console.log('⚠️ OnboardingPaste: Record with this ID already exists, updating instead');
+        const { error: updateError } = await supabase
+          .from('onboarding_data')
+          .update({
+            profile_data: profileData as unknown as Json,
+            conversation_data: conversationData as unknown as Json,
+            prompt_mode: promptMode,
+            is_anonymous: true
+          })
+          .eq('id', tempId);
+        
+        if (updateError) {
+          console.error('❌ OnboardingPaste: Database update failed:', updateError);
+          throw updateError;
+        } else {
+          console.log('✅ OnboardingPaste: Database record updated successfully');
+        }
       } else {
-        console.error('❌ OnboardingPaste: Database storage failed:', tempError);
-        throw tempError;
+        const { error: insertError } = await supabase
+          .from('onboarding_data')
+          .insert({
+            id: tempId, // Use the proper UUID as id
+            user_id: tempId, // Use the same UUID as user_id for anonymous records
+            profile_data: profileData as unknown as Json,
+            conversation_data: conversationData as unknown as Json,
+            prompt_mode: promptMode,
+            is_anonymous: true
+          });
+        
+        if (insertError) {
+          console.error('❌ OnboardingPaste: Database storage failed:', insertError);
+          throw insertError;
+        } else {
+          console.log('✅ OnboardingPaste: Database storage successful with UUID:', tempId);
+        }
       }
       
       console.log('✅ OnboardingPaste: All enhanced data storage strategies completed successfully');
@@ -192,7 +235,64 @@ const OnboardingPaste = () => {
     }
   };
 
-  const generateProfile = async () => {
+  // Enhanced AI name extraction with multiple strategies
+  const extractNameFromReflection = (text: string): string => {
+    console.log('🔍 OnboardingPaste: Attempting to extract name from reflection');
+    
+    // Strategy 1: Direct name patterns
+    const namePatterns = [
+      /my name is (\w+)/i,
+      /i'm (\w+)/i,
+      /i am (\w+)/i,
+      /call me (\w+)/i,
+      /name.*?is (\w+)/i,
+      /(\w+) is my name/i,
+      /hi, i'm (\w+)/i,
+      /hello, i'm (\w+)/i
+    ];
+    
+    for (const pattern of namePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const extractedName = match[1];
+        // Filter out common words that might be false positives
+        const commonWords = ["the", "and", "but", "for", "are", "with", "his", "her", "this", "that", "from", "they", "been", "have", "your", "what", "were", "said", "each", "which", "their", "time", "will", "about", "would", "there", "could", "other", "more", "very", "what", "know", "just", "first", "get", "has", "him", "had", "let", "put", "too", "old", "any", "may", "say", "she", "use", "her", "now", "find", "only", "come", "made", "over", "think", "also", "back", "after", "two", "how", "our", "work", "life", "way", "even", "new", "want", "because", "good", "water", "been", "need", "should", "home", "oil", "sit", "word", "far", "tree", "port", "self", "town", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "within", "result", "open", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force", "education"];
+        
+        if (!commonWords.includes(extractedName.toLowerCase()) && extractedName.length > 1) {
+          console.log('✅ OnboardingPaste: Name extracted from pattern:', extractedName);
+          return extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
+        }
+      }
+    }
+    
+    // Strategy 2: Look for capitalized words that could be names
+    const words = text.split(/\s+/);
+    const capitalizedWords = words.filter(word => 
+      /^[A-Z][a-z]+$/.test(word) && 
+      word.length > 2 && 
+      word.length < 20 &&
+      !["The", "And", "But", "For", "Are", "With", "His", "Her", "This", "That", "From", "They", "Been", "Have", "Your", "What", "Were", "Said", "Each", "Which", "Their", "Time", "Will", "About", "Would", "There", "Could", "Other", "More", "Very", "Know", "Just", "First", "Only", "Come", "Made", "Over", "Think", "Also", "Back", "After", "Work", "Life", "Even", "Want", "Because", "Good", "Water", "Need", "Should", "Home", "Study", "Book", "Word", "Business", "Issue", "Side", "Kind", "Head", "House", "Service", "Friend", "Father", "Power", "Game", "Line", "Member", "City", "Community", "Name", "President", "Team", "Minute", "Idea", "Body", "Information", "Parent", "Face", "Others", "Level", "Office", "Door", "Health", "Person", "History", "Party", "Within", "Result", "Open", "Change", "Morning", "Reason", "Research", "Girl", "Moment", "Teacher", "Force", "Education"].includes(word)
+    );
+    
+    if (capitalizedWords.length > 0) {
+      console.log('✅ OnboardingPaste: Potential name found from capitalized words:', capitalizedWords[0]);
+      return capitalizedWords[0];
+    }
+    
+    console.log('⚠️ OnboardingPaste: No name could be extracted from reflection');
+    return "";
+  };
+
+  const handleNameSubmit = (name: string) => {
+    console.log("✅ OnboardingPaste: Name submitted:", name);
+    setUserName(name);
+    setShowNameCollection(false);
+    
+    // Continue with profile generation
+    generateProfileWithName(name);
+  };
+
+  const generateProfileWithName = async (finalName: string) => {
     if (!reflection.trim()) {
       toast({
         title: "Empty reflection",
@@ -205,7 +305,7 @@ const OnboardingPaste = () => {
     setIsGenerating(true);
 
     try {
-      console.log('🚀 OnboardingPaste: Starting profile generation...');
+      console.log('🚀 OnboardingPaste: Starting profile generation with name:', finalName);
       console.log('📊 OnboardingPaste: Reflection length:', reflection.length);
       
       // Create a mock conversation structure for the edge function
@@ -242,9 +342,9 @@ const OnboardingPaste = () => {
       console.log('✅ OnboardingPaste: Generated profile data received');
       console.log('📊 OnboardingPaste: Profile data keys:', Object.keys(data));
       
-      // Use the profile data directly since it's already structured
+      // Use the profile data directly since it's already structured, but ensure name is set
       const profileData: UserProfile = {
-        name: data.name || "You",
+        name: finalName || data.name || "You",
         location: data.location || "",
         interests: data.talkingPoints || [data.interestsAndPassions || ""],
         socialStyle: data.socialStyle || "",
@@ -259,6 +359,9 @@ const OnboardingPaste = () => {
         // Include all the additional fields from the AI response
         ...data
       };
+
+      // Override name with the provided one
+      profileData.name = finalName;
 
       console.log('📊 OnboardingPaste: Final profile data:', {
         name: profileData.name,
@@ -355,6 +458,75 @@ const OnboardingPaste = () => {
       setIsGenerating(false);
     }
   };
+
+  const generateProfile = async () => {
+    if (!reflection.trim()) {
+      toast({
+        title: "Empty reflection",
+        description: "Please paste your ChatGPT reflection before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Try to extract name from reflection first
+    const extractedName = extractNameFromReflection(reflection);
+    
+    if (extractedName) {
+      console.log('✅ OnboardingPaste: Name extracted automatically:', extractedName);
+      setUserName(extractedName);
+      generateProfileWithName(extractedName);
+    } else {
+      console.log('⚠️ OnboardingPaste: No name found, showing name collection step');
+      setShowNameCollection(true);
+    }
+  };
+
+  // Add browser extension error handling
+  React.useEffect(() => {
+    // Suppress Zotero extension errors that appear in console
+    const originalError = console.error;
+    console.error = (...args) => {
+      // Filter out Zotero extension errors
+      const errorMessage = args.join(' ');
+      if (errorMessage.includes('zotero://') || 
+          errorMessage.includes('chrome-extension://') ||
+          errorMessage.includes('moz-extension://') ||
+          errorMessage.includes('Failed to load resource') && errorMessage.includes('extension')) {
+        // Suppress these extension-related errors
+        return;
+      }
+      // Let other errors through
+      originalError.apply(console, args);
+    };
+
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
+
+  if (showNameCollection) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
+        {/* Header with logo and back button */}
+        <div className="container mx-auto px-4 py-6 flex justify-between items-center">
+          <Logo />
+          <Button 
+            variant="ghost" 
+            onClick={() => setShowNameCollection(false)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+        
+        <div className="flex-1 flex items-center justify-center">
+          <NameCollectionStep onSubmit={handleNameSubmit} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
