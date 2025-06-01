@@ -90,14 +90,23 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
       localStorage.setItem('onboarding_prompt_mode', promptMode);
       localStorage.setItem('onboardingPromptMode', promptMode); // Legacy key for compatibility
       
+      // Create a proper default conversation object
+      const defaultConversation: Conversation = {
+        messages: [],
+        userAnswers: []
+      };
+      
+      // Use the provided conversation data or fall back to default
+      const conversationData = onboardingConversationData || defaultConversation;
+      
       console.log("📊 CreateAccountPrompt: Final onboarding data:", {
         hasProfileData: !!onboardingProfileData,
         hasConversationData: !!onboardingConversationData,
         userName: userName,
         promptMode: promptMode,
         profileDataKeys: onboardingProfileData ? Object.keys(onboardingProfileData) : [],
-        conversationMessageCount: onboardingConversationData?.messages?.length || 0,
-        conversationUserAnswerCount: onboardingConversationData?.userAnswers?.length || 0
+        conversationMessageCount: conversationData.messages?.length || 0,
+        conversationUserAnswerCount: conversationData.userAnswers?.length || 0
       });
 
       // Simple signup without metadata since name is already in profile_data
@@ -130,8 +139,6 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         if (onboardingProfileData) {
           try {
             console.log("🔄 CreateAccountPrompt: Saving onboarding data to user_data table");
-            
-            const conversationData = onboardingConversationData || {};
             
             const updateData = {
               user_id: data.user.id,
