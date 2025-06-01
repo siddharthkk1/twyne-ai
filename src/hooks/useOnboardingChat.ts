@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -11,7 +12,7 @@ import { useChatScroll } from './useChatScroll';
 import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
-  SYSTEM_PROMPT_PLAYFUL,
+  SYSTEM_PROMPT_V1_PLAYFUL,
   SYSTEM_PROMPT_YOUNG_ADULT
 } from '@/utils/aiUtils';
 
@@ -147,8 +148,9 @@ export const useOnboardingChat = () => {
     console.log('🔄 useOnboardingChat: Prompt mode changed to:', promptMode);
     
     // Store prompt mode in localStorage immediately for both manual sign-up and OAuth flows
-    localStorage.setItem('onboarding_prompt_mode', promptMode);
+    localStorage.setItem('onboarding_mode', promptMode);
     localStorage.setItem('onboardingPromptMode', promptMode); // Legacy key for compatibility
+    localStorage.setItem('onboarding_prompt_mode', promptMode); // Additional fallback key
     localStorage.setItem('prompt_mode', promptMode); // Additional fallback key
     
     console.log('💾 useOnboardingChat: Stored prompt mode in localStorage:', promptMode);
@@ -229,7 +231,7 @@ export const useOnboardingChat = () => {
     let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
     
     if (promptMode === "playful") {
-      systemPrompt = SYSTEM_PROMPT_PLAYFUL;
+      systemPrompt = SYSTEM_PROMPT_V1_PLAYFUL;
     } else if (promptMode === "young-adult") {
       systemPrompt = SYSTEM_PROMPT_YOUNG_ADULT;
     }
@@ -313,13 +315,14 @@ export const useOnboardingChat = () => {
       localStorage.setItem('onboardingProfile', JSON.stringify(profile));
       localStorage.setItem('onboardingUserName', finalUserName || profile.name || '');
       localStorage.setItem('onboardingConversation', JSON.stringify(finalConversation));
-      localStorage.setItem('onboarding_prompt_mode', promptMode);
+      localStorage.setItem('onboarding_mode', promptMode);
       
       // Legacy compatibility keys
       localStorage.setItem('onboarding_profile', JSON.stringify(profile));
       localStorage.setItem('onboarding_user_name', finalUserName || profile.name || '');
       localStorage.setItem('onboarding_conversation', JSON.stringify(finalConversation));
       localStorage.setItem('onboardingPromptMode', promptMode);
+      localStorage.setItem('onboarding_prompt_mode', promptMode);
       localStorage.setItem('prompt_mode', promptMode);
       
       // Timestamp for cleanup
@@ -329,7 +332,7 @@ export const useOnboardingChat = () => {
         profileStored: !!localStorage.getItem('onboardingProfile'),
         userNameStored: !!localStorage.getItem('onboardingUserName'),
         conversationStored: !!localStorage.getItem('onboardingConversation'),
-        promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
+        onboardingModeStored: !!localStorage.getItem('onboarding_mode'),
         conversationMessageCount: finalConversation.messages?.length || 0,
         conversationUserAnswerCount: finalConversation.userAnswers?.length || 0,
         finalUserName: finalUserName

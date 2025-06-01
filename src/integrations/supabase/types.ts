@@ -11,67 +11,67 @@ export type Database = {
     Tables: {
       onboarding_data: {
         Row: {
-          conversation_data: Json
           created_at: string
           id: string
           is_anonymous: boolean
+          onboarding_conversation: Json
+          onboarding_mode: string | null
           profile_data: Json
-          prompt_mode: string | null
           user_id: string
         }
         Insert: {
-          conversation_data: Json
           created_at?: string
           id?: string
           is_anonymous?: boolean
+          onboarding_conversation: Json
+          onboarding_mode?: string | null
           profile_data: Json
-          prompt_mode?: string | null
           user_id: string
         }
         Update: {
-          conversation_data?: Json
           created_at?: string
           id?: string
           is_anonymous?: boolean
+          onboarding_conversation?: Json
+          onboarding_mode?: string | null
           profile_data?: Json
-          prompt_mode?: string | null
           user_id?: string
         }
         Relationships: []
       }
       user_data: {
         Row: {
-          conversation_data: Json | null
           created_at: string
           has_completed_onboarding: boolean
           id: string
+          onboarding_conversation: Json | null
+          onboarding_mode: string | null
           platform_connections: Json | null
           profile_data: Json
-          prompt_mode: string | null
           sso_data: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          conversation_data?: Json | null
           created_at?: string
           has_completed_onboarding?: boolean
           id?: string
+          onboarding_conversation?: Json | null
+          onboarding_mode?: string | null
           platform_connections?: Json | null
           profile_data?: Json
-          prompt_mode?: string | null
           sso_data?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          conversation_data?: Json | null
           created_at?: string
           has_completed_onboarding?: boolean
           id?: string
+          onboarding_conversation?: Json | null
+          onboarding_mode?: string | null
           platform_connections?: Json | null
           profile_data?: Json
-          prompt_mode?: string | null
           sso_data?: Json | null
           updated_at?: string
           user_id?: string
