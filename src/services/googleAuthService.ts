@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from '@/types/chat';
 
@@ -464,12 +465,11 @@ export class GoogleAuthService {
    * Get YouTube OAuth URL for connecting YouTube accounts
    */
   static getYouTubeAuthUrl(): string {
-    // Use the edge function to get the YouTube auth URL
-    const origin = window.location.origin;
-    const redirectUri = `${origin}/youtube/callback`;
+    // Use the correct Supabase edge function URL for YouTube/Google auth
+    const redirectUri = `${window.location.origin}/youtube/callback`;
     
-    // Call the edge function that generates the YouTube auth URL
-    return `${origin}/api/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
+    // Use the existing google-auth-url edge function with proper redirect URI
+    return `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
 
   /**
@@ -480,24 +480,18 @@ export class GoogleAuthService {
     try {
       console.log('🔄 GoogleAuthService: Exchanging code for token');
       
-      const response = await fetch('/api/google-auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code })
+      const { data, error } = await supabase.functions.invoke('google-auth', {
+        body: { code }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ GoogleAuthService: Token exchange failed:', errorText);
-        throw new Error(`Token exchange failed: ${response.status}`);
+      if (error) {
+        console.error('❌ GoogleAuthService: Token exchange failed:', error);
+        throw new Error(`Token exchange failed: ${error.message}`);
       }
 
-      const tokenData = await response.json();
       console.log('✅ GoogleAuthService: Token exchange successful');
       
-      return tokenData;
+      return data;
     } catch (error) {
       console.error('❌ GoogleAuthService: Error exchanging code for token:', error);
       throw error;

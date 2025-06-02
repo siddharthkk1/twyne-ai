@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Music, Video, Loader2 } from "lucide-react";
@@ -48,8 +49,9 @@ const AccountConnectionButtons = () => {
     try {
       setIsConnectingSpotify(true);
       
-      // Use the updated SpotifyService method that uses the dedicated callback route
+      // Use the corrected SpotifyService method
       const authUrl = SpotifyService.getAuthUrl();
+      console.log('Redirecting to Spotify auth URL:', authUrl);
       window.location.href = authUrl;
       
     } catch (error) {
@@ -67,8 +69,9 @@ const AccountConnectionButtons = () => {
     try {
       setIsConnectingYoutube(true);
       
-      // Use the updated GoogleAuthService method that uses the dedicated callback route
+      // Use the corrected GoogleAuthService method
       const authUrl = GoogleAuthService.getYouTubeAuthUrl();
+      console.log('Redirecting to YouTube auth URL:', authUrl);
       window.location.href = authUrl;
       
     } catch (error) {

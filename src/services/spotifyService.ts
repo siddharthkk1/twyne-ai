@@ -53,13 +53,10 @@ export class SpotifyService {
   private static readonly API_BASE = 'https://api.spotify.com/v1';
   
   static getAuthUrl(): string {
-    // Determine the correct origin based on current domain
-    const currentOrigin = window.location.origin;
-    
     // Use dedicated Spotify callback route - MUST match what's configured in Spotify App
-    const redirectUri = `${currentOrigin}/auth/callback/spotify`;
+    const redirectUri = `${window.location.origin}/auth/callback/spotify`;
     
-    // Use the same function base for all domains
+    // Use the correct Supabase edge function URL
     const authUrlBase = `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/spotify-auth-url`;
     
     console.log('SpotifyService: Requesting Spotify auth with redirect URI:', redirectUri);
