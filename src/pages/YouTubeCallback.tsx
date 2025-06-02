@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { GoogleAuthService } from '@/services/googleAuthService';
+import { YouTubeService } from '@/services/youtubeService';
 import { MirrorDataService } from '@/services/mirrorDataService';
 import { AIProfileService } from '@/services/aiProfileService';
 import { toast } from '@/components/ui/use-toast';
@@ -88,7 +88,7 @@ const YouTubeCallback = () => {
         
         // Exchange code for token
         console.log('YouTubeCallback: Exchanging code for token...');
-        const tokenData = await GoogleAuthService.exchangeCodeForToken(code);
+        const tokenData = await YouTubeService.exchangeCodeForToken(code);
         console.log('YouTubeCallback: Token exchange successful');
         
         // Store token locally for immediate use
@@ -97,9 +97,14 @@ const YouTubeCallback = () => {
           localStorage.setItem('google_refresh_token', tokenData.refresh_token);
         }
         
-        // For YouTube, we'll implement the actual data fetching later
-        // For now, just store the connection
+        // Fetch YouTube channel data
+        console.log('YouTubeCallback: Fetching YouTube channel data...');
+        const channelData = await YouTubeService.getChannelInfo(tokenData.access_token);
+        console.log('YouTubeCallback: Channel data fetched successfully:', channelData.snippet.title);
+        
+        // Prepare connection data with both tokens and channel data
         const youtubeConnectionData = {
+          channel: channelData,
           tokens: {
             access_token: tokenData.access_token,
             refresh_token: tokenData.refresh_token,
@@ -137,7 +142,7 @@ const YouTubeCallback = () => {
           }
         }
         
-        // Show success notification - this was missing!
+        // Show success notification
         toast({
           title: "YouTube Connected!",
           description: "Successfully connected your YouTube account.",
