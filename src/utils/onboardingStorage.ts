@@ -148,3 +148,60 @@ export const storeOnboardingDataSecurely = async (
     };
   }
 };
+
+/**
+ * Clean up onboarding data after successful account creation
+ */
+export const cleanupOnboardingData = async (sessionId?: string): Promise<void> => {
+  try {
+    console.log('🧹 OnboardingStorage: Starting cleanup of onboarding data');
+    
+    // Get sessionId from localStorage if not provided
+    const tempId = sessionId || localStorage.getItem('temp_onboarding_id');
+    
+    // Clean up localStorage
+    const keysToRemove = [
+      'temp_onboarding_id',
+      'onboarding_profile',
+      'onboarding_user_name',
+      'onboarding_conversation',
+      'onboarding_prompt_mode',
+      'onboarding_timestamp'
+    ];
+    
+    keysToRemove.forEach(key => {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key);
+        console.log(`🧹 OnboardingStorage: Removed localStorage key: ${key}`);
+      }
+    });
+
+    // Clean up sessionStorage
+    keysToRemove.forEach(key => {
+      if (sessionStorage.getItem(key)) {
+        sessionStorage.removeItem(key);
+        console.log(`🧹 OnboardingStorage: Removed sessionStorage key: ${key}`);
+      }
+    });
+
+    // Clean up database records if tempId is available
+    if (tempId) {
+      console.log('🗄️ OnboardingStorage: Cleaning up database records for session:', tempId);
+      
+      const { error } = await supabase
+        .from('onboarding_data')
+        .delete()
+        .eq('id', tempId);
+      
+      if (error) {
+        console.warn('⚠️ OnboardingStorage: Failed to cleanup database records:', error);
+      } else {
+        console.log('✅ OnboardingStorage: Successfully cleaned up database records');
+      }
+    }
+    
+    console.log('✅ OnboardingStorage: Cleanup completed successfully');
+  } catch (error) {
+    console.error('❌ OnboardingStorage: Error during cleanup:', error);
+  }
+};

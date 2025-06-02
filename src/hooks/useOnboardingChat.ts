@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -364,7 +363,7 @@ export const useOnboardingChat = () => {
 
     const userMessageCount = conversation.userAnswers.length;
     
-    // Check if we've reached the message cap and need to ask for name
+    // IMPROVED: Check if we've reached the message cap and need to transition naturally to name collection
     if (userMessageCount >= MESSAGE_CAP - 1 && !askingForName) {
       handleUserMessage(() => {
         const newUserMessage: Message = {
@@ -378,15 +377,32 @@ export const useOnboardingChat = () => {
         setIsTyping(true);
       });
       
-      const nameRequestMessage: Message = {
+      // IMPROVED: Add a natural response to the user's last message before asking for name
+      const naturalResponseMessage: Message = {
         id: messages.length + 2,
-        text: "Ok I think I have enough to create your initial mirror. || Last question, what's your name?",
+        text: "that's really cool, thanks for sharing that with me!||i feel like i'm getting a good sense of who you are.||",
         sender: "ai",
       };
 
+      const nameRequestMessage: Message = {
+        id: messages.length + 3,
+        text: "ok i think i have enough to create your initial mirror.||last question, what's your name?",
+        sender: "ai",
+      };
+
+      // Send the natural response first, then the name request after a delay
       setTimeout(() => {
-        setMessages(prev => [...prev, nameRequestMessage]);
+        setMessages(prev => [...prev, naturalResponseMessage]);
         setIsTyping(false);
+        
+        // After another short delay, send the name request
+        setTimeout(() => {
+          setIsTyping(true);
+          setTimeout(() => {
+            setMessages(prev => [...prev, nameRequestMessage]);
+            setIsTyping(false);
+          }, 1000);
+        }, 1500);
       }, 1000);
       
       setAskingForName(true);
@@ -394,6 +410,11 @@ export const useOnboardingChat = () => {
       const userMessageObj: { role: ChatRole; content: string } = { 
         role: "user" as ChatRole, 
         content: textToSend 
+      };
+      
+      const naturalResponseObj: { role: ChatRole; content: string } = { 
+        role: "assistant" as ChatRole, 
+        content: naturalResponseMessage.text 
       };
       
       const assistantMessageObj: { role: ChatRole; content: string } = { 
@@ -405,6 +426,7 @@ export const useOnboardingChat = () => {
         messages: [
           ...conversation.messages, 
           userMessageObj,
+          naturalResponseObj,
           assistantMessageObj
         ],
         userAnswers: [...conversation.userAnswers, textToSend]

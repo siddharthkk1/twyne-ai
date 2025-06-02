@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { UserProfile, Conversation } from '@/types/chat';
 import type { Json } from '@/integrations/supabase/types';
+import { cleanupOnboardingData } from '@/utils/onboardingStorage';
 
 export const useSupabaseSync = () => {
   const { user } = useAuth();
@@ -60,6 +61,10 @@ export const useSupabaseSync = () => {
 
       console.log("✅ useSupabaseSync: Successfully saved onboarding data");
       
+      // FIXED: Clean up onboarding_data record after successful save
+      console.log("🧹 useSupabaseSync: Cleaning up temporary onboarding data");
+      await cleanupOnboardingData();
+      
       if (clearNewUserFlag) {
         clearNewUserFlag();
       }
@@ -68,51 +73,10 @@ export const useSupabaseSync = () => {
     }
   };
 
-  const cleanupOnboardingData = async (tempOnboardingId?: string) => {
+  const cleanupOnboardingDataOnly = async (tempOnboardingId?: string) => {
     try {
       console.log("🧹 useSupabaseSync: Starting cleanup of onboarding data");
-      
-      // Clean up localStorage
-      const keysToRemove = [
-        'onboardingProfile',
-        'onboardingUserName', 
-        'onboardingConversation',
-        'onboardingPromptMode',
-        'onboarding_profile',
-        'onboarding_user_name',
-        'onboarding_conversation',
-        'onboarding_prompt_mode',
-        'prompt_mode',
-        'temp_onboarding_id',
-        'onboarding_timestamp',
-        'oauth_onboardingProfile',
-        'oauth_onboardingUserName',
-        'oauth_onboardingConversation',
-        'oauth_onboardingPromptMode',
-        'oauth_temp_onboarding_id'
-      ];
-      
-      keysToRemove.forEach(key => {
-        if (localStorage.getItem(key)) {
-          localStorage.removeItem(key);
-          console.log(`🧹 useSupabaseSync: Removed localStorage key: ${key}`);
-        }
-      });
-
-      // Clean up database records if tempOnboardingId is provided
-      if (tempOnboardingId) {
-        const { error } = await supabase
-          .from('onboarding_data')
-          .delete()
-          .eq('id', tempOnboardingId);
-        
-        if (error) {
-          console.warn('⚠️ useSupabaseSync: Failed to cleanup database records:', error);
-        } else {
-          console.log('✅ useSupabaseSync: Successfully cleaned up database records');
-        }
-      }
-      
+      await cleanupOnboardingData(tempOnboardingId);
       console.log("✅ useSupabaseSync: Cleanup completed");
     } catch (error) {
       console.error("❌ useSupabaseSync: Error during cleanup:", error);
@@ -121,6 +85,6 @@ export const useSupabaseSync = () => {
 
   return {
     saveOnboardingData,
-    cleanupOnboardingData
+    cleanupOnboardingData: cleanupOnboardingDataOnly
   };
 };
