@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const SpotifyCallback = () => {
   const navigate = useNavigate();
-  const { user, refreshSession } = useAuth();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const hasProcessedRef = useRef(false);
 
@@ -54,38 +55,12 @@ const SpotifyCallback = () => {
       try {
         console.log('SpotifyCallback: Starting processing');
         console.log('SpotifyCallback: Code length:', code.length);
-        console.log('SpotifyCallback: Current user:', !!user);
         
-        // Ensure we have a valid user session with retry logic
-        let currentUser = user;
-        let sessionAttempts = 0;
-        const maxSessionAttempts = 3;
+        // Check for current session first - don't try to refresh if none exists
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
         
-        while (!currentUser && sessionAttempts < maxSessionAttempts) {
-          sessionAttempts++;
-          console.log(`SpotifyCallback: No user session, refreshing... (attempt ${sessionAttempts}/${maxSessionAttempts})`);
-          
-          try {
-            await refreshSession();
-            
-            // Wait for session to update
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Check if we now have a user
-            const { data: { user: refreshedUser } } = await supabase.auth.getUser();
-            currentUser = refreshedUser;
-            
-            if (currentUser) {
-              console.log('SpotifyCallback: Session refresh successful');
-              break;
-            }
-          } catch (refreshError) {
-            console.error(`SpotifyCallback: Session refresh attempt ${sessionAttempts} failed:`, refreshError);
-          }
-        }
-        
-        if (!currentUser) {
-          console.error('SpotifyCallback: No authenticated user after retries');
+        if (sessionError) {
+          console.error('SpotifyCallback: Error getting current session:', sessionError);
           toast({
             title: "Authentication Required",
             description: "Please sign in to connect your Spotify account.",
@@ -95,7 +70,20 @@ const SpotifyCallback = () => {
           navigate('/auth');
           return;
         }
-        
+
+        if (!currentSession?.user) {
+          console.error('SpotifyCallback: No valid session found');
+          toast({
+            title: "Authentication Required", 
+            description: "Please sign in to connect your Spotify account.",
+            variant: "destructive",
+          });
+          window.history.replaceState({}, document.title, window.location.pathname);
+          navigate('/auth');
+          return;
+        }
+
+        const currentUser = currentSession.user;
         console.log('SpotifyCallback: Authenticated user confirmed:', currentUser.id);
         
         // Exchange code for token

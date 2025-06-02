@@ -44,6 +44,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = async () => {
     try {
       console.log('AuthContext: Refreshing session...');
+      
+      // First check if we have a current session
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('AuthContext: Error getting current session:', sessionError);
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!currentSession) {
+        console.log('AuthContext: No current session to refresh');
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // Only try to refresh if we have a valid session
       const { data: { session }, error } = await supabase.auth.refreshSession();
       
       if (error) {
