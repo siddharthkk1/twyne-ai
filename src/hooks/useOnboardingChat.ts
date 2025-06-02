@@ -270,36 +270,62 @@ export const useOnboardingChat = () => {
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
     try {
-      console.log("🔄 useOnboardingChat: Completing onboarding with userName:", userName);
+      console.log("🔄 useOnboardingChat: Starting completion with userName:", userName);
       console.log("📊 useOnboardingChat: Final conversation:", finalConversation);
       
-      // ENHANCED: Ensure userName is properly set in profile before generation
+      // ENHANCED: Capture userName with multiple fallbacks and ensure consistency
       let finalUserName = userName;
       if (!finalUserName && userProfile.name) {
         finalUserName = userProfile.name;
-        setUserName(userProfile.name);
+        console.log("🔄 useOnboardingChat: Using userName from userProfile:", finalUserName);
       }
       
-      // Update profile with final userName
-      const updatedProfile = { ...userProfile, name: finalUserName };
-      setUserProfile(updatedProfile);
+      // Additional fallback: check localStorage
+      if (!finalUserName) {
+        const storedUserName = localStorage.getItem('onboardingUserName') || localStorage.getItem('onboarding_user_name');
+        if (storedUserName) {
+          finalUserName = storedUserName;
+          console.log("🔄 useOnboardingChat: Using userName from localStorage:", finalUserName);
+        }
+      }
+      
+      // Last resort: check conversation for user answers that might be the name
+      if (!finalUserName && finalConversation.userAnswers.length > 0) {
+        const lastAnswer = finalConversation.userAnswers[finalConversation.userAnswers.length - 1];
+        if (lastAnswer && lastAnswer.trim()) {
+          finalUserName = lastAnswer.trim();
+          console.log("🔄 useOnboardingChat: Using userName from last conversation answer:", finalUserName);
+        }
+      }
+      
+      console.log("✅ useOnboardingChat: Final userName resolved to:", finalUserName);
+      
+      // Update both userName state and profile with final name
+      if (finalUserName) {
+        setUserName(finalUserName);
+        setUserProfile(prev => ({ ...prev, name: finalUserName }));
+        
+        // Store in localStorage immediately for navigation fallback
+        localStorage.setItem('onboardingUserName', finalUserName);
+        localStorage.setItem('onboarding_user_name', finalUserName);
+      }
       
       const profile = await generateProfile(finalConversation, finalUserName);
       console.log("✅ useOnboardingChat: Generated profile:", profile);
       
-      // ENHANCED: Ensure name consistency across all data
-      if (finalUserName) {
+      // ENHANCED: Ensure name consistency across all data structures
+      if (finalUserName && !profile.name) {
         profile.name = finalUserName;
       } else if (profile.name && !finalUserName) {
         finalUserName = profile.name;
         setUserName(profile.name);
       }
       
-      if (!profile.name && finalUserName) {
-        profile.name = finalUserName;
-      }
-      
-      console.log("📊 useOnboardingChat: Final profile with consistent name:", profile);
+      console.log("📊 useOnboardingChat: Final profile with consistent name:", { 
+        profileName: profile.name, 
+        finalUserName, 
+        userNameState: userName 
+      });
       
       setUserProfile(profile);
       setIsComplete(true);
@@ -331,10 +357,17 @@ export const useOnboardingChat = () => {
       if (user) {
         navigate("/mirror");
       } else {
+        // ENHANCED: Pass both profile and userName explicitly in navigation state
+        console.log("🚀 useOnboardingChat: Navigating to results with state:", {
+          userProfile: profile,
+          userName: finalUserName,
+          conversationData: finalConversation
+        });
+        
         navigate("/onboarding-results", { 
           state: { 
             userProfile: profile, 
-            userName: finalUserName || profile.name,
+            userName: finalUserName,
             conversation: finalConversation 
           } 
         });
@@ -348,7 +381,7 @@ export const useOnboardingChat = () => {
   };
 
   const handleSend = async (message?: string) => {
-    // FIXED: Add input validation and logging for debugging
+    // ENHANCED: Add input validation and logging for debugging
     console.log('🔄 handleSend called with:', { message, input, inputType: typeof input });
     
     // Ensure input is always a string
@@ -494,13 +527,19 @@ export const useOnboardingChat = () => {
       
       console.log("ENHANCED: Setting userName from final response:", textToSend);
       
-      // ENHANCED: Set userName immediately and update profile synchronously
+      // ENHANCED: Set userName immediately and update profile synchronously with additional debugging
       setUserName(textToSend);
       setUserProfile(prev => ({ ...prev, name: textToSend }));
       
-      // ENHANCED: Also store immediately in localStorage for consistency
+      // ENHANCED: Store immediately in localStorage for consistency with detailed logging
       localStorage.setItem('onboardingUserName', textToSend);
       localStorage.setItem('onboarding_user_name', textToSend);
+      
+      console.log("✅ useOnboardingChat: UserName set and stored:", {
+        textToSend,
+        userNameState: userName,
+        localStorage: localStorage.getItem('onboardingUserName')
+      });
       
       setIsTyping(false);
 

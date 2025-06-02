@@ -20,28 +20,54 @@ const OnboardingResults = () => {
   const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
-    // Try to get profile data from navigation state first
+    console.log("🔄 OnboardingResults: Starting data resolution");
+    console.log("📊 OnboardingResults: Location state:", location.state);
+    
+    // ENHANCED: Try to get profile data from navigation state first with better fallback handling
     if (location.state?.userProfile) {
-      console.log("Got profile from navigation state:", location.state.userProfile);
+      console.log("✅ OnboardingResults: Got profile from navigation state:", location.state.userProfile);
       setUserProfile(location.state.userProfile);
-      setUserName(location.state.userName || location.state.userProfile.name || "");
+      
+      // ENHANCED: Prioritize userName from navigation state, then profile name
+      const navigationUserName = location.state.userName || location.state.userProfile.name;
+      if (navigationUserName) {
+        console.log("✅ OnboardingResults: Got userName from navigation state:", navigationUserName);
+        setUserName(navigationUserName);
+      }
     } else {
-      // Fallback: try to get from localStorage (for page refreshes)
+      // ENHANCED: Improved fallback with multiple localStorage keys and better error handling
+      console.log("⚠️ OnboardingResults: No navigation state, trying localStorage fallback");
+      
       try {
-        const savedProfile = localStorage.getItem('onboardingProfile');
-        const savedUserName = localStorage.getItem('onboardingUserName');
+        // Try multiple localStorage keys for profile data
+        const savedProfile = localStorage.getItem('onboardingProfile') || 
+                            localStorage.getItem('onboarding_profile');
+        
+        // Try multiple localStorage keys for userName
+        const savedUserName = localStorage.getItem('onboardingUserName') || 
+                             localStorage.getItem('onboarding_user_name');
+        
+        console.log("📊 OnboardingResults: localStorage data found:", {
+          hasProfile: !!savedProfile,
+          hasUserName: !!savedUserName,
+          savedUserName
+        });
         
         if (savedProfile) {
           const parsedProfile = JSON.parse(savedProfile);
-          console.log("Got profile from localStorage:", parsedProfile);
+          console.log("✅ OnboardingResults: Got profile from localStorage:", parsedProfile);
           setUserProfile(parsedProfile);
-          setUserName(savedUserName || parsedProfile.name || "");
+          
+          // ENHANCED: Use savedUserName first, then profile name as fallback
+          const finalUserName = savedUserName || parsedProfile.name || "";
+          console.log("✅ OnboardingResults: Resolved userName:", finalUserName);
+          setUserName(finalUserName);
         } else {
-          console.warn("No profile data found, redirecting to onboarding");
+          console.warn("❌ OnboardingResults: No profile data found in localStorage or navigation state");
           navigate("/onboarding");
         }
       } catch (error) {
-        console.error("Error parsing saved profile:", error);
+        console.error("❌ OnboardingResults: Error parsing saved profile:", error);
         navigate("/onboarding");
       }
     }
@@ -71,12 +97,17 @@ const OnboardingResults = () => {
     );
   }
 
-  console.log("OnboardingResults - userName:", userName, "userProfile:", userProfile);
+  // ENHANCED: Debug logging for final render
+  console.log("🎯 OnboardingResults: Final render with:", {
+    userName,
+    profileName: userProfile?.name,
+    displayName: userName || userProfile?.name
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
       <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
-        {/* Dashboard - Pass the profile data directly */}
+        {/* ENHANCED: Pass userName with better fallback handling */}
         <ProfileCompletionDashboard 
           userProfile={userProfile} 
           userName={userName || userProfile?.name} 

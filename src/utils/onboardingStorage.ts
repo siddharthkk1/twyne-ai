@@ -20,6 +20,7 @@ export const storeOnboardingDataSecurely = async (
 ): Promise<OnboardingStorageResult> => {
   try {
     console.log('🚀 OnboardingStorage: Starting enhanced data storage...');
+    console.log('📊 OnboardingStorage: Profile name:', profileData.name);
     
     const timestamp = Date.now();
     
@@ -76,18 +77,26 @@ export const storeOnboardingDataSecurely = async (
       }
     });
     
-    // Store with new session ID
+    // ENHANCED: Store with improved userName handling
     localStorage.setItem('temp_onboarding_id', tempId);
     localStorage.setItem('onboarding_profile', JSON.stringify(profileData));
-    localStorage.setItem('onboarding_user_name', profileData.name);
+    
+    // ENHANCED: Store userName with multiple fallbacks
+    const userNameToStore = profileData.name || '';
+    localStorage.setItem('onboarding_user_name', userNameToStore);
+    localStorage.setItem('onboardingUserName', userNameToStore); // Additional key for compatibility
+    
     localStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
     localStorage.setItem('onboarding_prompt_mode', promptMode);
     localStorage.setItem('onboarding_timestamp', timestamp.toString());
+    
     console.log('💾 OnboardingStorage: Enhanced localStorage completed with session ID:', tempId);
+    console.log('📊 OnboardingStorage: Stored userName:', userNameToStore);
     
     // Enhanced sessionStorage backup
     sessionStorage.setItem('onboarding_profile', JSON.stringify(profileData));
-    sessionStorage.setItem('onboarding_user_name', profileData.name);
+    sessionStorage.setItem('onboarding_user_name', userNameToStore);
+    sessionStorage.setItem('onboardingUserName', userNameToStore); // Additional key
     sessionStorage.setItem('onboarding_conversation', JSON.stringify(conversationData));
     sessionStorage.setItem('onboarding_prompt_mode', promptMode);
     sessionStorage.setItem('temp_onboarding_id', tempId);
@@ -106,6 +115,7 @@ export const storeOnboardingDataSecurely = async (
     console.log('📊 OnboardingStorage: Database insert data:', {
       id: insertData.id,
       profileDataKeys: Object.keys(profileData),
+      profileName: profileData.name,
       conversationDataKeys: Object.keys(conversationData),
       onboarding_mode: insertData.onboarding_mode,
       conversationMessageCount: conversationData?.messages?.length || 0,
@@ -164,6 +174,7 @@ export const cleanupOnboardingData = async (sessionId?: string): Promise<void> =
       'temp_onboarding_id',
       'onboarding_profile',
       'onboarding_user_name',
+      'onboardingUserName', // Additional key
       'onboarding_conversation',
       'onboarding_prompt_mode',
       'onboarding_timestamp'
