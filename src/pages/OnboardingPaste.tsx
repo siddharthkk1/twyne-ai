@@ -149,7 +149,7 @@ const OnboardingPaste = () => {
 
       // Use the shared storage utility function - but only for anonymous users
       const conversationData = mockConversation;
-      const promptMode = 'v1-playful'; // Updated to use v1-playful mode
+      const promptMode = 'gpt-paste'; // Fixed: Use gpt-paste mode instead of v1-playful
       
       // Skip storage utility for authenticated users in signup-first flow
       if (!user) {

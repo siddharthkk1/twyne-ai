@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -201,15 +202,15 @@ export const useOnboardingChat = () => {
     }
   }, [userName]);
 
-  // Hide guidance info after user sends first message
-  useEffect(() => {
-    if (messages.length > 1) {
-      const hasUserMessages = messages.some(msg => msg.sender === "user");
-      if (hasUserMessages && showGuidanceInfo) {
-        setShowGuidanceInfo(false);
-      }
-    }
-  }, [messages, showGuidanceInfo]);
+  // REMOVED: The automatic hiding of guidance info after first message - this was causing the help buttons to not work
+  // useEffect(() => {
+  //   if (messages.length > 1) {
+  //     const hasUserMessages = messages.some(msg => msg.sender === "user");
+  //     if (hasUserMessages && showGuidanceInfo) {
+  //       setShowGuidanceInfo(false);
+  //     }
+  //   }
+  // }, [messages, showGuidanceInfo]);
 
   // Handle name submission from the name collection step
   const handleNameSubmit = (name: string) => {
