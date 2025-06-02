@@ -37,6 +37,21 @@ const TextInput: React.FC<TextInputProps> = ({
     }
   }, []);
 
+  // FIXED: Add validation and logging for send button
+  const handleSendClick = () => {
+    console.log('🔄 TextInput: Send button clicked', { input, inputType: typeof input, isDisabled });
+    
+    // Ensure input is string and has content
+    const sanitizedInput = typeof input === 'string' ? input : String(input || '');
+    
+    if (!isDisabled && sanitizedInput.trim()) {
+      console.log('✅ TextInput: Calling handleSend with valid input');
+      handleSend();
+    } else {
+      console.warn('⚠️ TextInput: Send blocked - disabled or empty input', { isDisabled, hasContent: !!sanitizedInput.trim() });
+    }
+  };
+
   return (
     <>
       <Textarea
@@ -62,7 +77,7 @@ const TextInput: React.FC<TextInputProps> = ({
       />
       <Button
         size="icon"
-        onClick={handleSend}
+        onClick={handleSendClick}
         disabled={isDisabled || !input.trim()}
         className="rounded-full shadow-md bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200"
       >

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
 import { PromptModeType, usePromptMode } from './usePromptMode';
@@ -43,6 +43,9 @@ export const useOnboardingChat = () => {
   const [showGuidanceInfo, setShowGuidanceInfo] = useState(true);
   const [showNameCollection, setShowNameCollection] = useState(true);
   const [askingForName, setAskingForName] = useState(false);
+  
+  // Add ref to track if guidance has been auto-hidden to prevent feedback loop
+  const hasAutoHiddenGuidance = useRef(false);
   
   // Initialize userProfile state
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -202,16 +205,17 @@ export const useOnboardingChat = () => {
     }
   }, [userName]);
 
-  // RESTORED: Auto-hide guidance info after first user message is sent
+  // FIXED: Auto-hide guidance info after first user message is sent - prevent feedback loop
   useEffect(() => {
-    if (messages.length > 1) {
+    if (messages.length > 1 && !hasAutoHiddenGuidance.current) {
       const hasUserMessages = messages.some(msg => msg.sender === "user");
       if (hasUserMessages && showGuidanceInfo) {
         console.log('🔄 useOnboardingChat: Auto-hiding guidance info after first user message');
         setShowGuidanceInfo(false);
+        hasAutoHiddenGuidance.current = true; // Mark as auto-hidden to prevent re-triggering
       }
     }
-  }, [messages, showGuidanceInfo]);
+  }, [messages]); // Removed showGuidanceInfo from dependency array to prevent feedback loop
 
   // Handle name submission from the name collection step
   const handleNameSubmit = (name: string) => {
@@ -344,8 +348,19 @@ export const useOnboardingChat = () => {
   };
 
   const handleSend = (message?: string) => {
-    const textToSend = message || input;
-    if (!textToSend.trim()) return;
+    // FIXED: Add input validation and logging for debugging
+    console.log('🔄 handleSend called with:', { message, input, inputType: typeof input });
+    
+    // Ensure input is always a string
+    const sanitizedInput = typeof input === 'string' ? input : String(input || '');
+    const textToSend = message || sanitizedInput;
+    
+    console.log('🔄 Final textToSend:', { textToSend, textType: typeof textToSend });
+    
+    if (!textToSend || typeof textToSend !== 'string' || !textToSend.trim()) {
+      console.warn('⚠️ handleSend: Invalid or empty text, aborting');
+      return;
+    }
 
     const userMessageCount = conversation.userAnswers.length;
     

@@ -50,9 +50,14 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({
         </div>
       </div>
       
-      {/* Progress bar */}
+      {/* Progress bar with percentage */}
       <div className="container mx-auto px-4 mt-2 pb-2">
-        <Progress value={progress} className="h-1" />
+        <div className="flex items-center gap-2">
+          <Progress value={progress} className="h-1 flex-1" />
+          <span className="text-xs text-muted-foreground font-medium min-w-[3rem] text-right">
+            {Math.round(progress)}%
+          </span>
+        </div>
       </div>
     </div>
   );
