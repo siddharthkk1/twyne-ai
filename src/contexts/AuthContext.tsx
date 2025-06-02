@@ -108,33 +108,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('AuthContext: Loading user profile for:', userId);
       
-      // First, let's check if there's a user_data row at all
-      const { data, error, count } = await supabase
-        .from('user_data')
-        .select('*', { count: 'exact' })
-        .eq('user_id', userId);
+      // Give the trigger some time to create the user_data record for new users
+      let attempts = 0;
+      const maxAttempts = 3;
+      let userData = null;
+      
+      while (attempts < maxAttempts && !userData) {
+        attempts++;
+        console.log(`AuthContext: Attempt ${attempts} to load user_data`);
+        
+        const { data, error } = await supabase
+          .from('user_data')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
 
-      console.log('AuthContext: User data query result:', { data, error, count });
+        if (error && error.code !== 'PGRST116') {
+          console.error('AuthContext: Error loading user profile:', error);
+          if (attempts === maxAttempts) {
+            setProfile(null);
+            setIsNewUser(true);
+            console.log('AuthContext: Setting isNewUser to true (error case)');
+            return;
+          }
+        } else if (data) {
+          userData = data;
+          break;
+        } else if (attempts < maxAttempts) {
+          // Wait a bit before retrying to allow trigger to complete
+          console.log('AuthContext: No user_data found, waiting before retry...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading user profile:', error);
-        console.log('AuthContext: No user_data found - this is a brand new user');
+      if (!userData) {
+        console.log('AuthContext: No user_data found after all attempts - user_data was not created by trigger');
         setProfile(null);
         setIsNewUser(true);
-        console.log('AuthContext: Setting isNewUser to true (no user_data)');
+        console.log('AuthContext: Setting isNewUser to true (no user_data after retries)');
         return;
       }
 
-      if (!data || data.length === 0) {
-        console.log('AuthContext: No user_data row found - user_data was not created by trigger');
-        console.log('AuthContext: This indicates the database trigger may not be working');
-        setProfile(null);
-        setIsNewUser(true);
-        console.log('AuthContext: Setting isNewUser to true (empty user_data)');
-        return;
-      }
-
-      const userData = data[0];
       console.log('AuthContext: Found user_data:', userData);
       console.log('AuthContext: profile_data:', userData.profile_data);
       console.log('AuthContext: sso_data:', userData.sso_data);
@@ -152,7 +166,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userProfile = { ...userProfile, ...userData.sso_data as UserProfile, sso_data: userData.sso_data };
         
         // For Google SSO users, they should always go through onboarding if they haven't completed it
-        // Google SSO provides basic info but we still need to collect additional profile data
         if (!hasCompletedOnboarding) {
           console.log('AuthContext: Google SSO user has not completed onboarding - setting as new user');
           newUserFlag = true;
