@@ -298,22 +298,29 @@ export const useOnboardingChat = () => {
       setUserProfile(profile);
       setIsComplete(true);
       
-      // Use the shared storage utility function
-      console.log("💾 useOnboardingChat: Storing comprehensive onboarding data using shared utility");
+      // Use v1-playful mode and skip storage utility for authenticated users
+      const promptModeToUse = 'v1-playful';
       
-      try {
-        const storageResult = await storeOnboardingDataSecurely(profile, finalConversation, promptMode);
+      // Skip storage utility for authenticated users in signup-first flow
+      if (!user) {
+        console.log("💾 useOnboardingChat: Storing comprehensive onboarding data using shared utility");
         
-        if (storageResult.success) {
-          console.log("✅ useOnboardingChat: Data stored successfully with session ID:", storageResult.sessionId);
-        } else {
-          console.error("❌ useOnboardingChat: Storage failed:", storageResult.error);
+        try {
+          const storageResult = await storeOnboardingDataSecurely(profile, finalConversation, promptModeToUse);
+          
+          if (storageResult.success) {
+            console.log("✅ useOnboardingChat: Data stored successfully with session ID:", storageResult.sessionId);
+          } else {
+            console.error("❌ useOnboardingChat: Storage failed:", storageResult.error);
+          }
+        } catch (storageError) {
+          console.error("❌ useOnboardingChat: Storage failed:", storageError);
         }
-      } catch (storageError) {
-        console.error("❌ useOnboardingChat: Storage failed:", storageError);
+      } else {
+        console.log("✅ useOnboardingChat: User authenticated, skipping storage utility for signup-first flow");
       }
       
-      await saveOnboardingData(profile, finalConversation, promptMode, user, clearNewUserFlag);
+      await saveOnboardingData(profile, finalConversation, promptModeToUse, user, clearNewUserFlag);
       
       if (user) {
         navigate("/mirror");

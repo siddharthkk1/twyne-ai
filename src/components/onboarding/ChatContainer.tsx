@@ -141,30 +141,33 @@ const ChatContainer = ({
         </div>
       </div>
       
-      <div className="border-t p-4 w-full max-w-3xl mx-auto">
-        <InputContainer
-          input={input}
-          setInput={setInput}
-          onSend={onSend}
-          conversationMode={conversationMode}
-          setConversationMode={setConversationMode}
-          showModeSelection={showModeSelection}
-          showPromptSelection={showPromptSelection}
-          setShowPromptSelection={setShowPromptSelection}
-          promptMode={promptMode}
-          handlePromptModeChange={handlePromptModeChange}
-          phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
-          isSmsVerified={isSmsVerified}
-          getProgress={getProgress}
-          handleModeSelection={handleModeSelection}
-          showCreateAccountPrompt={showCreateAccountPrompt}
-          setShowCreateAccountPrompt={setShowCreateAccountPrompt}
-          showGuidanceInfo={showGuidanceInfo}
-          setShowGuidanceInfo={setShowGuidanceInfo}
-          startSmsConversation={startSmsConversation}
-          disabled={isTyping || isGeneratingProfile}
-        />
+      {/* Updated bottom bar to extend full width */}
+      <div className="border-t backdrop-blur-lg bg-background/80 sticky bottom-0 z-10 w-full">
+        <div className="p-4 max-w-3xl mx-auto">
+          <InputContainer
+            input={input}
+            setInput={setInput}
+            onSend={onSend}
+            conversationMode={conversationMode}
+            setConversationMode={setConversationMode}
+            showModeSelection={showModeSelection}
+            showPromptSelection={showPromptSelection}
+            setShowPromptSelection={setShowPromptSelection}
+            promptMode={promptMode}
+            handlePromptModeChange={handlePromptModeChange}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+            isSmsVerified={isSmsVerified}
+            getProgress={getProgress}
+            handleModeSelection={handleModeSelection}
+            showCreateAccountPrompt={showCreateAccountPrompt}
+            setShowCreateAccountPrompt={setShowCreateAccountPrompt}
+            showGuidanceInfo={showGuidanceInfo}
+            setShowGuidanceInfo={setShowGuidanceInfo}
+            startSmsConversation={startSmsConversation}
+            disabled={isTyping || isGeneratingProfile}
+          />
+        </div>
       </div>
       
       {/* Guidance Info Popup */}

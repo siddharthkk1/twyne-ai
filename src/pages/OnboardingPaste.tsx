@@ -147,32 +147,37 @@ const OnboardingPaste = () => {
         personalInsightsCount: profileData.personalInsights.length
       });
 
-      // Use the shared storage utility function
+      // Use the shared storage utility function - but only for anonymous users
       const conversationData = mockConversation;
-      const promptMode = 'gpt-paste';
+      const promptMode = 'v1-playful'; // Updated to use v1-playful mode
       
-      console.log('💾 OnboardingPaste: Storing onboarding data with shared utility...');
-      
-      try {
-        const storageResult = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
+      // Skip storage utility for authenticated users in signup-first flow
+      if (!user) {
+        console.log('💾 OnboardingPaste: Storing onboarding data with shared utility...');
         
-        if (storageResult.success) {
-          console.log('✅ OnboardingPaste: Data stored successfully with session ID:', storageResult.sessionId);
-        } else {
-          console.error('❌ OnboardingPaste: Storage failed:', storageResult.error);
+        try {
+          const storageResult = await storeOnboardingDataSecurely(profileData, conversationData, promptMode);
+          
+          if (storageResult.success) {
+            console.log('✅ OnboardingPaste: Data stored successfully with session ID:', storageResult.sessionId);
+          } else {
+            console.error('❌ OnboardingPaste: Storage failed:', storageResult.error);
+            toast({
+              title: "Storage Warning",
+              description: "Profile generated but may not persist through authentication.",
+              variant: "destructive",
+            });
+          }
+        } catch (storageError) {
+          console.error('❌ OnboardingPaste: Storage failed:', storageError);
           toast({
             title: "Storage Warning",
             description: "Profile generated but may not persist through authentication.",
             variant: "destructive",
           });
         }
-      } catch (storageError) {
-        console.error('❌ OnboardingPaste: Storage failed:', storageError);
-        toast({
-          title: "Storage Warning",
-          description: "Profile generated but may not persist through authentication.",
-          variant: "destructive",
-        });
+      } else {
+        console.log('✅ OnboardingPaste: User authenticated, skipping storage utility for signup-first flow');
       }
 
       // If user is logged in, save the profile immediately using the sync hook
@@ -182,6 +187,10 @@ const OnboardingPaste = () => {
         try {
           await saveOnboardingData(profileData, conversationData, promptMode, user, clearNewUserFlag);
           console.log('✅ OnboardingPaste: Profile saved successfully to database');
+          
+          // Navigate directly to mirror for authenticated users (signup-first flow)
+          console.log('🚀 OnboardingPaste: Navigating to mirror (signup-first flow)');
+          navigate("/mirror");
         } catch (saveError) {
           console.error("❌ OnboardingPaste: Error saving profile:", saveError);
           toast({
@@ -191,12 +200,10 @@ const OnboardingPaste = () => {
           });
         }
       } else {
-        console.log('⚠️ OnboardingPaste: User not authenticated, data stored securely for later transfer');
+        console.log('⚠️ OnboardingPaste: User not authenticated, navigating to results page');
+        // Navigate to results page for anonymous users
+        navigate("/onboarding-results", { state: { userProfile: profileData } });
       }
-
-      // Navigate to results page
-      console.log('🚀 OnboardingPaste: Navigating to results page');
-      navigate("/onboarding-results", { state: { userProfile: profileData } });
       
     } catch (error) {
       console.error("❌ OnboardingPaste: Error generating profile:", error);

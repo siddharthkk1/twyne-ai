@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Lock, Mail } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -161,7 +160,10 @@ const Auth = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <div className="text-center space-y-3">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+          <p className="text-muted-foreground">Setting up your account</p>
+        </div>
       </div>
     );
   }
@@ -170,7 +172,10 @@ const Auth = () => {
   if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <div className="text-center space-y-3">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+          <p className="text-muted-foreground">Setting up your account</p>
+        </div>
       </div>
     );
   }
@@ -182,9 +187,6 @@ const Auth = () => {
           <CardTitle className="text-2xl font-bold">
             {isLogin ? "Welcome back" : "Create your account"}
           </CardTitle>
-          <CardDescription>
-            {isLogin ? "Sign in to your Twyne account" : "Join Twyne to start connecting"}
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -279,11 +281,6 @@ const Auth = () => {
               </div>
             </div>
           </form>
-          
-          <div className="flex items-center justify-center text-xs text-muted-foreground pt-4">
-            <Mail className="h-3 w-3 mr-1" />
-            <span>Your email is only used for account access</span>
-          </div>
         </CardContent>
       </Card>
     </div>
