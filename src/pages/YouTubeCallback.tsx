@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const YouTubeCallback = () => {
   const navigate = useNavigate();
-  const { user, refreshSession } = useAuth();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const hasProcessedRef = useRef(false);
 
@@ -55,38 +55,12 @@ const YouTubeCallback = () => {
       try {
         console.log('YouTubeCallback: Starting processing');
         console.log('YouTubeCallback: Code length:', code.length);
-        console.log('YouTubeCallback: Current user:', !!user);
         
-        // Ensure we have a valid user session with retry logic
-        let currentUser = user;
-        let sessionAttempts = 0;
-        const maxSessionAttempts = 3;
+        // Check for current session first - don't try to refresh if none exists
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
         
-        while (!currentUser && sessionAttempts < maxSessionAttempts) {
-          sessionAttempts++;
-          console.log(`YouTubeCallback: No user session, refreshing... (attempt ${sessionAttempts}/${maxSessionAttempts})`);
-          
-          try {
-            await refreshSession();
-            
-            // Wait for session to update
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Check if we now have a user
-            const { data: { user: refreshedUser } } = await supabase.auth.getUser();
-            currentUser = refreshedUser;
-            
-            if (currentUser) {
-              console.log('YouTubeCallback: Session refresh successful');
-              break;
-            }
-          } catch (refreshError) {
-            console.error(`YouTubeCallback: Session refresh attempt ${sessionAttempts} failed:`, refreshError);
-          }
-        }
-        
-        if (!currentUser) {
-          console.error('YouTubeCallback: No authenticated user after retries');
+        if (sessionError) {
+          console.error('YouTubeCallback: Error getting current session:', sessionError);
           toast({
             title: "Authentication Required",
             description: "Please sign in to connect your YouTube account.",
@@ -96,7 +70,20 @@ const YouTubeCallback = () => {
           navigate('/auth');
           return;
         }
-        
+
+        if (!currentSession?.user) {
+          console.error('YouTubeCallback: No valid session found');
+          toast({
+            title: "Authentication Required",
+            description: "Please sign in to connect your YouTube account.",
+            variant: "destructive",
+          });
+          window.history.replaceState({}, document.title, window.location.pathname);
+          navigate('/auth');
+          return;
+        }
+
+        const currentUser = currentSession.user;
         console.log('YouTubeCallback: Authenticated user confirmed:', currentUser.id);
         
         // Exchange code for token
