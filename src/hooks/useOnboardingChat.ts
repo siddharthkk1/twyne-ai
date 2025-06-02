@@ -16,6 +16,7 @@ import {
   SYSTEM_PROMPT_YOUNG_ADULT,
   getAIResponse
 } from '@/utils/aiUtils';
+import { generateConcludingMessage } from '@/utils/conclusionUtils';
 
 // Maximum number of user messages before asking for name and completing
 const MESSAGE_CAP = 6;
@@ -417,91 +418,153 @@ export const useOnboardingChat = () => {
         content: textToSend 
       };
       
-      const conversationForAI: Conversation = {
+      const conversationForConclusion: Conversation = {
         messages: [...conversation.messages, userMessageObj],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
 
       try {
-        // Get personalized AI response to the user's last message
-        const personalizedResponse = await getAIResponse(conversationForAI);
+        // ENHANCED: Generate personalized concluding message using OpenAI
+        console.log('🤖 Generating personalized concluding message...');
+        const concludingMessage = await generateConcludingMessage(conversationForConclusion);
         
-        // Create the personalized message
-        const personalizedMessage: Message = {
+        // Create the concluding message
+        const concludingAIMessage: Message = {
           id: messages.length + 2,
-          text: personalizedResponse,
+          text: concludingMessage,
+          sender: "ai",
+        };
+
+        const mirrorMessage: Message = {
+          id: messages.length + 3,
+          text: "i think i have enough to create your initial mirror.",
           sender: "ai",
         };
 
         const nameRequestMessage: Message = {
-          id: messages.length + 3,
-          text: "i think we have enough to create your initial mirror.||what's your name?",
+          id: messages.length + 4,
+          text: "last question, what's your name?",
           sender: "ai",
         };
 
-        // Send the personalized response first, then the name request after a delay
+        // Send the messages with proper timing
         setTimeout(() => {
-          setMessages(prev => [...prev, personalizedMessage]);
+          setMessages(prev => [...prev, concludingAIMessage]);
           setIsTyping(false);
           
-          // After another short delay, send the name request
+          // After a delay, send the mirror message
           setTimeout(() => {
             setIsTyping(true);
             setTimeout(() => {
-              setMessages(prev => [...prev, nameRequestMessage]);
+              setMessages(prev => [...prev, mirrorMessage]);
               setIsTyping(false);
+              
+              // After another delay, send the name request
+              setTimeout(() => {
+                setIsTyping(true);
+                setTimeout(() => {
+                  setMessages(prev => [...prev, nameRequestMessage]);
+                  setIsTyping(false);
+                }, 1000);
+              }, 1500);
             }, 1000);
           }, 1500);
         }, 1000);
         
         setAskingForName(true);
 
-        const personalizedResponseObj: { role: ChatRole; content: string } = { 
+        const concludingResponseObj: { role: ChatRole; content: string } = { 
           role: "assistant" as ChatRole, 
-          content: personalizedResponse 
+          content: concludingMessage 
         };
         
-        const assistantMessageObj: { role: ChatRole; content: string } = { 
+        const mirrorResponseObj: { role: ChatRole; content: string } = { 
+          role: "assistant" as ChatRole, 
+          content: mirrorMessage.text 
+        };
+        
+        const nameRequestResponseObj: { role: ChatRole; content: string } = { 
           role: "assistant" as ChatRole, 
           content: nameRequestMessage.text 
         };
 
         const updatedConversation = {
           messages: [
-            ...conversationForAI.messages,
-            personalizedResponseObj,
-            assistantMessageObj
+            ...conversationForConclusion.messages,
+            concludingResponseObj,
+            mirrorResponseObj,
+            nameRequestResponseObj
           ],
           userAnswers: [...conversation.userAnswers, textToSend]
         };
         
         setConversation(updatedConversation);
       } catch (error) {
-        console.error("Error getting personalized AI response:", error);
+        console.error("Error generating concluding message:", error);
         
-        // Fallback to a generic but better response if AI call fails
-        const fallbackMessage: Message = {
+        // Fallback to the previous behavior if the conclusion generation fails
+        const fallbackConcludingMessage: Message = {
           id: messages.length + 2,
-          text: "thanks for sharing all of that with me.||i think we have enough to create your initial mirror.||what's your name?",
+          text: "thanks for sharing all of that with me.",
+          sender: "ai",
+        };
+
+        const mirrorMessage: Message = {
+          id: messages.length + 3,
+          text: "i think i have enough to create your initial mirror.",
+          sender: "ai",
+        };
+
+        const nameRequestMessage: Message = {
+          id: messages.length + 4,
+          text: "last question, what's your name?",
           sender: "ai",
         };
 
         setTimeout(() => {
-          setMessages(prev => [...prev, fallbackMessage]);
+          setMessages(prev => [...prev, fallbackConcludingMessage]);
           setIsTyping(false);
+          
+          setTimeout(() => {
+            setIsTyping(true);
+            setTimeout(() => {
+              setMessages(prev => [...prev, mirrorMessage]);
+              setIsTyping(false);
+              
+              setTimeout(() => {
+                setIsTyping(true);
+                setTimeout(() => {
+                  setMessages(prev => [...prev, nameRequestMessage]);
+                  setIsTyping(false);
+                }, 1000);
+              }, 1500);
+            }, 1000);
+          }, 1500);
         }, 1000);
         
         setAskingForName(true);
 
         const fallbackResponseObj: { role: ChatRole; content: string } = { 
           role: "assistant" as ChatRole, 
-          content: fallbackMessage.text 
+          content: fallbackConcludingMessage.text 
+        };
+        
+        const mirrorResponseObj: { role: ChatRole; content: string } = { 
+          role: "assistant" as ChatRole, 
+          content: mirrorMessage.text 
+        };
+        
+        const nameRequestResponseObj: { role: ChatRole; content: string } = { 
+          role: "assistant" as ChatRole, 
+          content: nameRequestMessage.text 
         };
 
         const updatedConversation = {
           messages: [
-            ...conversationForAI.messages,
-            fallbackResponseObj
+            ...conversationForConclusion.messages,
+            fallbackResponseObj,
+            mirrorResponseObj,
+            nameRequestResponseObj
           ],
           userAnswers: [...conversation.userAnswers, textToSend]
         };
