@@ -68,10 +68,16 @@ interface YouTubeSubscription {
   };
 }
 
+interface YouTubeTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+}
+
 export class YouTubeService {
   private static readonly API_BASE = 'https://www.googleapis.com/youtube/v3';
   
-  static async exchangeCodeForToken(code: string): Promise<{ access_token: string; refresh_token?: string }> {
+  static async exchangeCodeForToken(code: string): Promise<YouTubeTokenResponse> {
     const { supabase } = await import("@/integrations/supabase/client");
     
     const { data, error } = await supabase.functions.invoke('google-auth', {
