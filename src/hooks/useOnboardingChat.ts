@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -13,7 +14,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   SYSTEM_PROMPT_STRUCTURED,
   SYSTEM_PROMPT_PLAYFUL,
-  SYSTEM_PROMPT_YOUNG_ADULT
+  SYSTEM_PROMPT_YOUNG_ADULT,
+  getAIResponse
 } from '@/utils/aiUtils';
 
 // Maximum number of user messages before asking for name and completing
@@ -346,7 +348,7 @@ export const useOnboardingChat = () => {
     }
   };
 
-  const handleSend = (message?: string) => {
+  const handleSend = async (message?: string) => {
     // FIXED: Add input validation and logging for debugging
     console.log('🔄 handleSend called with:', { message, input, inputType: typeof input });
     
@@ -377,62 +379,104 @@ export const useOnboardingChat = () => {
         setIsTyping(true);
       });
       
-      // IMPROVED: Add a natural response to the user's last message before asking for name
-      const naturalResponseMessage: Message = {
-        id: messages.length + 2,
-        text: "that's really cool, thanks for sharing that with me!||i feel like i'm getting a good sense of who you are.||",
-        sender: "ai",
-      };
-
-      const nameRequestMessage: Message = {
-        id: messages.length + 3,
-        text: "ok i think i have enough to create your initial mirror.||last question, what's your name?",
-        sender: "ai",
-      };
-
-      // Send the natural response first, then the name request after a delay
-      setTimeout(() => {
-        setMessages(prev => [...prev, naturalResponseMessage]);
-        setIsTyping(false);
-        
-        // After another short delay, send the name request
-        setTimeout(() => {
-          setIsTyping(true);
-          setTimeout(() => {
-            setMessages(prev => [...prev, nameRequestMessage]);
-            setIsTyping(false);
-          }, 1000);
-        }, 1500);
-      }, 1000);
-      
-      setAskingForName(true);
-
+      // Add user message to conversation for AI response
       const userMessageObj: { role: ChatRole; content: string } = { 
         role: "user" as ChatRole, 
         content: textToSend 
       };
       
-      const naturalResponseObj: { role: ChatRole; content: string } = { 
-        role: "assistant" as ChatRole, 
-        content: naturalResponseMessage.text 
-      };
-      
-      const assistantMessageObj: { role: ChatRole; content: string } = { 
-        role: "assistant" as ChatRole, 
-        content: nameRequestMessage.text 
-      };
-
-      const updatedConversation = {
-        messages: [
-          ...conversation.messages, 
-          userMessageObj,
-          naturalResponseObj,
-          assistantMessageObj
-        ],
+      const conversationForAI: Conversation = {
+        messages: [...conversation.messages, userMessageObj],
         userAnswers: [...conversation.userAnswers, textToSend]
       };
+
+      try {
+        // Get personalized AI response to the user's last message
+        const personalizedResponse = await getAIResponse(conversationForAI);
+        
+        // Create the personalized message
+        const personalizedMessage: Message = {
+          id: messages.length + 2,
+          text: personalizedResponse,
+          sender: "ai",
+        };
+
+        const nameRequestMessage: Message = {
+          id: messages.length + 3,
+          text: "i think we have enough to create your initial mirror.||what's your name?",
+          sender: "ai",
+        };
+
+        // Send the personalized response first, then the name request after a delay
+        setTimeout(() => {
+          setMessages(prev => [...prev, personalizedMessage]);
+          setIsTyping(false);
+          
+          // After another short delay, send the name request
+          setTimeout(() => {
+            setIsTyping(true);
+            setTimeout(() => {
+              setMessages(prev => [...prev, nameRequestMessage]);
+              setIsTyping(false);
+            }, 1000);
+          }, 1500);
+        }, 1000);
+        
+        setAskingForName(true);
+
+        const personalizedResponseObj: { role: ChatRole; content: string } = { 
+          role: "assistant" as ChatRole, 
+          content: personalizedResponse 
+        };
+        
+        const assistantMessageObj: { role: ChatRole; content: string } = { 
+          role: "assistant" as ChatRole, 
+          content: nameRequestMessage.text 
+        };
+
+        const updatedConversation = {
+          messages: [
+            ...conversationForAI.messages,
+            personalizedResponseObj,
+            assistantMessageObj
+          ],
+          userAnswers: [...conversation.userAnswers, textToSend]
+        };
+        
+        setConversation(updatedConversation);
+      } catch (error) {
+        console.error("Error getting personalized AI response:", error);
+        
+        // Fallback to a generic but better response if AI call fails
+        const fallbackMessage: Message = {
+          id: messages.length + 2,
+          text: "thanks for sharing all of that with me.||i think we have enough to create your initial mirror.||what's your name?",
+          sender: "ai",
+        };
+
+        setTimeout(() => {
+          setMessages(prev => [...prev, fallbackMessage]);
+          setIsTyping(false);
+        }, 1000);
+        
+        setAskingForName(true);
+
+        const fallbackResponseObj: { role: ChatRole; content: string } = { 
+          role: "assistant" as ChatRole, 
+          content: fallbackMessage.text 
+        };
+
+        const updatedConversation = {
+          messages: [
+            ...conversationForAI.messages,
+            fallbackResponseObj
+          ],
+          userAnswers: [...conversation.userAnswers, textToSend]
+        };
+        
+        setConversation(updatedConversation);
+      }
       
-      setConversation(updatedConversation);
       return;
     }
 
