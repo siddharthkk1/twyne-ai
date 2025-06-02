@@ -202,15 +202,16 @@ export const useOnboardingChat = () => {
     }
   }, [userName]);
 
-  // REMOVED: The automatic hiding of guidance info after first message - this was causing the help buttons to not work
-  // useEffect(() => {
-  //   if (messages.length > 1) {
-  //     const hasUserMessages = messages.some(msg => msg.sender === "user");
-  //     if (hasUserMessages && showGuidanceInfo) {
-  //       setShowGuidanceInfo(false);
-  //     }
-  //   }
-  // }, [messages, showGuidanceInfo]);
+  // RESTORED: Auto-hide guidance info after first user message is sent
+  useEffect(() => {
+    if (messages.length > 1) {
+      const hasUserMessages = messages.some(msg => msg.sender === "user");
+      if (hasUserMessages && showGuidanceInfo) {
+        console.log('🔄 useOnboardingChat: Auto-hiding guidance info after first user message');
+        setShowGuidanceInfo(false);
+      }
+    }
+  }, [messages, showGuidanceInfo]);
 
   // Handle name submission from the name collection step
   const handleNameSubmit = (name: string) => {

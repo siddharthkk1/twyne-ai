@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from '@/types/chat';
 
@@ -465,11 +464,11 @@ export class GoogleAuthService {
    * Get YouTube OAuth URL for connecting YouTube accounts
    */
   static getYouTubeAuthUrl(): string {
-    // FIXED: Use the correct redirect URI that matches Google Cloud Console configuration
-    const redirectUri = `${window.location.origin}/auth/callback`;
+    // FIXED: Use the correct redirect URI that matches the YouTube callback route
+    const redirectUri = `${window.location.origin}/auth/callback/youtube`;
     
-    // Use the existing google-auth-url edge function with the correct redirect URI
-    return `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
+    // Use the existing google-auth-url edge function with the YouTube-specific redirect URI
+    return `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}&state=youtube_auth`;
   }
 
   /**

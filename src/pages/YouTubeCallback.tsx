@@ -150,6 +150,7 @@ const YouTubeCallback = () => {
           }
         }
         
+        // Show success notification - this was missing!
         toast({
           title: "YouTube Connected!",
           description: "Successfully connected your YouTube account.",

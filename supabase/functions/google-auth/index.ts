@@ -26,8 +26,11 @@ serve(async (req) => {
                    req.headers.get('referer')?.split('/').slice(0, 3).join('/') ||
                    'https://preview--twyne-ai.lovable.app';
     
-    // Use the standard auth callback route - this will ensure proper session handling
-    const redirect_uri = `${origin}/auth/callback`;
+    // FIXED: Support both standard auth callback and YouTube-specific callback
+    // The redirect_uri should match what was used in the original OAuth request
+    // For YouTube, this will be /auth/callback/youtube
+    // For standard auth, this will be /auth/callback
+    const redirect_uri = `${origin}/auth/callback/youtube`;
     
     console.log('Google Auth - Token exchange attempt');
     console.log('Google Auth - Using redirect URI:', redirect_uri);
