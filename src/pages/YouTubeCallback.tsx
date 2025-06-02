@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -101,6 +102,37 @@ const YouTubeCallback = () => {
         const channelData = await YouTubeService.getChannelInfo(tokenData.access_token);
         console.log('YouTubeCallback: Channel data fetched successfully:', channelData.snippet.title);
         
+        // Fetch comprehensive YouTube data for AI analysis
+        console.log('YouTubeCallback: Fetching comprehensive YouTube data...');
+        const [
+          likedVideos,
+          subscriptions,
+          watchLaterVideos
+        ] = await Promise.all([
+          YouTubeService.getEnhancedLikedVideos(tokenData.access_token),
+          YouTubeService.getEnhancedSubscriptions(tokenData.access_token),
+          YouTubeService.getWatchLaterPlaylist(tokenData.access_token)
+        ]);
+
+        console.log('YouTubeCallback: All YouTube data fetched successfully', {
+          likedVideosCount: likedVideos.length,
+          subscriptionsCount: subscriptions.length,
+          watchLaterCount: watchLaterVideos.length
+        });
+
+        // Generate AI insights using the comprehensive data
+        console.log('YouTubeCallback: Generating AI insights...');
+        const youtubeProfileSummary = await AIProfileService.generateYouTubeProfile({
+          likedVideos,
+          subscriptions,
+          watchHistory: watchLaterVideos.map(video => ({
+            title: video.snippet.title,
+            description: video.snippet.description,
+            tags: video.snippet.tags || [],
+            categoryId: video.snippet.categoryId
+          }))
+        });
+
         // Prepare connection data with both tokens and channel data
         const youtubeConnectionData = {
           channel: channelData,
@@ -141,10 +173,40 @@ const YouTubeCallback = () => {
           }
         }
         
+        // Store AI insights in profile_data
+        console.log('YouTubeCallback: Storing AI insights...');
+        
+        // Use retry logic for mirror data storage
+        let mirrorStored = false;
+        let mirrorAttempts = 0;
+        const maxMirrorAttempts = 3;
+        
+        while (!mirrorStored && mirrorAttempts < maxMirrorAttempts) {
+          mirrorAttempts++;
+          console.log(`YouTubeCallback: Storing mirror data (attempt ${mirrorAttempts}/${maxMirrorAttempts})`);
+          
+          try {
+            const mirrorResult = await MirrorDataService.storeMirrorData({
+              youtube: { summary: youtubeProfileSummary }
+            });
+            if (mirrorResult.success) {
+              mirrorStored = true;
+              console.log('YouTubeCallback: Mirror data stored successfully');
+            } else {
+              console.warn('YouTubeCallback: Mirror storage returned false:', mirrorResult.error);
+            }
+          } catch (mirrorError) {
+            console.error(`YouTubeCallback: Mirror storage attempt ${mirrorAttempts} failed:`, mirrorError);
+            if (mirrorAttempts < maxMirrorAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+        }
+        
         // Show success notification
         toast({
           title: "YouTube Connected!",
-          description: "Successfully connected your YouTube account.",
+          description: "Successfully connected your YouTube account and generated AI insights.",
         });
         
         console.log('YouTubeCallback: Success! Redirecting to mirror...');
@@ -177,7 +239,7 @@ const YouTubeCallback = () => {
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto mb-4"></div>
         <p className="text-lg">
-          {isProcessing ? 'Connecting YouTube...' : 'Processing YouTube connection...'}
+          {isProcessing ? 'Connecting YouTube and generating insights...' : 'Processing YouTube connection...'}
         </p>
       </div>
     </div>
