@@ -465,10 +465,10 @@ export class GoogleAuthService {
    * Get YouTube OAuth URL for connecting YouTube accounts
    */
   static getYouTubeAuthUrl(): string {
-    // Use the correct Supabase edge function URL for YouTube/Google auth
-    const redirectUri = `${window.location.origin}/youtube/callback`;
+    // FIXED: Use the correct redirect URI that matches Google Cloud Console configuration
+    const redirectUri = `${window.location.origin}/auth/callback`;
     
-    // Use the existing google-auth-url edge function with proper redirect URI
+    // Use the existing google-auth-url edge function with the correct redirect URI
     return `https://lzwkccarbwokfxrzffjd.supabase.co/functions/v1/google-auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
 

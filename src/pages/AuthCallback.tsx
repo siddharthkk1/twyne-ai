@@ -12,7 +12,7 @@ const AuthCallback = () => {
   const { user, isLoading, refreshSession } = useAuth();
   const [hasHandledCallback, setHasHandledCallback] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>('Initializing...');
+  const [statusMessage, setStatusMessage] = useState('Completing authentication...');
 
   // ENHANCED: Helper function to safely extract and validate conversation data with improved validation
   const extractConversationData = (data: any): Conversation | null => {
@@ -119,7 +119,6 @@ const AuthCallback = () => {
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
         console.log('⚠️ AuthCallback: Already handled callback or processing, skipping');
-        setDebugInfo('Already processed or currently processing');
         return;
       }
       
@@ -137,12 +136,11 @@ const AuthCallback = () => {
         onboardingIdValue: onboardingId,
         fullUrl: window.location.href
       });
-      setDebugInfo(`URL params - error: ${!!error}, code: ${!!code}, onboarding_id: ${!!onboardingId}`);
 
       // Handle OAuth errors
       if (error) {
         console.error('❌ AuthCallback: OAuth error detected:', error);
-        setDebugInfo(`OAuth error: ${error}`);
+        setStatusMessage('Authentication failed');
         
         // Clean up any stored data if we have an onboarding ID
         if (onboardingId) {
@@ -162,7 +160,7 @@ const AuthCallback = () => {
       // If we have a code but no user yet, wait for authentication to complete
       if (code && !user && !isLoading) {
         console.log('🔄 AuthCallback: Code present but no user, refreshing session...');
-        setDebugInfo('Refreshing session for OAuth code...');
+        setStatusMessage('Verifying authentication...');
         
         setIsProcessing(true);
         
@@ -173,13 +171,13 @@ const AuthCallback = () => {
           
           if (!user) {
             console.warn('⚠️ AuthCallback: Session refresh completed but no user found');
-            setDebugInfo('Session refresh completed but no user found');
+            setStatusMessage('Authentication verification failed');
             navigate('/');
             return;
           }
         } catch (error) {
           console.error('❌ AuthCallback: Error refreshing session:', error);
-          setDebugInfo(`Session refresh error: ${error.message}`);
+          setStatusMessage('Authentication verification failed');
         } finally {
           setIsProcessing(false);
         }
@@ -193,7 +191,7 @@ const AuthCallback = () => {
         
         setHasHandledCallback(true);
         setIsProcessing(true);
-        setDebugInfo('Processing authenticated user with enhanced conversation data transfer...');
+        setStatusMessage('Setting up your account...');
         
         try {
           // Add a small delay to ensure trigger has time to execute
@@ -215,7 +213,6 @@ const AuthCallback = () => {
             
             if (fetchError) {
               console.error('❌ AuthCallback: Error fetching user data:', fetchError);
-              setDebugInfo(`Error fetching user data: ${fetchError.message}`);
               throw fetchError;
             }
             
@@ -224,7 +221,6 @@ const AuthCallback = () => {
             if (!userData) {
               retryCount++;
               console.log(`⏳ AuthCallback: User data not found, retry ${retryCount}/${maxRetries}`);
-              setDebugInfo(`Waiting for user data creation... retry ${retryCount}/${maxRetries}`);
               await new Promise(resolve => setTimeout(resolve, 1500));
             }
           }
@@ -232,7 +228,7 @@ const AuthCallback = () => {
           // If no user_data record exists after retries, create one (fallback)
           if (!userData) {
             console.log('⚠️ AuthCallback: No user_data record found after retries, creating fallback record');
-            setDebugInfo('Creating user data record as fallback...');
+            setStatusMessage('Creating your profile...');
             
             const { data: newUserData, error: insertError } = await supabase
               .from('user_data')
@@ -254,7 +250,6 @@ const AuthCallback = () => {
             
             if (insertError) {
               console.error('❌ AuthCallback: Error creating user_data record:', insertError);
-              setDebugInfo(`Error creating user data: ${insertError.message}`);
               throw insertError;
             } else {
               userData = newUserData;
@@ -270,7 +265,7 @@ const AuthCallback = () => {
           // Strategy 1: Check URL parameter for onboarding ID
           if (onboardingId && userData) {
             console.log('🔍 AuthCallback: Processing onboarding ID from URL with enhanced conversation validation:', onboardingId);
-            setDebugInfo(`Processing onboarding data for ID: ${onboardingId}`);
+            setStatusMessage('Transferring your profile...');
             
             const onboardingData = await GoogleAuthService.retrieveOnboardingData(onboardingId);
             
@@ -319,10 +314,8 @@ const AuthCallback = () => {
               
               if (updateError) {
                 console.error('❌ AuthCallback: Error transferring onboarding data:', updateError);
-                setDebugInfo(`Error transferring onboarding data: ${updateError.message}`);
               } else {
                 console.log('✅ AuthCallback: Successfully transferred onboarding data with conversation validation');
-                setDebugInfo('Onboarding data transferred successfully with conversation validation');
                 onboardingDataTransferred = true;
                 
                 toast({
@@ -335,7 +328,6 @@ const AuthCallback = () => {
               await GoogleAuthService.cleanupOnboardingData(onboardingId);
             } else {
               console.log('⚠️ AuthCallback: No onboarding data found for URL ID, checking localStorage');
-              setDebugInfo('No onboarding data found for URL ID, checking localStorage');
             }
           }
           
@@ -396,10 +388,8 @@ const AuthCallback = () => {
                 
                 if (updateError) {
                   console.error('❌ AuthCallback: Error transferring localStorage data:', updateError);
-                  setDebugInfo(`Error transferring localStorage data: ${updateError.message}`);
                 } else {
                   console.log('✅ AuthCallback: Successfully transferred localStorage data with conversation validation');
-                  setDebugInfo('localStorage onboarding data transferred successfully with conversation validation');
                   onboardingDataTransferred = true;
                   
                   // Clean up localStorage after successful transfer
@@ -429,7 +419,6 @@ const AuthCallback = () => {
                 }
               } catch (parseError) {
                 console.error('❌ AuthCallback: Error parsing localStorage data:', parseError);
-                setDebugInfo(`Error parsing localStorage data: ${parseError.message}`);
               }
             }
           }
@@ -486,10 +475,8 @@ const AuthCallback = () => {
                 
                 if (updateError) {
                   console.error('❌ AuthCallback: Error transferring database record:', updateError);
-                  setDebugInfo(`Error transferring database record: ${updateError.message}`);
                 } else {
                   console.log('✅ AuthCallback: Successfully transferred database record with conversation validation');
-                  setDebugInfo('Database onboarding record transferred successfully with conversation validation');
                   onboardingDataTransferred = true;
                   
                   // Clean up the anonymous record after successful transfer
@@ -512,7 +499,7 @@ const AuthCallback = () => {
           // Final routing decision based on transfer success
           if (onboardingDataTransferred) {
             console.log('🎉 AuthCallback: Onboarding data successfully transferred with conversation validation, navigating to mirror');
-            setDebugInfo('Onboarding data transferred with conversation validation, redirecting to mirror');
+            setStatusMessage('Redirecting to your profile...');
             
             // Clear URL parameters before redirecting
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -520,7 +507,7 @@ const AuthCallback = () => {
             navigate('/mirror');
           } else if (userData && userData.has_completed_onboarding) {
             console.log('🎉 AuthCallback: User already has completed onboarding');
-            setDebugInfo('User already completed onboarding');
+            setStatusMessage('Loading your profile...');
             
             // Clear URL parameters before redirecting
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -528,7 +515,7 @@ const AuthCallback = () => {
             navigate('/mirror');
           } else {
             console.log('🔄 AuthCallback: No onboarding data found, user needs to complete onboarding');
-            setDebugInfo('No onboarding data found, redirecting to onboarding');
+            setStatusMessage('Redirecting to onboarding...');
             
             // Clear URL parameters before redirecting
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -538,7 +525,7 @@ const AuthCallback = () => {
           
         } catch (error) {
           console.error('❌ AuthCallback: Error in enhanced post-auth handling:', error);
-          setDebugInfo(`Enhanced post-auth error: ${error.message}`);
+          setStatusMessage('Setup failed - redirecting...');
           
           // Clean up onboarding data if we have it
           if (onboardingId) {
@@ -558,11 +545,10 @@ const AuthCallback = () => {
         }
       } else if (!isLoading && !user && !code) {
         console.log('🚪 AuthCallback: No user and no code, redirecting to home');
-        setDebugInfo('No user and no code, redirecting to home');
+        setStatusMessage('Redirecting...');
         navigate('/');
       } else {
         console.log('⏳ AuthCallback: Still loading or waiting for auth completion');
-        setDebugInfo(`Waiting - loading: ${isLoading}, user: ${!!user}, code: ${!!code}`);
       }
     };
 
@@ -573,25 +559,10 @@ const AuthCallback = () => {
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="text-center max-w-md">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-lg mb-2">Completing authentication...</p>
-        
-        {/* Debug information */}
-        <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600">
-          <p className="font-medium mb-1">Status:</p>
-          <p>{debugInfo}</p>
-        </div>
+        <p className="text-lg mb-2">{statusMessage}</p>
         
         {isProcessing && (
-          <p className="text-sm text-gray-500 mt-2">Processing your profile...</p>
-        )}
-        {!isLoading && user && (
-          <p className="text-sm text-gray-500 mt-2">Setting up your account...</p>
-        )}
-        {!isLoading && !user && (
-          <p className="text-sm text-gray-500 mt-2">Verifying credentials...</p>
-        )}
-        {isLoading && (
-          <p className="text-sm text-gray-500 mt-2">Loading your account...</p>
+          <p className="text-sm text-gray-500 mt-2">This may take a moment...</p>
         )}
       </div>
     </div>
