@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
@@ -572,19 +571,17 @@ export const useOnboardingChat = () => {
     handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
   };
 
-  // Get progress percent based on conversation length
+  // FIXED: Get progress percent based on conversation length with linear calculation
   const getProgress = (): number => {
     if (isComplete) return 100;
     if (isGeneratingProfile) return 95;
     
-    const baseProgress = 10;
     const userMessageCount = conversation.userAnswers.length;
     
-    const progressPerMessage = Math.max(5, 70 / Math.max(1, userMessageCount + 5));
+    // Linear progress calculation: 10% base + 75% based on message progress
+    const progress = 10 + (userMessageCount / MESSAGE_CAP) * 75;
     
-    const calculatedProgress = Math.min(90, baseProgress + (userMessageCount * progressPerMessage));
-    
-    return calculatedProgress;
+    return Math.min(90, progress);
   };
 
   // Function to get the first letter of the user's name for avatar
