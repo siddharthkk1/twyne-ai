@@ -13,6 +13,7 @@ const AuthCallback = () => {
   const [hasHandledCallback, setHasHandledCallback] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Completing authentication...');
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
 
   // ENHANCED: Helper function to safely extract and validate conversation data with improved validation
   const extractConversationData = (data: any): Conversation | null => {
@@ -191,7 +192,6 @@ const AuthCallback = () => {
         
         setHasHandledCallback(true);
         setIsProcessing(true);
-        setStatusMessage('Setting up your account...');
         
         try {
           // Add a small delay to ensure trigger has time to execute
@@ -259,6 +259,17 @@ const AuthCallback = () => {
             console.log('✅ AuthCallback: Found existing user_data record');
           }
           
+          // Determine if this is a new user or returning user
+          const userHasCompletedOnboarding = userData?.has_completed_onboarding;
+          setIsNewUser(!userHasCompletedOnboarding);
+          
+          // Set appropriate status message based on user type
+          if (userHasCompletedOnboarding) {
+            setStatusMessage('Welcome back! Loading your profile...');
+          } else {
+            setStatusMessage('Setting up your account...');
+          }
+          
           // ENHANCED: onboarding data retrieval and transfer with improved conversation validation
           let onboardingDataTransferred = false;
           
@@ -317,6 +328,7 @@ const AuthCallback = () => {
               } else {
                 console.log('✅ AuthCallback: Successfully transferred onboarding data with conversation validation');
                 onboardingDataTransferred = true;
+                setIsNewUser(true); // Mark as new user since they completed onboarding
                 
                 toast({
                   title: "Account created successfully!",
@@ -391,6 +403,7 @@ const AuthCallback = () => {
                 } else {
                   console.log('✅ AuthCallback: Successfully transferred localStorage data with conversation validation');
                   onboardingDataTransferred = true;
+                  setIsNewUser(true); // Mark as new user since they completed onboarding
                   
                   // Clean up localStorage after successful transfer
                   const keysToRemove = [
@@ -478,6 +491,7 @@ const AuthCallback = () => {
                 } else {
                   console.log('✅ AuthCallback: Successfully transferred database record with conversation validation');
                   onboardingDataTransferred = true;
+                  setIsNewUser(true); // Mark as new user since they completed onboarding
                   
                   // Clean up the anonymous record after successful transfer
                   await supabase
@@ -496,10 +510,10 @@ const AuthCallback = () => {
             }
           }
           
-          // Final routing decision based on transfer success
+          // Final routing decision based on transfer success and user type
           if (onboardingDataTransferred) {
             console.log('🎉 AuthCallback: Onboarding data successfully transferred with conversation validation, navigating to mirror');
-            setStatusMessage('Redirecting to your profile...');
+            setStatusMessage(isNewUser ? 'Redirecting to your profile...' : 'Redirecting to your profile...');
             
             // Clear URL parameters before redirecting
             window.history.replaceState({}, document.title, window.location.pathname);
