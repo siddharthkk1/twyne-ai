@@ -129,7 +129,7 @@ const YouTubeCallback = () => {
             title: video.snippet.title,
             description: video.snippet.description,
             tags: video.snippet.tags || [],
-            categoryId: video.snippet.categoryId
+            categoryId: video.snippet.categoryId || null
           }))
         });
 

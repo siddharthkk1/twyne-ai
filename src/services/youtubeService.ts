@@ -1,3 +1,4 @@
+
 interface YouTubeChannel {
   id: string;
   snippet: {
@@ -28,6 +29,8 @@ interface YouTubeVideo {
     };
     publishedAt: string;
     channelTitle: string;
+    tags?: string[];
+    categoryId?: string;
   };
   statistics: {
     viewCount: string;
