@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,31 +18,16 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { signIn, signUp, user, isLoading: authLoading, isNewUser } = useAuth();
+  const { signIn, signUp, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Handle redirect after successful authentication
+  // Redirect authenticated users to home (HomeWrapper will handle further routing)
   useEffect(() => {
     if (!authLoading && user) {
-      console.log("Auth page: User authenticated, redirecting...", { 
-        user: user.email, 
-        isNewUser,
-        userMetadata: user.user_metadata,
-        appMetadata: user.app_metadata 
-      });
-      
-      // If user is new (no profile data or hasn't completed onboarding), redirect to onboarding
-      // This includes Google SSO users who haven't completed onboarding
-      if (isNewUser) {
-        console.log("Auth page: Redirecting new user to onboarding");
-        navigate("/onboarding");
-      } else {
-        // Otherwise redirect to mirror
-        console.log("Auth page: Redirecting existing user to mirror");
-        navigate("/mirror");
-      }
+      console.log("Auth page: User authenticated, redirecting to home");
+      navigate("/");
     }
-  }, [user, authLoading, isNewUser, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

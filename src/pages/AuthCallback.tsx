@@ -210,7 +210,7 @@ const AuthCallback = () => {
         if (fetchError) {
           console.error('❌ AuthCallback: Error fetching user data:', fetchError);
           // If we can't fetch user data, redirect to onboarding
-          navigate('/onboarding');
+          navigate('/onboarding', { replace: true });
           return;
         }
 
@@ -327,25 +327,19 @@ const AuthCallback = () => {
           }
         }
 
-        // Determine final routing - Direct navigation without going through home
-        if (onboardingDataTransferred) {
-          console.log('🎉 AuthCallback: Onboarding data successfully transferred, navigating directly to mirror');
-          setStatusMessage('Redirecting to your profile...');
-          
-          // Use replace to avoid going through HomeWrapper
-          window.location.replace('/mirror');
-        } else if (userData && userData.has_completed_onboarding) {
-          console.log('🎉 AuthCallback: User already has completed onboarding, navigating directly to mirror');
+        // Direct navigation based on onboarding status - bypassing HomeWrapper
+        if (onboardingDataTransferred || (userData && userData.has_completed_onboarding)) {
+          console.log('🎉 AuthCallback: User has completed onboarding, navigating directly to mirror');
           setStatusMessage('Loading your profile...');
           
-          // Use replace to avoid going through HomeWrapper
-          window.location.replace('/mirror');
+          // Direct navigation to mirror, bypassing HomeWrapper
+          navigate('/mirror', { replace: true });
         } else {
-          console.log('🔄 AuthCallback: No onboarding data found, user needs to complete onboarding');
+          console.log('🔄 AuthCallback: User needs to complete onboarding');
           setStatusMessage('Redirecting to onboarding...');
           
-          // Use replace to avoid going through HomeWrapper
-          window.location.replace('/onboarding');
+          // Direct navigation to onboarding, bypassing HomeWrapper
+          navigate('/onboarding', { replace: true });
         }
         
       } catch (error) {
@@ -363,8 +357,8 @@ const AuthCallback = () => {
           variant: "destructive",
         });
         
-        // Use replace to avoid going through HomeWrapper
-        window.location.replace('/onboarding');
+        // Direct navigation to onboarding, bypassing HomeWrapper
+        navigate('/onboarding', { replace: true });
       } finally {
         setIsProcessing(false);
         // Clear URL parameters

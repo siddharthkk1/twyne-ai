@@ -27,11 +27,11 @@ import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
-// Homepage wrapper that redirects logged-in users with better state handling
+// Simplified homepage wrapper that only handles unauthenticated users
 const HomeWrapper = () => {
-  const { user, isLoading, isNewUser } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  console.log("HomeWrapper render - isLoading:", isLoading, "user:", user?.email, "isNewUser:", isNewUser);
+  console.log("HomeWrapper render - isLoading:", isLoading, "user:", user?.email);
   
   // Show loading state while authentication is being determined
   if (isLoading) {
@@ -43,31 +43,14 @@ const HomeWrapper = () => {
     );
   }
   
-  // Only redirect authenticated users after loading is complete
-  if (user && !isLoading) {
-    console.log("User logged in after loading complete, isNewUser:", isNewUser);
-    
-    // Add a small delay to ensure AuthContext has fully processed user data
-    // This prevents race conditions during OAuth callback processing
-    setTimeout(() => {
-      if (isNewUser) {
-        console.log("Redirecting new user to onboarding");
-        window.location.replace("/onboarding");
-      } else {
-        console.log("Redirecting existing user to mirror");
-        window.location.replace("/mirror");
-      }
-    }, 100);
-    
-    // Show loading while redirect happens
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
+  // If user is authenticated, they should have been handled by AuthCallback
+  // This shouldn't happen in normal flow, but redirect to mirror as fallback
+  if (user) {
+    console.log("HomeWrapper: Authenticated user on home page, redirecting to mirror");
+    return <Navigate to="/mirror" replace />;
   }
   
-  console.log("No user, showing landing page");
+  console.log("HomeWrapper: No user, showing landing page");
   return <Index />;
 };
 
