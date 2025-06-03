@@ -103,7 +103,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('🚀 AuthCallback: Starting simplified OAuth callback handler');
+      console.log('🚀 AuthCallback: Starting enhanced OAuth callback handler');
       
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
@@ -140,7 +140,7 @@ const AuthCallback = () => {
           variant: "destructive",
         });
         
-        navigate('/');
+        navigate('/auth');
         return;
       }
 
@@ -163,7 +163,7 @@ const AuthCallback = () => {
         } catch (error) {
           console.error('❌ AuthCallback: Error refreshing session:', error);
           setStatusMessage('Authentication verification failed');
-          navigate('/');
+          navigate('/auth');
           return;
         } finally {
           setIsProcessing(false);
@@ -174,9 +174,9 @@ const AuthCallback = () => {
 
       // Only proceed once we have an authenticated user
       if (!user) {
-        console.log('🚪 AuthCallback: No user after auth, redirecting to home');
+        console.log('🚪 AuthCallback: No user after auth, redirecting to auth page');
         setStatusMessage('Redirecting...');
-        navigate('/');
+        navigate('/auth');
         return;
       }
 
@@ -327,19 +327,25 @@ const AuthCallback = () => {
           }
         }
 
-        // Determine final routing
+        // Determine final routing - Direct navigation without going through home
         if (onboardingDataTransferred) {
-          console.log('🎉 AuthCallback: Onboarding data successfully transferred, navigating to mirror');
+          console.log('🎉 AuthCallback: Onboarding data successfully transferred, navigating directly to mirror');
           setStatusMessage('Redirecting to your profile...');
-          navigate('/mirror');
+          
+          // Use replace to avoid going through HomeWrapper
+          window.location.replace('/mirror');
         } else if (userData && userData.has_completed_onboarding) {
-          console.log('🎉 AuthCallback: User already has completed onboarding');
+          console.log('🎉 AuthCallback: User already has completed onboarding, navigating directly to mirror');
           setStatusMessage('Loading your profile...');
-          navigate('/mirror');
+          
+          // Use replace to avoid going through HomeWrapper
+          window.location.replace('/mirror');
         } else {
           console.log('🔄 AuthCallback: No onboarding data found, user needs to complete onboarding');
           setStatusMessage('Redirecting to onboarding...');
-          navigate('/onboarding');
+          
+          // Use replace to avoid going through HomeWrapper
+          window.location.replace('/onboarding');
         }
         
       } catch (error) {
@@ -357,7 +363,8 @@ const AuthCallback = () => {
           variant: "destructive",
         });
         
-        navigate('/onboarding');
+        // Use replace to avoid going through HomeWrapper
+        window.location.replace('/onboarding');
       } finally {
         setIsProcessing(false);
         // Clear URL parameters

@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Use refs to prevent race conditions
   const profileLoadingRef = useRef(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Session recovery function
   const refreshSession = async () => {
@@ -104,6 +105,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     profileLoadingRef.current = true;
+    
+    // Set a maximum loading timeout to prevent indefinite loading
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+    
+    loadingTimeoutRef.current = setTimeout(() => {
+      console.log('AuthContext: Loading timeout reached, setting isLoading to false');
+      profileLoadingRef.current = false;
+      setIsLoading(false);
+    }, 10000); // 10 second timeout
     
     try {
       console.log('AuthContext: Loading user profile for:', userId);
@@ -195,6 +207,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('AuthContext: Setting isNewUser to true (error case)');
     } finally {
       profileLoadingRef.current = false;
+      
+      // Clear the timeout
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      
       // Only set loading to false after profile loading is complete
       setIsLoading(false);
     }
@@ -309,6 +328,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     return () => {
       mounted = false;
+      
+      // Clear any pending timeouts
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      
       cleanup.then(cleanupFn => cleanupFn?.());
     };
   }, []);
