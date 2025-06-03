@@ -136,7 +136,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
     setIsLoading(true);
 
     try {
-      console.log("🔄 CreateAccountPrompt: Starting enhanced manual sign-up process");
+      console.log("🔄 CreateAccountPrompt: Starting manual sign-up process");
       
       // Get comprehensive onboarding data
       const { profile, conversation, userName: finalUserName, promptMode } = getComprehensiveOnboardingData();
@@ -284,7 +284,7 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
   };
 
   const handleGoogleAuth = async () => {
-    console.log('🔄 CreateAccountPrompt: Starting Google OAuth with enhanced data preservation');
+    console.log('🔄 CreateAccountPrompt: Starting Google OAuth for CreateAccountPrompt');
     
     setIsGoogleLoading(true);
     
@@ -308,8 +308,20 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         conversationUserAnswerCount: onboardingData.conversation.userAnswers.length
       });
       
-      // Store context for callback page
+      // Set context for AuthCallback to detect CreateAccountPrompt flow
       localStorage.setItem('oauth_context', 'onboarding_results');
+      
+      // Store onboarding data in localStorage with oauth prefix for AuthCallback to find
+      if (onboardingData.profile) {
+        localStorage.setItem('oauth_onboardingProfile', JSON.stringify(onboardingData.profile));
+      }
+      if (onboardingData.conversation) {
+        localStorage.setItem('oauth_onboardingConversation', JSON.stringify(onboardingData.conversation));
+      }
+      if (onboardingData.userName) {
+        localStorage.setItem('oauth_onboardingUserName', onboardingData.userName);
+      }
+      localStorage.setItem('oauth_onboardingPromptMode', onboardingData.promptMode);
       
       // Use the Google auth service for OAuth flow
       await GoogleAuthService.initiateGoogleAuth(onboardingData);
