@@ -308,8 +308,14 @@ export const CreateAccountPrompt: React.FC<CreateAccountPromptProps> = ({
         conversationUserAnswerCount: onboardingData.conversation.userAnswers.length
       });
       
-      // Set context for AuthCallback to detect CreateAccountPrompt flow
+      // Set context for AuthCallback to detect CreateAccountPrompt flow - but clean it up immediately
       localStorage.setItem('oauth_context', 'onboarding_results');
+      
+      // Clean up oauth_context after a short delay to prevent persistence across unrelated sessions
+      setTimeout(() => {
+        localStorage.removeItem('oauth_context');
+        console.log('🧹 CreateAccountPrompt: Cleaned up oauth_context after OAuth initiation');
+      }, 1000);
       
       // Store onboarding data in localStorage with oauth prefix for AuthCallback to find
       if (onboardingData.profile) {

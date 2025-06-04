@@ -60,14 +60,21 @@ export const storeOnboardingDataSecurely = async (
       console.log('🔑 OnboardingStorage: Generated fallback ID:', tempId);
     }
     
-    // Clear previous localStorage entries to prevent conflicts
+    // Enhanced cleanup: Clear previous localStorage entries including OAuth-related keys
     const keysToRemove = [
       'temp_onboarding_id',
       'onboarding_profile',
       'onboarding_user_name',
       'onboarding_conversation',
       'onboarding_prompt_mode',
-      'onboarding_timestamp'
+      'onboarding_timestamp',
+      // OAuth-related keys that might cause pollution
+      'oauth_context',
+      'oauth_onboardingProfile',
+      'oauth_onboardingUserName', 
+      'oauth_onboardingConversation',
+      'oauth_onboardingPromptMode',
+      'oauth_temp_onboarding_id'
     ];
     
     keysToRemove.forEach(key => {
@@ -160,16 +167,16 @@ export const storeOnboardingDataSecurely = async (
 };
 
 /**
- * Clean up onboarding data after successful account creation
+ * Enhanced cleanup of onboarding data after successful account creation
  */
 export const cleanupOnboardingData = async (sessionId?: string): Promise<void> => {
   try {
-    console.log('🧹 OnboardingStorage: Starting cleanup of onboarding data');
+    console.log('🧹 OnboardingStorage: Starting enhanced cleanup of onboarding data');
     
     // Get sessionId from localStorage if not provided
     const tempId = sessionId || localStorage.getItem('temp_onboarding_id');
     
-    // Clean up localStorage
+    // Enhanced localStorage cleanup including OAuth-related keys
     const keysToRemove = [
       'temp_onboarding_id',
       'onboarding_profile',
@@ -177,7 +184,14 @@ export const cleanupOnboardingData = async (sessionId?: string): Promise<void> =
       'onboardingUserName', // Additional key
       'onboarding_conversation',
       'onboarding_prompt_mode',
-      'onboarding_timestamp'
+      'onboarding_timestamp',
+      // OAuth-related keys that might cause pollution
+      'oauth_context',
+      'oauth_onboardingProfile',
+      'oauth_onboardingUserName', 
+      'oauth_onboardingConversation',
+      'oauth_onboardingPromptMode',
+      'oauth_temp_onboarding_id'
     ];
     
     keysToRemove.forEach(key => {
@@ -211,8 +225,8 @@ export const cleanupOnboardingData = async (sessionId?: string): Promise<void> =
       }
     }
     
-    console.log('✅ OnboardingStorage: Cleanup completed successfully');
+    console.log('✅ OnboardingStorage: Enhanced cleanup completed successfully');
   } catch (error) {
-    console.error('❌ OnboardingStorage: Error during cleanup:', error);
+    console.error('❌ OnboardingStorage: Error during enhanced cleanup:', error);
   }
 };

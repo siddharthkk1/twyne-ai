@@ -95,10 +95,44 @@ const AuthCallback = () => {
     }
   };
 
-  // Detect if this is a CreateAccountPrompt context
+  // Enhanced detection for CreateAccountPrompt context with immediate cleanup
   const isCreateAccountPromptContext = () => {
     const oauthContext = localStorage.getItem('oauth_context');
+    console.log('🔍 AuthCallback: Checking oauth_context:', oauthContext);
+    
+    // Immediately clean up oauth_context to prevent persistence
+    if (oauthContext) {
+      localStorage.removeItem('oauth_context');
+      console.log('🧹 AuthCallback: Cleaned up oauth_context immediately');
+    }
+    
     return oauthContext === 'onboarding_results';
+  };
+
+  // Enhanced check to determine if this is a legitimate OAuth callback
+  const isLegitimateOAuthCallback = (): boolean => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasCode = urlParams.has('code');
+    const hasOnboardingId = urlParams.has('onboarding_id');
+    const hasOAuthContext = localStorage.getItem('oauth_context') === 'onboarding_results';
+    const hasOAuthData = !!(
+      localStorage.getItem('oauth_onboardingProfile') ||
+      localStorage.getItem('oauth_onboardingConversation') ||
+      localStorage.getItem('oauth_onboardingUserName') ||
+      localStorage.getItem('oauth_temp_onboarding_id')
+    );
+
+    console.log('🔍 AuthCallback: OAuth legitimacy check:', {
+      hasCode,
+      hasOnboardingId,
+      hasOAuthContext,
+      hasOAuthData,
+      currentPath: window.location.pathname,
+      search: window.location.search
+    });
+
+    // This is legitimate if we have OAuth parameters OR OAuth-specific data
+    return hasCode || hasOnboardingId || hasOAuthContext || hasOAuthData;
   };
 
   useEffect(() => {
@@ -108,6 +142,13 @@ const AuthCallback = () => {
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
         console.log('⚠️ AuthCallback: Already handled callback or processing, skipping');
+        return;
+      }
+
+      // Early exit if this doesn't appear to be a legitimate OAuth callback
+      if (!isLegitimateOAuthCallback()) {
+        console.log('⚠️ AuthCallback: Not a legitimate OAuth callback, redirecting to home');
+        navigate('/', { replace: true });
         return;
       }
       
@@ -311,7 +352,7 @@ const AuthCallback = () => {
                   'temp_onboarding_id', 'onboarding_profile', 'onboarding_user_name',
                   'onboarding_conversation', 'onboarding_prompt_mode', 'onboarding_timestamp',
                   'oauth_onboardingProfile', 'oauth_onboardingUserName', 'oauth_onboardingConversation',
-                  'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id', 'oauth_context'
+                  'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id'
                 ];
                 
                 keysToRemove.forEach(key => localStorage.removeItem(key));
@@ -326,6 +367,13 @@ const AuthCallback = () => {
             }
           }
         }
+
+        // Final cleanup of any remaining OAuth-related localStorage keys
+        const cleanupKeys = [
+          'oauth_context', 'oauth_onboardingProfile', 'oauth_onboardingUserName',
+          'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id'
+        ];
+        cleanupKeys.forEach(key => localStorage.removeItem(key));
 
         // Direct navigation based on onboarding status - bypassing HomeWrapper
         if (onboardingDataTransferred || (userData && userData.has_completed_onboarding)) {

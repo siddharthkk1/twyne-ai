@@ -21,11 +21,42 @@ const Auth = () => {
   const { signIn, signUp, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect authenticated users to home (HomeWrapper will handle further routing)
+  // Improved redirect logic for authenticated users
   useEffect(() => {
     if (!authLoading && user) {
-      console.log("Auth page: User authenticated, redirecting to home");
-      navigate("/");
+      console.log("Auth page: User authenticated, determining redirect destination");
+      
+      // Check if user has completed onboarding by examining their profile
+      const checkUserOnboarding = async () => {
+        try {
+          const { data: userData, error } = await supabase
+            .from('user_data')
+            .select('has_completed_onboarding, profile_data, sso_data')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error) {
+            console.warn("Auth page: Could not fetch user data, redirecting to onboarding:", error);
+            navigate("/onboarding", { replace: true });
+            return;
+          }
+
+          if (userData?.has_completed_onboarding) {
+            console.log("Auth page: User has completed onboarding, redirecting to mirror");
+            navigate("/mirror", { replace: true });
+          } else {
+            console.log("Auth page: User has not completed onboarding, redirecting to onboarding");
+            navigate("/onboarding", { replace: true });
+          }
+        } catch (error) {
+          console.error("Auth page: Error checking user onboarding status:", error);
+          // Default to onboarding if we can't determine status
+          navigate("/onboarding", { replace: true });
+        }
+      };
+
+      // Small delay to allow auth context to fully load user profile
+      setTimeout(checkUserOnboarding, 100);
     }
   }, [user, authLoading, navigate]);
 
@@ -110,6 +141,14 @@ const Auth = () => {
     
     try {
       console.log("Starting Google OAuth flow...");
+      
+      // Clean up any stale OAuth-related localStorage before starting new flow
+      const cleanupKeys = [
+        'oauth_context', 'oauth_onboardingProfile', 'oauth_onboardingUserName',
+        'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id'
+      ];
+      cleanupKeys.forEach(key => localStorage.removeItem(key));
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
