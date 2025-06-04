@@ -21,10 +21,21 @@ const Auth = () => {
   const { signIn, signUp, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Improved redirect logic for authenticated users
+  // Enhanced redirect logic for authenticated users with explicit callback prevention
   useEffect(() => {
     if (!authLoading && user) {
       console.log("Auth page: User authenticated, determining redirect destination");
+      
+      // CRITICAL: Prevent any redirect to auth/callback for standard auth flows
+      // Check if this is coming from an OAuth callback by examining URL and localStorage
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasOAuthCode = urlParams.has('code');
+      const hasOAuthContext = localStorage.getItem('oauth_context');
+      
+      if (hasOAuthCode || hasOAuthContext) {
+        console.log("Auth page: OAuth flow detected, skipping redirect to prevent callback loop");
+        return;
+      }
       
       // Check if user has completed onboarding by examining their profile
       const checkUserOnboarding = async () => {
@@ -84,9 +95,19 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // ENHANCED: Clean up any OAuth-related localStorage before standard auth
+      console.log("Auth page: Cleaning up OAuth state before standard auth flow");
+      const oauthKeys = [
+        'oauth_context', 'oauth_onboardingProfile', 'oauth_onboardingUserName',
+        'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id'
+      ];
+      oauthKeys.forEach(key => localStorage.removeItem(key));
+      
       if (isLogin) {
+        console.log("Auth page: Starting standard sign-in flow");
         const { error } = await signIn(email, password);
         if (error) {
+          console.error("Auth page: Sign-in error:", error);
           toast({
             title: "Sign in failed",
             description: error.message,
@@ -95,6 +116,7 @@ const Auth = () => {
         }
         // Redirect is handled by useEffect above
       } else {
+        console.log("Auth page: Starting standard sign-up flow");
         // Use the auth context's signUp function
         const emailPrefix = email.split('@')[0];
         
@@ -106,26 +128,42 @@ const Auth = () => {
           profile_data: {}
         };
 
-        console.log("Signing up with auth context:", {
+        console.log("Auth page: Signing up with auth context:", {
           email,
           password: "***",
           userData
         });
 
-        const { error } = await signUp(email, password, userData);
+        // ENHANCED: Use signInWithPassword options to control redirect behavior
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: userData,
+            // CRITICAL: Explicitly prevent email redirect to auth/callback
+            emailRedirectTo: undefined
+          }
+        });
 
         if (error) {
-          console.error("Signup error:", error);
+          console.error("Auth page: Signup error:", error);
           toast({
             title: "Sign up failed",
             description: error.message,
             variant: "destructive",
           });
+        } else {
+          console.log("Auth page: Signup successful, user will be authenticated automatically");
+          // ENHANCED: Show success message for email/password signup
+          toast({
+            title: "Account created successfully!",
+            description: "Welcome to Twyne! Please check your email to verify your account.",
+          });
         }
         // Redirect is handled by useEffect above
       }
     } catch (error: any) {
-      console.error("Auth error:", error);
+      console.error("Auth page: Auth error:", error);
       toast({
         title: "Error",
         description: error.message || "Something went wrong.",
@@ -140,14 +178,19 @@ const Auth = () => {
     setIsGoogleLoading(true);
     
     try {
-      console.log("Starting Google OAuth flow...");
+      console.log("Auth page: Starting Google OAuth flow...");
       
-      // Clean up any stale OAuth-related localStorage before starting new flow
+      // ENHANCED: More thorough cleanup of OAuth-related localStorage before starting new flow
       const cleanupKeys = [
         'oauth_context', 'oauth_onboardingProfile', 'oauth_onboardingUserName',
-        'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id'
+        'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id',
+        'temp_onboarding_id', 'onboarding_profile', 'onboarding_user_name',
+        'onboarding_conversation', 'onboarding_prompt_mode'
       ];
       cleanupKeys.forEach(key => localStorage.removeItem(key));
+      
+      // ENHANCED: Set OAuth context marker for AuthCallback detection
+      localStorage.setItem('oauth_context', 'standard_auth');
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -161,7 +204,9 @@ const Auth = () => {
       });
       
       if (error) {
-        console.error("Google OAuth error:", error);
+        console.error("Auth page: Google OAuth error:", error);
+        // Clean up OAuth context on error
+        localStorage.removeItem('oauth_context');
         toast({
           title: "Google sign in failed",
           description: error.message,
@@ -171,7 +216,9 @@ const Auth = () => {
       }
       // Don't set loading to false here if no error - user will be redirected
     } catch (error: any) {
-      console.error("Google OAuth exception:", error);
+      console.error("Auth page: Google OAuth exception:", error);
+      // Clean up OAuth context on error
+      localStorage.removeItem('oauth_context');
       toast({
         title: "Error",
         description: error.message || "Something went wrong with Google sign in.",

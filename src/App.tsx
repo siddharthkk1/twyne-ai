@@ -27,7 +27,7 @@ import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
-// Simplified homepage wrapper that only handles unauthenticated users
+// ENHANCED: More robust homepage wrapper with better OAuth state detection
 const HomeWrapper = () => {
   const { user, isLoading } = useAuth();
   
@@ -43,9 +43,18 @@ const HomeWrapper = () => {
     );
   }
   
-  // If user is authenticated, they should have been handled by AuthCallback
-  // This shouldn't happen in normal flow, but redirect to mirror as fallback
+  // ENHANCED: Check for OAuth callback context before redirecting authenticated users
   if (user) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasOAuthCode = urlParams.has('code');
+    const hasOAuthContext = localStorage.getItem('oauth_context');
+    
+    // If this is an OAuth callback, let AuthCallback handle it
+    if (hasOAuthCode || hasOAuthContext) {
+      console.log("HomeWrapper: OAuth flow detected, redirecting to callback");
+      return <Navigate to="/auth/callback" replace />;
+    }
+    
     console.log("HomeWrapper: Authenticated user on home page, redirecting to mirror");
     return <Navigate to="/mirror" replace />;
   }
@@ -68,7 +77,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/google-auth-test" element={<GoogleAuthTest />} />
-            {/* Separate callback routes for different OAuth flows */}
+            {/* ENHANCED: Separate callback routes with better OAuth flow handling */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/callback/spotify" element={<SpotifyCallback />} />
             <Route path="/auth/callback/youtube" element={<YouTubeCallback />} />

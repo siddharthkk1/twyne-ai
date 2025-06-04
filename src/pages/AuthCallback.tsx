@@ -95,26 +95,19 @@ const AuthCallback = () => {
     }
   };
 
-  // Enhanced detection for CreateAccountPrompt context with immediate cleanup
-  const isCreateAccountPromptContext = () => {
+  // ENHANCED: More sophisticated OAuth context detection
+  const getOAuthContext = () => {
     const oauthContext = localStorage.getItem('oauth_context');
     console.log('🔍 AuthCallback: Checking oauth_context:', oauthContext);
-    
-    // Immediately clean up oauth_context to prevent persistence
-    if (oauthContext) {
-      localStorage.removeItem('oauth_context');
-      console.log('🧹 AuthCallback: Cleaned up oauth_context immediately');
-    }
-    
-    return oauthContext === 'onboarding_results';
+    return oauthContext;
   };
 
-  // Enhanced check to determine if this is a legitimate OAuth callback
+  // ENHANCED: Stricter legitimacy check for OAuth callbacks
   const isLegitimateOAuthCallback = (): boolean => {
     const urlParams = new URLSearchParams(window.location.search);
     const hasCode = urlParams.has('code');
     const hasOnboardingId = urlParams.has('onboarding_id');
-    const hasOAuthContext = localStorage.getItem('oauth_context') === 'onboarding_results';
+    const oauthContext = getOAuthContext();
     const hasOAuthData = !!(
       localStorage.getItem('oauth_onboardingProfile') ||
       localStorage.getItem('oauth_onboardingConversation') ||
@@ -122,17 +115,26 @@ const AuthCallback = () => {
       localStorage.getItem('oauth_temp_onboarding_id')
     );
 
-    console.log('🔍 AuthCallback: OAuth legitimacy check:', {
+    console.log('🔍 AuthCallback: Enhanced OAuth legitimacy check:', {
       hasCode,
       hasOnboardingId,
-      hasOAuthContext,
+      oauthContext,
       hasOAuthData,
       currentPath: window.location.pathname,
-      search: window.location.search
+      search: window.location.search,
+      referrer: document.referrer
     });
 
-    // This is legitimate if we have OAuth parameters OR OAuth-specific data
-    return hasCode || hasOnboardingId || hasOAuthContext || hasOAuthData;
+    // ENHANCED: Only treat as legitimate OAuth if we have explicit OAuth markers
+    const isLegitimate = (hasCode && oauthContext) || hasOnboardingId || (hasOAuthData && oauthContext);
+    
+    if (!isLegitimate) {
+      console.log('❌ AuthCallback: Not a legitimate OAuth callback - missing required OAuth context');
+    } else {
+      console.log('✅ AuthCallback: Legitimate OAuth callback detected');
+    }
+    
+    return isLegitimate;
   };
 
   useEffect(() => {
@@ -145,10 +147,11 @@ const AuthCallback = () => {
         return;
       }
 
-      // Early exit if this doesn't appear to be a legitimate OAuth callback
+      // ENHANCED: Strict legitimacy check with immediate redirect for non-OAuth flows
       if (!isLegitimateOAuthCallback()) {
-        console.log('⚠️ AuthCallback: Not a legitimate OAuth callback, redirecting to home');
-        navigate('/', { replace: true });
+        console.log('❌ AuthCallback: Not a legitimate OAuth callback, redirecting to auth page');
+        setStatusMessage('Redirecting...');
+        navigate('/auth', { replace: true });
         return;
       }
       
@@ -156,13 +159,14 @@ const AuthCallback = () => {
       const error = urlParams.get('error');
       const code = urlParams.get('code');
       const onboardingId = urlParams.get('onboarding_id');
+      const oauthContext = getOAuthContext();
 
-      console.log('🔍 AuthCallback: URL parameters:', { 
+      console.log('🔍 AuthCallback: URL parameters and context:', { 
         hasError: !!error, 
         errorValue: error,
         hasCode: !!code, 
         hasOnboardingId: !!onboardingId,
-        isCreateAccountPrompt: isCreateAccountPromptContext()
+        oauthContext: oauthContext
       });
 
       // Handle OAuth errors
@@ -174,6 +178,9 @@ const AuthCallback = () => {
         if (onboardingId) {
           await GoogleAuthService.cleanupOnboardingData(onboardingId);
         }
+        
+        // Clean up OAuth context
+        localStorage.removeItem('oauth_context');
         
         toast({
           title: "Authentication Failed",
@@ -204,6 +211,7 @@ const AuthCallback = () => {
         } catch (error) {
           console.error('❌ AuthCallback: Error refreshing session:', error);
           setStatusMessage('Authentication verification failed');
+          localStorage.removeItem('oauth_context');
           navigate('/auth');
           return;
         } finally {
@@ -217,6 +225,7 @@ const AuthCallback = () => {
       if (!user) {
         console.log('🚪 AuthCallback: No user after auth, redirecting to auth page');
         setStatusMessage('Redirecting...');
+        localStorage.removeItem('oauth_context');
         navigate('/auth');
         return;
       }
@@ -229,13 +238,18 @@ const AuthCallback = () => {
       
       try {
         // Detect context and set appropriate message
-        const isCreateAccountPrompt = isCreateAccountPromptContext();
-        if (isCreateAccountPrompt) {
+        const isOnboardingResults = oauthContext === 'onboarding_results';
+        const isStandardAuth = oauthContext === 'standard_auth';
+        
+        if (isOnboardingResults) {
           setStatusMessage('Setting up your account...');
-          console.log('🎯 AuthCallback: CreateAccountPrompt context detected');
+          console.log('🎯 AuthCallback: Onboarding results context detected');
+        } else if (isStandardAuth) {
+          setStatusMessage('Completing sign in...');
+          console.log('🎯 AuthCallback: Standard auth context detected');
         } else {
           setStatusMessage('Loading your profile...');
-          console.log('🎯 AuthCallback: Standard OAuth context');
+          console.log('🎯 AuthCallback: Unknown OAuth context:', oauthContext);
         }
 
         // Wait a moment for AuthContext to finish loading user profile
@@ -250,7 +264,8 @@ const AuthCallback = () => {
 
         if (fetchError) {
           console.error('❌ AuthCallback: Error fetching user data:', fetchError);
-          // If we can't fetch user data, redirect to onboarding
+          // Clean up and redirect to onboarding
+          localStorage.removeItem('oauth_context');
           navigate('/onboarding', { replace: true });
           return;
         }
@@ -311,9 +326,9 @@ const AuthCallback = () => {
           }
         }
 
-        // Strategy 2: Check localStorage for onboarding data (fallback for CreateAccountPrompt)
-        if (!onboardingDataTransferred && isCreateAccountPrompt) {
-          console.log('🔍 AuthCallback: Checking localStorage for CreateAccountPrompt data...');
+        // Strategy 2: Check localStorage for onboarding data (fallback for standard auth)
+        if (!onboardingDataTransferred && (isOnboardingResults || isStandardAuth)) {
+          console.log('🔍 AuthCallback: Checking localStorage for OAuth data...');
           
           const storedProfile = localStorage.getItem('onboarding_profile') || localStorage.getItem('oauth_onboardingProfile');
           const storedPromptMode = localStorage.getItem('onboarding_prompt_mode') || localStorage.getItem('oauth_onboardingPromptMode');
@@ -347,16 +362,6 @@ const AuthCallback = () => {
                 console.log('✅ AuthCallback: Successfully transferred localStorage data');
                 onboardingDataTransferred = true;
                 
-                // Clean up localStorage after successful transfer
-                const keysToRemove = [
-                  'temp_onboarding_id', 'onboarding_profile', 'onboarding_user_name',
-                  'onboarding_conversation', 'onboarding_prompt_mode', 'onboarding_timestamp',
-                  'oauth_onboardingProfile', 'oauth_onboardingUserName', 'oauth_onboardingConversation',
-                  'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id'
-                ];
-                
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-                
                 toast({
                   title: "Account created successfully!",
                   description: "Welcome to Twyne! Your profile has been saved.",
@@ -368,25 +373,26 @@ const AuthCallback = () => {
           }
         }
 
-        // Final cleanup of any remaining OAuth-related localStorage keys
+        // Final cleanup of OAuth-related localStorage keys
         const cleanupKeys = [
           'oauth_context', 'oauth_onboardingProfile', 'oauth_onboardingUserName',
-          'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id'
+          'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id',
+          'temp_onboarding_id', 'onboarding_profile', 'onboarding_user_name',
+          'onboarding_conversation', 'onboarding_prompt_mode', 'onboarding_timestamp'
         ];
         cleanupKeys.forEach(key => localStorage.removeItem(key));
+        console.log('🧹 AuthCallback: Cleaned up all OAuth and onboarding localStorage keys');
 
-        // Direct navigation based on onboarding status - bypassing HomeWrapper
+        // Navigation based on onboarding status
         if (onboardingDataTransferred || (userData && userData.has_completed_onboarding)) {
-          console.log('🎉 AuthCallback: User has completed onboarding, navigating directly to mirror');
+          console.log('🎉 AuthCallback: User has completed onboarding, navigating to mirror');
           setStatusMessage('Loading your profile...');
           
-          // Direct navigation to mirror, bypassing HomeWrapper
           navigate('/mirror', { replace: true });
         } else {
           console.log('🔄 AuthCallback: User needs to complete onboarding');
           setStatusMessage('Redirecting to onboarding...');
           
-          // Direct navigation to onboarding, bypassing HomeWrapper
           navigate('/onboarding', { replace: true });
         }
         
@@ -399,13 +405,15 @@ const AuthCallback = () => {
           await GoogleAuthService.cleanupOnboardingData(onboardingId);
         }
         
+        // Clean up OAuth context
+        localStorage.removeItem('oauth_context');
+        
         toast({
           title: "Setup Error",
           description: "There was an issue setting up your account. Please complete onboarding manually.",
           variant: "destructive",
         });
         
-        // Direct navigation to onboarding, bypassing HomeWrapper
         navigate('/onboarding', { replace: true });
       } finally {
         setIsProcessing(false);
