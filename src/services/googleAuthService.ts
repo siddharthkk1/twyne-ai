@@ -3,7 +3,7 @@ import type { Conversation } from '@/types/chat';
 
 export class GoogleAuthService {
   /**
-   * Initiate Google OAuth flow using standardized redirect URL method
+   * Initiate Google OAuth flow using Supabase's built-in redirect handling
    * @param onboardingData - Optional onboarding data to preserve through localStorage and URL params
    */
   static async initiateGoogleAuth(onboardingData?: {
@@ -15,8 +15,6 @@ export class GoogleAuthService {
     console.log('🚀 GoogleAuthService: Starting Google OAuth with enhanced conversation preservation');
     
     try {
-      const redirectTo = `${window.location.origin}/auth/callback`;
-      
       // Store onboarding data in localStorage for retrieval after OAuth
       if (onboardingData) {
         console.log('💾 GoogleAuthService: Storing onboarding data with enhanced conversation validation');
@@ -69,14 +67,6 @@ export class GoogleAuthService {
         localStorage.setItem('oauth_temp_onboarding_id', tempOnboardingId);
         
         console.log('✅ GoogleAuthService: Enhanced onboarding data stored with temp ID:', tempOnboardingId);
-        console.log('📊 GoogleAuthService: Storage verification:', {
-          profileStored: !!localStorage.getItem('onboarding_profile'),
-          conversationStored: !!localStorage.getItem('onboarding_conversation'),
-          userNameStored: !!localStorage.getItem('onboarding_user_name'),
-          promptModeStored: !!localStorage.getItem('onboarding_prompt_mode'),
-          oauthProfileStored: !!localStorage.getItem('oauth_onboardingProfile'),
-          oauthConversationStored: !!localStorage.getItem('oauth_onboardingConversation')
-        });
         
         // Also store in database for backup with enhanced conversation validation
         try {
@@ -114,15 +104,20 @@ export class GoogleAuthService {
           // Continue with OAuth even if backup storage fails
         }
         
-        // Add onboarding ID to redirect URL for retrieval
-        const urlWithOnboarding = `${redirectTo}?onboarding_id=${tempOnboardingId}`;
+        // Set OAuth context for onboarding results
+        localStorage.setItem('oauth_context', 'onboarding_results');
         
-        console.log('🔗 GoogleAuthService: Starting OAuth with enhanced onboarding redirect:', urlWithOnboarding);
+        console.log('🔗 GoogleAuthService: Starting OAuth with onboarding context (letting Supabase handle redirect)');
         
+        // FIXED: Let Supabase handle the redirect automatically, add onboarding_id as query param
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: urlWithOnboarding
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+              onboarding_id: tempOnboardingId
+            }
           }
         });
         
@@ -134,22 +129,30 @@ export class GoogleAuthService {
         }
         
       } else {
-        console.log('🔗 GoogleAuthService: Starting OAuth without onboarding data');
+        console.log('🔗 GoogleAuthService: Starting OAuth without onboarding data (letting Supabase handle redirect)');
         
+        // Set OAuth context for standard auth
+        localStorage.setItem('oauth_context', 'standard_auth');
+        
+        // FIXED: Let Supabase handle the redirect automatically
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            }
           }
         });
         
         if (error) {
           console.error('❌ GoogleAuthService: OAuth initiation failed:', error);
+          localStorage.removeItem('oauth_context');
           throw error;
         }
       }
       
-      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with enhanced conversation preservation');
+      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with Supabase automatic redirect handling');
       
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in OAuth flow:', error);

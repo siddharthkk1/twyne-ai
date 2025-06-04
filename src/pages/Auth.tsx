@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,10 +191,10 @@ const Auth = () => {
       // ENHANCED: Set OAuth context marker for AuthCallback detection
       localStorage.setItem('oauth_context', 'standard_auth');
       
+      // FIXED: Remove conflicting redirectTo parameter - let Supabase handle redirect automatically
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth/callback',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
