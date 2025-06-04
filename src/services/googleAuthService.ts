@@ -1,9 +1,10 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Conversation } from '@/types/chat';
 
 export class GoogleAuthService {
   /**
-   * Initiate Google OAuth flow using Supabase's built-in redirect handling
+   * Initiate Google OAuth flow using Supabase's built-in OAuth handling
    * @param onboardingData - Optional onboarding data to preserve through localStorage and URL params
    */
   static async initiateGoogleAuth(onboardingData?: {
@@ -107,16 +108,16 @@ export class GoogleAuthService {
         // Set OAuth context for onboarding results
         localStorage.setItem('oauth_context', 'onboarding_results');
         
-        console.log('🔗 GoogleAuthService: Starting OAuth with onboarding context (letting Supabase handle redirect)');
+        console.log('🔗 GoogleAuthService: Starting OAuth with onboarding context');
         
-        // FIXED: Let Supabase handle the redirect automatically, add onboarding_id as query param
+        // Use Supabase's built-in OAuth with proper authorization code flow
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
+            redirectTo: `${window.location.origin}/auth/callback?onboarding_id=${tempOnboardingId}`,
             queryParams: {
               access_type: 'offline',
               prompt: 'consent',
-              onboarding_id: tempOnboardingId
             }
           }
         });
@@ -129,15 +130,16 @@ export class GoogleAuthService {
         }
         
       } else {
-        console.log('🔗 GoogleAuthService: Starting OAuth without onboarding data (letting Supabase handle redirect)');
+        console.log('🔗 GoogleAuthService: Starting OAuth without onboarding data');
         
         // Set OAuth context for standard auth
         localStorage.setItem('oauth_context', 'standard_auth');
         
-        // FIXED: Let Supabase handle the redirect automatically
+        // Use Supabase's built-in OAuth with proper authorization code flow
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
             queryParams: {
               access_type: 'offline',
               prompt: 'consent',
@@ -152,7 +154,7 @@ export class GoogleAuthService {
         }
       }
       
-      console.log('✅ GoogleAuthService: OAuth flow initiated successfully with Supabase automatic redirect handling');
+      console.log('✅ GoogleAuthService: OAuth flow initiated successfully');
       
     } catch (error) {
       console.error('❌ GoogleAuthService: Error in OAuth flow:', error);

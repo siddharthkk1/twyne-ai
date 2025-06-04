@@ -15,8 +15,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storageKey: 'twyne-auth-token',
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false, // Disable automatic OAuth URL handling
-    flowType: 'implicit' // Use implicit flow instead of PKCE for manual OAuth
+    detectSessionInUrl: true, // Enable automatic OAuth URL handling
+    flowType: 'pkce' // Use PKCE flow instead of implicit for OAuth
   },
   realtime: {
     params: {

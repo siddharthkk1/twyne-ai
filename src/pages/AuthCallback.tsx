@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -94,14 +95,14 @@ const AuthCallback = () => {
     }
   };
 
-  // ENHANCED: More sophisticated OAuth context detection
+  // OAuth context detection
   const getOAuthContext = () => {
     const oauthContext = localStorage.getItem('oauth_context');
     console.log('🔍 AuthCallback: Checking oauth_context:', oauthContext);
     return oauthContext;
   };
 
-  // ENHANCED: Stricter legitimacy check for OAuth callbacks
+  // Check if this is a legitimate OAuth callback
   const isLegitimateOAuthCallback = (): boolean => {
     const urlParams = new URLSearchParams(window.location.search);
     const hasCode = urlParams.has('code');
@@ -114,18 +115,17 @@ const AuthCallback = () => {
       localStorage.getItem('oauth_temp_onboarding_id')
     );
 
-    console.log('🔍 AuthCallback: Enhanced OAuth legitimacy check:', {
+    console.log('🔍 AuthCallback: OAuth legitimacy check:', {
       hasCode,
       hasOnboardingId,
       oauthContext,
       hasOAuthData,
       currentPath: window.location.pathname,
-      search: window.location.search,
-      referrer: document.referrer
+      search: window.location.search
     });
 
-    // ENHANCED: Only treat as legitimate OAuth if we have explicit OAuth markers
-    const isLegitimate = (hasCode && !!oauthContext) || hasOnboardingId || (hasOAuthData && !!oauthContext);
+    // Treat as legitimate OAuth if we have authorization code or explicit OAuth markers
+    const isLegitimate = hasCode || hasOnboardingId || (hasOAuthData && !!oauthContext);
     
     if (!isLegitimate) {
       console.log('❌ AuthCallback: Not a legitimate OAuth callback - missing required OAuth context');
@@ -138,7 +138,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      console.log('🚀 AuthCallback: Starting enhanced OAuth callback handler');
+      console.log('🚀 AuthCallback: Starting OAuth callback handler');
       
       // Prevent duplicate processing
       if (hasHandledCallback || isProcessing) {
@@ -146,7 +146,7 @@ const AuthCallback = () => {
         return;
       }
 
-      // ENHANCED: Strict legitimacy check with immediate redirect for non-OAuth flows
+      // Check legitimacy with immediate redirect for non-OAuth flows
       if (!isLegitimateOAuthCallback()) {
         console.log('❌ AuthCallback: Not a legitimate OAuth callback, redirecting to auth page');
         setStatusMessage('Redirecting...');

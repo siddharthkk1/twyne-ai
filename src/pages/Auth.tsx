@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,21 +21,10 @@ const Auth = () => {
   const { signIn, signUp, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Enhanced redirect logic for authenticated users with explicit callback prevention
+  // Enhanced redirect logic for authenticated users
   useEffect(() => {
     if (!authLoading && user) {
       console.log("Auth page: User authenticated, determining redirect destination");
-      
-      // CRITICAL: Prevent any redirect to auth/callback for standard auth flows
-      // Check if this is coming from an OAuth callback by examining URL and localStorage
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasOAuthCode = urlParams.has('code');
-      const hasOAuthContext = localStorage.getItem('oauth_context');
-      
-      if (hasOAuthCode || hasOAuthContext) {
-        console.log("Auth page: OAuth flow detected, skipping redirect to prevent callback loop");
-        return;
-      }
       
       // Check if user has completed onboarding by examining their profile
       const checkUserOnboarding = async () => {
@@ -94,7 +84,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // ENHANCED: Clean up any OAuth-related localStorage before standard auth
+      // Clean up any OAuth-related localStorage before standard auth
       console.log("Auth page: Cleaning up OAuth state before standard auth flow");
       const oauthKeys = [
         'oauth_context', 'oauth_onboardingProfile', 'oauth_onboardingUserName',
@@ -133,14 +123,14 @@ const Auth = () => {
           userData
         });
 
-        // ENHANCED: Use signInWithPassword options to control redirect behavior
+        // Use signInWithPassword options to control redirect behavior
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: userData,
-            // CRITICAL: Explicitly prevent email redirect to auth/callback
-            emailRedirectTo: undefined
+            // Use proper redirect URL for email confirmation
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         });
 
@@ -153,7 +143,7 @@ const Auth = () => {
           });
         } else {
           console.log("Auth page: Signup successful, user will be authenticated automatically");
-          // ENHANCED: Show success message for email/password signup
+          // Show success message for email/password signup
           toast({
             title: "Account created successfully!",
             description: "Welcome to Twyne! Please check your email to verify your account.",
@@ -179,7 +169,7 @@ const Auth = () => {
     try {
       console.log("Auth page: Starting Google OAuth flow...");
       
-      // ENHANCED: More thorough cleanup of OAuth-related localStorage before starting new flow
+      // Clean up OAuth-related localStorage before starting new flow
       const cleanupKeys = [
         'oauth_context', 'oauth_onboardingProfile', 'oauth_onboardingUserName',
         'oauth_onboardingConversation', 'oauth_onboardingPromptMode', 'oauth_temp_onboarding_id',
@@ -188,13 +178,14 @@ const Auth = () => {
       ];
       cleanupKeys.forEach(key => localStorage.removeItem(key));
       
-      // ENHANCED: Set OAuth context marker for AuthCallback detection
+      // Set OAuth context marker for AuthCallback detection
       localStorage.setItem('oauth_context', 'standard_auth');
       
-      // FIXED: Remove conflicting redirectTo parameter - let Supabase handle redirect automatically
+      // Use Supabase's built-in OAuth with proper authorization code flow
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
