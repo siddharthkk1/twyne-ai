@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -126,7 +125,7 @@ const AuthCallback = () => {
     });
 
     // ENHANCED: Only treat as legitimate OAuth if we have explicit OAuth markers
-    const isLegitimate = (hasCode && oauthContext) || hasOnboardingId || (hasOAuthData && oauthContext);
+    const isLegitimate = (hasCode && !!oauthContext) || hasOnboardingId || (hasOAuthData && !!oauthContext);
     
     if (!isLegitimate) {
       console.log('❌ AuthCallback: Not a legitimate OAuth callback - missing required OAuth context');
