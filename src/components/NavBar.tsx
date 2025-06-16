@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { User, Settings } from "lucide-react";
+import { User, Settings, Users } from "lucide-react";
 
 export const NavBar = () => {
   return (
@@ -16,6 +16,17 @@ export const NavBar = () => {
         >
           <User size={22} />
           <span className="text-xs mt-1">Your Mirror</span>
+        </NavLink>
+        <NavLink
+          to="/connect"
+          className={({ isActive }) =>
+            `flex flex-col items-center p-2 rounded-lg ${
+              isActive ? "text-primary" : "text-muted-foreground"
+            }`
+          }
+        >
+          <Users size={22} />
+          <span className="text-xs mt-1">Connect</span>
         </NavLink>
         <NavLink
           to="/settings"

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import OnboardingSelection from "./pages/OnboardingSelection";
 import OnboardingPaste from "./pages/OnboardingPaste";
 import OnboardingResults from "./pages/OnboardingResults";
 import Mirror from "./pages/Mirror";
+import Connect from "./pages/Connect";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import SpotifyCallback from "./pages/SpotifyCallback";
@@ -118,6 +120,7 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route path="/mirror" element={<Mirror />} />
+              <Route path="/connect" element={<Connect />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
