@@ -70,6 +70,7 @@ EXAMPLES OF SPECIFICITY LEVELS:
 
 Generate 3 distinct, specific introduction scenarios. Each should:
 - 1-2 sentences
+- start with "You and {Name}"
 - Feel like it was written by a mutual friend who knows both people well
 - Include at least 2-3 specific details from the user's profile
 - Reference exact interests, activities, books, shows, places, or experiences
@@ -128,7 +129,7 @@ Focus on creating introductions that make the user think "Wow, this person reall
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert at creating hyper-specific, deeply personalized introductions that reference exact details from user profiles. Always return valid JSON only. Focus on maximum specificity and authentic personalization.' 
+            content: 'You are an expert at warm, personalized introductions that reference exact details from user profiles. Every intro will be 1-2 sentences with detail. Should start with "You and {Name}..." Always return valid JSON only.' 
           },
           { role: 'user', content: prompt }
         ],
