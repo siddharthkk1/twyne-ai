@@ -56,8 +56,10 @@ const Connect = () => {
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'generating' | 'finalizing' | 'complete'>('generating');
   
-  // Track if intros have been generated for this session
+  // Track if intros have been generated for this session and prevent tab switching regeneration
   const introsGeneratedRef = useRef<string | null>(null);
+  const hasNavigatedAwayRef = useRef(false);
+  const selectedAvatarIdsRef = useRef<string[]>([]);
 
   // Add logging for state changes
   useEffect(() => {
@@ -83,13 +85,31 @@ const Connect = () => {
     console.log('🔄 skippedCards state changed:', Array.from(skippedCards));
   }, [skippedCards]);
 
+  // Handle tab visibility changes to prevent regeneration when switching tabs
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('👁️ Tab became hidden, marking as navigated away');
+        hasNavigatedAwayRef.current = true;
+      } else {
+        console.log('👁️ Tab became visible, navigated away status:', hasNavigatedAwayRef.current);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   useEffect(() => {
     const generateIntros = async () => {
       console.log('🚀 === CHECKING IF INTROS NEED GENERATION ===');
       console.log('📊 Generation check state:', {
         userId: user?.id,
         introsGeneratedForUser: introsGeneratedRef.current,
-        currentIntrosLength: sampleIntros.length
+        currentIntrosLength: sampleIntros.length,
+        hasNavigatedAway: hasNavigatedAwayRef.current
       });
 
       if (!user) {
@@ -150,7 +170,7 @@ const Connect = () => {
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
-            avatar: <AIAvatar name={scenario.name} size={80} avatarId={getAvatarId(index)} />,
+            avatar: <AIAvatar name={scenario.name} size={80} avatarId={getRandomAvatarId(index)} />,
             tags: scenario.tags,
             name: scenario.name,
             mutuals: generateMockMutuals(index),
@@ -199,9 +219,9 @@ const Connect = () => {
     return [];
   };
 
-  // Function to get different avatar IDs for variety
-  const getAvatarId = (index: number): string => {
-    const avatarIds = [
+  // Function to randomly select 3 avatar IDs from the available 8
+  const selectRandomAvatarIds = (): string[] => {
+    const allAvatarIds = [
       "684f8c5a28e0929137f65a83",
       "684f8ca2227a9a04221373e3", 
       "684f8bb91973186246f39d35",
@@ -211,7 +231,21 @@ const Connect = () => {
       "684f913228e0929137f6b568",
       "684f91b5701a61ea77ca177c"
     ];
-    return avatarIds[index % avatarIds.length];
+    
+    // Shuffle array and take first 3
+    const shuffled = [...allAvatarIds].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 3);
+  };
+
+  // Function to get avatar ID for a specific index, using randomly selected IDs
+  const getRandomAvatarId = (index: number): string => {
+    // Initialize random selection if not done yet
+    if (selectedAvatarIdsRef.current.length === 0) {
+      selectedAvatarIdsRef.current = selectRandomAvatarIds();
+      console.log('🎲 Selected random avatar IDs:', selectedAvatarIdsRef.current);
+    }
+    
+    return selectedAvatarIdsRef.current[index % selectedAvatarIdsRef.current.length];
   };
 
   const getFallbackIntros = (): SampleIntro[] => {
@@ -220,7 +254,7 @@ const Connect = () => {
       {
         id: "1",
         introText: "You both recently moved to a new city and care deeply about growth over goals.",
-        avatar: <AIAvatar name="Alex" size={80} avatarId={getAvatarId(0)} />,
+        avatar: <AIAvatar name="Alex" size={80} avatarId={getRandomAvatarId(0)} />,
         tags: ["Big dreamer", "Recently moved", "Growth mindset"],
         name: "Alex",
         mutuals: [
@@ -232,7 +266,7 @@ const Connect = () => {
       {
         id: "2", 
         introText: "You share a love for deep conversations and both value authenticity over small talk.",
-        avatar: <AIAvatar name="Sam" size={80} avatarId={getAvatarId(1)} />,
+        avatar: <AIAvatar name="Sam" size={80} avatarId={getRandomAvatarId(1)} />,
         tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
         name: "Sam",
         mutuals: [],
@@ -241,7 +275,7 @@ const Connect = () => {
       {
         id: "3",
         introText: "You both find energy in creative projects and believe in following your curiosity.",
-        avatar: <AIAvatar name="Jordan" size={80} avatarId={getAvatarId(2)} />,
+        avatar: <AIAvatar name="Jordan" size={80} avatarId={getRandomAvatarId(2)} />,
         tags: ["Creative soul", "Curious explorer", "Project lover"],
         name: "Jordan",
         mutuals: [
@@ -379,7 +413,7 @@ const Connect = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   <CardContent className="relative p-6 h-full flex flex-col">
-                    {/* Avatar and Name Layout - Square avatar on left, name/city on right, NO GREEN DOT */}
+                    {/* Avatar and Name Layout - Square avatar on left, name/city on right */}
                     <div className="flex items-center gap-4 mb-6">
                       <div className="relative flex-shrink-0">
                         {intro.avatar}
