@@ -29,6 +29,9 @@ export const TopNavBarV2 = () => {
               <Link to="/mirror" className="text-foreground/80 hover:text-primary transition-colors">
                 Your Mirror
               </Link>
+              <Link to="/connect" className="text-foreground/80 hover:text-primary transition-colors">
+                Connect
+              </Link>
               <Link to="/settings" className="text-foreground/80 hover:text-primary transition-colors">
                 Settings
               </Link>

@@ -6,14 +6,15 @@ import { TopNavBar } from "./TopNavBar";
 const Layout = () => {
   const location = useLocation();
   const hideNav = ['/onboarding', '/onboarding-chat'].includes(location.pathname);
+  const isConnectPage = location.pathname === '/connect';
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className={`min-h-screen flex flex-col ${isConnectPage ? '' : 'bg-white'}`}>
       {!hideNav && <TopNavBar />}
-      <div className={`flex-1 container mx-auto ${hideNav ? 'p-0' : 'pb-24 mt-16'}`}>
+      <div className={`flex-1 ${hideNav ? 'p-0' : isConnectPage ? '' : 'container mx-auto pb-24 mt-16'}`}>
         <Outlet />
       </div>
-      {!hideNav && <NavBar />}
+      {!hideNav && !isConnectPage && <NavBar />}
     </div>
   );
 };
