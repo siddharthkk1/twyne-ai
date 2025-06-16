@@ -1,8 +1,8 @@
 
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, Box, Cylinder } from '@react-three/drei';
-import { Mesh, Color } from 'three';
+import { Mesh } from 'three';
 
 interface AvatarProps {
   name: string;
@@ -27,7 +27,7 @@ const ModernAvatarModel: React.FC<AvatarProps> = ({ name }) => {
   }, [name]);
 
   useFrame((state) => {
-    // Gentle floating animation
+    // Gentle floating animation with null checks
     const time = state.clock.elapsedTime;
     if (headRef.current) {
       headRef.current.position.y = 1.5 + Math.sin(time * 1.5) * 0.05;
@@ -96,6 +96,29 @@ const ModernAvatarModel: React.FC<AvatarProps> = ({ name }) => {
   );
 };
 
+// Fallback component for when WebGL is not available
+const FallbackAvatar: React.FC<{ name: string }> = ({ name }) => {
+  const colors = useMemo(() => {
+    const hash = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    const skinTones = ['#fdbcb4', '#f1c27d', '#e0ac69', '#c68642', '#8d5524'];
+    
+    return {
+      skin: skinTones[hash % skinTones.length],
+    };
+  }, [name]);
+
+  return (
+    <div 
+      className="w-full h-full flex items-center justify-center rounded-lg"
+      style={{ backgroundColor: colors.skin }}
+    >
+      <span className="text-2xl font-bold text-white">
+        {name.charAt(0).toUpperCase()}
+      </span>
+    </div>
+  );
+};
+
 interface ModernAvatar3DProps {
   className?: string;
   name?: string;
@@ -105,25 +128,55 @@ const ModernAvatar3D: React.FC<ModernAvatar3DProps> = ({
   className = "", 
   name = "User" 
 }) => {
+  // Check if WebGL is supported
+  const isWebGLSupported = useMemo(() => {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      return !!gl;
+    } catch (e) {
+      return false;
+    }
+  }, []);
+
+  if (!isWebGLSupported) {
+    return (
+      <div className={`w-16 h-16 rounded-lg overflow-hidden ${className}`}>
+        <FallbackAvatar name={name} />
+      </div>
+    );
+  }
+
   return (
     <div className={`w-16 h-16 rounded-lg overflow-hidden ${className}`}>
-      <Canvas 
-        camera={{ position: [0, 0, 4], fov: 50 }}
-        style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-      >
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 5, 5]} intensity={0.8} />
-        <pointLight position={[-5, -5, -5]} intensity={0.3} color="#ff6b6b" />
-        <ModernAvatarModel name={name} />
-        <OrbitControls 
-          enableZoom={false} 
-          enablePan={false}
-          autoRotate
-          autoRotateSpeed={2}
-          maxPolarAngle={Math.PI / 2}
-          minPolarAngle={Math.PI / 3}
-        />
-      </Canvas>
+      <Suspense fallback={<FallbackAvatar name={name} />}>
+        <Canvas 
+          camera={{ position: [0, 0, 4], fov: 50 }}
+          style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+          onCreated={({ gl }) => {
+            // Configure WebGL context for better compatibility
+            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          }}
+          gl={{
+            antialias: true,
+            alpha: true,
+            powerPreference: "default"
+          }}
+        >
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[5, 5, 5]} intensity={0.8} />
+          <pointLight position={[-5, -5, -5]} intensity={0.3} color="#ff6b6b" />
+          <ModernAvatarModel name={name} />
+          <OrbitControls 
+            enableZoom={false} 
+            enablePan={false}
+            autoRotate
+            autoRotateSpeed={2}
+            maxPolarAngle={Math.PI / 2}
+            minPolarAngle={Math.PI / 3}
+          />
+        </Canvas>
+      </Suspense>
     </div>
   );
 };
