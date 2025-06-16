@@ -54,14 +54,12 @@ serve(async (req) => {
 COMPLETE USER PROFILE DATA:
 ${JSON.stringify(profileData, null, 2)}
 
-CRITICAL REQUIREMENTS FOR MAXIMUM SPECIFICITY:
-1. Reference SPECIFIC details from the profile - exact book titles, specific shows, particular activities, named places, etc.
-2. Mention concrete shared interests, not general categories
-3. Use the person's actual personality traits, communication style, and values
-4. Reference specific life situations, goals, or recent experiences mentioned in the profile
-5. Include quirky details, specific preferences, or unique characteristics that make the person memorable
-6. Use natural, conversational language that shows genuine understanding of who they are
-7. Each intro should feel completely unique and impossible to generate for someone else
+CRITICAL REQUIREMENTS:
+1. Use detail from the user profile data above to provide hte intro based on shared interests, values, life stories, connection styles, anything.
+2. Avoid bringing too many details from the user's profile where it seems we're just creating a copy of them.
+3. Use natural, conversational language that shows genuine understanding of who they are
+4. Each intro should feel completely unique and impossible to generate for someone else
+5. The intro can either focus on specific interests (a book or artist they both like) or be broader and talk about their values and goals or a shared life context or job or anything really.
 
 EXAMPLES OF SPECIFICITY LEVELS:
 
