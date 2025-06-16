@@ -177,29 +177,29 @@ const Connect = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center pt-16">
-        <div className="text-center max-w-2xl mx-auto px-6 py-12">
-          <div className="relative mb-8">
-            <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
-              <Sparkles className="w-12 h-12 text-white animate-pulse" />
+        <div className="text-center max-w-3xl mx-auto px-8 py-16">
+          <div className="relative mb-12">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-xl">
+              <Sparkles className="w-10 h-10 text-white animate-pulse" />
             </div>
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full animate-ping"></div>
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-accent rounded-full animate-ping"></div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 leading-tight">
             {loadingStage === 'generating' && 'Crafting your introductions...'}
             {loadingStage === 'finalizing' && 'Finalizing matches...'}
           </h1>
           
-          <p className="text-xl text-gray-600 mb-12 leading-relaxed max-w-lg mx-auto">
+          <p className="text-lg text-gray-600 mb-16 leading-relaxed max-w-2xl mx-auto">
             We're personalizing connections based on your unique vibe and values
           </p>
 
           <div className="flex items-center justify-center space-x-3">
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-3 h-3 bg-primary rounded-full animate-pulse"
+                  className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse"
                   style={{ animationDelay: `${i * 0.3}s` }}
                 />
               ))}
@@ -213,31 +213,26 @@ const Connect = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-16 flex items-center">
       <div className="w-full max-w-6xl mx-auto px-4 py-8">
-        {/* Sample Notice - More Prominent */}
+        {/* Sample Notice - Compact */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-6 py-3 rounded-2xl text-base font-semibold mb-6 shadow-sm">
-            <Info className="w-5 h-5" />
-            <span>Sample Preview</span>
-          </div>
-          <div className="max-w-2xl mx-auto bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl px-6 py-4 shadow-sm">
-            <p className="text-gray-700 font-medium text-base leading-relaxed">
-              These are examples of the personalized introductions you'll receive. Real matches will be based on your actual profile and preferences.
-            </p>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-xl text-sm font-medium mb-6 shadow-sm">
+            <Info className="w-4 h-4" />
+            <span>Sample Preview: These are examples of the personalized introductions you'll receive. When Twyne launches in Seattle, these will be actual Twyne users.</span>
           </div>
         </div>
 
-        {/* Header Section - Compact */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+        {/* Header Section */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
             Your personalized
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> introductions</span>
           </h1>
           
-          <div className="max-w-xl mx-auto">
-            <p className="text-sm text-gray-700 leading-relaxed mb-2">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-lg text-gray-700 leading-relaxed font-medium">
               These connections are crafted based on your authentic vibe, values, and story.
             </p>
-            <p className="text-xs text-gray-500 font-medium">
+            <p className="text-sm text-gray-500 font-medium mt-2">
               Fresh introductions arrive every Monday morning
             </p>
           </div>
