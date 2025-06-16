@@ -73,7 +73,7 @@ EXAMPLES OF SPECIFICITY LEVELS:
 
 ✅ HIGHLY SPECIFIC: "You and Marcus both get excited about 3am creative bursts - he's working on a podcast about sustainable urban farming while you're deep in your pottery phase, and you both think the best conversations happen over really good coffee at 2pm on a Tuesday."
 
-Generate 4 distinct, hyper-specific introduction scenarios. Each should:
+Generate 3 distinct, hyper-specific introduction scenarios. Each should:
 - Feel like it was written by a mutual friend who knows both people well
 - Include at least 2-3 specific details from the user's profile
 - Reference exact interests, activities, books, shows, places, or experiences
@@ -98,11 +98,6 @@ Return ONLY a valid JSON array with this structure:
     "name": "[Third realistic name]",
     "tags": ["[Matching personality traits]", "[Specific characteristic]", "[Unique shared quality]"]
   },
-  {
-    "introText": "[Fourth unique, hyper-specific intro]",
-    "name": "[Fourth realistic name]",
-    "tags": ["[Relevant specific traits]", "[Unique quality]", "[Specific shared interest]"]
-  }
 ]
 
 Focus on creating introductions that make the user think "Wow, this person really gets me and would actually want to hang out with someone like this."`;
