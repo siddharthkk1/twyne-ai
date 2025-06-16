@@ -144,7 +144,7 @@ const Connect = () => {
             tags: scenario.tags,
             name: scenario.name,
             mutuals: generateMockMutuals(index),
-            connectionDegrees: Math.floor(Math.random() * 4) + 1
+            connectionDegrees: Math.floor(Math.random() * 3) + 2 // Always 2, 3, or 4
           }));
           console.log('🔄 Setting new generated intros:', intros.map(i => ({ id: i.id, name: i.name })));
           setSampleIntros(intros);
@@ -260,7 +260,7 @@ const Connect = () => {
         mutuals: [
           { name: "Chris", avatar: "C" }
         ],
-        connectionDegrees: 1
+        connectionDegrees: 2
       }
     ];
     
