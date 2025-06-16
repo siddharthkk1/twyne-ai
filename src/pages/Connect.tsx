@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Users, Heart, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,6 +48,8 @@ const Connect = () => {
 
       try {
         setLoadingStage('generating');
+        // Clear existing intros immediately when loading starts
+        setSampleIntros([]);
         
         // Set a timeout for AI generation
         const timeoutId = setTimeout(() => {
@@ -212,7 +213,7 @@ const Connect = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-16 flex items-center">
-      <div className="w-full max-w-6xl mx-auto px-4 py-8">
+      <div className="w-full max-w-7xl mx-auto px-4 py-8">
         {/* Sample Notice - Compact */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-xl text-sm font-medium mb-6 shadow-sm">
@@ -230,7 +231,7 @@ const Connect = () => {
           
           <div className="max-w-2xl mx-auto">
             <p className="text-lg text-gray-700 leading-relaxed font-medium">
-              These connections are crafted based on your authentic vibe, values, and story.
+              fresh warm intros
             </p>
             <p className="text-sm text-gray-500 font-medium mt-2">
               Fresh introductions arrive every Monday morning
@@ -238,8 +239,8 @@ const Connect = () => {
           </div>
         </div>
 
-        {/* Cards Grid - Increased Height */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        {/* Cards Grid - Increased Width */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
           {sampleIntros.map((intro, index) => {
             const isConnected = connectedCards.has(intro.id);
             const isSkipped = skippedCards.has(intro.id);
