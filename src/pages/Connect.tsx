@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -204,7 +203,12 @@ const Connect = () => {
     
     // Shuffle array and take first 3
     const shuffled = [...allAvatarIds].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 3);
+    const selected = shuffled.slice(0, 3);
+    console.log('🎲 Selected random avatar IDs from all available:', {
+      allAvailable: allAvatarIds,
+      selected: selected
+    });
+    return selected;
   };
 
   // Function to get avatar ID for a specific index, using randomly selected IDs
@@ -212,15 +216,17 @@ const Connect = () => {
     // Initialize random selection if not done yet
     if (selectedAvatarIdsRef.current.length === 0) {
       selectedAvatarIdsRef.current = selectRandomAvatarIds();
-      console.log('🎲 Selected random avatar IDs:', selectedAvatarIdsRef.current);
+      console.log('🎯 Initialized random avatar selection:', selectedAvatarIdsRef.current);
     }
     
-    return selectedAvatarIdsRef.current[index % selectedAvatarIdsRef.current.length];
+    const selectedId = selectedAvatarIdsRef.current[index % selectedAvatarIdsRef.current.length];
+    console.log(`🎨 Getting avatar ID for index ${index}: ${selectedId}`);
+    return selectedId;
   };
 
   const getFallbackIntros = (): SampleIntro[] => {
     console.log('🔧 Generating fallback intros');
-    return [
+    const fallbackIntros = [
       {
         id: "1",
         introText: "You both recently moved to a new city and care deeply about growth over goals.",
@@ -254,6 +260,15 @@ const Connect = () => {
         connectionDegrees: 1
       }
     ];
+    
+    console.log('🎭 Fallback intros created with avatar IDs:', 
+      fallbackIntros.map(intro => ({ 
+        name: intro.name, 
+        avatarId: intro.avatar.props.avatarId 
+      }))
+    );
+    
+    return fallbackIntros;
   };
 
   const handleConnect = (cardId: string) => {

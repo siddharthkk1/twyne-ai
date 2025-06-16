@@ -16,27 +16,37 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
     ? `https://lzwkccarbwokfxrzffjd.supabase.co/storage/v1/object/public/avatar-images/${avatarId}.png`
     : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
+  // Add debugging
+  console.log(`🎭 AIAvatar for ${name}:`, {
+    avatarId,
+    avatarUrl,
+    hasAvatarId: !!avatarId,
+    willUseSupabase: !!avatarId
+  });
+
   // Preload the image for better performance
   useEffect(() => {
     if (avatarId) {
+      console.log(`🔄 Preloading Supabase avatar for ${name}: ${avatarUrl}`);
       const img = new Image();
       img.onload = () => {
-        console.log(`✅ Local avatar loaded successfully for ${name}`);
+        console.log(`✅ Supabase avatar loaded successfully for ${name}`);
         setImageLoaded(true);
       };
       img.onerror = () => {
-        console.log(`❌ Local avatar failed to load for ${name}, URL: ${avatarUrl}`);
+        console.log(`❌ Supabase avatar failed to load for ${name}, URL: ${avatarUrl}`);
         setImageError(true);
       };
       img.src = avatarUrl;
     } else {
+      console.log(`🎨 Using Dicebear avatar for ${name} (no avatarId provided)`);
       // SVG avatars load instantly
       setImageLoaded(true);
     }
   }, [avatarUrl, avatarId, name]);
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.log(`Avatar failed to load for ${name}, falling back to Dicebear`);
+    console.log(`💥 Image error for ${name}, falling back to Dicebear. Original URL: ${e.currentTarget.src}`);
     setImageError(true);
     const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
       name
@@ -64,7 +74,10 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
           imageLoaded || imageError || !avatarId ? 'opacity-100' : 'opacity-0'
         }`}
         onError={handleImageError}
-        onLoad={() => setImageLoaded(true)}
+        onLoad={() => {
+          console.log(`🖼️ Image onLoad fired for ${name}`);
+          setImageLoaded(true);
+        }}
         loading="eager"
       />
     </div>
