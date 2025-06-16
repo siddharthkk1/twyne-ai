@@ -32,7 +32,7 @@ const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
         alt={`${name}'s avatar`}
         className="absolute top-0 left-0 w-full h-auto"
         style={{
-          transform: "scale(1.6)", // zoom in more if needed
+          transform: "scale(2)", // zoom in more if needed
           transformOrigin: "top center",
         }}
         onError={(e) => {
