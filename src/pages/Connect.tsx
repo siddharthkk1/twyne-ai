@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -188,9 +189,10 @@ const Connect = () => {
     return [];
   };
 
-  // Function to randomly select 3 avatar IDs from the available 8
+  // Function to randomly select 3 avatar file names from the available ones in storage
   const selectRandomAvatarIds = (): string[] => {
-    const allAvatarIds = [
+    // These are the actual file names from the storage bucket (without .png extension)
+    const availableAvatarFiles = [
       "684f8c5a28e0929137f65a83",
       "684f8ca2227a9a04221373e3", 
       "684f8bb91973186246f39d35",
@@ -202,16 +204,16 @@ const Connect = () => {
     ];
     
     // Shuffle array and take first 3
-    const shuffled = [...allAvatarIds].sort(() => 0.5 - Math.random());
+    const shuffled = [...availableAvatarFiles].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 3);
-    console.log('🎲 Selected random avatar IDs from all available:', {
-      allAvailable: allAvatarIds,
+    console.log('🎲 Selected random avatar file names from storage:', {
+      allAvailable: availableAvatarFiles,
       selected: selected
     });
     return selected;
   };
 
-  // Function to get avatar ID for a specific index, using randomly selected IDs
+  // Function to get avatar file name for a specific index, using randomly selected ones
   const getRandomAvatarId = (index: number): string => {
     // Initialize random selection if not done yet
     if (selectedAvatarIdsRef.current.length === 0) {
@@ -220,7 +222,7 @@ const Connect = () => {
     }
     
     const selectedId = selectedAvatarIdsRef.current[index % selectedAvatarIdsRef.current.length];
-    console.log(`🎨 Getting avatar ID for index ${index}: ${selectedId}`);
+    console.log(`🎨 Getting avatar file name for index ${index}: ${selectedId}`);
     return selectedId;
   };
 
@@ -261,7 +263,7 @@ const Connect = () => {
       }
     ];
     
-    console.log('🎭 Fallback intros created with avatar IDs:', 
+    console.log('🎭 Fallback intros created with avatar file names:', 
       fallbackIntros.map(intro => ({ 
         name: intro.name, 
         avatarId: intro.avatar.props.avatarId 
