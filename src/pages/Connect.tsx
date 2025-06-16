@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Users, Heart, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -211,180 +210,178 @@ const Connect = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-16">
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          {/* Sample Notice */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <Info className="w-4 h-4" />
-              Preview Mode: These are sample introductions
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-16 flex items-center">
+      <div className="w-full max-w-6xl mx-auto px-4 py-8">
+        {/* Sample Notice */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <Info className="w-4 h-4" />
+            Preview Mode: These are sample introductions
           </div>
-
-          {/* Header Section - Compact */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium mb-3">
-              <Clock className="w-3 h-3" />
-              Weekly Monday Previews
-            </div>
-            
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight">
-              Your personalized
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> introductions</span>
-            </h1>
-            
-            <div className="max-w-xl mx-auto">
-              <p className="text-sm text-gray-700 leading-relaxed mb-2">
-                These connections are crafted based on your authentic vibe, values, and story.
-              </p>
-              <p className="text-xs text-gray-500 font-medium">
-                Fresh introductions arrive every Monday morning
-              </p>
-            </div>
-          </div>
-
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            {sampleIntros.map((intro, index) => {
-              const isConnected = connectedCards.has(intro.id);
-              const isSkipped = skippedCards.has(intro.id);
-              
-              return (
-                <Card 
-                  key={intro.id} 
-                  className={`group relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-md ${
-                    isConnected ? 'ring-2 ring-primary shadow-lg shadow-primary/20 bg-primary/5' : 
-                    isSkipped ? 'opacity-60 scale-95 bg-gray-50' : 
-                    'hover:shadow-lg hover:bg-white'
-                  }`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  <CardContent className="relative p-4 h-full flex flex-col">
-                    {/* Avatar and Name Section */}
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="relative">
-                        {intro.avatar}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-gray-900 mb-0.5">{intro.name}</h3>
-                        <div className="flex items-center text-xs text-gray-500">
-                          <MapPin className="w-3 h-3 mr-1" />
-                          Seattle, WA
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Intro Text */}
-                    <div className="relative mb-4 flex-1">
-                      <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-lg p-3 border border-gray-100">
-                        <p className="text-gray-800 leading-relaxed text-sm font-medium">
-                          You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Connection Info */}
-                    <div className="mb-4">
-                      {intro.mutuals.length > 0 ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center text-xs font-medium text-gray-700">
-                            <Users className="w-3 h-3 mr-1 text-primary" />
-                            Mutual connections
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex -space-x-1">
-                              {intro.mutuals.map((mutual, i) => (
-                                <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-xs font-semibold text-primary shadow-sm">
-                                  {mutual.avatar}
-                                </div>
-                              ))}
-                            </div>
-                            <span className="text-xs text-gray-600 font-medium">
-                              {intro.mutuals.map(m => m.name).join(', ')}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-xs text-gray-500">
-                          <div className="w-1 h-1 bg-gradient-to-r from-primary to-accent rounded-full mr-2"></div>
-                          <span className="font-medium">{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {intro.tags.map((tag, tagIndex) => (
-                        <Badge key={tagIndex} variant="secondary" className="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200 px-2 py-0.5 text-xs font-medium hover:from-primary/10 hover:to-accent/10 hover:text-primary transition-all">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    {/* Action buttons */}
-                    {!isConnected && !isSkipped && (
-                      <div className="space-y-2 mt-auto">
-                        <Button 
-                          onClick={() => handleConnect(intro.id)}
-                          className="w-full h-10 text-sm font-medium rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md hover:shadow-lg transition-all duration-300"
-                        >
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          Connect & Say Hi
-                        </Button>
-                        <Button 
-                          onClick={() => handleSkip(intro.id)}
-                          variant="outline" 
-                          className="w-full h-8 text-xs rounded-lg text-gray-600 border-gray-200 hover:bg-gray-50 transition-all"
-                        >
-                          Not feeling it
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* Status indicators */}
-                    {isConnected && (
-                      <div className="text-center py-3 mt-auto">
-                        <div className="inline-flex items-center gap-2 text-primary font-semibold bg-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                          <Heart className="w-4 h-4" />
-                          Connected!
-                        </div>
-                      </div>
-                    )}
-
-                    {isSkipped && (
-                      <div className="text-center py-3 mt-auto">
-                        <div className="inline-flex items-center gap-2 text-gray-500 font-medium text-sm">
-                          <X className="w-4 h-4" />
-                          Skipped
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Footer Message */}
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-lg px-4 py-2 shadow-sm">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <p className="text-gray-700 font-medium text-sm">
-                Not feeling it? Skipping helps us get smarter about your preferences
-              </p>
-            </div>
-          </div>
-
-          {/* Success modal */}
-          {connectedCards.size > 0 && (
-            <ConnectSuccessMessage 
-              onClose={() => setConnectedCards(new Set())} 
-            />
-          )}
         </div>
+
+        {/* Header Section - Compact */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium mb-3">
+            <Clock className="w-3 h-3" />
+            Weekly Monday Previews
+          </div>
+          
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+            Your personalized
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> introductions</span>
+          </h1>
+          
+          <div className="max-w-xl mx-auto">
+            <p className="text-sm text-gray-700 leading-relaxed mb-2">
+              These connections are crafted based on your authentic vibe, values, and story.
+            </p>
+            <p className="text-xs text-gray-500 font-medium">
+              Fresh introductions arrive every Monday morning
+            </p>
+          </div>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          {sampleIntros.map((intro, index) => {
+            const isConnected = connectedCards.has(intro.id);
+            const isSkipped = skippedCards.has(intro.id);
+            
+            return (
+              <Card 
+                key={intro.id} 
+                className={`group relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-md ${
+                  isConnected ? 'ring-2 ring-primary shadow-lg shadow-primary/20 bg-primary/5' : 
+                  isSkipped ? 'opacity-60 scale-95 bg-gray-50' : 
+                  'hover:shadow-lg hover:bg-white'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <CardContent className="relative p-4 h-full flex flex-col">
+                  {/* Avatar and Name Section */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="relative">
+                      {intro.avatar}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 mb-0.5">{intro.name}</h3>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        Seattle, WA
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Intro Text */}
+                  <div className="relative mb-4 flex-1">
+                    <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-lg p-3 border border-gray-100">
+                      <p className="text-gray-800 leading-relaxed text-sm font-medium">
+                        You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Connection Info */}
+                  <div className="mb-4">
+                    {intro.mutuals.length > 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center text-xs font-medium text-gray-700">
+                          <Users className="w-3 h-3 mr-1 text-primary" />
+                          Mutual connections
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex -space-x-1">
+                            {intro.mutuals.map((mutual, i) => (
+                              <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-xs font-semibold text-primary shadow-sm">
+                                {mutual.avatar}
+                              </div>
+                            ))}
+                          </div>
+                          <span className="text-xs text-gray-600 font-medium">
+                            {intro.mutuals.map(m => m.name).join(', ')}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-xs text-gray-500">
+                        <div className="w-1 h-1 bg-gradient-to-r from-primary to-accent rounded-full mr-2"></div>
+                        <span className="font-medium">{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {intro.tags.map((tag, tagIndex) => (
+                      <Badge key={tagIndex} variant="secondary" className="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200 px-2 py-0.5 text-xs font-medium hover:from-primary/10 hover:to-accent/10 hover:text-primary transition-all">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {/* Action buttons */}
+                  {!isConnected && !isSkipped && (
+                    <div className="space-y-2 mt-auto">
+                      <Button 
+                        onClick={() => handleConnect(intro.id)}
+                        className="w-full h-10 text-sm font-medium rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md hover:shadow-lg transition-all duration-300"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Connect & Say Hi
+                      </Button>
+                      <Button 
+                        onClick={() => handleSkip(intro.id)}
+                        variant="outline" 
+                        className="w-full h-8 text-xs rounded-lg text-gray-600 border-gray-200 hover:bg-gray-50 transition-all"
+                      >
+                        Not feeling it
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Status indicators */}
+                  {isConnected && (
+                    <div className="text-center py-3 mt-auto">
+                      <div className="inline-flex items-center gap-2 text-primary font-semibold bg-primary/10 px-3 py-1.5 rounded-lg text-sm">
+                        <Heart className="w-4 h-4" />
+                        Connected!
+                      </div>
+                    </div>
+                  )}
+
+                  {isSkipped && (
+                    <div className="text-center py-3 mt-auto">
+                      <div className="inline-flex items-center gap-2 text-gray-500 font-medium text-sm">
+                        <X className="w-4 h-4" />
+                        Skipped
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Footer Message */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-lg px-4 py-2 shadow-sm">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <p className="text-gray-700 font-medium text-sm">
+              Not feeling it? Skipping helps us get smarter about your preferences
+            </p>
+          </div>
+        </div>
+
+        {/* Success modal */}
+        {connectedCards.size > 0 && (
+          <ConnectSuccessMessage 
+            onClose={() => setConnectedCards(new Set())} 
+          />
+        )}
       </div>
     </div>
   );
