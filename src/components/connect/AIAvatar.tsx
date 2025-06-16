@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AIAvatarProps {
   name: string;
@@ -11,9 +12,9 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  // Use working ReadyPlayer.me URL parameters
+  // Use local Supabase storage URLs for better performance
   const avatarUrl = avatarId 
-    ? `https://models.readyplayer.me/${avatarId}.png?quality=100&width=400&height=400&crop=head`
+    ? `${supabase.supabaseUrl}/storage/v1/object/public/avatar-images/${avatarId}.png`
     : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
   // Preload the image for better performance
@@ -21,11 +22,11 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
     if (avatarId) {
       const img = new Image();
       img.onload = () => {
-        console.log(`✅ ReadyPlayer.me avatar loaded successfully for ${name}`);
+        console.log(`✅ Local avatar loaded successfully for ${name}`);
         setImageLoaded(true);
       };
       img.onerror = () => {
-        console.log(`❌ ReadyPlayer.me avatar failed to load for ${name}, URL: ${avatarUrl}`);
+        console.log(`❌ Local avatar failed to load for ${name}, URL: ${avatarUrl}`);
         setImageError(true);
       };
       img.src = avatarUrl;
