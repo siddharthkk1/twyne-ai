@@ -41,17 +41,24 @@ const Connect = () => {
 
   useEffect(() => {
     const generateIntros = async () => {
-      // Clear everything immediately when effect runs
+      console.log('Starting intro generation - clearing all state');
+      
+      // Reset ALL state immediately and synchronously
       setSampleIntros([]);
+      setConnectedCards(new Set());
+      setSkippedCards(new Set());
       setLoading(true);
       setLoadingStage('generating');
       
       if (!user) {
+        console.log('No user found, stopping generation');
         setLoading(false);
         return;
       }
 
       try {
+        console.log('Starting AI intro generation for user:', user.id);
+        
         // Set a timeout for AI generation
         const timeoutId = setTimeout(() => {
           console.log('Intro generation timeout, using fallback');
@@ -73,6 +80,7 @@ const Connect = () => {
           console.error('Error generating intros:', error);
           setSampleIntros(getFallbackIntros());
         } else if (data?.scenarios) {
+          console.log('Successfully generated intros:', data.scenarios);
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
@@ -84,6 +92,7 @@ const Connect = () => {
           }));
           setSampleIntros(intros);
         } else {
+          console.log('No scenarios in response, using fallback');
           setSampleIntros(getFallbackIntros());
         }
       } catch (error) {
@@ -96,7 +105,7 @@ const Connect = () => {
     };
 
     generateIntros();
-  }, [user]);
+  }, [user?.id]); // Only depend on user ID to prevent unnecessary re-runs
 
   const generateMockMutuals = (index: number): Array<{ name: string; avatar: string }> => {
     if (index === 0) {
@@ -240,7 +249,7 @@ const Connect = () => {
           </div>
         </div>
 
-        {/* Cards Grid - Only render when we have intros and not loading */}
+        {/* Cards Grid - Only render when we have fresh intros and not loading */}
         {!loading && sampleIntros.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
             {sampleIntros.map((intro, index) => {
