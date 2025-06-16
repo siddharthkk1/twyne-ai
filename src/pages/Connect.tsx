@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { AIAvatar } from "@/components/connect/AIAvatar";
 
 interface SampleIntro {
   id: string;
@@ -16,37 +17,6 @@ interface SampleIntro {
   mutuals: Array<{ name: string; avatar: string }>;
   connectionDegrees: number;
 }
-
-// AI Avatar component using ReadyPlayer.me API with proper head positioning
-const AIAvatar = ({ name, size = 80, avatarId }: { name: string; size?: number; avatarId?: string }) => {
-  // Use provided avatarId or fallback to default
-  const avatarUrl = avatarId 
-    ? `https://models.readyplayer.me/${avatarId}.png?quality=100&width=400&height=400&crop=head`
-    : "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
-
-  return (
-    <div
-      className="rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/50 relative"
-      style={{ width: size, height: size }}
-    >
-      <img
-        src={avatarUrl}
-        alt={`${name}'s avatar`}
-        className="absolute top-0 left-0 w-full h-auto"
-        style={{
-          transform: "scale(2)",
-          transformOrigin: "top center",
-        }}
-        onError={(e) => {
-          const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-            name
-          )}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
-          e.currentTarget.src = fallbackUrl;
-        }}
-      />
-    </div>
-  );
-};
 
 const Connect = () => {
   const { user } = useAuth();
