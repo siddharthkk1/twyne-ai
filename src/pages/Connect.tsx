@@ -182,22 +182,22 @@ const Connect = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl min-h-screen flex flex-col justify-center">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4">
+    <div className="container mx-auto px-4 py-4 max-w-6xl min-h-screen flex flex-col justify-center">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-3">
           Here's a sample of what your weekly introductions might feel like.
         </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto mb-4">
+        <p className="text-muted-foreground max-w-2xl mx-auto mb-2 text-sm">
           These examples are based on what we've learned about your vibe, values, and story so far. 
           Your real matches will evolve over time as we get to know you better.
         </p>
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="text-xs text-muted-foreground mb-4">
           We'll send you new introductions like these every Monday morning to keep things fresh.
         </p>
       </div>
 
       <div className="flex items-center justify-center">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 w-full">
           {sampleIntros.map((intro) => {
             const isConnected = connectedCards.has(intro.id);
             const isSkipped = skippedCards.has(intro.id);
@@ -211,9 +211,9 @@ const Connect = () => {
                   'hover:shadow-md'
                 }`}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   {/* Avatar and basic info */}
-                  <div className="flex items-center space-x-4 mb-4">
+                  <div className="flex items-center space-x-3 mb-3">
                     {intro.avatar}
                     <div>
                       <h3 className="font-medium">{intro.name}</h3>
@@ -225,14 +225,14 @@ const Connect = () => {
                   </div>
 
                   {/* Intro text */}
-                  <div className="bg-muted rounded-xl p-4 mb-4">
+                  <div className="bg-muted rounded-xl p-3 mb-3">
                     <p className="text-sm leading-relaxed">
                       You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
                     </p>
                   </div>
 
                   {/* Mutual connections section */}
-                  <div className="mb-4">
+                  <div className="mb-3">
                     {intro.mutuals.length > 0 ? (
                       <div>
                         <div className="flex items-center text-sm text-muted-foreground mb-2">
@@ -242,18 +242,18 @@ const Connect = () => {
                         <div className="flex items-center space-x-3">
                           <div className="flex -space-x-2">
                             {intro.mutuals.map((mutual, i) => (
-                              <div key={i} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-xs font-medium text-primary">
+                              <div key={i} className="w-6 h-6 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-xs font-medium text-primary">
                                 {mutual.avatar}
                               </div>
                             ))}
                           </div>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {intro.mutuals.map(m => m.name).join(', ')}
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center text-sm text-muted-foreground">
+                      <div className="flex items-center text-xs text-muted-foreground">
                         <Users size={14} className="mr-1" />
                         <span>{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away from {intro.name}</span>
                       </div>
@@ -261,9 +261,9 @@ const Connect = () => {
                   </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-1 mb-3">
                     {intro.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge key={index} variant="secondary" className="text-xs px-2 py-0">
                         {tag}
                       </Badge>
                     ))}
@@ -293,8 +293,8 @@ const Connect = () => {
 
                   {/* Status indicators */}
                   {isConnected && (
-                    <div className="text-center py-2">
-                      <div className="inline-flex items-center text-primary font-medium">
+                    <div className="text-center py-1">
+                      <div className="inline-flex items-center text-primary font-medium text-sm">
                         <Heart size={16} className="mr-2" />
                         Connected!
                       </div>
@@ -302,8 +302,8 @@ const Connect = () => {
                   )}
 
                   {isSkipped && (
-                    <div className="text-center py-2">
-                      <div className="inline-flex items-center text-muted-foreground">
+                    <div className="text-center py-1">
+                      <div className="inline-flex items-center text-muted-foreground text-sm">
                         <X size={16} className="mr-2" />
                         Skipped
                       </div>
@@ -318,7 +318,7 @@ const Connect = () => {
 
       {/* Helper text */}
       <div className="text-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Not feeling it? That's totally fine—skipping helps us get smarter about your taste.
         </p>
       </div>
