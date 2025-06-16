@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface AIAvatarProps {
   name: string;
@@ -14,7 +13,7 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
   
   // Use local Supabase storage URLs for better performance
   const avatarUrl = avatarId 
-    ? `${supabase.supabaseUrl}/storage/v1/object/public/avatar-images/${avatarId}.png`
+    ? `https://lzwkccarbwokfxrzffjd.supabase.co/storage/v1/object/public/avatar-images/${avatarId}.png`
     : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
   // Preload the image for better performance
