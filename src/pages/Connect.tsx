@@ -196,7 +196,6 @@ const Connect = () => {
       "man1",
       "man2", 
       "man3",
-      "man4",
       "woman1",
       "woman2",
       "woman3",
