@@ -81,7 +81,7 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
           width: '120%',
           height: '120%',
           objectFit: 'cover',
-          objectPosition: 'center 15%', // Pulls up slightly, keeps top visible
+          objectPosition: 'center -5%', // this pulls the image *down*, showing more top
         }}
         onError={handleImageError}
         onLoad={() => {
