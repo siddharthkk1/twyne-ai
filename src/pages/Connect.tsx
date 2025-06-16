@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Users, Heart, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -176,30 +177,30 @@ const Connect = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center pt-16">
-        <div className="text-center max-w-md mx-auto px-6">
-          <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Sparkles className="w-8 h-8 text-white animate-pulse" />
+        <div className="text-center max-w-2xl mx-auto px-6 py-12">
+          <div className="relative mb-8">
+            <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
+              <Sparkles className="w-12 h-12 text-white animate-pulse" />
             </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-full animate-ping"></div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full animate-ping"></div>
           </div>
           
-          <h1 className="text-xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
             {loadingStage === 'generating' && 'Crafting your introductions...'}
             {loadingStage === 'finalizing' && 'Finalizing matches...'}
           </h1>
           
-          <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+          <p className="text-xl text-gray-600 mb-12 leading-relaxed max-w-lg mx-auto">
             We're personalizing connections based on your unique vibe and values
           </p>
 
-          <div className="flex items-center justify-center space-x-2">
-            <div className="flex space-x-1">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="flex space-x-2">
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"
-                  style={{ animationDelay: `${i * 0.2}s` }}
+                  className="w-3 h-3 bg-primary rounded-full animate-pulse"
+                  style={{ animationDelay: `${i * 0.3}s` }}
                 />
               ))}
             </div>
@@ -212,21 +213,21 @@ const Connect = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-16 flex items-center">
       <div className="w-full max-w-6xl mx-auto px-4 py-8">
-        {/* Sample Notice */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Info className="w-4 h-4" />
-            Preview Mode: These are sample introductions
+        {/* Sample Notice - More Prominent */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-6 py-3 rounded-2xl text-base font-semibold mb-6 shadow-sm">
+            <Info className="w-5 h-5" />
+            <span>Sample Preview</span>
+          </div>
+          <div className="max-w-2xl mx-auto bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl px-6 py-4 shadow-sm">
+            <p className="text-gray-700 font-medium text-base leading-relaxed">
+              These are examples of the personalized introductions you'll receive. Real matches will be based on your actual profile and preferences.
+            </p>
           </div>
         </div>
 
         {/* Header Section - Compact */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium mb-3">
-            <Clock className="w-3 h-3" />
-            Weekly Monday Previews
-          </div>
-          
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight">
             Your personalized
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> introductions</span>
@@ -242,7 +243,7 @@ const Connect = () => {
           </div>
         </div>
 
-        {/* Cards Grid */}
+        {/* Cards Grid - Increased Height */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           {sampleIntros.map((intro, index) => {
             const isConnected = connectedCards.has(intro.id);
@@ -256,67 +257,68 @@ const Connect = () => {
                   isSkipped ? 'opacity-60 scale-95 bg-gray-50' : 
                   'hover:shadow-lg hover:bg-white'
                 }`}
+                style={{ minHeight: "480px" }}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 
-                <CardContent className="relative p-4 h-full flex flex-col">
+                <CardContent className="relative p-6 h-full flex flex-col">
                   {/* Avatar and Name Section */}
-                  <div className="flex items-start gap-3 mb-4">
+                  <div className="flex items-start gap-4 mb-6">
                     <div className="relative">
                       {intro.avatar}
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-gray-900 mb-0.5">{intro.name}</h3>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <MapPin className="w-3 h-3 mr-1" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{intro.name}</h3>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <MapPin className="w-4 h-4 mr-1" />
                         Seattle, WA
                       </div>
                     </div>
                   </div>
 
                   {/* Intro Text */}
-                  <div className="relative mb-4 flex-1">
-                    <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-lg p-3 border border-gray-100">
-                      <p className="text-gray-800 leading-relaxed text-sm font-medium">
+                  <div className="relative mb-6 flex-1">
+                    <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl p-4 border border-gray-100">
+                      <p className="text-gray-800 leading-relaxed text-base font-medium">
                         You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
                       </p>
                     </div>
                   </div>
 
                   {/* Connection Info */}
-                  <div className="mb-4">
+                  <div className="mb-6">
                     {intro.mutuals.length > 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center text-xs font-medium text-gray-700">
-                          <Users className="w-3 h-3 mr-1 text-primary" />
+                      <div className="space-y-3">
+                        <div className="flex items-center text-sm font-medium text-gray-700">
+                          <Users className="w-4 h-4 mr-2 text-primary" />
                           Mutual connections
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <div className="flex -space-x-1">
                             {intro.mutuals.map((mutual, i) => (
-                              <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-xs font-semibold text-primary shadow-sm">
+                              <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
                                 {mutual.avatar}
                               </div>
                             ))}
                           </div>
-                          <span className="text-xs text-gray-600 font-medium">
+                          <span className="text-sm text-gray-600 font-medium">
                             {intro.mutuals.map(m => m.name).join(', ')}
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center text-xs text-gray-500">
-                        <div className="w-1 h-1 bg-gradient-to-r from-primary to-accent rounded-full mr-2"></div>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full mr-3"></div>
                         <span className="font-medium">{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away</span>
                       </div>
                     )}
                   </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-6">
                     {intro.tags.map((tag, tagIndex) => (
-                      <Badge key={tagIndex} variant="secondary" className="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200 px-2 py-0.5 text-xs font-medium hover:from-primary/10 hover:to-accent/10 hover:text-primary transition-all">
+                      <Badge key={tagIndex} variant="secondary" className="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200 px-3 py-1 text-sm font-medium hover:from-primary/10 hover:to-accent/10 hover:text-primary transition-all">
                         {tag}
                       </Badge>
                     ))}
@@ -324,18 +326,18 @@ const Connect = () => {
 
                   {/* Action buttons */}
                   {!isConnected && !isSkipped && (
-                    <div className="space-y-2 mt-auto">
+                    <div className="space-y-3 mt-auto">
                       <Button 
                         onClick={() => handleConnect(intro.id)}
-                        className="w-full h-10 text-sm font-medium rounded-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md hover:shadow-lg transition-all duration-300"
+                        className="w-full h-12 text-base font-medium rounded-xl bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md hover:shadow-lg transition-all duration-300"
                       >
-                        <MessageCircle className="w-4 h-4 mr-2" />
+                        <MessageCircle className="w-5 h-5 mr-2" />
                         Connect & Say Hi
                       </Button>
                       <Button 
                         onClick={() => handleSkip(intro.id)}
                         variant="outline" 
-                        className="w-full h-8 text-xs rounded-lg text-gray-600 border-gray-200 hover:bg-gray-50 transition-all"
+                        className="w-full h-9 text-sm rounded-xl text-gray-600 border-gray-200 hover:bg-gray-50 transition-all"
                       >
                         Not feeling it
                       </Button>
@@ -344,18 +346,18 @@ const Connect = () => {
 
                   {/* Status indicators */}
                   {isConnected && (
-                    <div className="text-center py-3 mt-auto">
-                      <div className="inline-flex items-center gap-2 text-primary font-semibold bg-primary/10 px-3 py-1.5 rounded-lg text-sm">
-                        <Heart className="w-4 h-4" />
+                    <div className="text-center py-4 mt-auto">
+                      <div className="inline-flex items-center gap-2 text-primary font-semibold bg-primary/10 px-4 py-2 rounded-xl text-base">
+                        <Heart className="w-5 h-5" />
                         Connected!
                       </div>
                     </div>
                   )}
 
                   {isSkipped && (
-                    <div className="text-center py-3 mt-auto">
-                      <div className="inline-flex items-center gap-2 text-gray-500 font-medium text-sm">
-                        <X className="w-4 h-4" />
+                    <div className="text-center py-4 mt-auto">
+                      <div className="inline-flex items-center gap-2 text-gray-500 font-medium text-base">
+                        <X className="w-5 h-5" />
                         Skipped
                       </div>
                     </div>
