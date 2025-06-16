@@ -201,7 +201,8 @@ const Connect = () => {
       "woman2",
       "woman3",
       "woman4",
-      "woman5"
+      "woman5",
+      "woman6"
     ];
     
     // Shuffle array and take first 3
