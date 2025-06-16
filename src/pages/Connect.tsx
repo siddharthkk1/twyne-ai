@@ -39,9 +39,43 @@ const Connect = () => {
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'generating' | 'finalizing' | 'complete'>('generating');
 
+  // Add logging for state changes
+  useEffect(() => {
+    console.log('🔄 sampleIntros state changed:', {
+      length: sampleIntros.length,
+      intros: sampleIntros.map(intro => ({ id: intro.id, name: intro.name }))
+    });
+  }, [sampleIntros]);
+
+  useEffect(() => {
+    console.log('🔄 loading state changed:', loading);
+  }, [loading]);
+
+  useEffect(() => {
+    console.log('🔄 loadingStage state changed:', loadingStage);
+  }, [loadingStage]);
+
+  useEffect(() => {
+    console.log('🔄 connectedCards state changed:', Array.from(connectedCards));
+  }, [connectedCards]);
+
+  useEffect(() => {
+    console.log('🔄 skippedCards state changed:', Array.from(skippedCards));
+  }, [skippedCards]);
+
   useEffect(() => {
     const generateIntros = async () => {
-      console.log('Starting intro generation - clearing all state');
+      console.log('🚀 === STARTING INTRO GENERATION ===');
+      console.log('📊 Initial state:', {
+        sampleIntrosLength: sampleIntros.length,
+        connectedCardsSize: connectedCards.size,
+        skippedCardsSize: skippedCards.size,
+        loading,
+        loadingStage,
+        userId: user?.id
+      });
+      
+      console.log('🧹 Clearing all state immediately...');
       
       // Reset ALL state immediately and synchronously
       setSampleIntros([]);
@@ -50,23 +84,26 @@ const Connect = () => {
       setLoading(true);
       setLoadingStage('generating');
       
+      console.log('✅ State clearing commands sent');
+      
       if (!user) {
-        console.log('No user found, stopping generation');
+        console.log('❌ No user found, stopping generation');
         setLoading(false);
         return;
       }
 
       try {
-        console.log('Starting AI intro generation for user:', user.id);
+        console.log('🤖 Starting AI intro generation for user:', user.id);
         
         // Set a timeout for AI generation
         const timeoutId = setTimeout(() => {
-          console.log('Intro generation timeout, using fallback');
+          console.log('⏰ Intro generation timeout, using fallback');
           setSampleIntros(getFallbackIntros());
           setLoadingStage('complete');
           setLoading(false);
         }, 3000);
 
+        console.log('📡 Calling supabase generate-intros function...');
         const { data, error } = await supabase.functions.invoke('generate-intros', {
           headers: {
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
@@ -74,13 +111,15 @@ const Connect = () => {
         });
 
         clearTimeout(timeoutId);
+        console.log('📡 Supabase function call completed');
         setLoadingStage('finalizing');
 
         if (error) {
-          console.error('Error generating intros:', error);
+          console.error('❌ Error generating intros:', error);
+          console.log('🔄 Setting fallback intros due to error');
           setSampleIntros(getFallbackIntros());
         } else if (data?.scenarios) {
-          console.log('Successfully generated intros:', data.scenarios);
+          console.log('✅ Successfully generated intros:', data.scenarios);
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
@@ -90,17 +129,22 @@ const Connect = () => {
             mutuals: generateMockMutuals(index),
             connectionDegrees: Math.floor(Math.random() * 4) + 1
           }));
+          console.log('🔄 Setting new generated intros:', intros.map(i => ({ id: i.id, name: i.name })));
           setSampleIntros(intros);
         } else {
-          console.log('No scenarios in response, using fallback');
+          console.log('⚠️ No scenarios in response, using fallback');
+          console.log('🔄 Setting fallback intros due to missing scenarios');
           setSampleIntros(getFallbackIntros());
         }
       } catch (error) {
-        console.error('Exception generating intros:', error);
+        console.error('💥 Exception generating intros:', error);
+        console.log('🔄 Setting fallback intros due to exception');
         setSampleIntros(getFallbackIntros());
       } finally {
+        console.log('🏁 Finalizing intro generation...');
         setLoadingStage('complete');
         setLoading(false);
+        console.log('🚀 === INTRO GENERATION COMPLETE ===');
       }
     };
 
@@ -121,46 +165,51 @@ const Connect = () => {
     return [];
   };
 
-  const getFallbackIntros = (): SampleIntro[] => [
-    {
-      id: "1",
-      introText: "You both recently moved to a new city and care deeply about growth over goals.",
-      avatar: <AIAvatar name="Alex" size={48} />,
-      tags: ["Big dreamer", "Recently moved", "Growth mindset"],
-      name: "Alex",
-      mutuals: [
-        { name: "Maya", avatar: "M" },
-        { name: "James", avatar: "J" }
-      ],
-      connectionDegrees: 2
-    },
-    {
-      id: "2", 
-      introText: "You share a love for deep conversations and both value authenticity over small talk.",
-      avatar: <AIAvatar name="Sam" size={48} />,
-      tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
-      name: "Sam",
-      mutuals: [],
-      connectionDegrees: 3
-    },
-    {
-      id: "3",
-      introText: "You both find energy in creative projects and believe in following your curiosity.",
-      avatar: <AIAvatar name="Jordan" size={48} />,
-      tags: ["Creative soul", "Curious explorer", "Project lover"],
-      name: "Jordan",
-      mutuals: [
-        { name: "Chris", avatar: "C" }
-      ],
-      connectionDegrees: 1
-    }
-  ];
+  const getFallbackIntros = (): SampleIntro[] => {
+    console.log('🔧 Generating fallback intros');
+    return [
+      {
+        id: "1",
+        introText: "You both recently moved to a new city and care deeply about growth over goals.",
+        avatar: <AIAvatar name="Alex" size={48} />,
+        tags: ["Big dreamer", "Recently moved", "Growth mindset"],
+        name: "Alex",
+        mutuals: [
+          { name: "Maya", avatar: "M" },
+          { name: "James", avatar: "J" }
+        ],
+        connectionDegrees: 2
+      },
+      {
+        id: "2", 
+        introText: "You share a love for deep conversations and both value authenticity over small talk.",
+        avatar: <AIAvatar name="Sam" size={48} />,
+        tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
+        name: "Sam",
+        mutuals: [],
+        connectionDegrees: 3
+      },
+      {
+        id: "3",
+        introText: "You both find energy in creative projects and believe in following your curiosity.",
+        avatar: <AIAvatar name="Jordan" size={48} />,
+        tags: ["Creative soul", "Curious explorer", "Project lover"],
+        name: "Jordan",
+        mutuals: [
+          { name: "Chris", avatar: "C" }
+        ],
+        connectionDegrees: 1
+      }
+    ];
+  };
 
   const handleConnect = (cardId: string) => {
+    console.log('💖 Connecting to card:', cardId);
     setConnectedCards(prev => new Set([...prev, cardId]));
   };
 
   const handleSkip = (cardId: string) => {
+    console.log('⏭️ Skipping card:', cardId);
     setSkippedCards(prev => new Set([...prev, cardId]));
   };
 
@@ -185,7 +234,16 @@ const Connect = () => {
     </div>
   );
 
+  // Add logging for render conditions
+  console.log('🖼️ RENDER CONDITIONS:', {
+    loading,
+    sampleIntrosLength: sampleIntros.length,
+    willRenderCards: !loading && sampleIntros.length > 0,
+    willShowLoading: loading
+  });
+
   if (loading) {
+    console.log('🔄 Rendering loading screen');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center pt-16">
         <div className="text-center max-w-3xl mx-auto px-8 py-16">
@@ -221,6 +279,8 @@ const Connect = () => {
     );
   }
 
+  console.log('🖼️ Rendering main content with cards');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-16 flex items-center">
       <div className="w-full max-w-7xl mx-auto px-4 py-8">
@@ -250,131 +310,148 @@ const Connect = () => {
         </div>
 
         {/* Cards Grid - Only render when we have fresh intros and not loading */}
-        {!loading && sampleIntros.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-            {sampleIntros.map((intro, index) => {
-              const isConnected = connectedCards.has(intro.id);
-              const isSkipped = skippedCards.has(intro.id);
-              
-              return (
-                <Card 
-                  key={intro.id} 
-                  className={`group relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-md ${
-                    isConnected ? 'ring-2 ring-primary shadow-lg shadow-primary/20 bg-primary/5' : 
-                    isSkipped ? 'opacity-60 scale-95 bg-gray-50' : 
-                    'hover:shadow-lg hover:bg-white'
-                  }`}
-                  style={{ minHeight: "480px" }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {(() => {
+          const shouldRenderCards = !loading && sampleIntros.length > 0;
+          console.log('🎯 Card grid render decision:', {
+            shouldRenderCards,
+            loading,
+            sampleIntrosLength: sampleIntros.length,
+            sampleIntrosIds: sampleIntros.map(intro => intro.id)
+          });
+          
+          if (shouldRenderCards) {
+            console.log('✅ Rendering card grid with', sampleIntros.length, 'cards');
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+                {sampleIntros.map((intro, index) => {
+                  console.log('🎴 Rendering card:', { id: intro.id, name: intro.name, index });
+                  const isConnected = connectedCards.has(intro.id);
+                  const isSkipped = skippedCards.has(intro.id);
                   
-                  <CardContent className="relative p-6 h-full flex flex-col">
-                    {/* Avatar and Name Section */}
-                    <div className="flex items-start gap-4 mb-6">
-                      <div className="relative">
-                        {intro.avatar}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{intro.name}</h3>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          Seattle, WA
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Intro Text */}
-                    <div className="relative mb-6 flex-1">
-                      <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl p-4 border border-gray-100">
-                        <p className="text-gray-800 leading-relaxed text-base font-medium">
-                          You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Connection Info */}
-                    <div className="mb-6">
-                      {intro.mutuals.length > 0 ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center text-sm font-medium text-gray-700">
-                            <Users className="w-4 h-4 mr-2 text-primary" />
-                            Mutual connections
+                  return (
+                    <Card 
+                      key={intro.id} 
+                      className={`group relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-md ${
+                        isConnected ? 'ring-2 ring-primary shadow-lg shadow-primary/20 bg-primary/5' : 
+                        isSkipped ? 'opacity-60 scale-95 bg-gray-50' : 
+                        'hover:shadow-lg hover:bg-white'
+                      }`}
+                      style={{ minHeight: "480px" }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      <CardContent className="relative p-6 h-full flex flex-col">
+                        {/* Avatar and Name Section */}
+                        <div className="flex items-start gap-4 mb-6">
+                          <div className="relative">
+                            {intro.avatar}
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex -space-x-1">
-                              {intro.mutuals.map((mutual, i) => (
-                                <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
-                                  {mutual.avatar}
-                                </div>
-                              ))}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">{intro.name}</h3>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              Seattle, WA
                             </div>
-                            <span className="text-sm text-gray-600 font-medium">
-                              {intro.mutuals.map(m => m.name).join(', ')}
-                            </span>
                           </div>
                         </div>
-                      ) : (
-                        <div className="flex items-center text-sm text-gray-500">
-                          <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full mr-3"></div>
-                          <span className="font-medium">{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away</span>
+
+                        {/* Intro Text */}
+                        <div className="relative mb-6 flex-1">
+                          <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl p-4 border border-gray-100">
+                            <p className="text-gray-800 leading-relaxed text-base font-medium">
+                              You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {intro.tags.map((tag, tagIndex) => (
-                        <Badge key={tagIndex} variant="secondary" className="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200 px-3 py-1 text-sm font-medium hover:from-primary/10 hover:to-accent/10 hover:text-primary transition-all">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    {/* Action buttons */}
-                    {!isConnected && !isSkipped && (
-                      <div className="space-y-3 mt-auto">
-                        <Button 
-                          onClick={() => handleConnect(intro.id)}
-                          className="w-full h-12 text-base font-medium rounded-xl bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md hover:shadow-lg transition-all duration-300"
-                        >
-                          <MessageCircle className="w-5 h-5 mr-2" />
-                          Connect & Say Hi
-                        </Button>
-                        <Button 
-                          onClick={() => handleSkip(intro.id)}
-                          variant="outline" 
-                          className="w-full h-9 text-sm rounded-xl text-gray-600 border-gray-200 hover:bg-gray-50 transition-all"
-                        >
-                          Not feeling it
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* Status indicators */}
-                    {isConnected && (
-                      <div className="text-center py-4 mt-auto">
-                        <div className="inline-flex items-center gap-2 text-primary font-semibold bg-primary/10 px-4 py-2 rounded-xl text-base">
-                          <Heart className="w-5 h-5" />
-                          Connected!
+                        {/* Connection Info */}
+                        <div className="mb-6">
+                          {intro.mutuals.length > 0 ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center text-sm font-medium text-gray-700">
+                                <Users className="w-4 h-4 mr-2 text-primary" />
+                                Mutual connections
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex -space-x-1">
+                                  {intro.mutuals.map((mutual, i) => (
+                                    <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
+                                      {mutual.avatar}
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="text-sm text-gray-600 font-medium">
+                                  {intro.mutuals.map(m => m.name).join(', ')}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center text-sm text-gray-500">
+                              <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full mr-3"></div>
+                              <span className="font-medium">{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away</span>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
 
-                    {isSkipped && (
-                      <div className="text-center py-4 mt-auto">
-                        <div className="inline-flex items-center gap-2 text-gray-500 font-medium text-base">
-                          <X className="w-5 h-5" />
-                          Skipped
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          {intro.tags.map((tag, tagIndex) => (
+                            <Badge key={tagIndex} variant="secondary" className="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200 px-3 py-1 text-sm font-medium hover:from-primary/10 hover:to-accent/10 hover:text-primary transition-all">
+                              {tag}
+                            </Badge>
+                          ))}
                         </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+
+                        {/* Action buttons */}
+                        {!isConnected && !isSkipped && (
+                          <div className="space-y-3 mt-auto">
+                            <Button 
+                              onClick={() => handleConnect(intro.id)}
+                              className="w-full h-12 text-base font-medium rounded-xl bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md hover:shadow-lg transition-all duration-300"
+                            >
+                              <MessageCircle className="w-5 h-5 mr-2" />
+                              Connect & Say Hi
+                            </Button>
+                            <Button 
+                              onClick={() => handleSkip(intro.id)}
+                              variant="outline" 
+                              className="w-full h-9 text-sm rounded-xl text-gray-600 border-gray-200 hover:bg-gray-50 transition-all"
+                            >
+                              Not feeling it
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Status indicators */}
+                        {isConnected && (
+                          <div className="text-center py-4 mt-auto">
+                            <div className="inline-flex items-center gap-2 text-primary font-semibold bg-primary/10 px-4 py-2 rounded-xl text-base">
+                              <Heart className="w-5 h-5" />
+                              Connected!
+                            </div>
+                          </div>
+                        )}
+
+                        {isSkipped && (
+                          <div className="text-center py-4 mt-auto">
+                            <div className="inline-flex items-center gap-2 text-gray-500 font-medium text-base">
+                              <X className="w-5 h-5" />
+                              Skipped
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            );
+          } else {
+            console.log('❌ Not rendering card grid - conditions not met');
+            return null;
+          }
+        })()}
 
         {/* Footer Message */}
         <div className="text-center">
