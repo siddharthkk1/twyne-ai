@@ -66,12 +66,7 @@ CRITICAL REQUIREMENTS FOR MAXIMUM SPECIFICITY:
 EXAMPLES OF SPECIFICITY LEVELS:
 
 ❌ TOO GENERAL: "You both love reading and have similar values about growth."
-
-✅ HIGHLY SPECIFIC: "You and Sarah both devour Colleen Hoover novels (you've probably both cried over It Ends With Us), annotate your favorite passages in different colored pens, and believe that vulnerability is the key to real connection."
-
 ❌ TOO GENERAL: "You both enjoy creative projects and exploring new ideas."
-
-✅ HIGHLY SPECIFIC: "You and Marcus both get excited about 3am creative bursts, working on products that aim to bring in the big bucks. You both also love any debate over the NBA goat - MJ or Bron? You've got takes.."
 
 Generate 3 distinct, specific introduction scenarios. Each should:
 - 1-2 sentences
@@ -98,6 +93,25 @@ Return ONLY a valid JSON array with this structure:
     "introText": "[Third unique, deeply personalized intro]",
     "name": "[Third realistic first name]",
     "tags": ["[Matching personality traits]", "[Specific characteristic]", "[Unique shared quality]"]
+  },
+]
+
+Examples:
+[
+  {
+    "introText": "You and Marcus both get excited about 3am creative bursts, working on products that aim to bring in the big bucks. You both also love any debate over the NBA goat - MJ or Bron? You've got takes.",
+    "name": "Marcus", 
+    "tags": ["deep thinker", "startups", "#BronGuy"]
+  },
+  {
+    "introText": "[You and Sarah both devour Colleen Hoover novels (you've probably both cried over It Ends With Us), annotate your favorite passages in different colored pens, and believe that vulnerability is the key to real connection.",
+    "name": "Sarah"",
+    "tags": ["introvert", "#bookworm", "social activism"]
+  },
+  {
+    "introText": "You and David both value authenticity and growth over fakeness and comfort; you spend many hours thinking about how to become the best versions of yourselves and chasae after your goals.",
+    "name": "David",
+    "tags": ["ambitious", "#seekdiscomfort", "authenticity"]
   },
 ]
 
