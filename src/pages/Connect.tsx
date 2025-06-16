@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { MessageCircle, X, Users, Heart, MapPin, Sparkles, Clock, Info } from "lucide-react";
+import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +17,10 @@ interface SampleIntro {
   connectionDegrees: number;
 }
 
-// AI Avatar component using DiceBear API
+// AI Avatar component using ReadyPlayer.me API for testing
 const AIAvatar = ({ name, size = 48 }: { name: string; size?: number }) => {
-  const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+  // For testing, use the ReadyPlayer.me URL you provided
+  const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=90&width=512&height=512";
   
   return (
     <div className={`rounded-2xl overflow-hidden shadow-sm ring-1 ring-white/20`} style={{ width: size, height: size }}>
@@ -27,6 +28,11 @@ const AIAvatar = ({ name, size = 48 }: { name: string; size?: number }) => {
         src={avatarUrl}
         alt={`${name}'s avatar`}
         className="w-full h-full object-cover"
+        onError={(e) => {
+          // Fallback to DiceBear if ReadyPlayer.me fails
+          const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+          e.currentTarget.src = fallbackUrl;
+        }}
       />
     </div>
   );
@@ -211,11 +217,11 @@ const Connect = () => {
         <CardContent className="p-6 text-center">
           <div className="mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <Heart className="w-6 h-6 text-white" />
+              <CheckCircle className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Perfect match!</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Connection sent!</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
-              If this were a real match, you'd start chatting here. You'll get real intros like this after setup.
+              Great choice! In the real app, this would start a conversation. You'll get thoughtful intros like this when Twyne launches.
             </p>
           </div>
           <Button onClick={onClose} className="w-full h-10 text-sm font-medium rounded-xl">
@@ -408,7 +414,7 @@ const Connect = () => {
                     {isConnected && (
                       <div className="text-center py-4 mt-auto">
                         <div className="inline-flex items-center gap-2 text-primary font-semibold bg-primary/10 px-4 py-2 rounded-xl text-base">
-                          <Heart className="w-5 h-5" />
+                          <CheckCircle className="w-5 h-5" />
                           Connected!
                         </div>
                       </div>
