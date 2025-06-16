@@ -71,15 +71,21 @@ Return ONLY a valid JSON array with this structure:
     "tags": ["Big dreamer", "Recently moved", "Growth mindset"]
   },
   {
-    "introText": "YYou and Amara both read spicy books faster than your TBR can handle. Sarah J. Maas? Colleen Hoover? You've got annotated paperbacks and a lot of opinions.",
+    "introText": "You and Amara both read spicy books faster than your TBR can handle. Sarah J. Maas? Colleen Hoover? You've got annotated paperbacks and a lot of opinions.",
     "name": "Sam",
     "tags": ["Introspective extrovert", "Deep thinker", "Authentic"]
   },
   {
-    "introText": "You and Bryton are both getting married in a month and feeling all the chaos and excitement. You both also love over-analyzing movies and deep convos.",
+    "introText": "You and Jordan are both getting married in a month and feeling all the chaos and excitement. You both also love over-analyzing movies and deep convos.",
     "name": "Jordan",
     "tags": ["Creative soul", "Curious explorer", "Project lover"]
+  },
+  {
+    "introText": "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
+    "name": "August",
+    "tags": ["Creative soul", "Curious explorer", "Project lover"]
   }
+  
 ]`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
