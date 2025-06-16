@@ -174,9 +174,9 @@ Return a single valid JSON object in the following structure. All fields must be
 
 // Seed messages for playful conversation mode
 export const PLAYFUL_SEED_MESSAGES = [
-  "yo.||not gonna hit you with the corporate welcome speech||just curious — what kind of energy are you walking around with lately?",
-  "yo. i don't know anything about you yet — which makes this fun.||you more 'mysterious chill' or 'tell-me-your-life-story-at-2am' energy?",
-  "hey — i'm twyne.||i intro people to others they'll actually vibe with, but first i gotta figure you out||so... what kind of energy have you been on lately?",
+  "hey||not gonna hit you with the corporate welcome speech||just curious — what kind of energy are you walking around with lately?",
+  "hey. i don't know anything about you yet — which makes this fun.||you more 'mysterious chill' or 'tell-me-your-life-story-at-2am' energy?",
+  "hey — i'm twyne.||i intro people to others they'll actually vibe with, but first i gotta figure you out||so... how've you been feeling lately??",
   "lemme guess — you either overshare to strangers or it takes a while to unlock you||which one am i getting today?",
   "ok, real question before we start||are you the kind of person who overshares to strangers, or do i have to work for it a little?"
 ];
