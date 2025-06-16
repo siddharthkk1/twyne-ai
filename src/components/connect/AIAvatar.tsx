@@ -78,10 +78,10 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
           imageLoaded || imageError || !avatarId ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
-          width: size * 1.5,       // 150% zoom
-          height: size * 1.5,
-          objectFit: 'contain',    // prevents top cropping
-          transform: 'translateY(-10%)', // shifts avatar up slightly
+          width: '120%',
+          height: '120%',
+          objectFit: 'cover',
+          objectPosition: 'center 15%', // Pulls up slightly, keeps top visible
         }}
         onError={handleImageError}
         onLoad={() => {
@@ -90,6 +90,7 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
         }}
         loading="eager"
       />
+
     </div>
 
   );
