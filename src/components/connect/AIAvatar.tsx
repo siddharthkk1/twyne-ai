@@ -68,18 +68,24 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
       
       {/* Avatar image */}
       <img
-        src={imageError ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf` : avatarUrl}
+        src={imageError
+          ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`
+          : avatarUrl}
         alt={`${name}'s avatar`}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${
+        className={`w-[130%] h-[130%] -translate-y-[10%] object-cover transition-opacity duration-300 ${
           imageLoaded || imageError || !avatarId ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{
+          objectPosition: 'center top',
+        }}
         onError={handleImageError}
         onLoad={() => {
           console.log(`🖼️ Image onLoad fired for ${name}`);
           setImageLoaded(true);
         }}
         loading="eager"
-      />
+/>
+
     </div>
   );
 };
