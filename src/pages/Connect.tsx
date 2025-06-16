@@ -19,25 +19,33 @@ interface SampleIntro {
 
 // AI Avatar component using ReadyPlayer.me API with proper head positioning
 const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
-  // ReadyPlayer.me URL with better cropping parameters
-  const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
-  
+  const avatarUrl =
+    "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
+
   return (
-    <div className={`rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/50`} style={{ width: size, height: size }}>
+    <div
+      className="rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/50 relative"
+      style={{ width: size, height: size }}
+    >
       <img
         src={avatarUrl}
         alt={`${name}'s avatar`}
-        className="w-full h-full object-cover"
-        style={{ objectPosition: 'center 20%', transform: 'scale(1.2)' }}
+        className="absolute top-0 left-0 w-full h-auto"
+        style={{
+          transform: "scale(1.6)", // zoom in more if needed
+          transformOrigin: "top center",
+        }}
         onError={(e) => {
-          // Fallback to DiceBear if ReadyPlayer.me fails
-          const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+          const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+            name
+          )}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
           e.currentTarget.src = fallbackUrl;
         }}
       />
     </div>
   );
 };
+
 
 const Connect = () => {
   const { user } = useAuth();
