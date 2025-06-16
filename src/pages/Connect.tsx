@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,9 +17,9 @@ interface SampleIntro {
   connectionDegrees: number;
 }
 
-// AI Avatar component using ReadyPlayer.me API with focused head cropping
+// AI Avatar component using ReadyPlayer.me API with proper head positioning
 const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
-  // ReadyPlayer.me URL with tight cropping focused on head/shoulders/neck
+  // ReadyPlayer.me URL with better cropping parameters
   const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
   
   return (
@@ -27,7 +28,7 @@ const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
         src={avatarUrl}
         alt={`${name}'s avatar`}
         className="w-full h-full object-cover"
-        style={{ objectPosition: 'center 10%', transform: 'scale(1.4)' }}
+        style={{ objectPosition: 'center 20%', transform: 'scale(1.2)' }}
         onError={(e) => {
           // Fallback to DiceBear if ReadyPlayer.me fails
           const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -45,6 +46,10 @@ const Connect = () => {
   const [sampleIntros, setSampleIntros] = useState<SampleIntro[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'generating' | 'finalizing' | 'complete'>('generating');
+  
+  // Add ref to track if intros have been generated for this user session
+  const introsGeneratedRef = useRef<string | null>(null);
+  const hasNavigatedAwayRef = useRef(false);
 
   // Add logging for state changes
   useEffect(() => {
@@ -70,8 +75,53 @@ const Connect = () => {
     console.log('🔄 skippedCards state changed:', Array.from(skippedCards));
   }, [skippedCards]);
 
+  // Track when user navigates away from this page
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      hasNavigatedAwayRef.current = true;
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        hasNavigatedAwayRef.current = true;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   useEffect(() => {
     const generateIntros = async () => {
+      console.log('🚀 === CHECKING IF INTROS NEED GENERATION ===');
+      console.log('📊 Generation check state:', {
+        userId: user?.id,
+        introsGeneratedForUser: introsGeneratedRef.current,
+        hasNavigatedAway: hasNavigatedAwayRef.current,
+        currentIntrosLength: sampleIntros.length
+      });
+
+      if (!user) {
+        console.log('❌ No user found, stopping generation');
+        setLoading(false);
+        return;
+      }
+
+      // Only generate if we haven't generated for this user OR if user has navigated away and back
+      const shouldGenerate = introsGeneratedRef.current !== user.id || 
+                           (hasNavigatedAwayRef.current && sampleIntros.length === 0);
+
+      if (!shouldGenerate) {
+        console.log('✅ Intros already generated for this user and no navigation away detected, skipping generation');
+        setLoading(false);
+        return;
+      }
+
       console.log('🚀 === STARTING INTRO GENERATION ===');
       console.log('📊 Initial state:', {
         sampleIntrosLength: sampleIntros.length,
@@ -92,12 +142,6 @@ const Connect = () => {
       setLoadingStage('generating');
       
       console.log('✅ State clearing commands sent');
-      
-      if (!user) {
-        console.log('❌ No user found, stopping generation');
-        setLoading(false);
-        return;
-      }
 
       try {
         console.log('🤖 Starting AI intro generation for user:', user.id);
@@ -134,10 +178,19 @@ const Connect = () => {
           console.log('🔄 Setting fallback intros due to missing scenarios');
           setSampleIntros(getFallbackIntros());
         }
+
+        // Mark that intros have been generated for this user
+        introsGeneratedRef.current = user.id;
+        hasNavigatedAwayRef.current = false;
+
       } catch (error) {
         console.error('💥 Exception generating intros:', error);
         console.log('🔄 Setting fallback intros due to exception');
         setSampleIntros(getFallbackIntros());
+        
+        // Still mark as generated to prevent retry loops
+        introsGeneratedRef.current = user.id;
+        hasNavigatedAwayRef.current = false;
       } finally {
         console.log('🏁 Finalizing intro generation...');
         setLoadingStage('complete');
@@ -147,7 +200,7 @@ const Connect = () => {
     };
 
     generateIntros();
-  }, [user?.id]); // Only depend on user ID to prevent unnecessary re-runs
+  }, [user?.id]); // Only depend on user ID
 
   const generateMockMutuals = (index: number): Array<{ name: string; avatar: string }> => {
     if (index === 0) {
