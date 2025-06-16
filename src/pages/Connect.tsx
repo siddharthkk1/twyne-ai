@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -232,7 +231,7 @@ const Connect = () => {
     const fallbackIntros = [
       {
         id: "1",
-        introText: "You both recently moved to a new city and care deeply about growth over goals.",
+        introText: "You and Alex recently moved to a new city and care deeply about growth over goals.",
         avatar: <AIAvatar name="Alex" size={80} avatarId={getRandomAvatarId(0)} />,
         tags: ["Big dreamer", "Recently moved", "Growth mindset"],
         name: "Alex",
@@ -244,7 +243,7 @@ const Connect = () => {
       },
       {
         id: "2", 
-        introText: "You share a love for deep conversations and both value authenticity over small talk.",
+        introText: "You and Sam share a love for deep conversations and both value authenticity over small talk.",
         avatar: <AIAvatar name="Sam" size={80} avatarId={getRandomAvatarId(1)} />,
         tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
         name: "Sam",
@@ -253,7 +252,7 @@ const Connect = () => {
       },
       {
         id: "3",
-        introText: "You both find energy in creative projects and believe in following your curiosity.",
+        introText: "You and Jordan both find energy in creative projects and believe in following your curiosity.",
         avatar: <AIAvatar name="Jordan" size={80} avatarId={getRandomAvatarId(2)} />,
         tags: ["Creative soul", "Curious explorer", "Project lover"],
         name: "Jordan",
@@ -415,11 +414,11 @@ const Connect = () => {
                       </div>
                     </div>
 
-                    {/* Intro Text */}
+                    {/* Intro Text - Now displays exactly as received from AI */}
                     <div className="relative mb-6 flex-1">
                       <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl p-4 border border-gray-100">
                         <p className="text-gray-800 leading-relaxed text-base font-medium">
-                          You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
+                          {intro.introText}
                         </p>
                       </div>
                     </div>
