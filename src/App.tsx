@@ -47,12 +47,43 @@ const HomeWrapper = () => {
   if (user) {
     const urlParams = new URLSearchParams(window.location.search);
     const hasOAuthCode = urlParams.has('code');
+    const hasOAuthError = urlParams.has('error');
+    const stateParam = urlParams.get('state');
     const hasOAuthContext = localStorage.getItem('oauth_context');
     
-    // If this is an OAuth callback, let AuthCallback handle it
-    if (hasOAuthCode || hasOAuthContext) {
-      console.log("HomeWrapper: OAuth flow detected, redirecting to callback");
+    // Check if this is a Google OAuth callback (standard auth flow)
+    const isGoogleOAuthCallback = hasOAuthCode && (!stateParam || stateParam === 'standard_auth' || stateParam === 'onboarding_results');
+    
+    // Check if this is a Spotify/YouTube OAuth callback (should redirect to specific callback pages)
+    const isSpotifyCallback = hasOAuthCode && stateParam === 'spotify_auth';
+    const isYouTubeCallback = hasOAuthCode && stateParam === 'youtube_auth';
+    
+    console.log("HomeWrapper: OAuth detection", {
+      hasOAuthCode,
+      hasOAuthError,
+      stateParam,
+      hasOAuthContext,
+      isGoogleOAuthCallback,
+      isSpotifyCallback,
+      isYouTubeCallback
+    });
+    
+    // If this is a Google OAuth callback or has OAuth context, let AuthCallback handle it
+    if (isGoogleOAuthCallback || hasOAuthContext || hasOAuthError) {
+      console.log("HomeWrapper: Google OAuth flow detected, redirecting to callback");
       return <Navigate to="/auth/callback" replace />;
+    }
+    
+    // If this is a Spotify callback, redirect to Spotify callback page
+    if (isSpotifyCallback) {
+      console.log("HomeWrapper: Spotify OAuth flow detected, redirecting to Spotify callback");
+      return <Navigate to="/auth/callback/spotify" replace />;
+    }
+    
+    // If this is a YouTube callback, redirect to YouTube callback page
+    if (isYouTubeCallback) {
+      console.log("HomeWrapper: YouTube OAuth flow detected, redirecting to YouTube callback");
+      return <Navigate to="/auth/callback/youtube" replace />;
     }
     
     console.log("HomeWrapper: Authenticated user on home page, redirecting to mirror");

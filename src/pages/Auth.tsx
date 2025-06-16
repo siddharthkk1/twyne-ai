@@ -189,6 +189,7 @@ const Auth = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
+            state: 'standard_auth', // Add state parameter to distinguish from other OAuth flows
           },
         }
       });

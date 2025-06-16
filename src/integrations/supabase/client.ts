@@ -16,7 +16,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true, // Enable automatic OAuth URL handling
-    flowType: 'pkce' // Use PKCE flow instead of implicit for OAuth
+    flowType: 'pkce' // Use PKCE flow for OAuth
   },
   realtime: {
     params: {
