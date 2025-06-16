@@ -41,17 +41,17 @@ const Connect = () => {
 
   useEffect(() => {
     const generateIntros = async () => {
+      // Clear everything immediately when effect runs
+      setSampleIntros([]);
+      setLoading(true);
+      setLoadingStage('generating');
+      
       if (!user) {
         setLoading(false);
         return;
       }
 
       try {
-        // Clear state immediately and start loading
-        setSampleIntros([]);
-        setLoading(true);
-        setLoadingStage('generating');
-        
         // Set a timeout for AI generation
         const timeoutId = setTimeout(() => {
           console.log('Intro generation timeout, using fallback');
@@ -232,10 +232,10 @@ const Connect = () => {
           
           <div className="max-w-2xl mx-auto">
             <p className="text-lg text-gray-700 leading-relaxed font-medium">
-              fresh warm intros
+              These connections are crafted based on your authentic vibe, values, and story.
             </p>
             <p className="text-sm text-gray-500 font-medium mt-2">
-              Fresh introductions arrive every Monday morning
+              Fresh warm intros arrive every Monday morning
             </p>
           </div>
         </div>
