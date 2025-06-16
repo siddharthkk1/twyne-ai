@@ -66,17 +66,17 @@ Also suggest realistic names and personality tags for each person.
 Return ONLY a valid JSON array with this structure:
 [
   {
-    "introText": "You both recently moved to a new city and care deeply about growth over goals.",
+    "introText": "You and Alex recently moved to a new city, love debating who the NBA goat is, and care deeply about growth over comfort.",
     "name": "Alex", 
     "tags": ["Big dreamer", "Recently moved", "Growth mindset"]
   },
   {
-    "introText": "You share a love for deep conversations and both value authenticity over small talk.",
+    "introText": "YYou and Amara both read spicy books faster than your TBR can handle. Sarah J. Maas? Colleen Hoover? You've got annotated paperbacks and a lot of opinions.",
     "name": "Sam",
     "tags": ["Introspective extrovert", "Deep thinker", "Authentic"]
   },
   {
-    "introText": "You both find energy in creative projects and believe in following your curiosity.",
+    "introText": "You and Bryton are both getting married in a month and feeling all the chaos and excitement. You both also love over-analyzing movies and deep convos.",
     "name": "Jordan",
     "tags": ["Creative soul", "Curious explorer", "Project lover"]
   }
