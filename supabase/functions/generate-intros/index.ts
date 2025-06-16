@@ -42,37 +42,21 @@ serve(async (req) => {
     }
 
     const profileData = userData.profile_data || {};
-    
-    // Extract key profile information for context
-    const userContext = {
-      interests: profileData.interestsAndPassions || "various interests",
-      lifestyle: profileData.lifestyle || "balanced lifestyle",
-      values: profileData.coreValues || "meaningful connections",
-      personality: profileData.personalitySummary || "friendly personality",
-      location: profileData.location || "your city",
-      goals: profileData.goals || "personal growth",
-      socialStyle: profileData.socialStyle || "social connections"
-    };
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Generate 3 different intro scenarios
-    const prompt = `You are an AI that creates warm, personal introductions between people who might genuinely connect. Based on the user's profile, generate 3 different introduction scenarios for potential connections.
+    // Generate 3 different intro scenarios using the full profile data
+    const prompt = `You are an AI that creates warm, personal introductions between people who might genuinely connect. Based on the user's complete profile, generate 3 different introduction scenarios for potential connections.
 
-User Profile Context:
-- Interests: ${userContext.interests}
-- Lifestyle: ${userContext.lifestyle}
-- Values: ${userContext.values}
-- Personality: ${userContext.personality}
-- Goals: ${userContext.goals}
-- Social Style: ${userContext.socialStyle}
+Complete User Profile:
+${JSON.stringify(profileData, null, 2)}
 
 Generate 3 distinct introduction scenarios. Each should:
 1. Feel personal and specific (not generic)
-2. Highlight shared values, interests, or life situations
+2. Highlight shared values, interests, or life situations based on the rich profile data
 3. Be 1-2 sentences explaining why they might connect
 4. Sound natural and warm
 5. Use "You both" or "You share" language

@@ -16,9 +16,9 @@ interface SampleIntro {
   connectionDegrees: number;
 }
 
-// AI Avatar component using ReadyPlayer.me API with proper head framing
+// AI Avatar component using ReadyPlayer.me API with focused head cropping
 const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
-  // ReadyPlayer.me URL with balanced cropping to show full head
+  // ReadyPlayer.me URL with tight cropping focused on head/shoulders/neck
   const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
   
   return (
@@ -27,7 +27,7 @@ const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
         src={avatarUrl}
         alt={`${name}'s avatar`}
         className="w-full h-full object-cover"
-        style={{ objectPosition: 'center 25%' }}
+        style={{ objectPosition: 'center 10%', transform: 'scale(1.4)' }}
         onError={(e) => {
           // Fallback to DiceBear if ReadyPlayer.me fails
           const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -352,31 +352,28 @@ const Connect = () => {
                       </div>
                     </div>
 
-                    {/* Connection Info */}
+                    {/* Simplified Connection Info - Single Line */}
                     <div className="mb-6">
                       {intro.mutuals.length > 0 ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-center text-sm font-medium text-gray-700">
-                            <Users className="w-4 h-4 mr-2 text-primary" />
-                            Mutual connections
+                        <div className="flex items-center gap-3">
+                          <Users className="w-4 h-4 text-primary flex-shrink-0" />
+                          <div className="flex -space-x-1">
+                            {intro.mutuals.map((mutual, i) => (
+                              <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-xs font-semibold text-primary shadow-sm">
+                                {mutual.avatar}
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="flex -space-x-1">
-                              {intro.mutuals.map((mutual, i) => (
-                                <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
-                                  {mutual.avatar}
-                                </div>
-                              ))}
-                            </div>
-                            <span className="text-sm text-gray-600 font-medium">
-                              {intro.mutuals.map(m => m.name).join(', ')}
-                            </span>
-                          </div>
+                          <span className="text-sm text-gray-600 font-medium">
+                            {intro.mutuals.map(m => m.name).join(', ')}
+                          </span>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center text-sm text-gray-500">
-                          <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full mr-3"></div>
-                          <span className="font-medium">{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away</span>
+                        <div className="flex items-center gap-3">
+                          <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-sm text-gray-500 font-medium">
+                            {intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away
+                          </span>
                         </div>
                       )}
                     </div>
