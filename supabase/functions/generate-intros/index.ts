@@ -60,6 +60,7 @@ CRITICAL REQUIREMENTS:
 3. Use natural, conversational language that shows genuine understanding of who they are
 4. Each intro should feel completely unique and impossible to generate for someone else
 5. The intro can either focus on specific interests (a book or artist they both like) or be broader and talk about their values and goals or a shared life context or job or anything really.
+6. Take into consideration how likely it is another person would share the trait or thing mentioned.
 
 EXAMPLES OF SPECIFICITY LEVELS:
 
