@@ -182,7 +182,7 @@ const Connect = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl min-h-screen flex flex-col justify-center">
       <div className="text-center mb-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-4">
           Here's a sample of what your weekly introductions might feel like.
@@ -191,9 +191,12 @@ const Connect = () => {
           These examples are based on what we've learned about your vibe, values, and story so far. 
           Your real matches will evolve over time as we get to know you better.
         </p>
+        <p className="text-sm text-muted-foreground mb-4">
+          We'll send you new introductions like these every Monday morning to keep things fresh.
+        </p>
       </div>
 
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 w-full">
           {sampleIntros.map((intro) => {
             const isConnected = connectedCards.has(intro.id);
@@ -216,7 +219,7 @@ const Connect = () => {
                       <h3 className="font-medium">{intro.name}</h3>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <MapPin size={14} className="mr-1" />
-                        In your city
+                        Seattle
                       </div>
                     </div>
                   </div>
@@ -236,13 +239,15 @@ const Connect = () => {
                           <Users size={14} className="mr-1" />
                           <span>Mutual connections</span>
                         </div>
-                        <div className="flex items-center -space-x-2">
-                          {intro.mutuals.map((mutual, i) => (
-                            <div key={i} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-xs font-medium text-primary">
-                              {mutual.avatar}
-                            </div>
-                          ))}
-                          <span className="ml-3 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex -space-x-2">
+                            {intro.mutuals.map((mutual, i) => (
+                              <div key={i} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-xs font-medium text-primary">
+                                {mutual.avatar}
+                              </div>
+                            ))}
+                          </div>
+                          <span className="text-sm text-muted-foreground">
                             {intro.mutuals.map(m => m.name).join(', ')}
                           </span>
                         </div>
@@ -250,7 +255,7 @@ const Connect = () => {
                     ) : (
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Users size={14} className="mr-1" />
-                        <span>You are {intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away from {intro.name}</span>
+                        <span>{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away from {intro.name}</span>
                       </div>
                     )}
                   </div>
