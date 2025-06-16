@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import ModernAvatar3D from "@/components/ModernAvatar3D";
 
 interface SampleIntro {
   id: string;
@@ -14,6 +13,8 @@ interface SampleIntro {
   avatar: React.ReactNode;
   tags: string[];
   name: string;
+  mutuals: Array<{ name: string; avatar: string }>;
+  connectionDegrees: number;
 }
 
 // AI Avatar component using DiceBear API
@@ -37,7 +38,6 @@ const Connect = () => {
   const [skippedCards, setSkippedCards] = useState<Set<string>>(new Set());
   const [sampleIntros, setSampleIntros] = useState<SampleIntro[]>([]);
   const [loading, setLoading] = useState(true);
-  const [use3DAvatars, setUse3DAvatars] = useState(false);
 
   useEffect(() => {
     const generateIntros = async () => {
@@ -72,11 +72,11 @@ const Connect = () => {
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
-            avatar: use3DAvatars ? 
-              <ModernAvatar3D name={scenario.name} className="w-16 h-16" /> : 
-              <AIAvatar name={scenario.name} size={64} />,
+            avatar: <AIAvatar name={scenario.name} size={64} />,
             tags: scenario.tags,
-            name: scenario.name
+            name: scenario.name,
+            mutuals: generateMockMutuals(index),
+            connectionDegrees: Math.floor(Math.random() * 4) + 1
           }));
           setSampleIntros(intros);
         }
@@ -89,35 +89,55 @@ const Connect = () => {
     };
 
     generateIntros();
-  }, [user, use3DAvatars]);
+  }, [user]);
+
+  const generateMockMutuals = (index: number): Array<{ name: string; avatar: string }> => {
+    // Some cards have mutuals, others don't
+    if (index === 0) {
+      return [
+        { name: "Maya", avatar: "M" },
+        { name: "James", avatar: "J" }
+      ];
+    } else if (index === 2) {
+      return [
+        { name: "Chris", avatar: "C" }
+      ];
+    }
+    return [];
+  };
 
   const getFallbackIntros = (): SampleIntro[] => [
     {
       id: "1",
       introText: "You both recently moved to a new city and care deeply about growth over goals.",
-      avatar: use3DAvatars ? 
-        <ModernAvatar3D name="Alex" className="w-16 h-16" /> : 
-        <AIAvatar name="Alex" size={64} />,
+      avatar: <AIAvatar name="Alex" size={64} />,
       tags: ["Big dreamer", "Recently moved", "Growth mindset"],
-      name: "Alex"
+      name: "Alex",
+      mutuals: [
+        { name: "Maya", avatar: "M" },
+        { name: "James", avatar: "J" }
+      ],
+      connectionDegrees: 2
     },
     {
       id: "2", 
       introText: "You share a love for deep conversations and both value authenticity over small talk.",
-      avatar: use3DAvatars ? 
-        <ModernAvatar3D name="Sam" className="w-16 h-16" /> : 
-        <AIAvatar name="Sam" size={64} />,
+      avatar: <AIAvatar name="Sam" size={64} />,
       tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
-      name: "Sam"
+      name: "Sam",
+      mutuals: [],
+      connectionDegrees: 3
     },
     {
       id: "3",
       introText: "You both find energy in creative projects and believe in following your curiosity.",
-      avatar: use3DAvatars ? 
-        <ModernAvatar3D name="Jordan" className="w-16 h-16" /> : 
-        <AIAvatar name="Jordan" size={64} />,
+      avatar: <AIAvatar name="Jordan" size={64} />,
       tags: ["Creative soul", "Curious explorer", "Project lover"],
-      name: "Jordan"
+      name: "Jordan",
+      mutuals: [
+        { name: "Chris", avatar: "C" }
+      ],
+      connectionDegrees: 1
     }
   ];
 
@@ -171,20 +191,6 @@ const Connect = () => {
           These examples are based on what we've learned about your vibe, values, and story so far. 
           Your real matches will evolve over time as we get to know you better.
         </p>
-        
-        {/* 3D Avatar Toggle */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="text-sm text-muted-foreground">2D Avatars</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUse3DAvatars(!use3DAvatars)}
-            className={use3DAvatars ? "bg-primary text-primary-foreground" : ""}
-          >
-            {use3DAvatars ? "3D" : "2D"}
-          </Button>
-          <span className="text-sm text-muted-foreground">3D Avatars</span>
-        </div>
       </div>
 
       <div className="flex items-center justify-center min-h-[400px]">
@@ -218,9 +224,35 @@ const Connect = () => {
                   {/* Intro text */}
                   <div className="bg-muted rounded-xl p-4 mb-4">
                     <p className="text-sm leading-relaxed">
-                      <span className="font-medium">Why you might click:</span>{" "}
-                      {intro.introText}
+                      You and {intro.name} {intro.introText.replace(/^You (and|both|share)/, '').trim()}
                     </p>
+                  </div>
+
+                  {/* Mutual connections section */}
+                  <div className="mb-4">
+                    {intro.mutuals.length > 0 ? (
+                      <div>
+                        <div className="flex items-center text-sm text-muted-foreground mb-2">
+                          <Users size={14} className="mr-1" />
+                          <span>Mutual connections</span>
+                        </div>
+                        <div className="flex items-center -space-x-2">
+                          {intro.mutuals.map((mutual, i) => (
+                            <div key={i} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center text-xs font-medium text-primary">
+                              {mutual.avatar}
+                            </div>
+                          ))}
+                          <span className="ml-3 text-sm text-muted-foreground">
+                            {intro.mutuals.map(m => m.name).join(', ')}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Users size={14} className="mr-1" />
+                        <span>You are {intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away from {intro.name}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Tags */}
