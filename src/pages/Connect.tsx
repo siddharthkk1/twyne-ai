@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,10 +16,10 @@ interface SampleIntro {
   connectionDegrees: number;
 }
 
-// AI Avatar component using ReadyPlayer.me API for testing with better zoom
+// AI Avatar component using ReadyPlayer.me API with proper head framing
 const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
-  // Enhanced ReadyPlayer.me URL with aggressive cropping for tight head focus
-  const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head&zoom=1.5";
+  // ReadyPlayer.me URL with balanced cropping to show full head
+  const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
   
   return (
     <div className={`rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/50`} style={{ width: size, height: size }}>
@@ -28,7 +27,7 @@ const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
         src={avatarUrl}
         alt={`${name}'s avatar`}
         className="w-full h-full object-cover"
-        style={{ objectPosition: 'center 15%', transform: 'scale(1.3)' }}
+        style={{ objectPosition: 'center 25%' }}
         onError={(e) => {
           // Fallback to DiceBear if ReadyPlayer.me fails
           const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -122,7 +121,7 @@ const Connect = () => {
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
-            avatar: <AIAvatar name={scenario.name} size={64} />,
+            avatar: <AIAvatar name={scenario.name} size={80} />,
             tags: scenario.tags,
             name: scenario.name,
             mutuals: generateMockMutuals(index),
