@@ -11,23 +11,29 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  // Use smaller, optimized image size for better performance
+  // Use working ReadyPlayer.me URL parameters
   const avatarUrl = avatarId 
-    ? `https://models.readyplayer.me/${avatarId}.png?quality=medium&width=200&height=200&crop=head`
+    ? `https://models.readyplayer.me/${avatarId}.png?quality=100&width=400&height=400&crop=head`
     : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
   // Preload the image for better performance
   useEffect(() => {
     if (avatarId) {
       const img = new Image();
-      img.onload = () => setImageLoaded(true);
-      img.onerror = () => setImageError(true);
+      img.onload = () => {
+        console.log(`✅ ReadyPlayer.me avatar loaded successfully for ${name}`);
+        setImageLoaded(true);
+      };
+      img.onerror = () => {
+        console.log(`❌ ReadyPlayer.me avatar failed to load for ${name}, URL: ${avatarUrl}`);
+        setImageError(true);
+      };
       img.src = avatarUrl;
     } else {
       // SVG avatars load instantly
       setImageLoaded(true);
     }
-  }, [avatarUrl, avatarId]);
+  }, [avatarUrl, avatarId, name]);
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.log(`Avatar failed to load for ${name}, falling back to Dicebear`);
