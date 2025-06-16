@@ -66,13 +66,9 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
       )}
     
       <img
-        src={
-          imageError
-            ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-                name
-              )}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`
-            : avatarUrl
-        }
+        src={imageError
+          ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`
+          : avatarUrl}
         alt={`${name}'s avatar`}
         className={`absolute transition-opacity duration-300 ${
           imageLoaded || imageError || !avatarId ? 'opacity-100' : 'opacity-0'
@@ -81,13 +77,11 @@ export const AIAvatar = ({ name, size = 80, avatarId }: AIAvatarProps) => {
           width: '120%',
           height: '120%',
           objectFit: 'cover',
-          objectPosition: 'center -100%', // this pulls the image *down*, showing more top
+          objectPosition: 'center center',
+          transform: 'translateY(5%)', // ✅ moves the image down to reveal more of the top
         }}
         onError={handleImageError}
-        onLoad={() => {
-          console.log(`🖼️ Image onLoad fired for ${name}`);
-          setImageLoaded(true);
-        }}
+        onLoad={() => setImageLoaded(true)}
         loading="eager"
       />
 
