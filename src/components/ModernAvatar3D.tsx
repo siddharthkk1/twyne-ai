@@ -1,5 +1,5 @@
 
-import React, { useRef, useMemo, Suspense } from 'react';
+import React, { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, Box, Cylinder } from '@react-three/drei';
 import { Mesh } from 'three';
@@ -27,18 +27,23 @@ const ModernAvatarModel: React.FC<AvatarProps> = ({ name }) => {
   }, [name]);
 
   useFrame((state) => {
-    // Gentle floating animation with null checks
-    const time = state.clock.elapsedTime;
-    if (headRef.current) {
-      headRef.current.position.y = 1.5 + Math.sin(time * 1.5) * 0.05;
-      headRef.current.rotation.y = Math.sin(time * 0.5) * 0.1;
-    }
-    if (bodyRef.current) {
-      bodyRef.current.position.y = Math.sin(time * 1.5) * 0.03;
-    }
-    if (leftArmRef.current && rightArmRef.current) {
-      leftArmRef.current.rotation.z = Math.PI / 6 + Math.sin(time * 2) * 0.1;
-      rightArmRef.current.rotation.z = -Math.PI / 6 + Math.sin(time * 2 + Math.PI) * 0.1;
+    // Gentle floating animation with comprehensive null checks
+    try {
+      const time = state?.clock?.elapsedTime || 0;
+      if (headRef.current) {
+        headRef.current.position.y = 1.5 + Math.sin(time * 1.5) * 0.05;
+        headRef.current.rotation.y = Math.sin(time * 0.5) * 0.1;
+      }
+      if (bodyRef.current) {
+        bodyRef.current.position.y = Math.sin(time * 1.5) * 0.03;
+      }
+      if (leftArmRef.current && rightArmRef.current) {
+        leftArmRef.current.rotation.z = Math.PI / 6 + Math.sin(time * 2) * 0.1;
+        rightArmRef.current.rotation.z = -Math.PI / 6 + Math.sin(time * 2 + Math.PI) * 0.1;
+      }
+    } catch (error) {
+      // Silently handle animation errors to prevent crashes
+      console.warn('Animation frame error:', error);
     }
   });
 
@@ -119,6 +124,26 @@ const FallbackAvatar: React.FC<{ name: string }> = ({ name }) => {
   );
 };
 
+// Error boundary component for 3D scene
+const ThreeErrorBoundary: React.FC<{ children: React.ReactNode; fallback: React.ReactNode }> = ({ 
+  children, 
+  fallback 
+}) => {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const handleError = () => setHasError(true);
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  if (hasError) {
+    return <>{fallback}</>;
+  }
+
+  return <>{children}</>;
+};
+
 interface ModernAvatar3DProps {
   className?: string;
   name?: string;
@@ -128,18 +153,36 @@ const ModernAvatar3D: React.FC<ModernAvatar3DProps> = ({
   className = "", 
   name = "User" 
 }) => {
-  // Check if WebGL is supported
-  const isWebGLSupported = useMemo(() => {
-    try {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      return !!gl;
-    } catch (e) {
-      return false;
-    }
+  const [webGLSupported, setWebGLSupported] = useState<boolean | null>(null);
+
+  // Check WebGL support more safely
+  useEffect(() => {
+    const checkWebGL = () => {
+      try {
+        if (typeof window === 'undefined') {
+          setWebGLSupported(false);
+          return;
+        }
+
+        const canvas = document.createElement('canvas');
+        if (!canvas) {
+          setWebGLSupported(false);
+          return;
+        }
+
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        setWebGLSupported(!!gl);
+      } catch (error) {
+        console.warn('WebGL check failed:', error);
+        setWebGLSupported(false);
+      }
+    };
+
+    checkWebGL();
   }, []);
 
-  if (!isWebGLSupported) {
+  // Show fallback while checking or if WebGL is not supported
+  if (webGLSupported === null || !webGLSupported) {
     return (
       <div className={`w-16 h-16 rounded-lg overflow-hidden ${className}`}>
         <FallbackAvatar name={name} />
@@ -149,34 +192,46 @@ const ModernAvatar3D: React.FC<ModernAvatar3DProps> = ({
 
   return (
     <div className={`w-16 h-16 rounded-lg overflow-hidden ${className}`}>
-      <Suspense fallback={<FallbackAvatar name={name} />}>
-        <Canvas 
-          camera={{ position: [0, 0, 4], fov: 50 }}
-          style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-          onCreated={({ gl }) => {
-            // Configure WebGL context for better compatibility
-            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-          }}
-          gl={{
-            antialias: true,
-            alpha: true,
-            powerPreference: "default"
-          }}
-        >
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[5, 5, 5]} intensity={0.8} />
-          <pointLight position={[-5, -5, -5]} intensity={0.3} color="#ff6b6b" />
-          <ModernAvatarModel name={name} />
-          <OrbitControls 
-            enableZoom={false} 
-            enablePan={false}
-            autoRotate
-            autoRotateSpeed={2}
-            maxPolarAngle={Math.PI / 2}
-            minPolarAngle={Math.PI / 3}
-          />
-        </Canvas>
-      </Suspense>
+      <ThreeErrorBoundary fallback={<FallbackAvatar name={name} />}>
+        <Suspense fallback={<FallbackAvatar name={name} />}>
+          <Canvas 
+            camera={{ position: [0, 0, 4], fov: 50 }}
+            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+            onCreated={({ gl, scene, camera }) => {
+              try {
+                // Configure WebGL context for better compatibility
+                if (gl && gl.setPixelRatio) {
+                  gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                }
+              } catch (error) {
+                console.warn('WebGL configuration error:', error);
+              }
+            }}
+            gl={{
+              antialias: true,
+              alpha: true,
+              powerPreference: "default",
+              failIfMajorPerformanceCaveat: false
+            }}
+            onError={() => {
+              console.warn('Canvas error occurred, falling back to 2D avatar');
+            }}
+          >
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 5, 5]} intensity={0.8} />
+            <pointLight position={[-5, -5, -5]} intensity={0.3} color="#ff6b6b" />
+            <ModernAvatarModel name={name} />
+            <OrbitControls 
+              enableZoom={false} 
+              enablePan={false}
+              autoRotate
+              autoRotateSpeed={2}
+              maxPolarAngle={Math.PI / 2}
+              minPolarAngle={Math.PI / 3}
+            />
+          </Canvas>
+        </Suspense>
+      </ThreeErrorBoundary>
     </div>
   );
 };
