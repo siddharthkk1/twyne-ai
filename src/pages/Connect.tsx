@@ -191,16 +191,17 @@ const Connect = () => {
 
   // Function to randomly select 3 avatar file names from the available ones in storage
   const selectRandomAvatarIds = (): string[] => {
-    // These are the actual file names from the storage bucket (without .png extension)
+    // These are the actual file names in your storage bucket (without .png extension)
     const availableAvatarFiles = [
-      "684f8c5a28e0929137f65a83",
-      "684f8ca2227a9a04221373e3", 
-      "684f8bb91973186246f39d35",
-      "684f8d64701a61ea77c9c61a",
-      "684f90c45ff6c5b890403161",
-      "684f910438f22dcb7d853a89",
-      "684f913228e0929137f6b568",
-      "684f91b5701a61ea77ca177c"
+      "man1",
+      "man2", 
+      "man3",
+      "man4",
+      "woman1",
+      "woman2",
+      "woman3",
+      "woman4",
+      "woman5"
     ];
     
     // Shuffle array and take first 3
