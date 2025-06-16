@@ -136,9 +136,28 @@ Focus on creating introductions that make the user think "Wow, this person reall
     
     let scenarios;
     try {
-      scenarios = JSON.parse(generatedContent);
+      // Handle markdown-wrapped JSON responses
+      let cleanContent = generatedContent.trim();
+      
+      // Remove markdown code block formatting if present
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      console.log('Cleaned content for parsing:', cleanContent);
+      scenarios = JSON.parse(cleanContent);
+      
+      // Validate the structure
+      if (!Array.isArray(scenarios) || scenarios.length === 0) {
+        throw new Error('Invalid scenarios format');
+      }
+      
     } catch (parseError) {
       console.error('Failed to parse OpenAI response:', generatedContent);
+      console.error('Parse error:', parseError);
+      
       // Enhanced fallback scenarios with more specificity
       scenarios = [
         {
