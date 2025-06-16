@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import ModernAvatar3D from "@/components/ModernAvatar3D";
 
 interface SampleIntro {
   id: string;
@@ -36,6 +37,7 @@ const Connect = () => {
   const [skippedCards, setSkippedCards] = useState<Set<string>>(new Set());
   const [sampleIntros, setSampleIntros] = useState<SampleIntro[]>([]);
   const [loading, setLoading] = useState(true);
+  const [use3DAvatars, setUse3DAvatars] = useState(false);
 
   useEffect(() => {
     const generateIntros = async () => {
@@ -45,11 +47,22 @@ const Connect = () => {
       }
 
       try {
+        // Start with fallback intros immediately to reduce perceived loading time
+        setSampleIntros(getFallbackIntros());
+        
+        // Set a timeout to ensure we don't wait too long
+        const timeoutId = setTimeout(() => {
+          console.log('Intro generation timeout, using fallback');
+          setLoading(false);
+        }, 2000); // Reduced timeout to 2 seconds
+
         const { data, error } = await supabase.functions.invoke('generate-intros', {
           headers: {
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
           }
         });
+
+        clearTimeout(timeoutId);
 
         if (error) {
           console.error('Error generating intros:', error);
@@ -59,13 +72,13 @@ const Connect = () => {
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
-            avatar: <AIAvatar name={scenario.name} size={64} />,
+            avatar: use3DAvatars ? 
+              <ModernAvatar3D name={scenario.name} className="w-16 h-16" /> : 
+              <AIAvatar name={scenario.name} size={64} />,
             tags: scenario.tags,
             name: scenario.name
           }));
           setSampleIntros(intros);
-        } else {
-          setSampleIntros(getFallbackIntros());
         }
       } catch (error) {
         console.error('Exception generating intros:', error);
@@ -76,27 +89,33 @@ const Connect = () => {
     };
 
     generateIntros();
-  }, [user]);
+  }, [user, use3DAvatars]);
 
   const getFallbackIntros = (): SampleIntro[] => [
     {
       id: "1",
       introText: "You both recently moved to a new city and care deeply about growth over goals.",
-      avatar: <AIAvatar name="Alex" size={64} />,
+      avatar: use3DAvatars ? 
+        <ModernAvatar3D name="Alex" className="w-16 h-16" /> : 
+        <AIAvatar name="Alex" size={64} />,
       tags: ["Big dreamer", "Recently moved", "Growth mindset"],
       name: "Alex"
     },
     {
       id: "2", 
       introText: "You share a love for deep conversations and both value authenticity over small talk.",
-      avatar: <AIAvatar name="Sam" size={64} />,
+      avatar: use3DAvatars ? 
+        <ModernAvatar3D name="Sam" className="w-16 h-16" /> : 
+        <AIAvatar name="Sam" size={64} />,
       tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
       name: "Sam"
     },
     {
       id: "3",
       introText: "You both find energy in creative projects and believe in following your curiosity.",
-      avatar: <AIAvatar name="Jordan" size={64} />,
+      avatar: use3DAvatars ? 
+        <ModernAvatar3D name="Jordan" className="w-16 h-16" /> : 
+        <AIAvatar name="Jordan" size={64} />,
       tags: ["Creative soul", "Curious explorer", "Project lover"],
       name: "Jordan"
     }
@@ -131,9 +150,9 @@ const Connect = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-4">
+      <div className="container mx-auto px-4 py-8 max-w-6xl min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl md:text-3xl font-bold mb-6">
             Generating your personalized introductions...
           </h1>
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
@@ -148,10 +167,24 @@ const Connect = () => {
         <h1 className="text-2xl md:text-3xl font-bold mb-4">
           Here's a sample of what your weekly introductions might feel like.
         </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-muted-foreground max-w-2xl mx-auto mb-4">
           These examples are based on what we've learned about your vibe, values, and story so far. 
           Your real matches will evolve over time as we get to know you better.
         </p>
+        
+        {/* 3D Avatar Toggle */}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <span className="text-sm text-muted-foreground">2D Avatars</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setUse3DAvatars(!use3DAvatars)}
+            className={use3DAvatars ? "bg-primary text-primary-foreground" : ""}
+          >
+            {use3DAvatars ? "3D" : "2D"}
+          </Button>
+          <span className="text-sm text-muted-foreground">3D Avatars</span>
+        </div>
       </div>
 
       <div className="flex items-center justify-center min-h-[400px]">
