@@ -18,9 +18,11 @@ interface SampleIntro {
 }
 
 // AI Avatar component using ReadyPlayer.me API with proper head positioning
-const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
-  const avatarUrl =
-    "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
+const AIAvatar = ({ name, size = 80, avatarId }: { name: string; size?: number; avatarId?: string }) => {
+  // Use provided avatarId or fallback to default
+  const avatarUrl = avatarId 
+    ? `https://models.readyplayer.me/${avatarId}.png?quality=100&width=400&height=400&crop=head`
+    : "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=100&width=400&height=400&crop=head";
 
   return (
     <div
@@ -32,7 +34,7 @@ const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
         alt={`${name}'s avatar`}
         className="absolute top-0 left-0 w-full h-auto"
         style={{
-          transform: "scale(2)", // zoom in more if needed
+          transform: "scale(2)",
           transformOrigin: "top center",
         }}
         onError={(e) => {
@@ -46,7 +48,6 @@ const AIAvatar = ({ name, size = 80 }: { name: string; size?: number }) => {
   );
 };
 
-
 const Connect = () => {
   const { user } = useAuth();
   const [connectedCards, setConnectedCards] = useState<Set<string>>(new Set());
@@ -55,9 +56,8 @@ const Connect = () => {
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<'generating' | 'finalizing' | 'complete'>('generating');
   
-  // Add ref to track if intros have been generated for this user session
+  // Track if intros have been generated for this session
   const introsGeneratedRef = useRef<string | null>(null);
-  const hasNavigatedAwayRef = useRef(false);
 
   // Add logging for state changes
   useEffect(() => {
@@ -83,34 +83,12 @@ const Connect = () => {
     console.log('🔄 skippedCards state changed:', Array.from(skippedCards));
   }, [skippedCards]);
 
-  // Track when user navigates away from this page
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      hasNavigatedAwayRef.current = true;
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        hasNavigatedAwayRef.current = true;
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
   useEffect(() => {
     const generateIntros = async () => {
       console.log('🚀 === CHECKING IF INTROS NEED GENERATION ===');
       console.log('📊 Generation check state:', {
         userId: user?.id,
         introsGeneratedForUser: introsGeneratedRef.current,
-        hasNavigatedAway: hasNavigatedAwayRef.current,
         currentIntrosLength: sampleIntros.length
       });
 
@@ -120,12 +98,11 @@ const Connect = () => {
         return;
       }
 
-      // Only generate if we haven't generated for this user OR if user has navigated away and back
-      const shouldGenerate = introsGeneratedRef.current !== user.id || 
-                           (hasNavigatedAwayRef.current && sampleIntros.length === 0);
+      // Only generate if we haven't generated for this user in this session
+      const shouldGenerate = introsGeneratedRef.current !== user.id;
 
       if (!shouldGenerate) {
-        console.log('✅ Intros already generated for this user and no navigation away detected, skipping generation');
+        console.log('✅ Intros already generated for this user session, skipping generation');
         setLoading(false);
         return;
       }
@@ -173,7 +150,7 @@ const Connect = () => {
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
-            avatar: <AIAvatar name={scenario.name} size={80} />,
+            avatar: <AIAvatar name={scenario.name} size={80} avatarId={getAvatarId(index)} />,
             tags: scenario.tags,
             name: scenario.name,
             mutuals: generateMockMutuals(index),
@@ -187,9 +164,8 @@ const Connect = () => {
           setSampleIntros(getFallbackIntros());
         }
 
-        // Mark that intros have been generated for this user
+        // Mark that intros have been generated for this user session
         introsGeneratedRef.current = user.id;
-        hasNavigatedAwayRef.current = false;
 
       } catch (error) {
         console.error('💥 Exception generating intros:', error);
@@ -198,7 +174,6 @@ const Connect = () => {
         
         // Still mark as generated to prevent retry loops
         introsGeneratedRef.current = user.id;
-        hasNavigatedAwayRef.current = false;
       } finally {
         console.log('🏁 Finalizing intro generation...');
         setLoadingStage('complete');
@@ -224,13 +199,28 @@ const Connect = () => {
     return [];
   };
 
+  // Function to get different avatar IDs for variety
+  const getAvatarId = (index: number): string => {
+    const avatarIds = [
+      "684f8c5a28e0929137f65a83",
+      "684f8ca2227a9a04221373e3", 
+      "684f8bb91973186246f39d35",
+      "684f8d64701a61ea77c9c61a",
+      "684f90c45ff6c5b890403161",
+      "684f910438f22dcb7d853a89",
+      "684f913228e0929137f6b568",
+      "684f91b5701a61ea77ca177c"
+    ];
+    return avatarIds[index % avatarIds.length];
+  };
+
   const getFallbackIntros = (): SampleIntro[] => {
     console.log('🔧 Generating fallback intros');
     return [
       {
         id: "1",
         introText: "You both recently moved to a new city and care deeply about growth over goals.",
-        avatar: <AIAvatar name="Alex" size={80} />,
+        avatar: <AIAvatar name="Alex" size={80} avatarId={getAvatarId(0)} />,
         tags: ["Big dreamer", "Recently moved", "Growth mindset"],
         name: "Alex",
         mutuals: [
@@ -242,7 +232,7 @@ const Connect = () => {
       {
         id: "2", 
         introText: "You share a love for deep conversations and both value authenticity over small talk.",
-        avatar: <AIAvatar name="Sam" size={80} />,
+        avatar: <AIAvatar name="Sam" size={80} avatarId={getAvatarId(1)} />,
         tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
         name: "Sam",
         mutuals: [],
@@ -251,7 +241,7 @@ const Connect = () => {
       {
         id: "3",
         introText: "You both find energy in creative projects and believe in following your curiosity.",
-        avatar: <AIAvatar name="Jordan" size={80} />,
+        avatar: <AIAvatar name="Jordan" size={80} avatarId={getAvatarId(2)} />,
         tags: ["Creative soul", "Curious explorer", "Project lover"],
         name: "Jordan",
         mutuals: [
@@ -389,11 +379,10 @@ const Connect = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   <CardContent className="relative p-6 h-full flex flex-col">
-                    {/* New Avatar and Name Layout - Square avatar on left, name/city on right */}
+                    {/* Avatar and Name Layout - Square avatar on left, name/city on right, NO GREEN DOT */}
                     <div className="flex items-center gap-4 mb-6">
                       <div className="relative flex-shrink-0">
                         {intro.avatar}
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-3 border-white rounded-full shadow-sm"></div>
                       </div>
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-1">{intro.name}</h3>
