@@ -71,9 +71,10 @@ EXAMPLES OF SPECIFICITY LEVELS:
 
 ❌ TOO GENERAL: "You both enjoy creative projects and exploring new ideas."
 
-✅ HIGHLY SPECIFIC: "You and Marcus both get excited about 3am creative bursts - he's working on a podcast about sustainable urban farming while you're deep in your pottery phase, and you both think the best conversations happen over really good coffee at 2pm on a Tuesday."
+✅ HIGHLY SPECIFIC: "You and Marcus both get excited about 3am creative bursts, working on products that aim to bring in the big bucks. You both also love any debate over the NBA goat - MJ or Bron? You've got takes.."
 
-Generate 3 distinct, hyper-specific introduction scenarios. Each should:
+Generate 3 distinct, specific introduction scenarios. Each should:
+- 1-2 sentences
 - Feel like it was written by a mutual friend who knows both people well
 - Include at least 2-3 specific details from the user's profile
 - Reference exact interests, activities, books, shows, places, or experiences
@@ -84,18 +85,18 @@ Generate 3 distinct, hyper-specific introduction scenarios. Each should:
 Return ONLY a valid JSON array with this structure:
 [
   {
-    "introText": "[Extremely specific, personalized intro that references exact details from their profile]",
-    "name": "[Realistic name]", 
+    "introText": "[Specific, personalized intro that references exact details from their profile]",
+    "name": "[Realistic first name]", 
     "tags": ["[Specific personality trait]", "[Unique characteristic]", "[Specific interest or value]"]
   },
   {
-    "introText": "[Another completely unique, hyper-specific intro]",
-    "name": "[Different realistic name]",
+    "introText": "[Another completely unique, specific intro]",
+    "name": "[Different realistic first name]",
     "tags": ["[Different specific traits that match the intro]", "[Unique quality]", "[Specific shared interest]"]
   },
   {
     "introText": "[Third unique, deeply personalized intro]",
-    "name": "[Third realistic name]",
+    "name": "[Third realistic first name]",
     "tags": ["[Matching personality traits]", "[Specific characteristic]", "[Unique shared quality]"]
   },
 ]
