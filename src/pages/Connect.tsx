@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,16 +17,17 @@ interface SampleIntro {
 }
 
 // AI Avatar component using ReadyPlayer.me API for testing
-const AIAvatar = ({ name, size = 48 }: { name: string; size?: number }) => {
-  // For testing, use the ReadyPlayer.me URL you provided
-  const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=90&width=512&height=512";
+const AIAvatar = ({ name, size = 64 }: { name: string; size?: number }) => {
+  // Enhanced ReadyPlayer.me URL with better cropping for head/shoulders focus
+  const avatarUrl = "https://models.readyplayer.me/6833ba9188f0c692f5926d43.png?quality=90&width=512&height=512&crop=head";
   
   return (
-    <div className={`rounded-2xl overflow-hidden shadow-sm ring-1 ring-white/20`} style={{ width: size, height: size }}>
+    <div className={`rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/30`} style={{ width: size, height: size }}>
       <img
         src={avatarUrl}
         alt={`${name}'s avatar`}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover object-top"
+        style={{ objectPosition: 'center 20%' }}
         onError={(e) => {
           // Fallback to DiceBear if ReadyPlayer.me fails
           const fallbackUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -121,7 +121,7 @@ const Connect = () => {
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
-            avatar: <AIAvatar name={scenario.name} size={48} />,
+            avatar: <AIAvatar name={scenario.name} size={64} />,
             tags: scenario.tags,
             name: scenario.name,
             mutuals: generateMockMutuals(index),
@@ -169,7 +169,7 @@ const Connect = () => {
       {
         id: "1",
         introText: "You both recently moved to a new city and care deeply about growth over goals.",
-        avatar: <AIAvatar name="Alex" size={48} />,
+        avatar: <AIAvatar name="Alex" size={64} />,
         tags: ["Big dreamer", "Recently moved", "Growth mindset"],
         name: "Alex",
         mutuals: [
@@ -181,7 +181,7 @@ const Connect = () => {
       {
         id: "2", 
         introText: "You share a love for deep conversations and both value authenticity over small talk.",
-        avatar: <AIAvatar name="Sam" size={48} />,
+        avatar: <AIAvatar name="Sam" size={64} />,
         tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
         name: "Sam",
         mutuals: [],
@@ -190,7 +190,7 @@ const Connect = () => {
       {
         id: "3",
         introText: "You both find energy in creative projects and believe in following your curiosity.",
-        avatar: <AIAvatar name="Jordan" size={48} />,
+        avatar: <AIAvatar name="Jordan" size={64} />,
         tags: ["Creative soul", "Curious explorer", "Project lover"],
         name: "Jordan",
         mutuals: [
@@ -328,15 +328,15 @@ const Connect = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   <CardContent className="relative p-6 h-full flex flex-col">
-                    {/* Avatar and Name Section */}
-                    <div className="flex items-start gap-4 mb-6">
-                      <div className="relative">
+                    {/* Enhanced Avatar and Name Section */}
+                    <div className="flex flex-col items-center text-center mb-6">
+                      <div className="relative mb-4">
                         {intro.avatar}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-3 border-white rounded-full shadow-sm"></div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{intro.name}</h3>
-                        <div className="flex items-center text-sm text-gray-500">
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{intro.name}</h3>
+                        <div className="flex items-center justify-center text-sm text-gray-500">
                           <MapPin className="w-4 h-4 mr-1" />
                           Seattle, WA
                         </div>
@@ -356,11 +356,11 @@ const Connect = () => {
                     <div className="mb-6">
                       {intro.mutuals.length > 0 ? (
                         <div className="space-y-3">
-                          <div className="flex items-center text-sm font-medium text-gray-700">
+                          <div className="flex items-center justify-center text-sm font-medium text-gray-700">
                             <Users className="w-4 h-4 mr-2 text-primary" />
                             Mutual connections
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center gap-3">
                             <div className="flex -space-x-1">
                               {intro.mutuals.map((mutual, i) => (
                                 <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-white flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
@@ -374,7 +374,7 @@ const Connect = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center text-sm text-gray-500">
+                        <div className="flex items-center justify-center text-sm text-gray-500">
                           <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full mr-3"></div>
                           <span className="font-medium">{intro.connectionDegrees} {intro.connectionDegrees === 1 ? 'degree' : 'degrees'} of connection away</span>
                         </div>
@@ -382,7 +382,7 @@ const Connect = () => {
                     </div>
 
                     {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-6">
+                    <div className="flex flex-wrap gap-2 mb-6 justify-center">
                       {intro.tags.map((tag, tagIndex) => (
                         <Badge key={tagIndex} variant="secondary" className="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-200 px-3 py-1 text-sm font-medium hover:from-primary/10 hover:to-accent/10 hover:text-primary transition-all">
                           {tag}
