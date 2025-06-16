@@ -48,45 +48,64 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Generate 3 different intro scenarios using the full profile data
-    const prompt = `You are an AI that creates warm, personal introductions between people who might genuinely connect. Based on the user's complete profile, generate 3 different introduction scenarios for potential connections.
+    // Enhanced prompt for maximum specificity and personalization
+    const prompt = `You are an expert at creating hyper-specific, deeply personalized introductions between people who share meaningful connections. Your goal is to create introductions that feel like they were written by someone who truly knows both people intimately.
 
-Complete User Profile:
+COMPLETE USER PROFILE DATA:
 ${JSON.stringify(profileData, null, 2)}
 
-Generate 3 distinct introduction scenarios. Each should:
-1. Feel personal and specific (not generic)
-2. Highlight shared values, interests, or life situations based on the rich profile data
-3. Be 1-2 sentences explaining why they might connect
-4. Sound natural and warm
-5. Use "You both" or "You share" language
+CRITICAL REQUIREMENTS FOR MAXIMUM SPECIFICITY:
+1. Reference SPECIFIC details from the profile - exact book titles, specific shows, particular activities, named places, etc.
+2. Mention concrete shared interests, not general categories
+3. Use the person's actual personality traits, communication style, and values
+4. Reference specific life situations, goals, or recent experiences mentioned in the profile
+5. Include quirky details, specific preferences, or unique characteristics that make the person memorable
+6. Use natural, conversational language that shows genuine understanding of who they are
+7. Each intro should feel completely unique and impossible to generate for someone else
 
-Also suggest realistic names and personality tags for each person.
+EXAMPLES OF SPECIFICITY LEVELS:
+
+❌ TOO GENERAL: "You both love reading and have similar values about growth."
+
+✅ HIGHLY SPECIFIC: "You and Sarah both devour Colleen Hoover novels (you've probably both cried over It Ends With Us), annotate your favorite passages in different colored pens, and believe that vulnerability is the key to real connection."
+
+❌ TOO GENERAL: "You both enjoy creative projects and exploring new ideas."
+
+✅ HIGHLY SPECIFIC: "You and Marcus both get excited about 3am creative bursts - he's working on a podcast about sustainable urban farming while you're deep in your pottery phase, and you both think the best conversations happen over really good coffee at 2pm on a Tuesday."
+
+Generate 4 distinct, hyper-specific introduction scenarios. Each should:
+- Feel like it was written by a mutual friend who knows both people well
+- Include at least 2-3 specific details from the user's profile
+- Reference exact interests, activities, books, shows, places, or experiences
+- Capture the person's unique personality and communication style
+- Sound completely natural and conversational
+- Be impossible to generate for any other person
 
 Return ONLY a valid JSON array with this structure:
 [
   {
-    "introText": "You and Alex recently moved to a new city, love debating who the NBA goat is, and care deeply about growth over comfort.",
-    "name": "Alex", 
-    "tags": ["Big dreamer", "Recently moved", "Growth mindset"]
+    "introText": "[Extremely specific, personalized intro that references exact details from their profile]",
+    "name": "[Realistic name]", 
+    "tags": ["[Specific personality trait]", "[Unique characteristic]", "[Specific interest or value]"]
   },
   {
-    "introText": "You and Amara both read spicy books faster than your TBR can handle. Sarah J. Maas? Colleen Hoover? You've got annotated paperbacks and a lot of opinions.",
-    "name": "Sam",
-    "tags": ["Introspective extrovert", "Deep thinker", "Authentic"]
+    "introText": "[Another completely unique, hyper-specific intro]",
+    "name": "[Different realistic name]",
+    "tags": ["[Different specific traits that match the intro]", "[Unique quality]", "[Specific shared interest]"]
   },
   {
-    "introText": "You and Jordan are both getting married in a month and feeling all the chaos and excitement. You both also love over-analyzing movies and deep convos.",
-    "name": "Jordan",
-    "tags": ["Creative soul", "Curious explorer", "Project lover"]
+    "introText": "[Third unique, deeply personalized intro]",
+    "name": "[Third realistic name]",
+    "tags": ["[Matching personality traits]", "[Specific characteristic]", "[Unique shared quality]"]
   },
   {
-    "introText": "You and August are Swifties fluent in Easter eggs, healing arcs, and midnight spirals. Reputation is underrated and you all know it.",
-    "name": "August",
-    "tags": ["Creative soul", "Curious explorer", "Project lover"]
+    "introText": "[Fourth unique, hyper-specific intro]",
+    "name": "[Fourth realistic name]",
+    "tags": ["[Relevant specific traits]", "[Unique quality]", "[Specific shared interest]"]
   }
-  
-]`;
+]
+
+Focus on creating introductions that make the user think "Wow, this person really gets me and would actually want to hang out with someone like this."`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -95,16 +114,16 @@ Return ONLY a valid JSON array with this structure:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { 
             role: 'system', 
-            content: 'You generate personalized introduction scenarios for people who might connect. Always return valid JSON only.' 
+            content: 'You are an expert at creating hyper-specific, deeply personalized introductions that reference exact details from user profiles. Always return valid JSON only. Focus on maximum specificity and authentic personalization.' 
           },
           { role: 'user', content: prompt }
         ],
         temperature: 0.8,
-        max_tokens: 800
+        max_tokens: 1200
       }),
     });
 
@@ -120,22 +139,27 @@ Return ONLY a valid JSON array with this structure:
       scenarios = JSON.parse(generatedContent);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response:', generatedContent);
-      // Fallback scenarios
+      // Enhanced fallback scenarios with more specificity
       scenarios = [
         {
-          "introText": "You both value authentic connections and enjoy meaningful conversations over small talk.",
+          "introText": "You both get lost in Target for hours (especially the home decor section), have strong opinions about which Taylor Swift era is underrated, and believe the best friendships start with oversharing about your latest life revelations.",
           "name": "Alex",
-          "tags": ["Deep thinker", "Authentic", "Good listener"]
+          "tags": ["Target enthusiast", "Swiftie with opinions", "Deep conversation lover"]
         },
         {
-          "introText": "You share similar interests and both believe in following your curiosity wherever it leads.",
+          "introText": "You and Sam both read with highlighters in hand, can debate the merits of different coffee brewing methods for an hour, and think the most interesting people are the ones asking 'but why?' about everything.",
           "name": "Sam", 
-          "tags": ["Curious explorer", "Creative", "Open-minded"]
+          "tags": ["Analytical reader", "Coffee connoisseur", "Perpetually curious"]
         },
         {
-          "introText": "You both prioritize personal growth and enjoy connecting with like-minded people.",
+          "introText": "You both have that specific energy of someone who's moved cities recently and is intentionally building the life they actually want - plus you both think the best way to get to know someone is through their Spotify Wrapped.",
           "name": "Jordan",
-          "tags": ["Growth-focused", "Thoughtful", "Supportive"]
+          "tags": ["Recent life optimizer", "Music taste revealer", "Intentional friend-maker"]
+        },
+        {
+          "introText": "You and Riley both collect experiences like other people collect things, have at least three creative projects going at once, and genuinely believe that vulnerability and authenticity are the foundation of every good relationship.",
+          "name": "Riley",
+          "tags": ["Experience collector", "Multi-project creator", "Authenticity advocate"]
         }
       ];
     }
