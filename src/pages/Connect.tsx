@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Clock, Info } from "lucide-react";
+
+import React, { useState, useEffect } from "react";
+import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,102 +24,21 @@ const Connect = () => {
   const [skippedCards, setSkippedCards] = useState<Set<string>>(new Set());
   const [sampleIntros, setSampleIntros] = useState<SampleIntro[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingStage, setLoadingStage] = useState<'generating' | 'finalizing' | 'complete'>('generating');
-  
-  // Track if intros have been generated for this session and prevent tab switching regeneration
-  const introsGeneratedRef = useRef<string | null>(null);
-  const hasNavigatedAwayRef = useRef(false);
-  const selectedAvatarIdsRef = useRef<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Add logging for state changes
+  // Generate intros when component mounts or user changes
   useEffect(() => {
-    console.log('🔄 sampleIntros state changed:', {
-      length: sampleIntros.length,
-      intros: sampleIntros.map(intro => ({ id: intro.id, name: intro.name }))
-    });
-  }, [sampleIntros]);
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-  useEffect(() => {
-    console.log('🔄 loading state changed:', loading);
-  }, [loading]);
-
-  useEffect(() => {
-    console.log('🔄 loadingStage state changed:', loadingStage);
-  }, [loadingStage]);
-
-  useEffect(() => {
-    console.log('🔄 connectedCards state changed:', Array.from(connectedCards));
-  }, [connectedCards]);
-
-  useEffect(() => {
-    console.log('🔄 skippedCards state changed:', Array.from(skippedCards));
-  }, [skippedCards]);
-
-  // Handle tab visibility changes to prevent regeneration when switching tabs
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        console.log('👁️ Tab became hidden, marking as navigated away');
-        hasNavigatedAwayRef.current = true;
-      } else {
-        console.log('👁️ Tab became visible, navigated away status:', hasNavigatedAwayRef.current);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  useEffect(() => {
     const generateIntros = async () => {
-      console.log('🚀 === CHECKING IF INTROS NEED GENERATION ===');
-      console.log('📊 Generation check state:', {
-        userId: user?.id,
-        introsGeneratedForUser: introsGeneratedRef.current,
-        currentIntrosLength: sampleIntros.length,
-        hasNavigatedAway: hasNavigatedAwayRef.current
-      });
-
-      if (!user) {
-        console.log('❌ No user found, stopping generation');
-        setLoading(false);
-        return;
-      }
-
-      // Only generate if we haven't generated for this user in this session
-      const shouldGenerate = introsGeneratedRef.current !== user.id;
-
-      if (!shouldGenerate) {
-        console.log('✅ Intros already generated for this user session, skipping generation');
-        setLoading(false);
-        return;
-      }
-
-      console.log('🚀 === STARTING INTRO GENERATION ===');
-      console.log('📊 Initial state:', {
-        sampleIntrosLength: sampleIntros.length,
-        connectedCardsSize: connectedCards.size,
-        skippedCardsSize: skippedCards.size,
-        loading,
-        loadingStage,
-        userId: user?.id
-      });
-      
-      console.log('🧹 Clearing all state immediately...');
-      
-      // Reset ALL state immediately and synchronously
-      setSampleIntros([]);
-      setConnectedCards(new Set());
-      setSkippedCards(new Set());
+      console.log('🚀 Starting intro generation for user:', user.id);
       setLoading(true);
-      setLoadingStage('generating');
+      setError(null);
       
-      console.log('✅ State clearing commands sent');
-
       try {
-        console.log('🤖 Starting AI intro generation for user:', user.id);
         console.log('📡 Calling supabase generate-intros function...');
         
         const { data, error } = await supabase.functions.invoke('generate-intros', {
@@ -127,52 +47,43 @@ const Connect = () => {
           }
         });
 
-        console.log('📡 Supabase function call completed');
-        setLoadingStage('finalizing');
+        console.log('📡 Supabase function response:', { data, error });
 
         if (error) {
           console.error('❌ Error generating intros:', error);
-          console.log('🔄 Setting fallback intros due to error');
-          setSampleIntros(getFallbackIntros());
-        } else if (data?.scenarios) {
+          throw new Error(error.message || 'Failed to generate intros');
+        }
+
+        if (data?.scenarios && Array.isArray(data.scenarios) && data.scenarios.length > 0) {
           console.log('✅ Successfully generated intros:', data.scenarios);
           const intros = data.scenarios.map((scenario: any, index: number) => ({
             id: (index + 1).toString(),
             introText: scenario.introText,
             avatar: <AIAvatar name={scenario.name} size={80} avatarId={getRandomAvatarId(index)} />,
-            tags: scenario.tags,
+            tags: scenario.tags || ['Great match', 'Similar interests', 'Good vibes'],
             name: scenario.name,
             mutuals: generateMockMutuals(index),
-            connectionDegrees: Math.floor(Math.random() * 3) + 2 // Always 2, 3, or 4
+            connectionDegrees: Math.floor(Math.random() * 3) + 2
           }));
-          console.log('🔄 Setting new generated intros:', intros.map(i => ({ id: i.id, name: i.name })));
+          
+          console.log('🔄 Setting generated intros:', intros.map(i => ({ id: i.id, name: i.name })));
           setSampleIntros(intros);
         } else {
-          console.log('⚠️ No scenarios in response, using fallback');
-          console.log('🔄 Setting fallback intros due to missing scenarios');
+          console.log('⚠️ No valid scenarios in response, using fallback');
           setSampleIntros(getFallbackIntros());
         }
 
-        // Mark that intros have been generated for this user session
-        introsGeneratedRef.current = user.id;
-
       } catch (error) {
         console.error('💥 Exception generating intros:', error);
-        console.log('🔄 Setting fallback intros due to exception');
+        setError(error instanceof Error ? error.message : 'Failed to generate intros');
         setSampleIntros(getFallbackIntros());
-        
-        // Still mark as generated to prevent retry loops
-        introsGeneratedRef.current = user.id;
       } finally {
-        console.log('🏁 Finalizing intro generation...');
-        setLoadingStage('complete');
         setLoading(false);
-        console.log('🚀 === INTRO GENERATION COMPLETE ===');
       }
     };
 
     generateIntros();
-  }, [user?.id]); // Only depend on user ID
+  }, [user?.id]);
 
   const generateMockMutuals = (index: number): Array<{ name: string; avatar: string }> => {
     if (index === 0) {
@@ -188,47 +99,19 @@ const Connect = () => {
     return [];
   };
 
-  // Function to randomly select 3 avatar file names from the available ones in storage
-  const selectRandomAvatarIds = (): string[] => {
-    // These are the actual file names in your storage bucket (without .png extension)
+  const getRandomAvatarId = (index: number): string => {
     const availableAvatarFiles = [
-      "man1",
-      "man2", 
-      "man3",
-      "woman1",
-      "woman2",
-      "woman3",
-      "woman4",
-      "woman5",
-      "woman6"
+      "man1", "man2", "man3",
+      "woman1", "woman2", "woman3", "woman4", "woman5", "woman6"
     ];
     
-    // Shuffle array and take first 3
     const shuffled = [...availableAvatarFiles].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 3);
-    console.log('🎲 Selected random avatar file names from storage:', {
-      allAvailable: availableAvatarFiles,
-      selected: selected
-    });
-    return selected;
-  };
-
-  // Function to get avatar file name for a specific index, using randomly selected ones
-  const getRandomAvatarId = (index: number): string => {
-    // Initialize random selection if not done yet
-    if (selectedAvatarIdsRef.current.length === 0) {
-      selectedAvatarIdsRef.current = selectRandomAvatarIds();
-      console.log('🎯 Initialized random avatar selection:', selectedAvatarIdsRef.current);
-    }
-    
-    const selectedId = selectedAvatarIdsRef.current[index % selectedAvatarIdsRef.current.length];
-    console.log(`🎨 Getting avatar file name for index ${index}: ${selectedId}`);
-    return selectedId;
+    return shuffled[index % shuffled.length];
   };
 
   const getFallbackIntros = (): SampleIntro[] => {
     console.log('🔧 Generating fallback intros');
-    const fallbackIntros = [
+    return [
       {
         id: "1",
         introText: "You and Alex recently moved to a new city and care deeply about growth over goals.",
@@ -262,15 +145,6 @@ const Connect = () => {
         connectionDegrees: 2
       }
     ];
-    
-    console.log('🎭 Fallback intros created with avatar file names:', 
-      fallbackIntros.map(intro => ({ 
-        name: intro.name, 
-        avatarId: intro.avatar.props.avatarId 
-      }))
-    );
-    
-    return fallbackIntros;
   };
 
   const handleConnect = (cardId: string) => {
@@ -304,16 +178,8 @@ const Connect = () => {
     </div>
   );
 
-  // Add logging for render conditions
-  console.log('🖼️ RENDER CONDITIONS:', {
-    loading,
-    sampleIntrosLength: sampleIntros.length,
-    willRenderCards: !loading && sampleIntros.length > 0,
-    willShowLoading: loading
-  });
-
+  // Loading state
   if (loading) {
-    console.log('🔄 Rendering loading screen');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center pt-16">
         <div className="text-center max-w-3xl mx-auto px-8 py-16">
@@ -325,8 +191,7 @@ const Connect = () => {
           </div>
           
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 leading-tight">
-            {loadingStage === 'generating' && 'Crafting your introductions...'}
-            {loadingStage === 'finalizing' && 'Finalizing matches...'}
+            Crafting your introductions...
           </h1>
           
           <p className="text-lg text-gray-600 mb-16 leading-relaxed max-w-2xl mx-auto">
@@ -349,16 +214,33 @@ const Connect = () => {
     );
   }
 
-  console.log('🖼️ Rendering main content with cards');
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center pt-16">
+        <div className="text-center max-w-md mx-auto px-8 py-16">
+          <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <X className="w-8 h-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Button onClick={() => window.location.reload()} className="rounded-xl">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
+  // Main content
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-16 flex items-center">
       <div className="w-full max-w-7xl mx-auto px-4 py-8">
-        {/* Sample Notice - Compact */}
+        {/* Sample Notice */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-xl text-sm font-medium mb-6 shadow-sm">
             <Info className="w-4 h-4" />
-            <span>Sample Preview: These are examples of the personalized introductions you'll receive. When Twyne launches in Seattle, these will be actual Twyne users.</span>
+            <span>Sample Preview: These are examples of the personalized introductions you'll receive.</span>
           </div>
         </div>
 
@@ -379,11 +261,10 @@ const Connect = () => {
           </div>
         </div>
 
-        {/* Cards Grid - Only render when we have intros and not loading */}
+        {/* Cards Grid */}
         {sampleIntros.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-            {sampleIntros.map((intro, index) => {
-              console.log('🎴 Rendering card:', { id: intro.id, name: intro.name, index });
+            {sampleIntros.map((intro) => {
               const isConnected = connectedCards.has(intro.id);
               const isSkipped = skippedCards.has(intro.id);
               
@@ -400,7 +281,7 @@ const Connect = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   <CardContent className="relative p-6 h-full flex flex-col">
-                    {/* Avatar and Name Layout - Square avatar on left, name/city on right */}
+                    {/* Avatar and Name Layout */}
                     <div className="flex items-center gap-4 mb-6">
                       <div className="relative flex-shrink-0">
                         {intro.avatar}
@@ -414,7 +295,7 @@ const Connect = () => {
                       </div>
                     </div>
 
-                    {/* Intro Text - Now displays exactly as received from AI */}
+                    {/* Intro Text */}
                     <div className="relative mb-6 flex-1">
                       <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-xl p-4 border border-gray-100">
                         <p className="text-gray-800 leading-relaxed text-base font-medium">
@@ -423,7 +304,7 @@ const Connect = () => {
                       </div>
                     </div>
 
-                    {/* Simplified Connection Info - Single Line */}
+                    {/* Connection Info */}
                     <div className="mb-6">
                       {intro.mutuals.length > 0 ? (
                         <div className="flex items-center gap-3">
