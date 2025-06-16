@@ -179,9 +179,9 @@ const Auth = () => {
       cleanupKeys.forEach(key => localStorage.removeItem(key));
       
       // Set OAuth context marker for AuthCallback detection
-      localStorage.setItem('oauth_context', 'standard_auth');
+      localStorage.setItem('oauth_context', 'google_standard_auth');
       
-      // Use Supabase's built-in OAuth with proper authorization code flow
+      // Use Supabase's built-in OAuth with authorization code flow (no custom state)
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -189,7 +189,6 @@ const Auth = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-            state: 'standard_auth', // Add state parameter to distinguish from other OAuth flows
           },
         }
       });

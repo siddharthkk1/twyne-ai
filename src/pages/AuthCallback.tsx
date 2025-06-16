@@ -238,7 +238,7 @@ const AuthCallback = () => {
       try {
         // Detect context and set appropriate message
         const isOnboardingResults = oauthContext === 'onboarding_results';
-        const isStandardAuth = oauthContext === 'standard_auth';
+        const isStandardAuth = oauthContext === 'google_standard_auth' || oauthContext === 'standard_auth';
         
         if (isOnboardingResults) {
           setStatusMessage('Setting up your account...');

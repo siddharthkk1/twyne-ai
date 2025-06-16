@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,7 +26,7 @@ import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
-// ENHANCED: More robust homepage wrapper with better OAuth state detection
+// ENHANCED: Simplified OAuth detection using localStorage context
 const HomeWrapper = () => {
   const { user, isLoading } = useAuth();
   
@@ -43,45 +42,41 @@ const HomeWrapper = () => {
     );
   }
   
-  // ENHANCED: Check for OAuth callback context before redirecting authenticated users
+  // ENHANCED: Check for OAuth callback context using localStorage-based detection
   if (user) {
     const urlParams = new URLSearchParams(window.location.search);
     const hasOAuthCode = urlParams.has('code');
     const hasOAuthError = urlParams.has('error');
-    const stateParam = urlParams.get('state');
     const hasOAuthContext = localStorage.getItem('oauth_context');
-    
-    // Check if this is a Google OAuth callback (standard auth flow)
-    const isGoogleOAuthCallback = hasOAuthCode && (!stateParam || stateParam === 'standard_auth' || stateParam === 'onboarding_results');
-    
-    // Check if this is a Spotify/YouTube OAuth callback (should redirect to specific callback pages)
-    const isSpotifyCallback = hasOAuthCode && stateParam === 'spotify_auth';
-    const isYouTubeCallback = hasOAuthCode && stateParam === 'youtube_auth';
     
     console.log("HomeWrapper: OAuth detection", {
       hasOAuthCode,
       hasOAuthError,
-      stateParam,
       hasOAuthContext,
-      isGoogleOAuthCallback,
-      isSpotifyCallback,
-      isYouTubeCallback
+      currentPath: window.location.pathname,
+      search: window.location.search
     });
     
-    // If this is a Google OAuth callback or has OAuth context, let AuthCallback handle it
-    if (isGoogleOAuthCallback || hasOAuthContext || hasOAuthError) {
+    // Check OAuth context type for proper routing
+    const oauthContext = hasOAuthContext;
+    const isGoogleOAuth = oauthContext === 'google_standard_auth' || oauthContext === 'standard_auth' || oauthContext === 'onboarding_results';
+    const isSpotifyOAuth = oauthContext === 'spotify_auth';
+    const isYouTubeOAuth = oauthContext === 'youtube_auth';
+    
+    // If this is a Google OAuth callback or has Google OAuth context, let AuthCallback handle it
+    if ((hasOAuthCode && isGoogleOAuth) || hasOAuthError || (hasOAuthContext && isGoogleOAuth)) {
       console.log("HomeWrapper: Google OAuth flow detected, redirecting to callback");
       return <Navigate to="/auth/callback" replace />;
     }
     
     // If this is a Spotify callback, redirect to Spotify callback page
-    if (isSpotifyCallback) {
+    if (hasOAuthCode && isSpotifyOAuth) {
       console.log("HomeWrapper: Spotify OAuth flow detected, redirecting to Spotify callback");
       return <Navigate to="/auth/callback/spotify" replace />;
     }
     
     // If this is a YouTube callback, redirect to YouTube callback page
-    if (isYouTubeCallback) {
+    if (hasOAuthCode && isYouTubeOAuth) {
       console.log("HomeWrapper: YouTube OAuth flow detected, redirecting to YouTube callback");
       return <Navigate to="/auth/callback/youtube" replace />;
     }
