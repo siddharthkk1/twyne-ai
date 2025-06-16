@@ -67,35 +67,6 @@ EXAMPLES OF SPECIFICITY LEVELS:
 ❌ TOO GENERAL: "You both love reading and have similar values about growth."
 ❌ TOO GENERAL: "You both enjoy creative projects and exploring new ideas."
 
-Generate 3 distinct, specific introduction scenarios. Each should:
-- 1-2 sentences
-- start with "You and {Name}"
-- Feel like it was written by a mutual friend who knows both people well
-- Include at least 2-3 specific details from the user's profile
-- Reference exact interests, activities, books, shows, places, or experiences
-- Capture the person's unique personality and communication style
-- Sound completely natural and conversational
-- Be impossible to generate for any other person
-
-Return ONLY a valid JSON array with this structure:
-[
-  {
-    "introText": "[Specific, personalized intro that references exact details from their profile]",
-    "name": "[Realistic first name]", 
-    "tags": ["[Specific personality trait]", "[Unique characteristic]", "[Specific interest or value]"]
-  },
-  {
-    "introText": "[Another completely unique, specific intro]",
-    "name": "[Different realistic first name]",
-    "tags": ["[Different specific traits that match the intro]", "[Unique quality]", "[Specific shared interest]"]
-  },
-  {
-    "introText": "[Third unique, deeply personalized intro]",
-    "name": "[Third realistic first name]",
-    "tags": ["[Matching personality traits]", "[Specific characteristic]", "[Unique shared quality]"]
-  },
-]
-
 Examples:
 [
   {
@@ -114,6 +85,35 @@ Examples:
     "tags": ["ambitious", "#seekdiscomfort", "authenticity"]
   },
 ]
+
+Generate 3 distinct, specific introduction scenarios. Each should:
+- 1-2 sentences
+- start with "You and {Name}"
+- Feel like it was written by a mutual friend who knows both people well
+- Include at least 2-3 specific details from the user's profile
+- Capture the person's unique personality and communication style
+- Sound completely natural and conversational
+
+Return ONLY a valid JSON array with this structure:
+[
+  {
+    "introText": "[Specific, personalized intro that references exact details from their profile]",
+    "name": "[Realistic first name]", 
+    "tags": ["[Specific personality trait]", "[Unique characteristic]", "[Specific interest or value]"]
+  },
+  {
+    "introText": "[Another intro]",
+    "name": "[Different realistic first name]",
+    "tags": ["[Different specific traits that match the intro]", "[Unique quality]", "[Specific shared interest]"]
+  },
+  {
+    "introText": "[Third intro]",
+    "name": "[Third realistic first name]",
+    "tags": ["[Matching personality traits]", "[Specific characteristic]", "[Unique shared quality]"]
+  },
+]
+
+
 
 Focus on creating introductions that make the user think "Wow, this person really gets me and would actually want to hang out with someone like this."`;
 
