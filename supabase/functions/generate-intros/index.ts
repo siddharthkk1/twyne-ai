@@ -62,6 +62,7 @@ GUIDELINES:
 - Vary tone and rhythm. Not every intro needs to follow the same pattern. Make it sound like a friend telling a story.
 - Avoid making the new person sound like a clone of the user.
 - Keep each intro short (1–2 sentences max) and warm. Start with "You and {Name}..."
+- Make sure each intro includes at least one trait, interest, or energy that would genuinely connect with the user's own vibe—even if it's subtle.
 
 EXAMPLES:
 
