@@ -140,15 +140,6 @@ const Connect = () => {
     }
   };
 
-  // Clear stored intros when component unmounts (user leaves the page)
-  useEffect(() => {
-    return () => {
-      console.log('🧹 Connect: Component unmounting, clearing intro session storage');
-      sessionStorage.removeItem(STORAGE_KEY);
-      sessionStorage.removeItem(STORAGE_TIMESTAMP_KEY);
-    };
-  }, []);
-
   const generateMockMutuals = (index: number): Array<{ name: string; avatar: string }> => {
     if (index === 0) {
       return [
@@ -304,7 +295,7 @@ const Connect = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-xl text-sm font-medium mb-6 shadow-sm">
             <Info className="w-4 h-4" />
-            <span>Sample Preview: These are examples of the personalized introductions you'll receive.</span>
+            <span>Sample Preview: These are examples of the personalized introductions you'll receive. When Twyne launches in Seattle, these will be actual people.</span>
           </div>
         </div>
 
