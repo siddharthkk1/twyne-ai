@@ -68,10 +68,11 @@ ${JSON.stringify(profileData, null, 2)}
 GUIDELINES:
 1. Find AT LEAST ONE core connection point that demonstrates genuine compatibility
 2. Focus on values, mindset, life approach, or meaningful shared experiences
-3. Use natural, conversational language - avoid lists or bullet points
-4. Write 2 sentences or 1 longer sentence maximum per intro
-5. Make it feel like a warm recommendation from a mutual friend
-6. Avoid over-specific details that feel forced or researched
+3. Optional: Add some personal detail, 1 or 2 specific interests, quirks, or traits
+4. Use natural, conversational language - avoid lists or bullet points
+5. Write 2 sentences or 1 longer sentence maximum per intro
+6. Make it feel like a warm recommendation from a mutual friend
+7. Avoid many over-specific details that feel forced or researched
 
 AUTHENTICITY CHECKS:
 - Would this intro make both people curious to meet?
