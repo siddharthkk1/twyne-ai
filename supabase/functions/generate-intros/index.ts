@@ -1,16 +1,15 @@
 
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
@@ -22,157 +21,165 @@ serve(async (req) => {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
-    );
+    )
 
-    // Get the current user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    // Get user from auth
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated');
+      console.error('Auth error:', authError)
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    // Get user profile data
+    console.log('🚀 Generating intros for user:', user.id)
+
+    // Get user's profile data
     const { data: userData, error: userError } = await supabaseClient
       .from('user_data')
       .select('profile_data')
       .eq('user_id', user.id)
-      .single();
+      .single()
 
-    if (userError || !userData) {
-      throw new Error('User profile data not found');
+    if (userError || !userData?.profile_data) {
+      console.error('Error fetching user profile:', userError)
+      return new Response(JSON.stringify({ error: 'Profile not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    const profileData = userData.profile_data || {};
+    const profileData = userData.profile_data as any
+    console.log('📊 User profile data keys:', Object.keys(profileData))
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
-    }
+    // Enhanced prompt for more authentic intros
+    const prompt = `You are creating warm, authentic introductions between people who would genuinely connect. Your goal is to identify ONE meaningful connection point that would make two people excited to meet.
 
-    // Prompt tuned for emotionally intelligent, real-feeling match intros
-    const prompt = ` 
-You are an expert at creating emotionally intelligent, authentic-feeling introductions between people. Your goal is to make intros that sound like a mutual friend is saying, “Hey, you two would vibe—here’s why.”
+PHILOSOPHY:
+- Focus on deeper resonance: shared values, life philosophy, personality alignment, or meaningful experiences
+- Look for authentic compatibility, not surface-level similarities
+- Write as if you're a thoughtful friend making an introduction
+- Emphasize WHY this connection would be meaningful, not just WHAT they have in common
 
-COMPLETE USER PROFILE DATA:
+USER PROFILE CONTEXT:
 ${JSON.stringify(profileData, null, 2)}
 
 GUIDELINES:
-- Make each intro feel *real*, like you're introducing two distinct people who would have meaningful chemistry.
-- Don't just copy 2–3 traits from the user. Instead, create a *new person* whose vibe, lifestyle, worldview, or social energy resonates naturally with the user.
-- Some intros can focus on shared lifestyle (e.g. both love early morning hikes); others might connect values (e.g. both are introspective, growth-oriented), or contrast in a way that complements (e.g. one playful, one grounded).
-- Vary tone and rhythm. Not every intro needs to follow the same pattern. Make it sound like a friend telling a story.
-- Avoid making the new person sound like a clone of the user.
-- Keep each intro short (1–2 sentences max) and warm. Start with "You and {Name}..."
-- Make sure each intro includes at least one trait, interest, or energy that would genuinely connect with the user's own vibe—even if it's subtle.
+1. Find ONE core connection point that demonstrates genuine compatibility
+2. Focus on values, mindset, life approach, or meaningful shared experiences
+3. Use natural, conversational language - avoid lists or bullet points
+4. Write 1-2 sentences maximum per intro
+5. Make it feel like a warm recommendation from a mutual friend
+6. Avoid over-specific details that feel forced or researched
 
-EXAMPLES:
+AUTHENTICITY CHECKS:
+- Would this intro make both people curious to meet?
+- Does it highlight meaningful compatibility beyond surface interests?
+- Does it sound like something a thoughtful friend would say?
+- Is it specific enough to be genuine but not so specific it feels researched?
 
-✅ BETTER:
-- You and Marcus both find clarity in motion—he’s the kind of guy who talks out his wild startup ideas while pacing the park, playlist in one hand, La Croix in the other.
-- You and Sarah would skip the small talk—she's a Colleen Hoover die-hard who annotates her books like a therapist, and you'd probably get into your life philosophies by page 2.
+Create 3 warm introduction scenarios. Each should feel authentic and focus on one meaningful connection point.
 
-❌ WORSE:
-- You and Marcus both love walking 10K steps daily and working on AI-based products that help people. You both also listen to Drake and brainstorm business ideas.
-- You and Sarah both annotate Colleen Hoover novels and value emotional vulnerability.
+Format as JSON:
+{
+  "scenarios": [
+    {
+      "name": "First Name",
+      "introText": "Natural introduction focusing on one meaningful connection",
+      "tags": ["3-4 authentic connection descriptors"]
+    }
+  ]
+}
 
-FORMAT:
+EXAMPLE GOOD INTROS:
+- "You and Maya both believe in following your curiosity over having a fixed plan, and you're both in that exciting phase of figuring out what really matters to you."
+- "You and Jordan share that rare combination of being deeply thoughtful but also action-oriented - you both think carefully but aren't afraid to take meaningful risks."
+- "You and Alex both value authentic connections and have that gift of making others feel truly heard in conversation."
 
-Return ONLY a valid JSON array in this structure:
-[
-  {
-    "introText": "[Intro that shows resonance, warmth, and real chemistry]",
-    "name": "[Realistic first name]", 
-    "tags": ["[Meaningful trait]", "[Unique trait]", "[Shared or complementary vibe]"]
-  },
-  ...
-]
-- Return exactly 3 introductions—no more, no fewer. 2 should be same gender (male or female) as the user. Determine this from their name. 1 should be opposite gender.
-`;
+Generate 3 scenarios now:`
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('🤖 Calling OpenAI API...')
+    
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-2024-08-06',
         messages: [
-          { 
-            role: 'system', 
-            content: 'You are a perceptive, emotionally intelligent matchmaker. You introduce people like a mutual friend—highlighting subtle resonance, complementary energy, or values that would spark real curiosity and connection. Every intro starts with "You and {Name}...". Return valid JSON only.'
-          },
-          { role: 'user', content: prompt }
+          {
+            role: 'user',
+            content: prompt
+          }
         ],
-        temperature: 0.9,
-        max_tokens: 1200
+        temperature: 0.8,
+        max_tokens: 2000,
       }),
-    });
+    })
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+    if (!openAIResponse.ok) {
+      const errorText = await openAIResponse.text()
+      console.error('OpenAI API error:', errorText)
+      throw new Error(`OpenAI API error: ${openAIResponse.status}`)
     }
 
-    const data = await response.json();
-    const generatedContent = data.choices[0].message.content;
-    
-    let scenarios;
+    const openAIData = await openAIResponse.json()
+    console.log('✅ OpenAI response received')
+
+    let scenarios
     try {
-      // Handle markdown-wrapped JSON responses
-      let cleanContent = generatedContent.trim();
+      const content = openAIData.choices[0].message.content
+      console.log('📝 OpenAI raw content:', content)
       
-      // Remove markdown code block formatting if present
-      if (cleanContent.startsWith('```json')) {
-        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanContent.startsWith('```')) {
-        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      // Try to parse the JSON response
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        scenarios = JSON.parse(jsonMatch[0])
+      } else {
+        throw new Error('No JSON found in response')
       }
-      
-      console.log('Cleaned content for parsing:', cleanContent);
-      scenarios = JSON.parse(cleanContent);
-      
-      // Validate the structure
-      if (!Array.isArray(scenarios) || scenarios.length === 0) {
-        throw new Error('Invalid scenarios format');
-      }
-      
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', generatedContent);
-      console.error('Parse error:', parseError);
+      console.error('❌ Error parsing OpenAI response:', parseError)
       
-      // Enhanced fallback scenarios with more specificity
-      scenarios = [
-        {
-          "introText": "You both get lost in Target for hours (especially the home decor section), have strong opinions about which Taylor Swift era is underrated, and believe the best friendships start with oversharing about your latest life revelations.",
-          "name": "Alex",
-          "tags": ["Target enthusiast", "Swiftie with opinions", "Deep conversation lover"]
-        },
-        {
-          "introText": "You and Sam both read with highlighters in hand, can debate the merits of different coffee brewing methods for an hour, and think the most interesting people are the ones asking 'but why?' about everything.",
-          "name": "Sam", 
-          "tags": ["Analytical reader", "Coffee connoisseur", "Perpetually curious"]
-        },
-        {
-          "introText": "You both have that specific energy of someone who's moved cities recently and is intentionally building the life they actually want - plus you both think the best way to get to know someone is through their Spotify Wrapped.",
-          "name": "Jordan",
-          "tags": ["Recent life optimizer", "Music taste revealer", "Intentional friend-maker"]
-        },
-        {
-          "introText": "You and Riley both collect experiences like other people collect things, have at least three creative projects going at once, and genuinely believe that vulnerability and authenticity are the foundation of every good relationship.",
-          "name": "Riley",
-          "tags": ["Experience collector", "Multi-project creator", "Authenticity advocate"]
-        }
-      ];
+      // Fallback scenarios with improved authenticity
+      scenarios = {
+        scenarios: [
+          {
+            name: "Alex",
+            introText: "You and Alex both believe growth happens outside your comfort zone, and you're both navigating that balance between ambition and staying true to yourselves.",
+            tags: ["Growth-minded", "Authentic", "Ambitious", "Self-aware"]
+          },
+          {
+            name: "Sam",
+            introText: "You and Sam share that thoughtful approach to life where you value deep conversations and meaningful connections over surface-level interactions.",
+            tags: ["Deep thinker", "Meaningful connections", "Thoughtful", "Authentic"]
+          },
+          {
+            name: "Jordan",
+            introText: "You and Jordan both have that creative energy where you're drawn to projects that feel personally meaningful rather than just professionally smart.",
+            tags: ["Creative", "Purpose-driven", "Project-oriented", "Passionate"]
+          }
+        ]
+      }
     }
 
-    return new Response(JSON.stringify({ scenarios }), {
+    console.log('🎯 Generated scenarios:', scenarios.scenarios?.length || 0)
+    
+    return new Response(JSON.stringify(scenarios), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    })
 
   } catch (error) {
-    console.error('Error in generate-intros function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('💥 Function error:', error)
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.message 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    })
   }
-});
+})
