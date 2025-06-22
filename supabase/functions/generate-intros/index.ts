@@ -66,9 +66,8 @@ USER PROFILE CONTEXT:
 ${JSON.stringify(profileData, null, 2)}
 
 GUIDELINES:
-1. Find AT LEAST ONE core connection point that demonstrates genuine compatibility
-2. Focus on values, mindset, life approach, or meaningful shared experiences
-3. Optional: Add some personal detail, 1 or 2 specific interests, quirks, or traits
+1. Find AT LEAST ONE core connection point that demonstrates genuine compatibility. Focus on values, mindset, life approach, or meaningful shared experiences
+3. Occasionally, add some personal detail, 1 or 2 specific interests, quirks, or traits if it fits the rest of the intro.
 4. Use natural, conversational language - avoid lists or bullet points
 5. Write 2 sentences or 1 longer sentence maximum per intro
 6. Make it feel like a warm recommendation from a mutual friend
