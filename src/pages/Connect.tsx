@@ -18,6 +18,10 @@ interface SampleIntro {
   connectionDegrees: number;
 }
 
+const STORAGE_KEY = 'connect_page_intros';
+const STORAGE_TIMESTAMP_KEY = 'connect_page_intros_timestamp';
+const STORAGE_DURATION = 30 * 60 * 1000; // 30 minutes
+
 const Connect = () => {
   const { user } = useAuth();
   const [connectedCards, setConnectedCards] = useState<Set<string>>(new Set());
@@ -26,64 +30,124 @@ const Connect = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Generate intros when component mounts or user changes
+  // Load intros from storage or generate new ones
   useEffect(() => {
     if (!user) {
       setLoading(false);
       return;
     }
 
-    const generateIntros = async () => {
-      console.log('🚀 Starting intro generation for user:', user.id);
-      setLoading(true);
-      setError(null);
+    const loadOrGenerateIntros = async () => {
+      console.log('🔄 Connect: Starting intro loading/generation for user:', user.id);
       
-      try {
-        console.log('📡 Calling supabase generate-intros function...');
+      // Check if we have valid stored intros
+      const storedIntros = sessionStorage.getItem(STORAGE_KEY);
+      const storedTimestamp = sessionStorage.getItem(STORAGE_TIMESTAMP_KEY);
+      
+      if (storedIntros && storedTimestamp) {
+        const timestamp = parseInt(storedTimestamp);
+        const now = Date.now();
         
-        const { data, error } = await supabase.functions.invoke('generate-intros', {
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        // Check if stored intros are still valid (within 30 minutes)
+        if (now - timestamp < STORAGE_DURATION) {
+          console.log('✅ Connect: Using stored intros from sessionStorage');
+          try {
+            const parsedIntros = JSON.parse(storedIntros);
+            const introsWithAvatars = parsedIntros.map((intro: any, index: number) => ({
+              ...intro,
+              avatar: <AIAvatar name={intro.name} size={80} avatarId={getRandomAvatarId(index)} />
+            }));
+            setSampleIntros(introsWithAvatars);
+            setLoading(false);
+            return;
+          } catch (parseError) {
+            console.error('❌ Connect: Error parsing stored intros:', parseError);
+            // Continue to generate new intros if parsing fails
           }
-        });
-
-        console.log('📡 Supabase function response:', { data, error });
-
-        if (error) {
-          console.error('❌ Error generating intros:', error);
-          throw new Error(error.message || 'Failed to generate intros');
-        }
-
-        if (data?.scenarios && Array.isArray(data.scenarios) && data.scenarios.length > 0) {
-          console.log('✅ Successfully generated intros:', data.scenarios);
-          const intros = data.scenarios.map((scenario: any, index: number) => ({
-            id: (index + 1).toString(),
-            introText: scenario.introText,
-            avatar: <AIAvatar name={scenario.name} size={80} avatarId={getRandomAvatarId(index)} />,
-            tags: scenario.tags || ['Great match', 'Similar interests', 'Good vibes'],
-            name: scenario.name,
-            mutuals: generateMockMutuals(index),
-            connectionDegrees: Math.floor(Math.random() * 3) + 2
-          }));
-          
-          console.log('🔄 Setting generated intros:', intros.map(i => ({ id: i.id, name: i.name })));
-          setSampleIntros(intros);
         } else {
-          console.log('⚠️ No valid scenarios in response, using fallback');
-          setSampleIntros(getFallbackIntros());
+          console.log('⏰ Connect: Stored intros expired, generating new ones');
         }
-
-      } catch (error) {
-        console.error('💥 Exception generating intros:', error);
-        setError(error instanceof Error ? error.message : 'Failed to generate intros');
-        setSampleIntros(getFallbackIntros());
-      } finally {
-        setLoading(false);
+      } else {
+        console.log('💫 Connect: No stored intros found, generating new ones');
       }
+
+      // Generate new intros
+      await generateNewIntros();
     };
 
-    generateIntros();
+    loadOrGenerateIntros();
   }, [user?.id]);
+
+  const generateNewIntros = async () => {
+    console.log('🚀 Connect: Generating new intros for user:', user?.id);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('📡 Connect: Calling supabase generate-intros function...');
+      
+      const { data, error } = await supabase.functions.invoke('generate-intros', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+
+      console.log('📡 Connect: Supabase function response:', { data, error });
+
+      if (error) {
+        console.error('❌ Connect: Error generating intros:', error);
+        throw new Error(error.message || 'Failed to generate intros');
+      }
+
+      if (data?.scenarios && Array.isArray(data.scenarios) && data.scenarios.length > 0) {
+        console.log('✅ Connect: Successfully generated intros:', data.scenarios);
+        const intros = data.scenarios.map((scenario: any, index: number) => ({
+          id: (index + 1).toString(),
+          introText: scenario.introText,
+          name: scenario.name,
+          tags: scenario.tags || ['Great match', 'Similar interests', 'Good vibes'],
+          mutuals: generateMockMutuals(index),
+          connectionDegrees: Math.floor(Math.random() * 3) + 2
+        }));
+        
+        // Store intros in sessionStorage
+        const introsForStorage = intros.map(intro => ({
+          ...intro,
+          avatar: null // Don't store React components
+        }));
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(introsForStorage));
+        sessionStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
+        
+        // Add avatars for display
+        const introsWithAvatars = intros.map((intro, index) => ({
+          ...intro,
+          avatar: <AIAvatar name={intro.name} size={80} avatarId={getRandomAvatarId(index)} />
+        }));
+        
+        console.log('💾 Connect: Stored intros in sessionStorage');
+        setSampleIntros(introsWithAvatars);
+      } else {
+        console.log('⚠️ Connect: No valid scenarios in response, using fallback');
+        setSampleIntros(getFallbackIntros());
+      }
+
+    } catch (error) {
+      console.error('💥 Connect: Exception generating intros:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate intros');
+      setSampleIntros(getFallbackIntros());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Clear stored intros when component unmounts (user leaves the page)
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Connect: Component unmounting, clearing intro session storage');
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_TIMESTAMP_KEY);
+    };
+  }, []);
 
   const generateMockMutuals = (index: number): Array<{ name: string; avatar: string }> => {
     if (index === 0) {
@@ -110,7 +174,7 @@ const Connect = () => {
   };
 
   const getFallbackIntros = (): SampleIntro[] => {
-    console.log('🔧 Generating fallback intros');
+    console.log('🔧 Connect: Generating fallback intros');
     return [
       {
         id: "1",
@@ -148,12 +212,12 @@ const Connect = () => {
   };
 
   const handleConnect = (cardId: string) => {
-    console.log('💖 Connecting to card:', cardId);
+    console.log('💖 Connect: Connecting to card:', cardId);
     setConnectedCards(prev => new Set([...prev, cardId]));
   };
 
   const handleSkip = (cardId: string) => {
-    console.log('⏭️ Skipping card:', cardId);
+    console.log('⏭️ Connect: Skipping card:', cardId);
     setSkippedCards(prev => new Set([...prev, cardId]));
   };
 
