@@ -97,9 +97,10 @@ EXAMPLE GOOD INTROS:
 - "You and Maya both believe in following your curiosity over having a fixed plan, and you're both in that exciting phase of figuring out what really matters to you."
 - "You and Jordan share that rare combination of being deeply thoughtful but also action-oriented - you both think carefully but aren't afraid to take meaningful risks."
 - "You and Dani both collect oddly specific Spotify playlists for every mood—she’s the type to send you a “rainy Tuesday reset” mix unprompted. You’d probably end up swapping weird podcast recs and half-serious dream jobs over boba.
-- "You and Priya both have entire personality eras based on Taylor Swift albums—she swears she was in her “Folklore phase” all last winter, and she’s the type to dissect lyrics like they’re journal entries. You’d probably end up trading playlists and life theories in the same breath.
-Generate 3 scenarios now:"
+- "You and Priya both have entire personality eras based on Taylor Swift albums—she swears she was in her “Folklore phase” all last winter, and she’s the type to dissect lyrics like they’re journal entries. You’d probably end up trading playlists and life theories in the same breath."
 
+Generate 3 scenarios now:
+`;
     console.log('🤖 Calling OpenAI API...')
     
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
