@@ -67,11 +67,11 @@ ${JSON.stringify(profileData, null, 2)}
 
 GUIDELINES:
 1. Find AT LEAST ONE core connection point that demonstrates genuine compatibility. Focus on values, mindset, life approach, or meaningful shared experiences
-3. Occasionally, add some personal detail, 1 or 2 specific interests, quirks, or traits if it fits the rest of the intro.
-4. Use natural, conversational language - avoid lists or bullet points
-5. Write 2 sentences or 1 longer sentence maximum per intro
-6. Make it feel like a warm recommendation from a mutual friend
-7. Avoid many over-specific details that feel forced or researched
+2. Include 1 or 2 specific, personal traits, interests, routines, or quirks (e.g., a favorite author, a creative habit, a morning ritual). These make the intros feel real and grounded.
+3. Use natural, conversational language - avoid lists or bullet points
+4. Write 2 sentences or 1 longer sentence maximum per intro
+5. Make it feel like a warm recommendation from a mutual friend
+6. Avoid many over-specific details that feel forced or researched
 
 AUTHENTICITY CHECKS:
 - Would this intro make both people curious to meet?
@@ -93,11 +93,12 @@ Format as JSON:
 }
 
 EXAMPLE GOOD INTROS:
+- "You and Priya both annotate your favorite fiction with color-coded tabs, and you're drawn to conversations where people talk about their inner world, not just what they do."
 - "You and Maya both believe in following your curiosity over having a fixed plan, and you're both in that exciting phase of figuring out what really matters to you."
 - "You and Jordan share that rare combination of being deeply thoughtful but also action-oriented - you both think carefully but aren't afraid to take meaningful risks."
-- "You and Alex both value authentic connections and have that gift of making others feel truly heard in conversation."
-
-Generate 3 scenarios now:`
+- "You and Dani both collect oddly specific Spotify playlists for every mood—she’s the type to send you a “rainy Tuesday reset” mix unprompted. You’d probably end up swapping weird podcast recs and half-serious dream jobs over boba.
+- "You and Priya both have entire personality eras based on Taylor Swift albums—she swears she was in her “Folklore phase” all last winter, and she’s the type to dissect lyrics like they’re journal entries. You’d probably end up trading playlists and life theories in the same breath.
+Generate 3 scenarios now:"
 
     console.log('🤖 Calling OpenAI API...')
     
