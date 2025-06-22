@@ -85,6 +85,7 @@ Return ONLY a valid JSON array in this structure:
   },
   ...
 ]
+- Return exactly 3 introductions—no more, no fewer. 2 should be same gender (male or female) as the user. Determine this from their name. 1 should be opposite gender.
 `;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
