@@ -61,19 +61,21 @@ PHILOSOPHY:
 - Look for authentic compatibility, not surface-level similarities
 - Write as if you're a thoughtful friend making an introduction
 - Emphasize WHY this connection would be meaningful, not just WHAT they have in common
+- Try to add one specific detail if it fits and isn't forced
 
 USER PROFILE CONTEXT:
 ${JSON.stringify(profileData, null, 2)}
 
 GUIDELINES:
-1. Find ONE core connection point that demonstrates genuine compatibility
-2. Focus on values, mindset, life approach, or meaningful shared experiences
+1. Focus each intro on ONE meaningful connection point (like a shared value, life approach, or mindset)
+2. You can optionally include 1–2 light, specific shared traits or interests (e.g. a favorite author, a creative habit, a routine) to add realism and texture
 3. Use natural, conversational language - avoid lists or bullet points
 4. Write 1-2 sentences maximum per intro
 5. Make it feel like a warm recommendation from a mutual friend
 6. Avoid over-specific details that feel forced or researched
 
 AUTHENTICITY CHECKS:
+- Does it combine emotional depth with just enough personal detail to feel real?
 - Would this intro make both people curious to meet?
 - Does it highlight meaningful compatibility beyond surface interests?
 - Does it sound like something a thoughtful friend would say?
