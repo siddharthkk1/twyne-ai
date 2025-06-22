@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AIAvatar } from "@/components/connect/AIAvatar";
+import { useIntroCache } from "@/hooks/useIntroCache";
 
 interface SampleIntro {
   id: string;
@@ -18,10 +18,6 @@ interface SampleIntro {
   connectionDegrees: number;
 }
 
-const STORAGE_KEY = 'connect_page_intros';
-const STORAGE_TIMESTAMP_KEY = 'connect_page_intros_timestamp';
-const STORAGE_DURATION = 30 * 60 * 1000; // 30 minutes
-
 const Connect = () => {
   const { user } = useAuth();
   const [connectedCards, setConnectedCards] = useState<Set<string>>(new Set());
@@ -29,8 +25,9 @@ const Connect = () => {
   const [sampleIntros, setSampleIntros] = useState<SampleIntro[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { getCachedIntros, setCachedIntros } = useIntroCache();
 
-  // Load intros from storage or generate new ones
+  // Load intros from cache or generate new ones
   useEffect(() => {
     if (!user) {
       setLoading(false);
@@ -40,38 +37,21 @@ const Connect = () => {
     const loadOrGenerateIntros = async () => {
       console.log('🔄 Connect: Starting intro loading/generation for user:', user.id);
       
-      // Check if we have valid stored intros
-      const storedIntros = sessionStorage.getItem(STORAGE_KEY);
-      const storedTimestamp = sessionStorage.getItem(STORAGE_TIMESTAMP_KEY);
+      // Check if we have valid cached intros
+      const cachedIntros = getCachedIntros();
       
-      if (storedIntros && storedTimestamp) {
-        const timestamp = parseInt(storedTimestamp);
-        const now = Date.now();
-        
-        // Check if stored intros are still valid (within 30 minutes)
-        if (now - timestamp < STORAGE_DURATION) {
-          console.log('✅ Connect: Using stored intros from sessionStorage');
-          try {
-            const parsedIntros = JSON.parse(storedIntros);
-            const introsWithAvatars = parsedIntros.map((intro: any, index: number) => ({
-              ...intro,
-              avatar: <AIAvatar name={intro.name} size={80} avatarId={getRandomAvatarId(index)} />
-            }));
-            setSampleIntros(introsWithAvatars);
-            setLoading(false);
-            return;
-          } catch (parseError) {
-            console.error('❌ Connect: Error parsing stored intros:', parseError);
-            // Continue to generate new intros if parsing fails
-          }
-        } else {
-          console.log('⏰ Connect: Stored intros expired, generating new ones');
-        }
-      } else {
-        console.log('💫 Connect: No stored intros found, generating new ones');
+      if (cachedIntros && cachedIntros.length > 0) {
+        console.log('✅ Connect: Using cached intros');
+        const introsWithAvatars = cachedIntros.map((intro, index) => ({
+          ...intro,
+          avatar: <AIAvatar name={intro.name} size={80} avatarId={getRandomAvatarId(index)} />
+        }));
+        setSampleIntros(introsWithAvatars);
+        setLoading(false);
+        return;
       }
 
-      // Generate new intros
+      console.log('💫 Connect: No valid cached intros found, generating new ones');
       await generateNewIntros();
     };
 
@@ -110,13 +90,16 @@ const Connect = () => {
           connectionDegrees: Math.floor(Math.random() * 3) + 2
         }));
         
-        // Store intros in sessionStorage
-        const introsForStorage = intros.map(intro => ({
-          ...intro,
-          avatar: null // Don't store React components
+        // Cache intros without React components
+        const introsForCache = intros.map(intro => ({
+          id: intro.id,
+          introText: intro.introText,
+          name: intro.name,
+          tags: intro.tags,
+          mutuals: intro.mutuals,
+          connectionDegrees: intro.connectionDegrees
         }));
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(introsForStorage));
-        sessionStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
+        setCachedIntros(introsForCache);
         
         // Add avatars for display
         const introsWithAvatars = intros.map((intro, index) => ({
@@ -124,7 +107,7 @@ const Connect = () => {
           avatar: <AIAvatar name={intro.name} size={80} avatarId={getRandomAvatarId(index)} />
         }));
         
-        console.log('💾 Connect: Stored intros in sessionStorage');
+        console.log('💾 Connect: Cached intros successfully');
         setSampleIntros(introsWithAvatars);
       } else {
         console.log('⚠️ Connect: No valid scenarios in response, using fallback');
