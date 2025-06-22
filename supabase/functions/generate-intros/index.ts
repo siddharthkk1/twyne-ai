@@ -48,74 +48,43 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Enhanced prompt for maximum specificity and personalization
-    const prompt = `You are an expert at creating hyper-specific, deeply personalized introductions between people who share meaningful connections. Your goal is to create introductions that feel like they were written by someone who truly knows both people intimately.
+    // Prompt tuned for emotionally intelligent, real-feeling match intros
+    const prompt = ` 
+You are an expert at creating emotionally intelligent, authentic-feeling introductions between people. Your goal is to make intros that sound like a mutual friend is saying, “Hey, you two would vibe—here’s why.”
 
 COMPLETE USER PROFILE DATA:
 ${JSON.stringify(profileData, null, 2)}
 
-CRITICAL REQUIREMENTS:
-1. Use detail from the user profile data above to provide hte intro based on shared interests, values, life stories, connection styles, anything.
-2. Avoid bringing too many details from the user's profile where it seems we're just creating a copy of them.
-3. Use natural, conversational language that shows genuine understanding of who they are
-4. Each intro should feel completely unique and impossible to generate for someone else
-5. The intro can either focus on specific interests (a book or artist they both like) or be broader and talk about their values and goals or a shared life context or job or anything really.
-6. Take into consideration how likely it is another person would share the trait or thing mentioned.
+GUIDELINES:
+- Make each intro feel *real*, like you're introducing two distinct people who would have meaningful chemistry.
+- Don't just copy 2–3 traits from the user. Instead, create a *new person* whose vibe, lifestyle, worldview, or social energy resonates naturally with the user.
+- Some intros can focus on shared lifestyle (e.g. both love early morning hikes); others might connect values (e.g. both are introspective, growth-oriented), or contrast in a way that complements (e.g. one playful, one grounded).
+- Vary tone and rhythm. Not every intro needs to follow the same pattern. Make it sound like a friend telling a story.
+- Avoid making the new person sound like a clone of the user.
+- Keep each intro short (1–2 sentences max) and warm. Start with "You and {Name}..."
 
-EXAMPLES OF SPECIFICITY LEVELS:
+EXAMPLES:
 
-❌ TOO GENERAL: "You both love reading and have similar values about growth."
-❌ TOO GENERAL: "You both enjoy creative projects and exploring new ideas."
+✅ BETTER:
+- You and Marcus both find clarity in motion—he’s the kind of guy who talks out his wild startup ideas while pacing the park, playlist in one hand, La Croix in the other.
+- You and Sarah would skip the small talk—she's a Colleen Hoover die-hard who annotates her books like a therapist, and you'd probably get into your life philosophies by page 2.
 
-Examples:
+❌ WORSE:
+- You and Marcus both love walking 10K steps daily and working on AI-based products that help people. You both also listen to Drake and brainstorm business ideas.
+- You and Sarah both annotate Colleen Hoover novels and value emotional vulnerability.
+
+FORMAT:
+
+Return ONLY a valid JSON array in this structure:
 [
   {
-    "introText": "You and Marcus both get excited about 3am creative bursts, working on products that aim to bring in the big bucks. You both also love any debate over the NBA goat - MJ or Bron? You've got takes.",
-    "name": "Marcus", 
-    "tags": ["deep thinker", "startups", "#BronGuy"]
-  },
-  {
-    "introText": "[You and Sarah both devour Colleen Hoover novels (you've probably both cried over It Ends With Us), annotate your favorite passages in different colored pens, and believe that vulnerability is the key to real connection.",
-    "name": "Sarah"",
-    "tags": ["introvert", "#bookworm", "social activism"]
-  },
-  {
-    "introText": "You and David both value authenticity and growth over fakeness and comfort; you spend many hours thinking about how to become the best versions of yourselves and chasae after your goals.",
-    "name": "David",
-    "tags": ["ambitious", "#seekdiscomfort", "authenticity"]
-  },
-]
-
-Generate 3 distinct, specific introduction scenarios. Each should:
-- 1-2 sentences
-- start with "You and {Name}"
-- Feel like it was written by a mutual friend who knows both people well
-- Include at least 2-3 specific details from the user's profile
-- Capture the person's unique personality and communication style
-- Sound completely natural and conversational
-
-Return ONLY a valid JSON array with this structure:
-[
-  {
-    "introText": "[Specific, personalized intro that references exact details from their profile]",
+    "introText": "[Intro that shows resonance, warmth, and real chemistry]",
     "name": "[Realistic first name]", 
-    "tags": ["[Specific personality trait]", "[Unique characteristic]", "[Specific interest or value]"]
+    "tags": ["[Meaningful trait]", "[Unique trait]", "[Shared or complementary vibe]"]
   },
-  {
-    "introText": "[Another intro]",
-    "name": "[Different realistic first name]",
-    "tags": ["[Different specific traits that match the intro]", "[Unique quality]", "[Specific shared interest]"]
-  },
-  {
-    "introText": "[Third intro]",
-    "name": "[Third realistic first name]",
-    "tags": ["[Matching personality traits]", "[Specific characteristic]", "[Unique shared quality]"]
-  },
+  ...
 ]
-
-
-
-Focus on creating introductions that make the user think "Wow, this person really gets me and would actually want to hang out with someone like this."`;
+`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -128,11 +97,11 @@ Focus on creating introductions that make the user think "Wow, this person reall
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert at warm, personalized introductions that reference exact details from user profiles. Every intro will be 1-2 sentences with detail. Should start with "You and {Name}..." Always return valid JSON only.' 
+            content: 'You are a perceptive, emotionally intelligent matchmaker. You introduce people like a mutual friend—highlighting subtle resonance, complementary energy, or values that would spark real curiosity and connection. Every intro starts with "You and {Name}...". Return valid JSON only.'
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.8,
+        temperature: 0.9,
         max_tokens: 1200
       }),
     });
