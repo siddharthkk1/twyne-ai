@@ -7,12 +7,15 @@ import { Logo } from "@/components/Logo";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { WaitlistFollowUpForm } from "@/components/landing/WaitlistFollowUpForm";
 import { FeedbackButton } from "./feedback/FeedbackButton";
+import { FeedbackModal } from "./feedback/FeedbackModal";
+import { MessageSquare } from "lucide-react";
 
 export const TopNavBar = () => {
   const { user } = useAuth();
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
   const [submittedUserData, setSubmittedUserData] = useState<{email: string, location: string, phoneNumber?: string} | null>(null);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   
   const handleWaitlistSubmit = (userData: {email: string, location: string, phoneNumber?: string}) => {
     setSubmittedUserData(userData);
@@ -31,6 +34,15 @@ export const TopNavBar = () => {
                 <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
                   About
                 </Link>
+                <Button
+                  onClick={() => setIsFeedbackModalOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Give Feedback
+                </Button>
               </>
             )}
           </div>
@@ -72,8 +84,14 @@ export const TopNavBar = () => {
         </div>
       </nav>
       
-      {/* Show feedback button only for authenticated users */}
+      {/* Show feedback button only for authenticated users (the floating one) */}
       {user && <FeedbackButton />}
+      
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={isFeedbackModalOpen} 
+        onClose={() => setIsFeedbackModalOpen(false)} 
+      />
       
       <WaitlistForm 
         open={isWaitlistOpen} 

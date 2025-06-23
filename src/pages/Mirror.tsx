@@ -15,9 +15,6 @@ import { getMirrorChatResponse, updateProfileFromChat } from "@/utils/aiUtils";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/chat";
 import { MirrorDataService } from "@/services/mirrorDataService";
-import { FeedbackButton } from "@/components/feedback/FeedbackButton";
-import { FeedbackModal } from "@/components/feedback/FeedbackModal";
-import { Link } from "react-router-dom";
 
 const Mirror = () => {
   const { user } = useAuth();
@@ -30,7 +27,6 @@ const Mirror = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [spotifyData, setSpotifyData] = useState(null);
   const [youtubeData, setYoutubeData] = useState(null);
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const fetchUserProfile = async () => {
     if (!user) {
@@ -341,34 +337,20 @@ const Mirror = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header Navigation */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40">
+      {/* Simplified Header - just title and date */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-16 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="text-lg font-semibold text-slate-800">
               Your Mirror
             </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
-                About
-              </Link>
-              <Button
-                onClick={() => setIsFeedbackModalOpen(true)}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <MessageSquare className="h-4 w-4" />
-                Give Feedback
-              </Button>
-              <div className="text-sm text-slate-500">
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </div>
+            <div className="text-sm text-slate-500">
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
             </div>
           </div>
         </div>

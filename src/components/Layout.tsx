@@ -7,14 +7,15 @@ const Layout = () => {
   const location = useLocation();
   const hideNav = ['/onboarding', '/onboarding-chat'].includes(location.pathname);
   const isConnectPage = location.pathname === '/connect';
+  const isMirrorPage = location.pathname === '/mirror';
 
   return (
     <div className={`min-h-screen flex flex-col ${isConnectPage ? '' : 'bg-white'}`}>
       {!hideNav && <TopNavBar />}
-      <div className={`flex-1 ${hideNav ? 'p-0' : isConnectPage ? '' : 'container mx-auto pb-24 mt-16'}`}>
+      <div className={`flex-1 ${hideNav ? 'p-0' : isConnectPage ? '' : isMirrorPage ? 'pt-16' : 'container mx-auto pb-24 mt-16'}`}>
         <Outlet />
       </div>
-      {!hideNav && !isConnectPage && <NavBar />}
+      {!hideNav && !isConnectPage && !isMirrorPage && <NavBar />}
     </div>
   );
 };
