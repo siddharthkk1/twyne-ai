@@ -88,19 +88,31 @@ const About = () => {
               
               <div className="space-y-6">
                 <p className="font-semibold text-lg">Here's how it works:</p>
-                <div className="space-y-4 pl-4 border-l-2 border-primary/20">
-                  <p className="text-muted-foreground leading-relaxed">
-                    <strong className="text-foreground">Chat with our warm, curious AI</strong> — it gets to know your personality, vibe, and story
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    <strong className="text-foreground">Once a week, get a warm intro</strong> to someone nearby you're likely to click with
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    <strong className="text-foreground">Explore events and your city map</strong> to meet people in real life
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    <strong className="text-foreground">Build long-term buddy threads</strong> with people you genuinely connect with
-                  </p>
+                <div className="space-y-6 pl-4 border-l-2 border-primary/20">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">Chat with Twyne</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Have natural conversations with our warm, curious AI that learns your vibe, interests, and values.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">Local Connections</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Once a week, get a warm intro to someone nearby who shares your energy.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">Connect Your Way</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      From a chill convo to a real-world hang—you choose how it unfolds.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">Privacy & Safety</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      You control what you share. We never sell your data.
+                    </p>
+                  </div>
                 </div>
               </div>
 

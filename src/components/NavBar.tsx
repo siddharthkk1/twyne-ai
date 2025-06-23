@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { User, Settings, Users, Heart } from "lucide-react";
+import { User, Settings, Users, Heart, Rocket } from "lucide-react";
 
 export const NavBar = () => {
   return (
@@ -38,6 +38,17 @@ export const NavBar = () => {
         >
           <Heart size={22} />
           <span className="text-xs mt-1">More than Friends</span>
+        </NavLink>
+        <NavLink
+          to="/coming-soon"
+          className={({ isActive }) =>
+            `flex flex-col items-center p-2 rounded-lg ${
+              isActive ? "text-primary" : "text-muted-foreground"
+            }`
+          }
+        >
+          <Rocket size={22} />
+          <span className="text-xs mt-1">Coming Soon</span>
         </NavLink>
         <NavLink
           to="/settings"

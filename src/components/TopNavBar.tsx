@@ -44,6 +44,9 @@ export const TopNavBar = () => {
               <Link to="/more-than-friends" className="text-foreground/80 hover:text-primary transition-colors">
                 More than Friends
               </Link>
+              <Link to="/coming-soon" className="text-foreground/80 hover:text-primary transition-colors">
+                Coming Soon
+              </Link>
               <Link to="/settings" className="text-foreground/80 hover:text-primary transition-colors">
                 Settings
               </Link>
