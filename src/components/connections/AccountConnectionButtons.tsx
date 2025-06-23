@@ -123,105 +123,145 @@ const AccountConnectionButtons = () => {
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Spotify Button */}
-        <div className="space-y-2">
-          {spotifyProfile ? (
-            <div className="space-y-3 p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                {spotifyProfile.images?.[0]?.url && (
-                  <img 
-                    src={spotifyProfile.images[0].url} 
-                    alt="Spotify Profile" 
-                    className="w-12 h-12 rounded-full"
-                  />
-                )}
-                <div>
-                  <p className="font-medium">
-                    {spotifyProfile.display_name || spotifyProfile.name || 'Spotify User'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {spotifyProfile.followers?.total ? 
-                      `${spotifyProfile.followers.total.toLocaleString()} followers` : 
-                      'Spotify connected'
-                    }
-                  </p>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={disconnectSpotify}
-                className="w-full"
-              >
-                Disconnect Spotify
-              </Button>
-            </div>
-          ) : (
-            <Button 
-              onClick={connectSpotify}
-              disabled={isConnectingSpotify}
-              className="bg-green-500 hover:bg-green-600 text-white h-16 flex flex-col items-center justify-center gap-2 w-full"
-            >
-              {isConnectingSpotify ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <>
-                  <Music className="h-6 w-6" />
-                  <span>Connect Spotify</span>
-                </>
-              )}
-            </Button>
-          )}
-        </div>
+  const comingSoonIntegrations = [
+    { name: "X (Twitter)", icon: "📱", description: "Connect your X account to share your social insights" },
+    { name: "Apple Notes", icon: "📝", description: "Sync your thoughts and notes from Apple Notes" },
+    { name: "Goodreads", icon: "📚", description: "Share your reading preferences and book recommendations" },
+    { name: "StoryGraph", icon: "📖", description: "Connect your book tracking and reading stats" },
+    { name: "Letterboxd", icon: "🎬", description: "Share your movie taste and film diary" },
+    { name: "Reddit", icon: "🤖", description: "Connect your Reddit activity and interests" },
+    { name: "Notion", icon: "📋", description: "Sync your Notion workspace and personal database" }
+  ];
 
-        {/* YouTube Button */}
-        <div className="space-y-2">
-          {youtubeChannel ? (
-            <div className="space-y-3 p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                {youtubeChannel.snippet?.thumbnails?.default?.url && (
-                  <img 
-                    src={youtubeChannel.snippet.thumbnails.default.url} 
-                    alt="YouTube Channel" 
-                    className="w-12 h-12 rounded-full"
-                  />
-                )}
-                <div>
-                  <p className="font-medium">{youtubeChannel.snippet?.title || 'Connected Channel'}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {youtubeChannel.statistics?.subscriberCount ? 
-                      parseInt(youtubeChannel.statistics.subscriberCount).toLocaleString() + ' subscribers' :
-                      'YouTube connected'
-                    }
-                  </p>
+  return (
+    <div className="space-y-8">
+      {/* Active Integrations */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Connect Your Accounts</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Spotify Button */}
+          <div className="space-y-2">
+            {spotifyProfile ? (
+              <div className="space-y-3 p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {spotifyProfile.images?.[0]?.url && (
+                    <img 
+                      src={spotifyProfile.images[0].url} 
+                      alt="Spotify Profile" 
+                      className="w-12 h-12 rounded-full"
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {spotifyProfile.display_name || spotifyProfile.name || 'Spotify User'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {spotifyProfile.followers?.total ? 
+                        `${spotifyProfile.followers.total.toLocaleString()} followers` : 
+                        'Spotify connected'
+                      }
+                    </p>
+                  </div>
                 </div>
+                <Button 
+                  variant="outline" 
+                  onClick={disconnectSpotify}
+                  className="w-full"
+                >
+                  Disconnect Spotify
+                </Button>
               </div>
+            ) : (
               <Button 
-                variant="outline" 
-                onClick={disconnectYouTube}
-                className="w-full"
+                onClick={connectSpotify}
+                disabled={isConnectingSpotify}
+                className="bg-green-500 hover:bg-green-600 text-white h-16 flex flex-col items-center justify-center gap-2 w-full"
               >
-                Disconnect YouTube
+                {isConnectingSpotify ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <>
+                    <Music className="h-6 w-6" />
+                    <span>Connect Spotify</span>
+                  </>
+                )}
               </Button>
+            )}
+          </div>
+
+          {/* YouTube Button */}
+          <div className="space-y-2">
+            {youtubeChannel ? (
+              <div className="space-y-3 p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {youtubeChannel.snippet?.thumbnails?.default?.url && (
+                    <img 
+                      src={youtubeChannel.snippet.thumbnails.default.url} 
+                      alt="YouTube Channel" 
+                      className="w-12 h-12 rounded-full"
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium">{youtubeChannel.snippet?.title || 'Connected Channel'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {youtubeChannel.statistics?.subscriberCount ? 
+                        parseInt(youtubeChannel.statistics.subscriberCount).toLocaleString() + ' subscribers' :
+                        'YouTube connected'
+                      }
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={disconnectYouTube}
+                  className="w-full"
+                >
+                  Disconnect YouTube
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                onClick={connectYouTube}
+                disabled={isConnectingYoutube}
+                className="bg-red-500 hover:bg-red-600 text-white h-16 flex flex-col items-center justify-center gap-2 w-full"
+              >
+                {isConnectingYoutube ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <>
+                    <Video className="h-6 w-6" />
+                    <span>Connect YouTube</span>
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Coming Soon Section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-muted-foreground">Coming Soon</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {comingSoonIntegrations.map((integration, index) => (
+            <div key={index} className="opacity-60 cursor-not-allowed">
+              <Button
+                disabled
+                className="bg-gray-100 hover:bg-gray-100 text-gray-500 h-16 flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300"
+              >
+                <span className="text-2xl">{integration.icon}</span>
+                <span className="text-sm font-medium">{integration.name}</span>
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                {integration.description}
+              </p>
             </div>
-          ) : (
-            <Button 
-              onClick={connectYouTube}
-              disabled={isConnectingYoutube}
-              className="bg-red-500 hover:bg-red-600 text-white h-16 flex flex-col items-center justify-center gap-2 w-full"
-            >
-              {isConnectingYoutube ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <>
-                  <Video className="h-6 w-6" />
-                  <span>Connect YouTube</span>
-                </>
-              )}
-            </Button>
-          )}
+          ))}
+        </div>
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            More integrations are on the way! These will help us understand you better and make more meaningful connections.
+          </p>
         </div>
       </div>
     </div>

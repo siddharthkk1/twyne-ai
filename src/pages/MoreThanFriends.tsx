@@ -5,8 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Link } from "react-router-dom";
 import { ArrowLeft, Heart, Brain, Briefcase, Target, Users, Building } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MoreThanFriends = () => {
+  const { user } = useAuth();
+  
   const connectionTypes = [
     {
       icon: Heart,
@@ -58,7 +61,7 @@ const MoreThanFriends = () => {
             asChild
             className="hover:bg-transparent"
           >
-            <Link to="/" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <Link to={user ? "/mirror" : "/landing-v2"} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
               <ArrowLeft className="mr-1 h-4 w-4" />
               Back to Home
             </Link>
