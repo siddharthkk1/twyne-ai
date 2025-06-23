@@ -29,7 +29,7 @@ const About = () => {
           <div className="max-w-3xl mx-auto space-y-12">
             <div className="space-y-6 text-center">
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">
-                Twyne helps you feel known — and meet people you actually vibe with. 💫
+                Twyne helps you feel known — and meet people you actually vibe with.
               </h1>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
                 We're building a slower, softer, more human kind of social platform.
