@@ -1041,12 +1041,6 @@ const Mirror = () => {
           </Tabs>
         </div>
       </div>
-
-      {/* Feedback Modal */}
-      <FeedbackModal 
-        isOpen={isFeedbackModalOpen} 
-        onClose={() => setIsFeedbackModalOpen(false)} 
-      />
     </div>
   );
 };
