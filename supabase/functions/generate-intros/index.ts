@@ -87,7 +87,8 @@ Format as JSON:
     {
       "name": "First Name",
       "introText": "Natural introduction focusing on one meaningful connection",
-      "tags": ["3-4 authentic connection descriptors"]
+      "tags": ["3-4 authentic connection descriptors"],
+      "gender": "male" or "female"
     }
   ]
 }
