@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { User, Settings, Users } from "lucide-react";
+import { User, Settings, Users, Heart } from "lucide-react";
 
 export const NavBar = () => {
   return (
@@ -27,6 +27,17 @@ export const NavBar = () => {
         >
           <Users size={22} />
           <span className="text-xs mt-1">Connect</span>
+        </NavLink>
+        <NavLink
+          to="/more-than-friends"
+          className={({ isActive }) =>
+            `flex flex-col items-center p-2 rounded-lg ${
+              isActive ? "text-primary" : "text-muted-foreground"
+            }`
+          }
+        >
+          <Heart size={22} />
+          <span className="text-xs mt-1">More</span>
         </NavLink>
         <NavLink
           to="/settings"

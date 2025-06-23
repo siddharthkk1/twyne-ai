@@ -104,7 +104,6 @@ const App = () => (
             <Route path="/" element={<HomeWrapper />} />
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
-            <Route path="/more-than-friends" element={<MoreThanFriends />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/google-auth-test" element={<GoogleAuthTest />} />
             {/* ENHANCED: Separate callback routes with better OAuth flow handling */}
@@ -123,6 +122,7 @@ const App = () => (
             }>
               <Route path="/mirror" element={<Mirror />} />
               <Route path="/connect" element={<Connect />} />
+              <Route path="/more-than-friends" element={<MoreThanFriends />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
