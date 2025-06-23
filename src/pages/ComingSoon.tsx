@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles, Brain, TestTube } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles, Brain, TestTube, Shield, MessageCircle } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,22 +17,16 @@ const ComingSoon = () => {
       status: "In Preview"
     },
     {
+      icon: Shield,
+      title: "Privacy Control",
+      description: "You decide what parts of your Mirror and AI chats can be shared — and when. Twyne might use everything to find your best match, but we'll only show what you want others to see. Fully private by default, with you in the driver's seat.",
+      status: "In Preview"
+    },
+    {
       icon: Heart,
       title: "More Than Friends",
       description: "Whether it's dating, collaborators, or creative partners — Twyne helps you connect with people open to the same things you are.",
       status: "In Preview"
-    },
-    {
-      icon: Users2,
-      title: "Groups",
-      description: "Sometimes it's better with more. Twyne will help you join (or create) small groups based on shared interests, vibes, or intentions — whether it's for deep convos, weekend plans, or just people who get your humor.",
-      status: "Coming Soon"
-    },
-    {
-      icon: Building2,
-      title: "Communities",
-      description: "Intern classes, teams, apartments, schools — even full companies. Twyne helps your group actually feel like a community, with smart intros, shared spaces, and easy ways to connect.",
-      status: "Coming Soon"
     },
     {
       icon: MapPin,
@@ -44,6 +38,18 @@ const ComingSoon = () => {
       icon: Calendar,
       title: "Events",
       description: "We'll surface local happenings you'd actually be into — and show you who else might be going.",
+      status: "Coming Soon"
+    },
+    {
+      icon: Users2,
+      title: "Groups",
+      description: "Sometimes it's better with more. Twyne will help you join (or create) small groups based on shared interests, vibes, or intentions — whether it's for deep convos, weekend plans, or just people who get your humor.",
+      status: "Coming Soon"
+    },
+    {
+      icon: Building2,
+      title: "Communities",
+      description: "Intern classes, teams, apartments, schools — even full companies. Twyne helps your group actually feel like a community, with smart intros, shared spaces, and easy ways to connect.",
       status: "Coming Soon"
     },
     {
@@ -80,6 +86,12 @@ const ComingSoon = () => {
       icon: Brain,
       title: "The Sandbox",
       description: "You'll chat with different AI personas — each with their own vibe. Some are bold, some thoughtful, some chaotic. How you respond tells us a lot about you, helping Twyne learn your energy, social style, and what types of people you naturally click with.",
+      status: "Coming Soon"
+    },
+    {
+      icon: MessageCircle,
+      title: "Social Reflections",
+      description: "Let friends add their own take on who you are — like a personality reference. It's not a \"review\" — it's what they see in you. Think LinkedIn recs, but for your vibe, your energy, your presence. \"She's the type who brings calm to chaos.\" \"Always asks the kind of questions that matter.\"",
       status: "Coming Soon"
     }
   ];
