@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Send, RotateCcw, Youtube, Play, ArrowLeft } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Send, RotateCcw, Youtube, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
@@ -15,7 +15,6 @@ import { getMirrorChatResponse, updateProfileFromChat } from "@/utils/aiUtils";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/chat";
 import { MirrorDataService } from "@/services/mirrorDataService";
-import { Link } from "react-router-dom";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 
 const Mirror = () => {
@@ -343,13 +342,9 @@ const Mirror = () => {
       <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link 
-              to="/" 
-              className="flex items-center gap-2 text-slate-600 hover:text-primary transition-colors group"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">Back to Mirror</span>
-            </Link>
+            <div className="text-lg font-semibold text-slate-800">
+              Your Mirror
+            </div>
             <div className="text-sm text-slate-500">
               {new Date().toLocaleDateString('en-US', { 
                 weekday: 'long', 
