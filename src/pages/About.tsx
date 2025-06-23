@@ -56,22 +56,29 @@ const About = () => {
                 <ul className="space-y-4 text-muted-foreground">
                   <li className="flex items-start">
                     <span className="inline-block w-2 h-2 bg-primary rounded-full mt-3 mr-4 flex-shrink-0"></span>
-                    You move to a new city and don't know where to start
+                    You move to a new city and don’t know where to start.
                   </li>
                   <li className="flex items-start">
                     <span className="inline-block w-2 h-2 bg-primary rounded-full mt-3 mr-4 flex-shrink-0"></span>
-                    You graduate, and your social circle disappears overnight
+                    You graduate, and your social circle disappears overnight.
                   </li>
                   <li className="flex items-start">
                     <span className="inline-block w-2 h-2 bg-primary rounded-full mt-3 mr-4 flex-shrink-0"></span>
-                    You work remotely, and your days feel quiet — even with constant notifications
+                    You work remotely, and your days feel quiet — even with constant notifications.
                   </li>
                   <li className="flex items-start">
                     <span className="inline-block w-2 h-2 bg-primary rounded-full mt-3 mr-4 flex-shrink-0"></span>
-                    You want to connect, but don't want to swipe through bios or show up to a room full of strangers
+                    You want to connect, but don’t want to swipe through bios or show up to a room full of strangers.
                   </li>
                 </ul>
               </div>
+              
+
+
+
+
+
+
 
               <p className="text-lg leading-relaxed">
                 This isn’t just about being alone — it’s about not feeling understood.
