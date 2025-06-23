@@ -32,7 +32,6 @@ const About = () => {
                 Twyne helps you feel known — and meet people you actually vibe with. 💫
               </h1>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-                
                 We're building a slower, softer, more human kind of social platform.
                 One that's good for your mental health — and even better for your life.
               </p>
@@ -43,20 +42,20 @@ const About = () => {
               <p className="text-lg leading-relaxed">
                 We're more connected than ever — and somehow, still lonelier than ever.
               </p>
-              <p className="leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 The U.S. Surgeon General has called loneliness an epidemic. Anxiety, emotional flatness, 
                 and disconnection are quietly rising — especially among young adults.
               </p>
-              <p className="leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 We have feeds, group chats, dating apps, and DMs… but for a lot of people, 
                 <strong> true connection still feels out of reach.</strong>
               </p>
               
-              <div className="bg-muted/30 rounded-lg p-6 my-8">
+              <div className="border-l-4 border-primary/20 pl-6 my-8">
                 <ul className="space-y-4 text-muted-foreground">
                   <li className="flex items-start">
                     <span className="inline-block w-2 h-2 bg-primary rounded-full mt-3 mr-4 flex-shrink-0"></span>
-                    You move to a new city and don’t know where to start.
+                    You move to a new city and don't know where to start.
                   </li>
                   <li className="flex items-start">
                     <span className="inline-block w-2 h-2 bg-primary rounded-full mt-3 mr-4 flex-shrink-0"></span>
@@ -68,20 +67,13 @@ const About = () => {
                   </li>
                   <li className="flex items-start">
                     <span className="inline-block w-2 h-2 bg-primary rounded-full mt-3 mr-4 flex-shrink-0"></span>
-                    You want to connect, but don’t want to swipe through bios or show up to a room full of strangers.
+                    You want to connect, but don't want to swipe through bios or show up to a room full of strangers.
                   </li>
                 </ul>
               </div>
-              
-
-
-
-
-
-
 
               <p className="text-lg leading-relaxed">
-                This isn’t just about being alone — it’s about not feeling understood.
+                This isn't just about being alone — it's about not feeling understood.
               </p>
             </div>
 
@@ -90,29 +82,29 @@ const About = () => {
               <p className="text-lg leading-relaxed">
                 Twyne is a social platform designed for connection — not performance.
               </p>
-              <p className="leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 We help you get to know yourself first — and then introduce you to people you're likely to vibe with.
               </p>
               
               <div className="space-y-6">
                 <p className="font-semibold text-lg">Here's how it works:</p>
                 <div className="space-y-4 pl-4 border-l-2 border-primary/20">
-                  <p className="leading-relaxed">
-                    <strong>Chat with our warm, curious AI</strong> — it gets to know your personality, vibe, and story
+                  <p className="text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">Chat with our warm, curious AI</strong> — it gets to know your personality, vibe, and story
                   </p>
-                  <p className="leading-relaxed">
-                    <strong>Once a week, get a warm intro</strong> to someone nearby you're likely to click with
+                  <p className="text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">Once a week, get a warm intro</strong> to someone nearby you're likely to click with
                   </p>
-                  <p className="leading-relaxed">
-                    <strong>Explore events and your city map</strong> to meet people in real life
+                  <p className="text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">Explore events and your city map</strong> to meet people in real life
                   </p>
-                  <p className="leading-relaxed">
-                    <strong>Build long-term buddy threads</strong> with people you genuinely connect with
+                  <p className="text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">Build long-term buddy threads</strong> with people you genuinely connect with
                   </p>
                 </div>
               </div>
 
-              <div className="bg-muted/20 rounded-lg p-6 text-center">
+              <div className="border rounded-lg p-6 text-center">
                 <p className="text-lg leading-relaxed">
                   No swiping. No pressure. No personal branding.<br />
                   Just people meeting people — naturally, meaningfully, one good intro at a time.
@@ -170,7 +162,7 @@ const About = () => {
               
               <div className="space-y-6">
                 <p className="font-semibold text-lg">We imagine a world where:</p>
-                <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-6">
+                <div className="border rounded-lg p-6">
                   <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-center">
                       <span className="inline-block w-1.5 h-1.5 bg-primary rounded-full mr-3"></span>
@@ -192,12 +184,12 @@ const About = () => {
                 </div>
               </div>
 
-              <div className="space-y-6 text-center bg-muted/10 rounded-lg p-8">
-                <p className="leading-relaxed">
+              <div className="space-y-6 text-center border rounded-lg p-8">
+                <p className="text-muted-foreground leading-relaxed">
                   In this world, no one goes weeks without feeling connected.<br />
                   Connection isn't a project — it's part of the background of your life.
                 </p>
-                <p className="leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   That's what we're working toward.<br />
                   Not a feed. Not a dopamine rush.
                 </p>
