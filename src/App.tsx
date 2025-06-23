@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import About from "./pages/About";
+import MoreThanFriends from "./pages/MoreThanFriends";
 import NotFound from "./pages/NotFound";
 import OnboardingChat from "./pages/OnboardingChat";
 import OnboardingSelection from "./pages/OnboardingSelection";
@@ -103,6 +104,7 @@ const App = () => (
             <Route path="/" element={<HomeWrapper />} />
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
+            <Route path="/more-than-friends" element={<MoreThanFriends />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/google-auth-test" element={<GoogleAuthTest />} />
             {/* ENHANCED: Separate callback routes with better OAuth flow handling */}

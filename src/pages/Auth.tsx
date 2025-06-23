@@ -242,20 +242,21 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col items-center justify-center p-4">
+      {/* Back to Home Button - moved outside and above the card */}
+      <div className="w-full max-w-md mb-4">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate("/landing-v2")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Button>
+      </div>
+      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          {/* Back to Home Button */}
-          <div className="flex justify-start mb-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate("/landing-v2")}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Button>
-          </div>
           <CardTitle className="text-2xl font-bold">
             {isLogin ? "Welcome back" : "Create your account"}
           </CardTitle>
