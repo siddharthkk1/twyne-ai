@@ -3,11 +3,35 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 
 const ComingSoon = () => {
   const futureFeatures = [
+    {
+      icon: Sparkles,
+      title: "Personalized Warm Intros",
+      description: "AI-powered introductions to people you'll actually vibe with. We learn your personality and connect you with compatible locals who share your energy.",
+      status: "Teaser Available"
+    },
+    {
+      icon: Heart,
+      title: "More Than Friends",
+      description: "Whether it's dating, collaborators, or creative partners — Twyne helps you connect with people open to the same things you are.",
+      status: "Teaser Available"
+    },
+    {
+      icon: Users2,
+      title: "Groups",
+      description: "Sometimes it's better with more. Twyne will help you join (or create) small groups based on shared interests, vibes, or intentions — whether it's for deep convos, weekend plans, or just people who get your humor.",
+      status: "Coming Soon"
+    },
+    {
+      icon: Building2,
+      title: "Organizations & Companies",
+      description: "Intern classes, teams, apartments, schools — even full companies. Twyne helps your group actually feel like a community, with smart intros, shared spaces, and easy ways to connect.",
+      status: "Coming Soon"
+    },
     {
       icon: MapPin,
       title: "Places",
@@ -43,12 +67,6 @@ const ComingSoon = () => {
       title: "More Integrations",
       description: "We're building smart connections with apps like X, Notion, and Apple Notes — so Twyne can learn from where your thoughts already live.",
       status: "Coming Soon"
-    },
-    {
-      icon: Heart,
-      title: "More Than Friends",
-      description: "Whether it's dating, collaborators, or creative partners — Twyne helps you connect with people open to the same things you are.",
-      status: "Available Now"
     }
   ];
 
@@ -94,7 +112,7 @@ const ComingSoon = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {futureFeatures.map((feature, index) => {
                   const IconComponent = feature.icon;
-                  const isAvailable = feature.status === "Available Now";
+                  const isAvailable = feature.status === "Teaser Available";
                   
                   return (
                     <Card key={index} className={`hover:shadow-lg transition-all duration-300 ${isAvailable ? 'border-primary/40 bg-primary/5' : ''}`}>
