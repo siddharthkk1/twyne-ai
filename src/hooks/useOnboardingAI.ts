@@ -1,188 +1,217 @@
 
 import { useState } from 'react';
-import { useAuth } from "@/contexts/AuthContext";
-import { Message, Conversation, UserProfile, ChatRole } from '@/types/chat';
-import { getAIResponse, generateAIProfile, getRandomSeedMessage } from '@/utils/aiUtils';
+import { Message, Conversation, UserProfile } from '@/types/chat';
+import { 
+  getAIResponse,
+  generateAIProfile,
+  getRandomSeedMessage,
+  SYSTEM_PROMPT_STRUCTURED,
+  SYSTEM_PROMPT_PLAYFUL,
+  SYSTEM_PROMPT_YOUNG_ADULT
+} from '@/utils/aiUtils';
 
 export const useOnboardingAI = () => {
-  const { user } = useAuth();
   const [conversation, setConversation] = useState<Conversation>({
     messages: [],
     userAnswers: []
   });
   const [isTyping, setIsTyping] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(false);
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
-
-  // Initialize chat with AI greeting
-  const initializeChat = async (systemPrompt: string, userName?: string, promptMode?: string): Promise<{ aiGreeting: string; updatedConversation: Conversation }> => {
-    setIsInitializing(true);
+  
+  // Initialize chat with proper error handling and timeout protection
+  const initializeChat = async (
+    systemPrompt: string, 
+    userName: string, 
+    promptMode: string
+  ): Promise<{ aiGreeting: string; updatedConversation: Conversation }> => {
+    console.log('🚀 initializeChat: Starting chat initialization', { promptMode, userName });
     
     try {
-      let aiGreeting = "";
+      // Set up timeout protection for initialization (20 seconds)
+      const initTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Chat initialization timed out after 20 seconds'));
+        }, 20000);
+      });
       
       // Create initial conversation with system prompt
       const initialConversation: Conversation = {
         messages: [
-          {
-            role: "system" as ChatRole,
-            content: systemPrompt
-          }
+          { role: "system", content: systemPrompt }
         ],
         userAnswers: []
       };
       
-      // Use seed message for playful mode, otherwise get AI greeting
+      console.log('🔄 initializeChat: Getting AI greeting');
+      
+      // Race between the AI call and timeout
+      const aiGreeting = await Promise.race([
+        getAIResponse(initialConversation),
+        initTimeout
+      ]);
+      
+      console.log('✅ initializeChat: Received AI greeting', { greeting: aiGreeting.substring(0, 100) + '...' });
+      
+      // For playful mode, use a random seed message instead of API response
+      let finalGreeting = aiGreeting;
       if (promptMode === "playful") {
-        aiGreeting = getRandomSeedMessage();
-      } else {
-        // Get AI greeting for other modes
-        const response = await getAIResponse(initialConversation);
-        aiGreeting = response;
+        finalGreeting = getRandomSeedMessage();
+        console.log('🎲 initializeChat: Using random seed message for playful mode');
       }
       
-      // Add AI greeting to conversation
+      // Update conversation with AI greeting
       const updatedConversation: Conversation = {
         messages: [
           ...initialConversation.messages,
-          {
-            role: "assistant" as ChatRole,
-            content: aiGreeting
-          }
+          { role: "assistant", content: finalGreeting }
         ],
         userAnswers: []
       };
       
-      setConversation(updatedConversation);
-      setIsInitializing(false);
+      console.log('✅ initializeChat: Chat initialization completed successfully');
       
-      return { aiGreeting, updatedConversation };
+      return {
+        aiGreeting: finalGreeting,
+        updatedConversation
+      };
+      
     } catch (error) {
-      console.error("Error initializing chat:", error);
-      setIsInitializing(false);
+      console.error('❌ initializeChat: Error during initialization:', error);
       
-      // Fallback greeting
-      const fallbackGreeting = userName ? 
-        `Hey ${userName}! I'm Twyne. Ready to chat and get to know you better?` :
-        "Hey there! I'm Twyne. Ready to chat and get to know you better?";
+      // Provide fallback greeting based on mode
+      let fallbackGreeting = "Hi! I'm Twyne. I'd love to get to know you better. What's been on your mind lately?";
       
+      if (promptMode === "playful") {
+        fallbackGreeting = getRandomSeedMessage();
+      } else if (promptMode === "young-adult") {
+        fallbackGreeting = "Hey! I'm Twyne, and I'm here to get to know the real you. What's something you're excited about right now?";
+      }
+      
+      console.log('🔄 initializeChat: Using fallback greeting due to error');
+      
+      // Create conversation with fallback greeting
       const fallbackConversation: Conversation = {
         messages: [
-          {
-            role: "system" as ChatRole,
-            content: "You are Twyne, a friendly AI assistant."
-          },
-          {
-            role: "assistant" as ChatRole,
-            content: fallbackGreeting
-          }
+          { role: "system", content: systemPrompt },
+          { role: "assistant", content: fallbackGreeting }
         ],
         userAnswers: []
       };
       
-      return { aiGreeting: fallbackGreeting, updatedConversation: fallbackConversation };
+      return {
+        aiGreeting: fallbackGreeting,
+        updatedConversation: fallbackConversation
+      };
     }
   };
-
-  // Generate user profile from conversation
-  const generateProfile = async (finalConversation: Conversation, userName?: string): Promise<UserProfile> => {
+  
+  // Generate profile with proper error handling and timeout protection
+  const generateProfile = async (
+    finalConversation: Conversation, 
+    userName: string
+  ): Promise<UserProfile> => {
+    console.log('🔄 generateProfile: Starting profile generation');
+    
     setIsGeneratingProfile(true);
     
     try {
-      console.log("Generating profile from conversation:", finalConversation);
+      // Set up timeout protection for profile generation (45 seconds)
+      const profileTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Profile generation timed out after 45 seconds'));
+        }, 45000);
+      });
       
-      // Add userName to conversation data for profile generation
-      const conversationWithUser = {
-        ...finalConversation,
-        userName: userName
-      };
+      console.log('🤖 generateProfile: Calling generateAIProfile API');
       
-      // Call the profile generation edge function
-      const profileData = await generateAIProfile(conversationWithUser);
+      // Race between the profile generation and timeout
+      const profile = await Promise.race([
+        generateAIProfile(finalConversation),
+        profileTimeout
+      ]);
       
-      console.log("Generated profile data:", profileData);
+      console.log('✅ generateProfile: Profile generated successfully');
       
-      // Ensure the profile has required fields and add legacy compatibility
-      const completeProfile: UserProfile = {
-        // Core required fields - prioritize userName over profileData.name
-        name: userName || profileData.name || "",
-        location: profileData.location || "",
-        
-        // New AI-generated fields
-        vibeSummary: profileData.vibeSummary || "",
-        oneLiner: profileData.oneLiner || "",
-        twyneTags: profileData.twyneTags || [],
-        age: profileData.age || "",
-        job: profileData.job || "",
-        school: profileData.school || "",
-        ethnicity: profileData.ethnicity || "",
-        religion: profileData.religion || "",
-        hometown: profileData.hometown || "",
-        lifestyle: profileData.lifestyle || "",
-        favoriteProducts: profileData.favoriteProducts || "",
-        style: profileData.style || "",
-        interestsAndPassions: profileData.interestsAndPassions || "",
-        favoriteMoviesAndShows: profileData.favoriteMoviesAndShows || "",
-        favoriteMusic: profileData.favoriteMusic || "",
-        favoriteBooks: profileData.favoriteBooks || "",
-        favoritePodcastsOrYouTube: profileData.favoritePodcastsOrYouTube || "",
-        talkingPoints: profileData.talkingPoints || [],
-        favoriteActivities: profileData.favoriteActivities || "",
-        favoriteSpots: profileData.favoriteSpots || "",
-        coreValues: profileData.coreValues || "",
-        lifePhilosophy: profileData.lifePhilosophy || "",
-        goals: profileData.goals || "",
-        personalitySummary: profileData.personalitySummary || "",
-        bigFiveTraits: profileData.bigFiveTraits || {
-          openness: "",
-          conscientiousness: "",
-          extraversion: "",
-          agreeableness: "",
-          neuroticism: ""
-        },
-        quirks: profileData.quirks || "",
-        communicationStyle: profileData.communicationStyle || "",
-        upbringing: profileData.upbringing || "",
-        majorTurningPoints: profileData.majorTurningPoints || "",
-        recentLifeContext: profileData.recentLifeContext || "",
-        socialStyle: profileData.socialStyle || "",
-        loveLanguageOrFriendStyle: profileData.loveLanguageOrFriendStyle || "",
-        socialNeeds: profileData.socialNeeds || "",
-        connectionPreferences: profileData.connectionPreferences || "",
-        dealBreakers: profileData.dealBreakers || "",
-        boundariesAndPetPeeves: profileData.boundariesAndPetPeeves || "",
-        connectionActivities: profileData.connectionActivities || "",
-        
-        // Legacy compatibility fields - derive from new fields where possible
-        interests: profileData.talkingPoints || [profileData.interestsAndPassions || ""],
-        personalInsights: [
-          profileData.vibeSummary || "",
-          profileData.personalitySummary || "",
-          profileData.coreValues || ""
-        ].filter(insight => insight.trim() !== "")
-      };
+      // Ensure the name is set if not already present
+      if (!profile.name && userName) {
+        profile.name = userName;
+        console.log('🔄 generateProfile: Added userName to profile');
+      }
       
       setIsGeneratingProfile(false);
-      return completeProfile;
+      return profile;
+      
     } catch (error) {
-      console.error("Error generating profile:", error);
+      console.error('❌ generateProfile: Error generating profile:', error);
+      
       setIsGeneratingProfile(false);
       
-      // Return a basic profile structure with required fields
+      // Return fallback profile with basic structure
       const fallbackProfile: UserProfile = {
-        name: userName || "",
-        location: "",
-        vibeSummary: "",
-        oneLiner: "",
-        twyneTags: [],
-        interests: [],
-        personalInsights: []
+        // 🪞 Overview
+        "vibeSummary": "A thoughtful person looking to make meaningful connections.",
+        "oneLiner": "Someone who values authentic conversations and genuine relationships.",
+        "twyneTags": ["Authentic", "Thoughtful", "Connection-Oriented"],
+
+        // 📌 Key Facts / Background
+        "name": userName || "",
+        "age": "",
+        "location": "",
+        "job": "",
+        "school": "",
+        "ethnicity": "",
+        "religion": "",
+        "hometown": "",
+
+        // 🌱 Interests & Lifestyle
+        "lifestyle": "",
+        "favoriteProducts": "",
+        "style": "",
+        "interestsAndPassions": "",
+        "favoriteMoviesAndShows": "",
+        "favoriteMusic": "",
+        "favoriteBooks": "",
+        "favoritePodcastsOrYouTube": "",
+        "talkingPoints": [],
+        "favoriteActivities": "",
+        "favoriteSpots": "",
+
+        // 🧘 Inner World
+        "coreValues": "",
+        "lifePhilosophy": "",
+        "goals": "",
+        "personalitySummary": "",
+        "bigFiveTraits": {
+          "openness": "",
+          "conscientiousness": "",
+          "extraversion": "",
+          "agreeableness": "",
+          "neuroticism": ""
+        },
+        "quirks": "",
+        "communicationStyle": "",
+
+        // 📖 Story
+        "upbringing": "",
+        "majorTurningPoints": "",
+        "recentLifeContext": "",
+
+        // 🤝 Connection
+        "socialStyle": "",
+        "loveLanguageOrFriendStyle": "",
+        "socialNeeds": "",
+        "connectionPreferences": "",
+        "dealBreakers": "",
+        "boundariesAndPetPeeves": "",
+        "connectionActivities": ""
       };
       
+      console.log('🔄 generateProfile: Using fallback profile due to error');
       return fallbackProfile;
     }
   };
-
+  
   return {
     conversation,
     setConversation,

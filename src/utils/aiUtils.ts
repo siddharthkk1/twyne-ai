@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Conversation, UserProfile } from '@/types/chat';
 
@@ -182,9 +181,18 @@ export const PLAYFUL_SEED_MESSAGES = [
   "ok, real question before we start||are you the kind of person who overshares to strangers, or do i have to work for it a little?"
 ];
 
-// Function to get AI response - Updated to accept a conversation object only
+// Function to get AI response - Updated with timeout protection
 export const getAIResponse = async (conversation: Conversation): Promise<string> => {
+  console.log('🤖 getAIResponse: Starting API call');
+  
   try {
+    // Create abort controller for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn('⏰ getAIResponse: Request timed out after 25 seconds');
+      controller.abort();
+    }, 25000); // 25 second timeout
+    
     // Prepare request data
     let requestData: {
       endpoint: string;
@@ -198,33 +206,56 @@ export const getAIResponse = async (conversation: Conversation): Promise<string>
       }
     };
 
-    // Make API request to Supabase Edge Function
+    console.log('🔄 getAIResponse: Calling Supabase Edge Function');
+
+    // Make API request to Supabase Edge Function with timeout
     const { data, error } = await supabase.functions.invoke('ai-chat', {
       body: requestData
     });
 
+    // Clear timeout since request completed
+    clearTimeout(timeoutId);
+
     // Handle API response errors
     if (error) {
-      console.error("Error from AI chat function:", error);
+      console.error("❌ getAIResponse: Error from AI chat function:", error);
       throw new Error(`API error: ${error.message}`);
     }
 
     if (data.error) {
-      console.error("Error in AI response:", data.error);
+      console.error("❌ getAIResponse: Error in AI response:", data.error);
       throw new Error(`AI error: ${data.error}`);
     }
 
+    console.log('✅ getAIResponse: Received successful response');
+    
     // Return AI response or fallback text
     return data.content || "I didn't catch that. Could you try again?";
   } catch (err) {
-    console.error("Error getting AI response:", err);
-    throw err;
+    console.error("❌ getAIResponse: Error in API call:", err);
+    
+    // Handle different error types
+    if (err instanceof Error) {
+      if (err.name === 'AbortError') {
+        throw new Error('Request timed out. Please try again.');
+      }
+      throw err;
+    }
+    
+    throw new Error('An unexpected error occurred. Please try again.');
   }
 };
 
-// Function to evaluate conversation coverage
+// Function to evaluate conversation coverage with timeout protection
 export const evaluateCoverage = async (conversation: Conversation): Promise<any> => {
   try {
+    // Create abort controller for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn('⏰ evaluateCoverage: Request timed out after 20 seconds');
+      controller.abort();
+    }, 20000);
+    
     const { data, error } = await supabase.functions.invoke('ai-chat', {
       body: {
         endpoint: "coverage",
@@ -232,43 +263,71 @@ export const evaluateCoverage = async (conversation: Conversation): Promise<any>
       }
     });
 
+    clearTimeout(timeoutId);
+
     if (error) {
-      console.error("Error from AI coverage function:", error);
+      console.error("❌ evaluateCoverage: Error from AI coverage function:", error);
       throw new Error(`API error: ${error.message}`);
     }
 
     return data;
   } catch (err) {
-    console.error("Error evaluating coverage:", err);
+    console.error("❌ evaluateCoverage: Error in coverage evaluation:", err);
+    
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Coverage evaluation timed out. Please try again.');
+    }
+    
     throw err;
   }
 };
 
-// Function to generate AI profile using the new prompt
+// Function to generate AI profile with timeout protection
 export const generateAIProfile = async (conversation: Conversation): Promise<any> => {
   try {
-    console.log("Calling generate-profile edge function with conversation:", conversation);
+    console.log("🤖 generateAIProfile: Calling generate-profile edge function with conversation:", conversation);
+    
+    // Create abort controller for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn('⏰ generateAIProfile: Request timed out after 40 seconds');
+      controller.abort();
+    }, 40000); // 40 second timeout for profile generation
     
     const { data, error } = await supabase.functions.invoke('generate-profile', {
       body: { conversation }
     });
 
+    clearTimeout(timeoutId);
+
     if (error) {
-      console.error("Error from AI profile function:", error);
+      console.error("❌ generateAIProfile: Error from AI profile function:", error);
       throw new Error(`API error: ${error.message}`);
     }
 
-    console.log("Profile generation response:", data);
+    console.log("✅ generateAIProfile: Profile generation response:", data);
     return data;
   } catch (err) {
-    console.error("Error generating profile:", err);
+    console.error("❌ generateAIProfile: Error generating profile:", err);
+    
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Profile generation timed out. Please try again.');
+    }
+    
     throw err;
   }
 };
 
-// Function to transcribe audio
+// Function to transcribe audio with timeout protection
 export const transcribeAudio = async (audioBlob: string, language?: string): Promise<string> => {
   try {
+    // Create abort controller for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn('⏰ transcribeAudio: Request timed out after 30 seconds');
+      controller.abort();
+    }, 30000);
+    
     const { data, error } = await supabase.functions.invoke('ai-chat', {
       body: {
         endpoint: "transcribe",
@@ -276,14 +335,21 @@ export const transcribeAudio = async (audioBlob: string, language?: string): Pro
       }
     });
 
+    clearTimeout(timeoutId);
+
     if (error) {
-      console.error("Error from AI transcribe function:", error);
+      console.error("❌ transcribeAudio: Error from AI transcribe function:", error);
       throw new Error(`API error: ${error.message}`);
     }
 
     return data.text;
   } catch (err) {
-    console.error("Error transcribing audio:", err);
+    console.error("❌ transcribeAudio: Error transcribing audio:", err);
+    
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Audio transcription timed out. Please try again.');
+    }
+    
     throw err;
   }
 };

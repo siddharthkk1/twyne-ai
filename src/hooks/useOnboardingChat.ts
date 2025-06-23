@@ -121,7 +121,7 @@ export const useOnboardingChat = () => {
     generateProfile
   } = useOnboardingAI();
   
-  // Expose userName and setUserName from the messages hook
+  // Expose userName and setUserName from the messages hook with cleanup
   const {
     messages,
     setMessages,
@@ -131,7 +131,8 @@ export const useOnboardingChat = () => {
     userName,
     setUserName,
     currentQuestionIndex,
-    setCurrentQuestionIndex
+    setCurrentQuestionIndex,
+    cleanup
   } = useOnboardingMessages(
     (name: string) => setUserProfile(prev => ({ ...prev, name })),
     MESSAGE_CAP
@@ -147,6 +148,14 @@ export const useOnboardingChat = () => {
     handleAIMessagePart,
     scrollToBottomInstant
   } = useChatScroll();
+
+  // Cleanup on unmount or when component changes
+  useEffect(() => {
+    return () => {
+      console.log('🧹 useOnboardingChat: Component cleanup');
+      cleanup();
+    };
+  }, [cleanup]);
 
   // ENHANCED: Store prompt mode AND conversation data in localStorage immediately when they change
   useEffect(() => {
@@ -232,6 +241,11 @@ export const useOnboardingChat = () => {
       return;
     }
 
+    console.log('🔄 useOnboardingChat: Resetting conversation for prompt mode:', promptMode);
+    
+    // Cleanup any existing requests before starting new initialization
+    cleanup();
+
     setIsInitializing(true);
 
     let systemPrompt = SYSTEM_PROMPT_STRUCTURED;
@@ -256,17 +270,43 @@ export const useOnboardingChat = () => {
     setCurrentQuestionIndex(0);
 
     const effectiveName = userName || "friend";
-    initializeChat(systemPrompt, effectiveName, promptMode).then(({ aiGreeting, updatedConversation }) => {
-      setIsInitializing(false);
-      
-      setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
-      setConversation(updatedConversation);
-      
-      setTimeout(() => {
-        scrollToBottomInstant();
-      }, 100);
-    });
-  }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile, scrollToBottomInstant]);
+    
+    console.log('🚀 useOnboardingChat: Starting chat initialization');
+    
+    initializeChat(systemPrompt, effectiveName, promptMode)
+      .then(({ aiGreeting, updatedConversation }) => {
+        console.log('✅ useOnboardingChat: Chat initialization completed');
+        
+        setIsInitializing(false);
+        
+        setMessages([{ id: 1, text: aiGreeting, sender: "ai" }]);
+        setConversation(updatedConversation);
+        
+        setTimeout(() => {
+          scrollToBottomInstant();
+        }, 100);
+      })
+      .catch((error) => {
+        console.error('❌ useOnboardingChat: Chat initialization failed:', error);
+        
+        // Ensure we don't get stuck in initializing state
+        setIsInitializing(false);
+        
+        // Provide fallback greeting
+        const fallbackGreeting = "Hi! I'm Twyne. I'd love to get to know you better. How are you doing today?";
+        setMessages([{ id: 1, text: fallbackGreeting, sender: "ai" }]);
+        
+        const fallbackConversation = {
+          messages: [initialMessage, { role: "assistant" as ChatRole, content: fallbackGreeting }],
+          userAnswers: []
+        };
+        setConversation(fallbackConversation);
+        
+        setTimeout(() => {
+          scrollToBottomInstant();
+        }, 100);
+      });
+  }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile, scrollToBottomInstant, cleanup]);
 
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
@@ -670,7 +710,14 @@ export const useOnboardingChat = () => {
       return;
     }
 
-    handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
+    try {
+      await handleAIResponse(textToSend, draftConversation, conversation, setIsTyping, setConversation);
+    } catch (error) {
+      console.error('❌ handleSend: Error in handleAIResponse:', error);
+      
+      // Ensure typing indicator is cleared on error
+      setIsTyping(false);
+    }
   };
 
   // FIXED: Get progress percent based on conversation length with linear calculation
