@@ -29,9 +29,10 @@ const About = () => {
           <div className="max-w-3xl mx-auto space-y-12">
             <div className="space-y-6 text-center">
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">
-                💫 Twyne helps you feel known — and meet people you actually vibe with.
+                Twyne helps you feel known — and meet people you actually vibe with. 💫
               </h1>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+                
                 We're building a slower, softer, more human kind of social platform.
                 One that's good for your mental health — and even better for your life.
               </p>
@@ -73,8 +74,7 @@ const About = () => {
               </div>
 
               <p className="text-lg leading-relaxed">
-                This isn't just about being alone. It's about <strong>not feeling known. Not feeling chosen. 
-                Not feeling like yourself.</strong>
+                This isn’t just about being alone — it’s about not feeling understood.
               </p>
             </div>
 
