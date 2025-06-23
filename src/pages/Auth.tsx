@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -246,6 +245,17 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          {/* Back to Home Button */}
+          <div className="flex justify-start mb-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate("/landing-v2")}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Button>
+          </div>
           <CardTitle className="text-2xl font-bold">
             {isLogin ? "Welcome back" : "Create your account"}
           </CardTitle>
