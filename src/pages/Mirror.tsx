@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { UserProfile } from "@/types/chat";
 import { MirrorDataService } from "@/services/mirrorDataService";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
+import { FeedbackModal } from "@/components/feedback/FeedbackModal";
+import { Link } from "react-router-dom";
 
 const Mirror = () => {
   const { user } = useAuth();
@@ -28,6 +30,7 @@ const Mirror = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [spotifyData, setSpotifyData] = useState(null);
   const [youtubeData, setYoutubeData] = useState(null);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const fetchUserProfile = async () => {
     if (!user) {
@@ -345,13 +348,27 @@ const Mirror = () => {
             <div className="text-lg font-semibold text-slate-800">
               Your Mirror
             </div>
-            <div className="text-sm text-slate-500">
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+            <div className="flex items-center space-x-4">
+              <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+                About
+              </Link>
+              <Button
+                onClick={() => setIsFeedbackModalOpen(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Give Feedback
+              </Button>
+              <div className="text-sm text-slate-500">
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -1043,8 +1060,11 @@ const Mirror = () => {
         </div>
       </div>
 
-      {/* Integrated Feedback Button */}
-      <FeedbackButton />
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={isFeedbackModalOpen} 
+        onClose={() => setIsFeedbackModalOpen(false)} 
+      />
     </div>
   );
 };
