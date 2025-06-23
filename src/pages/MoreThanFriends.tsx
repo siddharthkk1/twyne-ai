@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,8 +49,8 @@ const MoreThanFriends = () => {
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
 
-      <div className="container mx-auto px-4 md:px-6 pt-8 mt-16">
-        <div className="py-4">
+      <div className="container mx-auto px-4 md:px-6 pt-4 mt-16">
+        <div className="py-2">
           <Button
             variant="ghost"
             size="sm"
@@ -65,7 +64,7 @@ const MoreThanFriends = () => {
           </Button>
         </div>
       
-        <section className="py-12 text-foreground">
+        <section className="py-6 text-foreground">
           <div className="max-w-4xl mx-auto space-y-16">
             
             {/* Hero Section */}

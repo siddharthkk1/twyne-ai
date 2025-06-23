@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import About from "./pages/About";
+import ComingSoon from "./pages/ComingSoon";
 import MoreThanFriends from "./pages/MoreThanFriends";
 import NotFound from "./pages/NotFound";
 import OnboardingChat from "./pages/OnboardingChat";
@@ -104,6 +104,7 @@ const App = () => (
             <Route path="/" element={<HomeWrapper />} />
             <Route path="/landing-v2" element={<LandingV2 />} />
             <Route path="/about" element={<About />} />
+            <Route path="/coming-soon" element={<ComingSoon />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/google-auth-test" element={<GoogleAuthTest />} />
             {/* ENHANCED: Separate callback routes with better OAuth flow handling */}

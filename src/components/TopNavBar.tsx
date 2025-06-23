@@ -22,7 +22,14 @@ export const TopNavBar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center h-16">
-        <Logo />
+        <div className="flex items-center space-x-6">
+          <Logo />
+          {user && (
+            <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+              About
+            </Link>
+          )}
+        </div>
         
         {/* Navigation Links (Desktop and Mobile) */}
         <div className="flex items-center space-x-3 md:space-x-6">
