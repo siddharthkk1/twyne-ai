@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +62,7 @@ const MoreThanFriends = () => {
           >
             <Link to={user ? "/mirror" : "/landing-v2"} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
               <ArrowLeft className="mr-1 h-4 w-4" />
-              Back to Home
+              {user ? "Back to Mirror" : "Back to Home"}
             </Link>
           </Button>
         </div>

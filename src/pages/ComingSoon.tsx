@@ -86,7 +86,7 @@ const ComingSoon = () => {
           >
             <Link to={user ? "/mirror" : "/landing-v2"} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
               <ArrowLeft className="mr-1 h-4 w-4" />
-              Back to Home
+              {user ? "Back to Mirror" : "Back to Home"}
             </Link>
           </Button>
         </div>
