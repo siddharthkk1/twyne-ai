@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,18 +21,6 @@ const ComingSoon = () => {
       title: "More Than Friends",
       description: "Whether it's dating, collaborators, or creative partners — Twyne helps you connect with people open to the same things you are.",
       status: "In Preview"
-    },
-    {
-      icon: TestTube,
-      title: "Tests",
-      description: "From personality quizzes to political compass, love languages to weird internet tests — we'll offer fun, lightweight ways for you to explore yourself and help Twyne understand you even better. Take what resonates, skip what doesn't.",
-      status: "Coming Soon"
-    },
-    {
-      icon: Brain,
-      title: "The Sandbox",
-      description: "You'll chat with different AI personas — each with their own vibe. Some are bold, some thoughtful, some chaotic. How you respond tells us a lot about you, helping Twyne learn your energy, social style, and what types of people you naturally click with.",
-      status: "Coming Soon"
     },
     {
       icon: Users2,
@@ -81,6 +68,18 @@ const ComingSoon = () => {
       icon: Share2,
       title: "More Integrations",
       description: "We're building smart connections with apps like X, Notion, and Apple Notes — so Twyne can learn from where your thoughts already live.",
+      status: "Coming Soon"
+    },
+    {
+      icon: TestTube,
+      title: "Tests",
+      description: "From personality quizzes to political compass, love languages to weird internet tests — we'll offer fun, lightweight ways for you to explore yourself and help Twyne understand you even better. Take what resonates, skip what doesn't.",
+      status: "Coming Soon"
+    },
+    {
+      icon: Brain,
+      title: "The Sandbox",
+      description: "You'll chat with different AI personas — each with their own vibe. Some are bold, some thoughtful, some chaotic. How you respond tells us a lot about you, helping Twyne learn your energy, social style, and what types of people you naturally click with.",
       status: "Coming Soon"
     }
   ];
