@@ -36,6 +36,7 @@ export type Database = {
       user_data: {
         Row: {
           created_at: string
+          environment: string | null
           has_completed_onboarding: boolean
           id: string
           onboarding_conversation: Json | null
@@ -48,6 +49,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string | null
           has_completed_onboarding?: boolean
           id?: string
           onboarding_conversation?: Json | null
@@ -60,6 +62,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string | null
           has_completed_onboarding?: boolean
           id?: string
           onboarding_conversation?: Json | null
