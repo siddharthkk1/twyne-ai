@@ -1,12 +1,14 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ComingSoon = () => {
+  const { user } = useAuth();
+  
   const futureFeatures = [
     {
       icon: Sparkles,
@@ -28,7 +30,7 @@ const ComingSoon = () => {
     },
     {
       icon: Building2,
-      title: "Organizations & Companies",
+      title: "Communities",
       description: "Intern classes, teams, apartments, schools — even full companies. Twyne helps your group actually feel like a community, with smart intros, shared spaces, and easy ways to connect.",
       status: "Coming Soon"
     },
@@ -82,7 +84,7 @@ const ComingSoon = () => {
             asChild
             className="hover:bg-transparent"
           >
-            <Link to="/" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <Link to={user ? "/mirror" : "/landing-v2"} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
               <ArrowLeft className="mr-1 h-4 w-4" />
               Back to Home
             </Link>
