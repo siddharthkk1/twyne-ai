@@ -37,7 +37,7 @@ export const NavBar = () => {
           }
         >
           <Heart size={22} />
-          <span className="text-xs mt-1">More</span>
+          <span className="text-xs mt-1">More than Friends</span>
         </NavLink>
         <NavLink
           to="/settings"
