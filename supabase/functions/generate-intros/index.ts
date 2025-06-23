@@ -53,7 +53,7 @@ serve(async (req) => {
     const profileData = userData.profile_data as any
     console.log('📊 User profile data keys:', Object.keys(profileData))
 
-    // Enhanced prompt for more authentic intros
+    // Enhanced prompt for more authentic intros with gender specification
     const prompt = `You are creating warm, authentic introductions between people who would genuinely connect. Your goal is to identify ONE meaningful connection point that would make two people excited to meet.
 
 PHILOSOPHY:
@@ -72,6 +72,7 @@ GUIDELINES:
 4. Write 2 sentences or 1 longer sentence maximum per intro
 5. Make it feel like a warm recommendation from a mutual friend
 6. Avoid many over-specific details that feel forced or researched
+7. IMPORTANT: Specify gender as either "male" or "female" for each person
 
 AUTHENTICITY CHECKS:
 - Would this intro make both people curious to meet?
@@ -79,7 +80,7 @@ AUTHENTICITY CHECKS:
 - Does it sound like something a thoughtful friend would say?
 - Is it specific enough to be genuine but not so specific it feels researched?
 
-Create 3 warm introduction scenarios. Each should feel authentic and focus on one meaningful connection point.
+Create 3 warm introduction scenarios with gender diversity. Each should feel authentic and focus on one meaningful connection point.
 
 Format as JSON:
 {
@@ -97,10 +98,10 @@ EXAMPLE GOOD INTROS:
 - "You and Priya both annotate your favorite fiction with color-coded tabs, and you're drawn to conversations where people talk about their inner world, not just what they do."
 - "You and Maya both believe in following your curiosity over having a fixed plan, and you're both in that exciting phase of figuring out what really matters to you."
 - "You and Jordan share that rare combination of being deeply thoughtful but also action-oriented - you both think carefully but aren't afraid to take meaningful risks."
-- "You and Dani both collect oddly specific Spotify playlists for every mood—she’s the type to send you a “rainy Tuesday reset” mix unprompted. You’d probably end up swapping weird podcast recs and half-serious dream jobs over boba.
-- "You and Priya both have entire personality eras based on Taylor Swift albums—she swears she was in her “Folklore phase” all last winter, and she’s the type to dissect lyrics like they’re journal entries. You’d probably end up trading playlists and life theories in the same breath."
+- "You and Dani both collect oddly specific Spotify playlists for every mood—she's the type to send you a "rainy Tuesday reset" mix unprompted. You'd probably end up swapping weird podcast recs and half-serious dream jobs over boba.
+- "You and Priya both have entire personality eras based on Taylor Swift albums—she swears she was in her "Folklore phase" all last winter, and she's the type to dissect lyrics like they're journal entries. You'd probably end up trading playlists and life theories in the same breath."
 
-Generate 3 scenarios now:
+Generate 3 scenarios now with gender diversity (mix of male and female):
 `;
     console.log('🤖 Calling OpenAI API...')
     
@@ -147,23 +148,26 @@ Generate 3 scenarios now:
     } catch (parseError) {
       console.error('❌ Error parsing OpenAI response:', parseError)
       
-      // Fallback scenarios with improved authenticity
+      // Fallback scenarios with improved authenticity and gender diversity
       scenarios = {
         scenarios: [
           {
             name: "Alex",
             introText: "You and Alex both believe growth happens outside your comfort zone, and you're both navigating that balance between ambition and staying true to yourselves.",
-            tags: ["Growth-minded", "Authentic", "Ambitious", "Self-aware"]
+            tags: ["Growth-minded", "Authentic", "Ambitious", "Self-aware"],
+            gender: "female"
           },
           {
             name: "Sam",
             introText: "You and Sam share that thoughtful approach to life where you value deep conversations and meaningful connections over surface-level interactions.",
-            tags: ["Deep thinker", "Meaningful connections", "Thoughtful", "Authentic"]
+            tags: ["Deep thinker", "Meaningful connections", "Thoughtful", "Authentic"],
+            gender: "male"
           },
           {
             name: "Jordan",
             introText: "You and Jordan both have that creative energy where you're drawn to projects that feel personally meaningful rather than just professionally smart.",
-            tags: ["Creative", "Purpose-driven", "Project-oriented", "Passionate"]
+            tags: ["Creative", "Purpose-driven", "Project-oriented", "Passionate"],
+            gender: "female"
           }
         ]
       }

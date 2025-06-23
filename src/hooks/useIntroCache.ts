@@ -10,6 +10,8 @@ interface CachedIntro {
   tags: string[];
   mutuals: Array<{ name: string; avatar: string }>;
   connectionDegrees: number;
+  gender?: 'male' | 'female';
+  avatarId: string;
 }
 
 interface IntroCacheData {

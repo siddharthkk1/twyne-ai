@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Users, CheckCircle, MapPin, Sparkles, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ interface SampleIntro {
   name: string;
   mutuals: Array<{ name: string; avatar: string }>;
   connectionDegrees: number;
+  gender?: 'male' | 'female';
+  avatarId: string;
 }
 
 const Connect = () => {
@@ -41,10 +44,10 @@ const Connect = () => {
       const cachedIntros = getCachedIntros();
       
       if (cachedIntros && cachedIntros.length > 0) {
-        console.log('✅ Connect: Using cached intros');
-        const introsWithAvatars = cachedIntros.map((intro, index) => ({
+        console.log('✅ Connect: Using cached intros with preserved avatars');
+        const introsWithAvatars = cachedIntros.map((intro) => ({
           ...intro,
-          avatar: <AIAvatar name={intro.name} size={80} avatarId={getRandomAvatarId(index)} />
+          avatar: <AIAvatar name={intro.name} size={80} avatarId={intro.avatarId} />
         }));
         setSampleIntros(introsWithAvatars);
         setLoading(false);
@@ -57,6 +60,22 @@ const Connect = () => {
 
     loadOrGenerateIntros();
   }, [user?.id]);
+
+  // Gender-aware avatar selection function
+  const getGenderBasedAvatarId = (gender: 'male' | 'female' | undefined, index: number): string => {
+    const maleAvatars = ["man1", "man2", "man3"];
+    const femaleAvatars = ["woman1", "woman2", "woman3", "woman4", "woman5", "woman6"];
+    
+    if (gender === 'male') {
+      return maleAvatars[index % maleAvatars.length];
+    } else if (gender === 'female') {
+      return femaleAvatars[index % femaleAvatars.length];
+    } else {
+      // Fallback for undefined gender - use all available avatars
+      const allAvatars = [...maleAvatars, ...femaleAvatars];
+      return allAvatars[index % allAvatars.length];
+    }
+  };
 
   const generateNewIntros = async () => {
     console.log('🚀 Connect: Generating new intros for user:', user?.id);
@@ -81,33 +100,42 @@ const Connect = () => {
 
       if (data?.scenarios && Array.isArray(data.scenarios) && data.scenarios.length > 0) {
         console.log('✅ Connect: Successfully generated intros:', data.scenarios);
-        const intros = data.scenarios.map((scenario: any, index: number) => ({
-          id: (index + 1).toString(),
-          introText: scenario.introText,
-          name: scenario.name,
-          tags: scenario.tags || ['Great match', 'Similar interests', 'Good vibes'],
-          mutuals: generateMockMutuals(index),
-          connectionDegrees: Math.floor(Math.random() * 3) + 2
-        }));
+        const intros = data.scenarios.map((scenario: any, index: number) => {
+          const gender = scenario.gender as 'male' | 'female' | undefined;
+          const avatarId = getGenderBasedAvatarId(gender, index);
+          
+          return {
+            id: (index + 1).toString(),
+            introText: scenario.introText,
+            name: scenario.name,
+            tags: scenario.tags || ['Great match', 'Similar interests', 'Good vibes'],
+            mutuals: generateMockMutuals(index),
+            connectionDegrees: Math.floor(Math.random() * 3) + 2,
+            gender,
+            avatarId
+          };
+        });
         
-        // Cache intros without React components
+        // Cache intros with gender and avatar information
         const introsForCache = intros.map(intro => ({
           id: intro.id,
           introText: intro.introText,
           name: intro.name,
           tags: intro.tags,
           mutuals: intro.mutuals,
-          connectionDegrees: intro.connectionDegrees
+          connectionDegrees: intro.connectionDegrees,
+          gender: intro.gender,
+          avatarId: intro.avatarId
         }));
         setCachedIntros(introsForCache);
         
-        // Add avatars for display
-        const introsWithAvatars = intros.map((intro, index) => ({
+        // Add avatars for display using cached avatar IDs
+        const introsWithAvatars = intros.map((intro) => ({
           ...intro,
-          avatar: <AIAvatar name={intro.name} size={80} avatarId={getRandomAvatarId(index)} />
+          avatar: <AIAvatar name={intro.name} size={80} avatarId={intro.avatarId} />
         }));
         
-        console.log('💾 Connect: Cached intros successfully');
+        console.log('💾 Connect: Cached intros with gender and avatar info successfully');
         setSampleIntros(introsWithAvatars);
       } else {
         console.log('⚠️ Connect: No valid scenarios in response, using fallback');
@@ -137,52 +165,51 @@ const Connect = () => {
     return [];
   };
 
-  const getRandomAvatarId = (index: number): string => {
-    const availableAvatarFiles = [
-      "man1", "man2", "man3",
-      "woman1", "woman2", "woman3", "woman4", "woman5", "woman6"
-    ];
-    
-    const shuffled = [...availableAvatarFiles].sort(() => 0.5 - Math.random());
-    return shuffled[index % shuffled.length];
-  };
-
   const getFallbackIntros = (): SampleIntro[] => {
-    console.log('🔧 Connect: Generating fallback intros');
-    return [
+    console.log('🔧 Connect: Generating fallback intros with gender distribution');
+    const fallbackData = [
       {
         id: "1",
         introText: "You and Alex recently moved to a new city and care deeply about growth over goals.",
-        avatar: <AIAvatar name="Alex" size={80} avatarId={getRandomAvatarId(0)} />,
         tags: ["Big dreamer", "Recently moved", "Growth mindset"],
         name: "Alex",
         mutuals: [
           { name: "Maya", avatar: "M" },
           { name: "James", avatar: "J" }
         ],
-        connectionDegrees: 2
+        connectionDegrees: 2,
+        gender: 'female' as const
       },
       {
         id: "2", 
         introText: "You and Sam share a love for deep conversations and both value authenticity over small talk.",
-        avatar: <AIAvatar name="Sam" size={80} avatarId={getRandomAvatarId(1)} />,
         tags: ["Introspective extrovert", "Deep thinker", "Authentic"],
         name: "Sam",
         mutuals: [],
-        connectionDegrees: 3
+        connectionDegrees: 3,
+        gender: 'male' as const
       },
       {
         id: "3",
         introText: "You and Jordan both find energy in creative projects and believe in following your curiosity.",
-        avatar: <AIAvatar name="Jordan" size={80} avatarId={getRandomAvatarId(2)} />,
         tags: ["Creative soul", "Curious explorer", "Project lover"],
         name: "Jordan",
         mutuals: [
           { name: "Chris", avatar: "C" }
         ],
-        connectionDegrees: 2
+        connectionDegrees: 2,
+        gender: 'female' as const
       }
     ];
+
+    return fallbackData.map((intro, index) => {
+      const avatarId = getGenderBasedAvatarId(intro.gender, index);
+      return {
+        ...intro,
+        avatarId,
+        avatar: <AIAvatar name={intro.name} size={80} avatarId={avatarId} />
+      };
+    });
   };
 
   const handleConnect = (cardId: string) => {
