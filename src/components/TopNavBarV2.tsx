@@ -23,9 +23,19 @@ export const TopNavBarV2 = () => {
         <div className="flex items-center space-x-6">
           <Logo />
           {user && (
-            <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
-              About
-            </Link>
+            <>
+              <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+                About
+              </Link>
+              <a 
+                href="https://twyne.canny.io/feature-requests-and-suggestions" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-foreground/80 hover:text-primary transition-colors"
+              >
+                Give Feedback
+              </a>
+            </>
           )}
         </div>
         
@@ -54,6 +64,14 @@ export const TopNavBarV2 = () => {
               <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base">
                 About
               </Link>
+              <a 
+                href="https://twyne.canny.io/feature-requests-and-suggestions" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base"
+              >
+                Give Feedback
+              </a>
               <Button 
                 variant="outline"
                 onClick={handleLogin}

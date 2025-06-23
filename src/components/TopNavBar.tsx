@@ -25,9 +25,19 @@ export const TopNavBar = () => {
         <div className="flex items-center space-x-6">
           <Logo />
           {user && (
-            <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
-              About
-            </Link>
+            <>
+              <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+                About
+              </Link>
+              <a 
+                href="https://twyne.canny.io/feature-requests-and-suggestions" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-foreground/80 hover:text-primary transition-colors"
+              >
+                Give Feedback
+              </a>
+            </>
           )}
         </div>
         
@@ -56,6 +66,14 @@ export const TopNavBar = () => {
               <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base">
                 About
               </Link>
+              <a 
+                href="https://twyne.canny.io/feature-requests-and-suggestions" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base"
+              >
+                Give Feedback
+              </a>
               <Button 
                 onClick={() => setIsWaitlistOpen(true)}
                 className="bg-gradient-to-r from-primary to-accent text-white border-none rounded-full px-3 py-1 md:px-4 md:py-2 text-sm md:text-base"
