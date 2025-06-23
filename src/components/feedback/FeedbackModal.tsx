@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, MessageSquare, Bug } from "lucide-react";
+import { Loader2, MessageSquare, AlertTriangle } from "lucide-react";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -105,8 +105,8 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-muted/50 transition-colors">
                 <RadioGroupItem value="issue" id="issue" />
                 <div className="flex items-center gap-2">
-                  <Bug className="h-4 w-4 text-destructive" />
-                  <Label htmlFor="issue" className="cursor-pointer">Bug Report</Label>
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <Label htmlFor="issue" className="cursor-pointer">Issue</Label>
                 </div>
               </div>
             </RadioGroup>

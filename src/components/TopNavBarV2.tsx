@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
@@ -9,6 +9,7 @@ import { FeedbackButton } from "./feedback/FeedbackButton";
 export const TopNavBarV2 = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const handleGetStarted = () => {
     navigate("/onboarding");
@@ -16,6 +17,14 @@ export const TopNavBarV2 = () => {
 
   const handleLogin = () => {
     navigate("/auth");
+  };
+
+  // Determine the back button text based on current route
+  const getBackButtonText = () => {
+    if (location.pathname === "/mirror") {
+      return "Back to Mirror";
+    }
+    return "Back to Home";
   };
   
   return (
