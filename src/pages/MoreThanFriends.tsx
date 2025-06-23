@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,23 +89,33 @@ const MoreThanFriends = () => {
                 {connectionTypes.map((type, index) => {
                   const IconComponent = type.icon;
                   return (
-                    <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
-                      <CardHeader>
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10">
-                            <IconComponent className="h-6 w-6 text-primary" />
+                    <Card key={index} className="group hover:shadow-xl transition-all duration-500 border-2 border-muted/50 bg-gradient-to-br from-white to-muted/20 hover:border-primary/20 hover:bg-gradient-to-br hover:from-primary/5 hover:to-white relative overflow-hidden">
+                      {/* Subtle tech accent line */}
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-muted to-muted-foreground/20 group-hover:from-primary group-hover:to-accent transition-all duration-500" />
+                      
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-muted to-muted/50 group-hover:from-primary/20 group-hover:to-accent/20 transition-all duration-300 group-hover:scale-110 shadow-sm">
+                            <IconComponent className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                           </div>
-                          <CardTitle className="text-xl">{type.title}</CardTitle>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-xl font-semibold">{type.title}</CardTitle>
+                            <CardDescription className="text-base font-medium mt-1 group-hover:text-foreground/80 transition-colors duration-300">
+                              "{type.description}"
+                            </CardDescription>
+                          </div>
                         </div>
-                        <CardDescription className="text-base font-medium">
-                          "{type.description}"
-                        </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed">
+                      <CardContent className="pt-0">
+                        <p className="text-muted-foreground leading-relaxed group-hover:text-foreground/80 transition-colors duration-300">
                           {type.details}
                         </p>
                       </CardContent>
+                      
+                      {/* Subtle hover glow effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-transparent to-primary/3" />
+                      </div>
                     </Card>
                   );
                 })}

@@ -12,13 +12,13 @@ const ComingSoon = () => {
       icon: Sparkles,
       title: "Personalized Warm Intros",
       description: "AI-powered introductions to people you'll actually vibe with. We learn your personality and connect you with compatible locals who share your energy.",
-      status: "Teaser Available"
+      status: "In Preview"
     },
     {
       icon: Heart,
       title: "More Than Friends",
       description: "Whether it's dating, collaborators, or creative partners — Twyne helps you connect with people open to the same things you are.",
-      status: "Teaser Available"
+      status: "In Preview"
     },
     {
       icon: Users2,
@@ -112,32 +112,58 @@ const ComingSoon = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {futureFeatures.map((feature, index) => {
                   const IconComponent = feature.icon;
-                  const isAvailable = feature.status === "Teaser Available";
+                  const isInPreview = feature.status === "In Preview";
                   
                   return (
-                    <Card key={index} className={`hover:shadow-lg transition-all duration-300 ${isAvailable ? 'border-primary/40 bg-primary/5' : ''}`}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${isAvailable ? 'bg-primary/20' : 'bg-muted'}`}>
-                              <IconComponent className={`h-5 w-5 ${isAvailable ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Card key={index} className={`group hover:shadow-xl transition-all duration-500 border-2 relative overflow-hidden ${
+                      isInPreview 
+                        ? 'border-primary/30 bg-gradient-to-br from-primary/5 via-white to-secondary/5 hover:from-primary/10 hover:to-secondary/8' 
+                        : 'border-muted/50 bg-gradient-to-br from-white to-muted/20 hover:border-primary/20 hover:bg-gradient-to-br hover:from-primary/5 hover:to-white'
+                    }`}>
+                      {/* Subtle tech accent line */}
+                      <div className={`absolute top-0 left-0 right-0 h-1 ${
+                        isInPreview ? 'bg-gradient-to-r from-primary to-accent' : 'bg-gradient-to-r from-muted to-muted-foreground/20'
+                      }`} />
+                      
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110 ${
+                              isInPreview 
+                                ? 'bg-gradient-to-br from-primary/20 to-accent/20 shadow-sm' 
+                                : 'bg-gradient-to-br from-muted to-muted/50'
+                            }`}>
+                              <IconComponent className={`h-5 w-5 transition-colors duration-300 ${
+                                isInPreview ? 'text-primary group-hover:text-accent' : 'text-muted-foreground group-hover:text-primary'
+                              }`} />
                             </div>
-                            <CardTitle className="text-lg">{feature.title}</CardTitle>
+                            <CardTitle className="text-lg font-semibold leading-tight flex-1 min-w-0">{feature.title}</CardTitle>
                           </div>
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            isAvailable 
-                              ? 'bg-primary text-primary-foreground' 
-                              : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {feature.status}
-                          </span>
+                          <div className="flex-shrink-0">
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap transition-all duration-300 ${
+                              isInPreview
+                                ? 'bg-gradient-to-r from-primary to-accent text-white shadow-sm group-hover:shadow-md' 
+                                : 'bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                            }`}>
+                              {feature.status}
+                            </span>
+                          </div>
                         </div>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed text-sm">
+                      <CardContent className="pt-0">
+                        <p className="text-muted-foreground leading-relaxed text-sm group-hover:text-foreground/80 transition-colors duration-300">
                           {feature.description}
                         </p>
                       </CardContent>
+                      
+                      {/* Subtle hover glow effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                        <div className={`absolute inset-0 ${
+                          isInPreview 
+                            ? 'bg-gradient-to-br from-primary/5 via-transparent to-accent/5' 
+                            : 'bg-gradient-to-br from-primary/3 via-transparent to-primary/3'
+                        }`} />
+                      </div>
                     </Card>
                   );
                 })}
