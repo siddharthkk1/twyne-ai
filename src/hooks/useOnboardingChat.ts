@@ -47,6 +47,8 @@ export const useOnboardingChat = () => {
   
   // Add ref to track if guidance has been auto-hidden to prevent feedback loop
   const hasAutoHiddenGuidance = useRef(false);
+  // Add ref to track initialization to prevent infinite loops
+  const hasInitialized = useRef(false);
   
   // Initialize userProfile state
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -235,13 +237,26 @@ export const useOnboardingChat = () => {
     setShowNameCollection(false);
   };
 
-  // Reset conversation when prompt mode changes and initialize with AI greeting
+  // Reset initialization when prompt mode changes (but after initial mount)
   useEffect(() => {
-    if (isComplete || isGeneratingProfile) {
+    // Don't reset if this is the initial mount
+    if (!hasInitialized.current) {
       return;
     }
 
-    console.log('🔄 useOnboardingChat: Resetting conversation for prompt mode:', promptMode);
+    console.log('🔄 useOnboardingChat: Prompt mode changed, resetting initialization');
+    hasInitialized.current = false;
+  }, [promptMode]);
+
+  // FIXED: Simplified initialization effect - only run once when component mounts
+  useEffect(() => {
+    // Only initialize once and only if we haven't already
+    if (hasInitialized.current || isComplete || isGeneratingProfile) {
+      return;
+    }
+
+    console.log('🔄 useOnboardingChat: Starting initial chat setup');
+    hasInitialized.current = true;
     
     // Cleanup any existing requests before starting new initialization
     cleanup();
@@ -306,7 +321,7 @@ export const useOnboardingChat = () => {
           scrollToBottomInstant();
         }, 100);
       });
-  }, [promptMode, userName, showNameCollection, isComplete, isGeneratingProfile, scrollToBottomInstant, cleanup]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Complete onboarding and generate profile
   const completeOnboarding = async (finalConversation: Conversation) => {
