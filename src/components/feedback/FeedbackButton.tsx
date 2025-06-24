@@ -11,7 +11,7 @@ export const FeedbackButton = () => {
     <>
       <Button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg z-40 p-0"
+        className="fixed bottom-6 right-6 h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg z-40 flex items-center justify-center"
         aria-label="Give feedback"
       >
         <MessageSquare className="h-5 w-5" />
