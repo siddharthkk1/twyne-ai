@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Mic } from "lucide-react";
+import { MessageCircle, Mic, MicOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from "@/components/ui/use-toast";
 
 interface VoiceInputProps {
   isListening: boolean;
@@ -20,18 +19,11 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
   isProcessing,
   switchToTextMode
 }) => {
-  const handleVoiceClick = () => {
-    toast({
-      title: "Voice Input Coming Soon",
-      description: "Voice input is being developed and will be available in a future update. Please use text input for now.",
-    });
-  };
-
   return (
     <>
       <div className="flex-1 h-[44px] flex items-center justify-center rounded-2xl shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 px-4">
         <p className="text-muted-foreground">
-          Voice input coming soon - use text for now
+          {isListening ? "Listening..." : isProcessing ? "Processing..." : "Click mic to speak"}
         </p>
       </div>
       <TooltipProvider>
@@ -39,15 +31,25 @@ const VoiceInput: React.FC<VoiceInputProps> = ({
           <TooltipTrigger asChild>
             <Button
               size="icon"
-              onClick={handleVoiceClick}
-              disabled={isDisabled}
-              className="rounded-full shadow-md bg-gradient-to-r from-accent to-accent/80 hover:opacity-90 transition-all duration-200"
+              onClick={toggleVoiceInput}
+              disabled={isDisabled || isProcessing}
+              className={`rounded-full shadow-md ${
+                isListening 
+                  ? "bg-red-500 hover:bg-red-600" 
+                  : "bg-gradient-to-r from-accent to-accent/80 hover:opacity-90"
+              } transition-all duration-200 relative`}
             >
-              <Mic size={18} />
+              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+              {isProcessing && !isListening && (
+                <span className="absolute -top-1 -right-1 w-3 h-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
+                </span>
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            Voice input coming soon
+            {isListening ? "Stop recording" : isProcessing ? "Processing audio..." : "Start speaking"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

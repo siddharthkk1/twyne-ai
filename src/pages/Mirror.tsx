@@ -4,10 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Send, RotateCcw, Youtube, Play, Shield, Eye, EyeOff } from "lucide-react";
+import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles, Settings, MessageSquare, Send, RotateCcw, Youtube, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import PersonalityChart from "@/components/onboarding/PersonalityChart";
 import AccountConnectionButtons from "@/components/connections/AccountConnectionButtons";
 import SpotifyDataCard from "@/components/mirror/SpotifyDataCard";
@@ -428,18 +427,6 @@ const Mirror = () => {
             >
               <Settings className="h-4 w-4 mr-2" />
               Connect Accounts
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setActiveTab("privacy")}
-              className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
-                activeTab === "privacy" 
-                  ? "bg-primary text-primary-foreground border-primary shadow-lg scale-105" 
-                  : "border-slate-200 hover:border-primary/50 hover:shadow-md"
-              }`}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Privacy Control
             </Button>
           </div>
 
@@ -1048,198 +1035,6 @@ const Mirror = () => {
                 </CardHeader>
                 <CardContent>
                   <AccountConnectionButtons />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Privacy Control Tab */}
-            <TabsContent value="privacy" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <div className="p-2 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg">
-                      <Shield className="h-5 w-5 text-green-600" />
-                    </div>
-                    Privacy & Visibility Control
-                  </CardTitle>
-                  <CardDescription>Control what information can be shared with others (Preview Feature)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Coming Soon Banner */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Sparkles className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-blue-800">Preview Feature</h3>
-                        <p className="text-sm text-blue-600">
-                          This is a preview of our upcoming privacy controls. Full functionality will be available soon!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Profile Visibility Settings */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-800">Profile Information Sharing</h3>
-                    
-                    <div className="grid gap-4">
-                      {[
-                        { 
-                          label: "Basic Information", 
-                          description: "Name, age, location", 
-                          defaultChecked: true 
-                        },
-                        { 
-                          label: "Personality Insights", 
-                          description: "Big Five traits, communication style", 
-                          defaultChecked: true 
-                        },
-                        { 
-                          label: "Interests & Hobbies", 
-                          description: "Music, books, activities, talking points", 
-                          defaultChecked: true 
-                        },
-                        { 
-                          label: "Life Story", 
-                          description: "Background, upbringing, major life events", 
-                          defaultChecked: false 
-                        },
-                        { 
-                          label: "Values & Beliefs", 
-                          description: "Core values, political views, personal beliefs", 
-                          defaultChecked: false 
-                        },
-                        { 
-                          label: "Connection Style", 
-                          description: "Social preferences, dealbreakers, boundaries", 
-                          defaultChecked: true 
-                        }
-                      ].map((item, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              {item.defaultChecked ? (
-                                <Eye className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <EyeOff className="h-4 w-4 text-slate-400" />
-                              )}
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-slate-800">{item.label}</h4>
-                              <p className="text-sm text-slate-600">{item.description}</p>
-                            </div>
-                          </div>
-                          <Switch 
-                            defaultChecked={item.defaultChecked}
-                            disabled
-                            className="opacity-50"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Connection Data Sharing */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-800">Connected Account Data</h3>
-                    
-                    <div className="grid gap-4">
-                      {[
-                        { 
-                          label: "Spotify Music Data", 
-                          description: "Top artists, genres, listening habits", 
-                          defaultChecked: true 
-                        },
-                        { 
-                          label: "YouTube Watch History", 
-                          description: "Channel subscriptions, viewing preferences", 
-                          defaultChecked: true 
-                        },
-                        { 
-                          label: "Future Integrations", 
-                          description: "Additional platforms as they become available", 
-                          defaultChecked: false 
-                        }
-                      ].map((item, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              {item.defaultChecked ? (
-                                <Eye className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <EyeOff className="h-4 w-4 text-slate-400" />
-                              )}
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-slate-800">{item.label}</h4>
-                              <p className="text-sm text-slate-600">{item.description}</p>
-                            </div>
-                          </div>
-                          <Switch 
-                            defaultChecked={item.defaultChecked}
-                            disabled
-                            className="opacity-50"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Advanced Privacy Settings */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-800">Advanced Settings</h3>
-                    
-                    <div className="grid gap-4">
-                      {[
-                        { 
-                          label: "Anonymous Mode", 
-                          description: "Hide your identity until mutual connection approval", 
-                          defaultChecked: false 
-                        },
-                        { 
-                          label: "Selective Sharing", 
-                          description: "Different privacy levels for different connection types", 
-                          defaultChecked: false 
-                        },
-                        { 
-                          label: "Temporary Visibility", 
-                          description: "Set time limits on shared information", 
-                          defaultChecked: false 
-                        }
-                      ].map((item, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Shield className="h-4 w-4 text-slate-600" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-slate-800">{item.label}</h4>
-                              <p className="text-sm text-slate-600">{item.description}</p>
-                            </div>
-                          </div>
-                          <Switch 
-                            defaultChecked={item.defaultChecked}
-                            disabled
-                            className="opacity-50"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preview Actions */}
-                  <div className="flex gap-3 pt-4">
-                    <Button variant="outline" disabled className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Preview Profile View (Coming Soon)
-                    </Button>
-                    <Button disabled className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Save Privacy Settings (Coming Soon)
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
