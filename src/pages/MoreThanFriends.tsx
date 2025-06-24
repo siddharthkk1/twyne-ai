@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Heart, Brain, Briefcase, Target, Users, Building } from "lucide-react";
+import { ArrowLeft, Heart, Brain, Briefcase, Target, Users, Building, Users2 } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -24,9 +24,9 @@ const MoreThanFriends = () => {
     },
     {
       icon: Briefcase,
-      title: "Professional Networking",
+      title: "Professional Networking & Job Opportunities",
       description: "Work with people you'd actually grab coffee with.",
-      details: "No forced LinkedIn vibes — just natural, aligned connections with people doing meaningful things in your space."
+      details: "No forced LinkedIn vibes — just natural, aligned connections with people doing meaningful things in your space. Land roles through connection, not cold apps. Tap into real opportunities through people who believe in you — not just your résumé."
     },
     {
       icon: Target,
@@ -41,10 +41,10 @@ const MoreThanFriends = () => {
       details: "AI-assisted matching with professionals who share your values, background, or even similar struggles — so you feel deeply seen and supported."
     },
     {
-      icon: Building,
-      title: "Job Opportunities",
-      description: "Land roles through connection, not cold apps.",
-      details: "Tap into real opportunities through people who believe in you — not just your résumé."
+      icon: Users2,
+      title: "Co-founders",
+      description: "Find your perfect co-founder match based on complementary skills, shared vision, and compatible working styles.",
+      details: "Twyne helps you connect with potential business partners who share your entrepreneurial energy and values."
     }
   ];
 

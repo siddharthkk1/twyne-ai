@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles, Brain, TestTube, Shield, MessageCircle, Mic, Briefcase, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles, Brain, TestTube, Shield, MessageCircle, Mic } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -98,18 +98,6 @@ const ComingSoon = () => {
       icon: Mic,
       title: "Voice Input",
       description: "Talk naturally to Twyne during onboarding instead of typing. Share your story, thoughts, and personality through voice conversations that feel more natural and authentic than text-based chats.",
-      status: "Coming Soon"
-    },
-    {
-      icon: Briefcase,
-      title: "Professional Connections",
-      description: "Network and discover opportunities through genuine relationships. Connect with people you'd actually grab coffee with, find mentors who get your journey, and access job opportunities through people who believe in you — not just your résumé.",
-      status: "Coming Soon"
-    },
-    {
-      icon: Users,
-      title: "Co-founders",
-      description: "Find your perfect co-founder match based on complementary skills, shared vision, and compatible working styles. Twyne helps you connect with potential business partners who share your entrepreneurial energy and values.",
       status: "Coming Soon"
     }
   ];
