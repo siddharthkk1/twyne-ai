@@ -34,12 +34,12 @@ const QuickActionButtons: React.FC<QuickActionButtonsProps> = ({ handleSend, isD
       <Button
         variant="outline"
         size="sm"
-        onClick={() => handleSend("This isn't really that important to me tbh, can we talk about something else?")}
+        onClick={() => handleSend("Can we talk about something else?")}
         disabled={isDisabled}
-        className="bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-full text-sm shadow-sm whitespace-normal"
+        className="bg-background/70 backdrop-blur-sm border border-border/50 hover:bg-accent/10 transition-all duration-200 rounded-full text-sm shadow-sm"
       >
         <MessageCircle className="h-3 w-3 mr-1" /> 
-        This isn't really that important to me tbh, can we talk about something else?
+        Can we talk about something else?
       </Button>
     </div>
   );
