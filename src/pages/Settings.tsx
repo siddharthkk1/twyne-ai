@@ -45,8 +45,8 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 w-full">
+      <div className="px-4 py-8 max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
             Settings
@@ -70,10 +70,6 @@ const Settings = () => {
               <div>
                 <label className="text-sm font-medium text-slate-600">Email</label>
                 <p className="text-slate-800 font-medium">{user.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">User ID</label>
-                <p className="text-slate-500 text-sm font-mono">{user.id}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-600">Member Since</label>
