@@ -4,7 +4,6 @@ import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QuickActionButtons from "./QuickActionButtons";
 import TextInput from "./TextInput";
-import VoiceInput from "./VoiceInput";
 import SmsInput from "./SmsInput";
 
 interface InputContainerProps {
@@ -55,10 +54,6 @@ const InputContainer = ({
   disabled
 }: InputContainerProps) => {
   
-  // Helper functions for mode switching
-  const switchToVoiceMode = () => setConversationMode("voice");
-  const switchToTextMode = () => setConversationMode("text");
-
   const handleHelpClick = () => {
     setShowGuidanceInfo(!showGuidanceInfo);
   };
@@ -79,21 +74,12 @@ const InputContainer = ({
             setInput={setInput}
             handleSend={onSend}
             isDisabled={disabled}
-            switchToVoiceMode={switchToVoiceMode}
-          />
-        ) : conversationMode === "voice" ? (
-          <VoiceInput 
-            isListening={false}
-            toggleVoiceInput={() => {}}
-            isDisabled={disabled}
-            isProcessing={false}
-            switchToTextMode={switchToTextMode}
           />
         ) : (
           <SmsInput 
             phoneNumber={phoneNumber}
             isDisabled={disabled}
-            switchToTextMode={switchToTextMode}
+            switchToTextMode={() => setConversationMode("text")}
           />
         )}
       </div>

@@ -1,97 +1,56 @@
 
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Mic, Send } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface TextInputProps {
   input: string;
-  setInput: React.Dispatch<React.SetStateAction<string>>;
-  handleSend: () => void;
+  setInput: (value: string) => void;
+  handleSend: (message?: string) => void;
   isDisabled: boolean;
-  switchToVoiceMode: () => void;
 }
 
 const TextInput: React.FC<TextInputProps> = ({ 
   input, 
   setInput, 
   handleSend, 
-  isDisabled, 
-  switchToVoiceMode 
+  isDisabled
 }) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const prevIsDisabledRef = useRef(isDisabled);
-
-  // Auto-focus when component becomes enabled (after sending message)
-  useEffect(() => {
-    if (prevIsDisabledRef.current && !isDisabled && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-    prevIsDisabledRef.current = isDisabled;
-  }, [isDisabled]);
-
-  // Focus on mount
-  useEffect(() => {
-    if (textareaRef.current && !isDisabled) {
-      textareaRef.current.focus();
-    }
-  }, []);
-
-  // FIXED: Add validation and logging for send button
-  const handleSendClick = () => {
-    console.log('🔄 TextInput: Send button clicked', { input, inputType: typeof input, isDisabled });
-    
-    // Ensure input is string and has content
-    const sanitizedInput = typeof input === 'string' ? input : String(input || '');
-    
-    if (!isDisabled && sanitizedInput.trim()) {
-      console.log('✅ TextInput: Calling handleSend with valid input');
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim() && !isDisabled) {
       handleSend();
-    } else {
-      console.warn('⚠️ TextInput: Send blocked - disabled or empty input', { isDisabled, hasContent: !!sanitizedInput.trim() });
     }
   };
 
   return (
     <>
-      <Textarea
-        ref={textareaRef}
-        placeholder="Type a message..."
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            if (!isDisabled && input.trim()) {
-              handleSend();
-            }
-          }
-        }}
-        disabled={isDisabled}
-        className="rounded-2xl shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 min-h-[44px]"
-        style={{ 
-          maxHeight: '150px',
-          lineHeight: '1.5',
-          padding: '10px 14px'
-        }}
-      />
-      <Button
-        size="icon"
-        onClick={handleSendClick}
-        disabled={isDisabled || !input.trim()}
-        className="rounded-full shadow-md bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-all duration-200"
-      >
-        <Send size={18} />
-      </Button>
-      {/* Toggle to voice mode */}
-      <Button
-        size="icon"
-        variant="outline"
-        onClick={switchToVoiceMode}
-        className="rounded-full border-muted"
-      >
-        <Mic size={18} />
-      </Button>
+      <form onSubmit={handleSubmit} className="flex-1 flex items-end space-x-2">
+        <div className="flex-1 relative">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Share what's on your mind..."
+            disabled={isDisabled}
+            className="w-full min-h-[44px] max-h-32 resize-none rounded-2xl shadow-sm bg-background/70 backdrop-blur-sm border border-border/50 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all duration-200"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+          />
+        </div>
+        
+        <Button
+          type="submit"
+          size="icon"
+          disabled={!input.trim() || isDisabled}
+          className="rounded-full shadow-md bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-200"
+        >
+          <Send size={18} />
+        </Button>
+      </form>
     </>
   );
 };
