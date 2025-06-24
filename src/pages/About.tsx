@@ -1,11 +1,17 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const About = () => {
+  const { user } = useAuth();
+  
+  // Determine back button destination based on auth status
+  const backDestination = user ? "/mirror" : "/";
+  const backText = user ? "Back to Mirror" : "Back to Home";
+
   return (
     <div className="min-h-screen flex flex-col">
       <TopNavBar />
@@ -18,9 +24,9 @@ const About = () => {
             asChild
             className="hover:bg-transparent"
           >
-            <Link to="/mirror" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <Link to={backDestination} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
               <ArrowLeft className="mr-1 h-4 w-4" />
-              Back to Mirror
+              {backText}
             </Link>
           </Button>
         </div>
