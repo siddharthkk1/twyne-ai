@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -31,30 +32,49 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-  // Handle scrollbar compensation
+  // Handle scrollbar compensation only when dialog is mounted
   React.useEffect(() => {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const originalScrollY = window.scrollY;
     
-    // Apply compensation when dialog opens
-    document.body.style.paddingRight = `${scrollbarWidth}px`;
-    document.body.style.overflow = 'hidden';
-    
-    // Get all fixed elements and apply compensation
-    const fixedElements = document.querySelectorAll('[style*="position: fixed"], .fixed');
-    fixedElements.forEach((element) => {
-      const el = element as HTMLElement;
-      el.style.paddingRight = `${scrollbarWidth}px`;
-    });
-    
-    return () => {
-      // Reset when dialog closes
-      document.body.style.paddingRight = '';
-      document.body.style.overflow = '';
+    // Only apply compensation if there's actually a scrollbar
+    if (scrollbarWidth > 0) {
+      // Apply compensation to body
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
       
+      // Get all fixed elements and apply compensation
+      const fixedElements = document.querySelectorAll('.fixed');
       fixedElements.forEach((element) => {
         const el = element as HTMLElement;
-        el.style.paddingRight = '';
+        el.style.paddingRight = `${scrollbarWidth}px`;
       });
+    }
+    
+    // Prevent body scroll but maintain scroll position
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${originalScrollY}px`;
+    document.body.style.width = '100%';
+    
+    return () => {
+      // Reset all body styles
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      
+      // Restore scroll position
+      window.scrollTo(0, originalScrollY);
+      
+      // Reset fixed elements
+      if (scrollbarWidth > 0) {
+        const fixedElements = document.querySelectorAll('.fixed');
+        fixedElements.forEach((element) => {
+          const el = element as HTMLElement;
+          el.style.paddingRight = '';
+        });
+      }
     };
   }, []);
 
