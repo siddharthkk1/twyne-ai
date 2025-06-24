@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 
@@ -16,18 +16,32 @@ const TextInput: React.FC<TextInputProps> = ({
   handleSend, 
   isDisabled
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isDisabled) {
       handleSend();
+      // Auto-focus the textarea after sending a message
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
     }
   };
+
+  // Auto-focus when component becomes enabled (after AI responds)
+  useEffect(() => {
+    if (!isDisabled && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isDisabled]);
 
   return (
     <>
       <form onSubmit={handleSubmit} className="flex-1 flex items-end space-x-2">
         <div className="flex-1 relative">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Share what's on your mind..."
