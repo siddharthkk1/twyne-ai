@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -32,14 +31,13 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-  // Handle scrollbar compensation only when dialog is mounted
+  // Handle scrollbar compensation only - don't prevent scrolling
   React.useEffect(() => {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    const originalScrollY = window.scrollY;
     
     // Only apply compensation if there's actually a scrollbar
     if (scrollbarWidth > 0) {
-      // Apply compensation to body
+      // Apply compensation to body to prevent layout shift
       document.body.style.paddingRight = `${scrollbarWidth}px`;
       
       // Get all fixed elements and apply compensation
@@ -50,22 +48,9 @@ const DialogContent = React.forwardRef<
       });
     }
     
-    // Prevent body scroll but maintain scroll position
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${originalScrollY}px`;
-    document.body.style.width = '100%';
-    
     return () => {
-      // Reset all body styles
+      // Reset compensation when dialog closes
       document.body.style.paddingRight = '';
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      
-      // Restore scroll position
-      window.scrollTo(0, originalScrollY);
       
       // Reset fixed elements
       if (scrollbarWidth > 0) {
