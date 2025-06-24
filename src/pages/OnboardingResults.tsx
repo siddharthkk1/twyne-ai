@@ -77,10 +77,6 @@ const OnboardingResults = () => {
     setShowCreateAccountPrompt(true);
   };
 
-  const handleContinueWithoutAccount = () => {
-    navigate("/");
-  };
-
   const handleGoToMirror = () => {
     navigate("/mirror");
   };
@@ -113,7 +109,7 @@ const OnboardingResults = () => {
           userName={userName || userProfile?.name} 
         />
 
-        {/* Action buttons */}
+        {/* Create Account Card - Moved to top area for better visibility */}
         {!user && (
           <Card className="mt-8">
             <CardContent className="p-6">
@@ -123,20 +119,12 @@ const OnboardingResults = () => {
                 <p className="text-muted-foreground">
                   Create an account to save your insights and start using all of Twyne's features.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button 
-                    onClick={handleCreateAccount}
-                    className="bg-gradient-to-r from-primary to-accent text-white"
-                  >
-                    Create Account to Save Data
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={handleContinueWithoutAccount}
-                  >
-                    Continue Without Account
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleCreateAccount}
+                  className="bg-gradient-to-r from-primary to-accent text-white"
+                >
+                  Create Account to Save Data
+                </Button>
               </div>
             </CardContent>
           </Card>
