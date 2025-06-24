@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileCompletionDashboard } from "@/components/onboarding/ProfileCompletionDashboard";
 import { Card, CardContent } from "@/components/ui/card";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Lock } from "lucide-react";
 import { CreateAccountPrompt } from "@/components/auth/CreateAccountPrompt";
 import { UserProfile } from "@/types/chat";
 
