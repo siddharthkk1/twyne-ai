@@ -33,7 +33,7 @@ const Settings = () => {
 
   if (!user) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center pt-16">
         <Card className="max-w-md mx-auto shadow-xl border-0">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl text-slate-800">Access Denied</CardTitle>
@@ -45,7 +45,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-y-auto">
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-y-auto pt-16">
       <div className="min-h-full px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
