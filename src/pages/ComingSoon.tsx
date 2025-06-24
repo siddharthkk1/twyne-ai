@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles, Brain, TestTube, Shield, MessageCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, PartyPopper, Zap, Clock, Share2, Heart, Users2, Building2, Sparkles, Brain, TestTube, Shield, MessageCircle, Mic } from "lucide-react";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -92,6 +92,12 @@ const ComingSoon = () => {
       icon: MessageCircle,
       title: "Social Reflections",
       description: "Let friends add their own take on who you are — like a personality reference. It's not a \"review\" — it's what they see in you. Think LinkedIn recs, but for your vibe, your energy, your presence. \"She's the type who brings calm to chaos.\" \"Always asks the kind of questions that matter.\"",
+      status: "Coming Soon"
+    },
+    {
+      icon: Mic,
+      title: "Voice Input",
+      description: "Talk naturally to Twyne during onboarding instead of typing. Share your story, thoughts, and personality through voice conversations that feel more natural and authentic than text-based chats.",
       status: "Coming Soon"
     }
   ];
