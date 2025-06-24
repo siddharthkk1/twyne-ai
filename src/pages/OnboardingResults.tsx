@@ -144,7 +144,7 @@ const OnboardingResults = () => {
           </div>
         )}
 
-        {/* ENHANCED: Pass userName with better fallback handling */}
+        {/* Profile Dashboard without duplicate sections */}
         <ProfileCompletionDashboard 
           userProfile={userProfile} 
           userName={userName || userProfile?.name} 

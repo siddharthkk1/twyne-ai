@@ -5,7 +5,7 @@ import { UserProfile } from '@/types/chat';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles } from "lucide-react";
+import { BarChart3, Heart, User, Activity, BookOpen, Brain, Sparkles } from "lucide-react";
 import PersonalityChart from './PersonalityChart';
 
 interface ProfileCompletionDashboardProps {
@@ -76,33 +76,6 @@ export const ProfileCompletionDashboard: React.FC<ProfileCompletionDashboardProp
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="flex flex-col gap-8">
-        {/* Header with personalized greeting */}
-        <div 
-          className="text-center p-8 rounded-xl mb-4"
-          style={{ 
-            background: `linear-gradient(135deg, ${userTheme.light}, ${userTheme.medium})`,
-            borderBottom: `3px solid ${userTheme.dark}`
-          }}
-        >
-          <h1 className="text-3xl font-bold mb-3" style={{ color: userTheme.dark }}>
-            Welcome, {firstName}!
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Here's what we learned about you from our conversation. This information is private and only visible to you.
-          </p>
-        </div>
-
-        {/* Privacy Notice */}
-        <div className="bg-primary/5 rounded-lg p-4 border border-primary/10 max-w-3xl mx-auto">
-          <div className="flex items-center gap-2 mb-2">
-            <Lock className="h-4 w-4 text-primary" />
-            <h3 className="font-medium">Privacy Guarantee</h3>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            This profile is private and only visible to you. Twyne will never share your information with other users without your explicit permission.
-          </p>
-        </div>
-
         {/* Main Tabbed Interface */}
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-6 mb-8">
