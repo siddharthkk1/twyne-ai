@@ -12,9 +12,9 @@ const Layout = () => {
   const isSettingsPage = location.pathname === '/settings';
 
   return (
-    <div className={`min-h-screen flex flex-col ${isConnectPage ? '' : 'bg-white'}`}>
+    <div className={`min-h-screen flex flex-col ${isConnectPage || isSettingsPage ? '' : 'bg-white'}`}>
       {!hideNav && <TopNavBar />}
-      <div className={`flex-1 ${hideNav ? 'p-0' : isConnectPage ? '' : isMirrorPage ? 'pt-16' : 'container mx-auto pb-24 mt-16'}`}>
+      <div className={`flex-1 ${hideNav ? 'p-0' : isConnectPage || isSettingsPage ? '' : isMirrorPage ? 'pt-16' : 'container mx-auto pb-24 mt-16'}`}>
         <Outlet />
       </div>
       {!hideNav && !isConnectPage && !isMirrorPage && !isMoreThanFriendsPage && !isSettingsPage && <NavBar />}
