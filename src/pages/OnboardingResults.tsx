@@ -103,7 +103,34 @@ const OnboardingResults = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
       <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
-        {/* Top Create Account Button - Prominently displayed for non-authenticated users */}
+        {/* Header with personalized greeting */}
+        <div 
+          className="text-center p-8 rounded-xl mb-4"
+          style={{ 
+            background: `linear-gradient(135deg, hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 95%), hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 60%, 85%))`,
+            borderBottom: `3px solid hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 35%)`
+          }}
+        >
+          <h1 className="text-3xl font-bold mb-3" style={{ color: `hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 35%)` }}>
+            Welcome, {(userName || userProfile?.name || "User").split(' ')[0]}!
+          </h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Here's what we learned about you from our conversation. This information is private and only visible to you.
+          </p>
+        </div>
+
+        {/* Privacy Notice */}
+        <div className="bg-primary/5 rounded-lg p-4 border border-primary/10 max-w-3xl mx-auto mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="h-4 w-4 text-primary" />
+            <h3 className="font-medium">Privacy Guarantee</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            This profile is private and only visible to you. Twyne will never share your information with other users without your explicit permission.
+          </p>
+        </div>
+
+        {/* Create Account Button - Positioned between privacy notice and dashboard */}
         {!user && (
           <div className="mb-6 text-center">
             <Button 
