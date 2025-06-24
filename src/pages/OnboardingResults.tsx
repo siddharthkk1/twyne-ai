@@ -103,42 +103,18 @@ const OnboardingResults = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
       <div className="flex-1 container px-4 py-8 mx-auto max-w-4xl">
-        {/* Header with personalized greeting */}
-        <div 
-          className="text-center p-8 rounded-xl mb-4"
-          style={{ 
-            background: `linear-gradient(135deg, hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 95%), hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 60%, 85%))`,
-            borderBottom: `3px solid hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 35%)`
-          }}
-        >
-          <h1 className="text-3xl font-bold mb-3" style={{ color: `hsl(${(userName || userProfile?.name || "User").split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}, 70%, 35%)` }}>
-            Welcome, {(userName || userProfile?.name || "User").split(' ')[0]}!
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Here's what we learned about you from our conversation. This information is private and only visible to you.
-          </p>
-        </div>
-
-        {/* Top Create Account Card - Prominently displayed */}
+        {/* Top Create Account Button - Prominently displayed for non-authenticated users */}
         {!user && (
-          <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5">
-            <CardContent className="p-6">
-              <div className="text-center space-y-4">
-                <UserPlus className="h-12 w-12 text-primary mx-auto" />
-                <h3 className="text-xl font-semibold">Save Your Profile</h3>
-                <p className="text-muted-foreground">
-                  Create an account to save your insights and start using all of Twyne's features.
-                </p>
-                <Button 
-                  onClick={handleCreateAccount}
-                  className="bg-gradient-to-r from-primary to-accent text-white"
-                  size="lg"
-                >
-                  Create Account to Save Data
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="mb-6 text-center">
+            <Button 
+              onClick={handleCreateAccount}
+              className="bg-gradient-to-r from-primary to-accent text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              size="lg"
+            >
+              <UserPlus className="h-5 w-5 mr-2" />
+              Create Account to Save Data
+            </Button>
+          </div>
         )}
 
         {/* ENHANCED: Pass userName with better fallback handling */}
