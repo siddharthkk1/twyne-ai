@@ -7,7 +7,6 @@ import { Logo } from "@/components/Logo";
 import { WaitlistForm } from "@/components/landing/WaitlistForm";
 import { WaitlistFollowUpForm } from "@/components/landing/WaitlistFollowUpForm";
 import { FeedbackButton } from "./feedback/FeedbackButton";
-import { FeedbackModal } from "./feedback/FeedbackModal";
 import { MessageSquare } from "lucide-react";
 
 export const TopNavBar = () => {
@@ -15,12 +14,20 @@ export const TopNavBar = () => {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
   const [submittedUserData, setSubmittedUserData] = useState<{email: string, location: string, phoneNumber?: string} | null>(null);
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   
   const handleWaitlistSubmit = (userData: {email: string, location: string, phoneNumber?: string}) => {
     setSubmittedUserData(userData);
     setIsWaitlistOpen(false);
     setIsFollowUpOpen(true);
+  };
+
+  // Function to trigger the feedback modal from the floating button
+  const handleFeedbackClick = () => {
+    // Find and click the floating feedback button
+    const floatingButton = document.querySelector('[aria-label="Give feedback"]') as HTMLButtonElement;
+    if (floatingButton) {
+      floatingButton.click();
+    }
   };
   
   return (
@@ -35,7 +42,7 @@ export const TopNavBar = () => {
                   About
                 </Link>
                 <Button
-                  onClick={() => setIsFeedbackModalOpen(true)}
+                  onClick={handleFeedbackClick}
                   variant="outline"
                   size="sm"
                   className="flex items-center gap-2"
@@ -86,12 +93,6 @@ export const TopNavBar = () => {
       
       {/* Show feedback button only for authenticated users (the floating one) */}
       {user && <FeedbackButton />}
-      
-      {/* Feedback Modal */}
-      <FeedbackModal 
-        isOpen={isFeedbackModalOpen} 
-        onClose={() => setIsFeedbackModalOpen(false)} 
-      />
       
       <WaitlistForm 
         open={isWaitlistOpen} 
