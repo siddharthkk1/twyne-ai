@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -8,9 +9,46 @@ import { useAuth } from "@/contexts/AuthContext";
 const About = () => {
   const { user } = useAuth();
   
-  // Determine back button destination based on auth status
-  const backDestination = user ? "/mirror" : "/";
-  const backText = user ? "Back to Mirror" : "Back to Home";
+  // Get URL parameters to check if we have a specific 'from' parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromParam = urlParams.get('from');
+  
+  // Determine back button destination and text
+  const getBackButtonInfo = () => {
+    // First, check URL parameter
+    if (fromParam === 'landing-v2') {
+      return { destination: '/landing-v2', text: 'Back to Home' };
+    }
+    if (fromParam === 'index') {
+      return { destination: '/', text: 'Back to Home' };
+    }
+    if (fromParam === 'mirror') {
+      return { destination: '/mirror', text: 'Back to Mirror' };
+    }
+    
+    // Second, check document.referrer
+    if (document.referrer) {
+      const referrerUrl = new URL(document.referrer);
+      const referrerPath = referrerUrl.pathname;
+      
+      if (referrerPath === '/landing-v2') {
+        return { destination: '/landing-v2', text: 'Back to Home' };
+      }
+      if (referrerPath === '/') {
+        return { destination: '/', text: 'Back to Home' };
+      }
+      if (referrerPath === '/mirror') {
+        return { destination: '/mirror', text: 'Back to Mirror' };
+      }
+    }
+    
+    // Third, fall back to authentication status
+    return user 
+      ? { destination: '/mirror', text: 'Back to Mirror' }
+      : { destination: '/', text: 'Back to Home' };
+  };
+  
+  const { destination, text } = getBackButtonInfo();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -24,9 +62,9 @@ const About = () => {
             asChild
             className="hover:bg-transparent"
           >
-            <Link to={backDestination} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <Link to={destination} className="flex items-center text-muted-foreground hover:text-primary transition-colors">
               <ArrowLeft className="mr-1 h-4 w-4" />
-              {backText}
+              {text}
             </Link>
           </Button>
         </div>

@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
@@ -11,6 +11,7 @@ import { MessageSquare } from "lucide-react";
 
 export const TopNavBar = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
   const [submittedUserData, setSubmittedUserData] = useState<{email: string, location: string, phoneNumber?: string} | null>(null);
@@ -29,6 +30,17 @@ export const TopNavBar = () => {
       floatingButton.click();
     }
   };
+
+  // Determine the about link URL based on current page
+  const getAboutUrl = () => {
+    if (location.pathname === '/') {
+      return '/about?from=index';
+    }
+    if (location.pathname === '/mirror') {
+      return '/about?from=mirror';
+    }
+    return '/about';
+  };
   
   return (
     <>
@@ -38,7 +50,7 @@ export const TopNavBar = () => {
             <Logo />
             {user && (
               <>
-                <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+                <Link to={getAboutUrl()} className="text-foreground/80 hover:text-primary transition-colors">
                   About
                 </Link>
                 <Button
@@ -76,7 +88,7 @@ export const TopNavBar = () => {
               </>
             ) : (
               <div className="flex items-center space-x-2 md:space-x-4">
-                <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base">
+                <Link to={getAboutUrl()} className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base">
                   About
                 </Link>
                 <Button 

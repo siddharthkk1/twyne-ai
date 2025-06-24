@@ -19,12 +19,18 @@ export const TopNavBarV2 = () => {
     navigate("/auth");
   };
 
-  // Determine the back button text based on current route
-  const getBackButtonText = () => {
-    if (location.pathname === "/mirror") {
-      return "Back to Mirror";
+  // Determine the about link URL based on current page
+  const getAboutUrl = () => {
+    if (location.pathname === '/landing-v2') {
+      return '/about?from=landing-v2';
     }
-    return "Back to Home";
+    if (location.pathname === '/') {
+      return '/about?from=index';
+    }
+    if (location.pathname === '/mirror') {
+      return '/about?from=mirror';
+    }
+    return '/about';
   };
   
   return (
@@ -35,7 +41,7 @@ export const TopNavBarV2 = () => {
             <Logo />
             {user && (
               <>
-                <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+                <Link to={getAboutUrl()} className="text-foreground/80 hover:text-primary transition-colors">
                   About
                 </Link>
               </>
@@ -64,7 +70,7 @@ export const TopNavBarV2 = () => {
               </>
             ) : (
               <div className="flex items-center space-x-2 md:space-x-4">
-                <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base">
+                <Link to={getAboutUrl()} className="text-foreground/80 hover:text-primary transition-colors text-sm md:text-base">
                   About
                 </Link>
                 <Button 
