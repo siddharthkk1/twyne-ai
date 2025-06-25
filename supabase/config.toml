@@ -11,11 +11,17 @@ max_rows = 1000
 [auth]
 enabled = true
 port = 54324
-site_url = "https://preview--twyne-ai.lovable.app"
+site_url = "https://twyne.social"
 additional_redirect_urls = [
+  "https://twyne.social/auth/callback",
+  "https://twyne.social/auth/callback/spotify",
+  "https://twyne.social/auth/callback/youtube",
   "https://preview--twyne-ai.lovable.app/auth/callback",
   "https://preview--twyne-ai.lovable.app/auth/callback/spotify",
-  "https://preview--twyne-ai.lovable.app/auth/callback/youtube"
+  "https://preview--twyne-ai.lovable.app/auth/callback/youtube",
+  "http://localhost:3000/auth/callback",
+  "http://localhost:3000/auth/callback/spotify",
+  "http://localhost:3000/auth/callback/youtube"
 ]
 jwt_expiry = 3600
 enable_signup = true
